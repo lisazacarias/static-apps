@@ -1,0 +1,103 @@
+/* Algae tracker — app-specific styles.
+   Design tokens, fonts, body/container, .card, .badge, .loading, .error
+   base rules live in ../../shared/base.css, loaded before this file. */
+
+.subtitle {
+    margin-bottom: 20px;
+}
+
+#legend {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-bright);
+}
+
+#legend .badge {
+    margin-right: 6px;
+}
+
+#legend .legend-note {
+    margin-top: 8px;
+    color: var(--text-muted);
+}
+
+#updated {
+    color: var(--text-muted);
+    font-size: 13px;
+    font-family: var(--font-mono);
+    margin-bottom: 8px;
+}
+
+.section h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 28px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+.section h2:first-child {
+    margin-top: 0;
+}
+
+/* ── Spot cards ── */
+.spot {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    transition: border-color 0.2s;
+}
+
+.spot:hover {
+    border-color: var(--border-bright);
+}
+
+.spot .name {
+    flex: 1;
+}
+
+.spot .name strong {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 17px;
+    color: var(--text-bright);
+}
+
+.dist {
+    color: var(--text-muted);
+    font-size: 12.5px;
+}
+
+.detail {
+    color: var(--gold);
+    font-size: 12.5px;
+    margin-top: 6px;
+}
+
+.detail.muted {
+    color: var(--text-muted);
+}
+
+/* ── Advisory badges ── */
+.badge.danger  { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(230, 57, 70, 0.35); }
+.badge.warning { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(212, 169, 106, 0.35); }
+.badge.caution { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(212, 169, 106, 0.25); }
+.badge.clear   { background: var(--green-dim); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.25); }
+.badge.nodata  { background: var(--bg-elevated); color: var(--silver); border: 1px solid var(--border-bright); }
+
+.badge.clear.stale {
+    background: transparent;
+    color: var(--green);
+    border: 1.5px solid var(--green);
+}

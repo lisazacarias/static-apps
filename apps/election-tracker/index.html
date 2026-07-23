@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hayward Election Results · June 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="../../shared/base.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-top">
+                <h1>Hayward Election Results<br>June 2026 Primary</h1>
+                <div class="live-badge">
+                    <span class="live-dot"></span>
+                    Live
+                </div>
+            </div>
+            <div class="header-meta">
+                <div class="last-update">Updated: <span id="lastUpdate">—</span></div>
+                <div class="last-update">Next refresh: <span id="nextUpdate">5:00</span></div>
+                <button class="refresh-btn" onclick="refreshData()">↻ Refresh</button>
+            </div>
+            <div class="certification-notice" style="margin-top: 12px;">
+                <strong>Unofficial Results</strong> — Results will be certified by July 10, 2026. Mail-in and provisional ballots continue to be counted.
+            </div>
+        </header>
+
+        <div class="info-box">
+            Showing top 5 candidates per race. Ballot count % is estimated from votes cast vs. expected turnout. Auto-refreshes every 5 minutes.
+        </div>
+
+        <div id="error-container"></div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2>Federal</h2>
+                <div class="section-line"></div>
+            </div>
+            <div id="federal-races">
+                <div class="loading">Loading…</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2>California Statewide</h2>
+                <div class="section-line"></div>
+            </div>
+            <div id="statewide-races">
+                <div class="loading">Loading…</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2>State Legislature</h2>
+                <div class="section-line"></div>
+            </div>
+            <div id="legislative-races">
+                <div class="loading">Loading…</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2>Alameda County &amp; Local</h2>
+                <div class="section-line"></div>
+            </div>
+            <div class="local-races-block">
+                <ul class="local-race-list">
+                    <li>Alameda County District Attorney</li>
+                    <li>County Superintendent of Schools</li>
+                    <li>Board of Supervisors — District 2</li>
+                    <li>Superior Court — Office No. 13</li>
+                    <li>Superior Court — Office No. 19</li>
+                </ul>
+                <a href="https://alamedacountyca.gov/rovresults/259/" target="_blank" class="link-button">View all on Official Alameda County Results →</a>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>

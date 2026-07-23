@@ -419,3 +419,9 @@ window.addEventListener('beforeunload', function() {
     clearInterval(autoRefreshInterval);
     clearInterval(countdownInterval);
 });
+
+// Expose functions referenced by inline onclick="" handlers in index.html
+// and in dynamically-rendered HTML. Needed because <script type="module">
+// does not add top-level declarations to the global/window scope.
+window.refreshData = refreshData;
+window.toggleShowAll = toggleShowAll;
