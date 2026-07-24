@@ -104,6 +104,11 @@ const SPOTS = [
     { text: "ℹ️ Golden mussel inspection program (EBRPD, since May 7 2025).",
       url: "https://www.ebparks.org/about-us/whats-new/news/new-watercraft-inspection-requirements" },
   ] },
+  { name: "Pinecrest Lake", match: ["pinecrest"], coords: [-119.98238, 38.19600], weekend: true,
+  notes: [
+    { text: "ℹ️ Sierra lake (~5,600 ft) — cool snowmelt water, summer-only. Busy on weekends.",
+      url: "https://www.fs.usda.gov/r05/stanislaus/recreation/pinecrest-lake" },
+  ] },
 ];
 
 // ---- HAB record fetch ---------------------------------------------------
