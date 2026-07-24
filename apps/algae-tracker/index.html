@@ -27,7 +27,20 @@
     </header>
 
     <div id="updated"></div>
-    <div id="spots" class="section"><div class="loading">Loading…</div></div>
+    <div id="location-bar">
+      <button id="set-location" class="btn">📍 Set my location</button>
+      <span id="location-status" class="meta"></span>
+    </div>
+    <div id="sort-bar">
+  <label for="sort-select">Sort:</label>
+  <select id="sort-select">
+    <option value="tier">Advisory (safest first)</option>
+    <option value="drive">Drive time (nearest first)</option>
+    <option value="weather">Best conditions (today)</option>
+  </select>
+</div>
+
+    <div id="spots"><div class="loading">Loading…</div></div>
   </div>
   <script type="module" src="app.js"></script>
 </body>

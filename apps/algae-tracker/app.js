@@ -1,57 +1,112 @@
 // ==========================================================================
 // SUP Algae Advisory Tracker
-// Data: California FHAB (Freshwater Harmful Algal Bloom) open dataset
-// Source: https://data.ca.gov/dataset/surface-water-freshwater-harmful-algal-blooms
+// Data: CA FHAB (algae) + USGS (water temp) + Open-Meteo (weather) + OSRM (drive time)
+// Origin resolved privately at runtime; never committed.
 // ==========================================================================
 
 import { CKAN, queryResource, getField } from "../../shared/ckan.js";
+import {
+  resolveOrigin, driveTimes, geocode,
+  saveOrigin, getSavedOrigin, clearSavedOrigin
+} from "../../shared/geo.js";
+import { waterTempForCoords } from "../../shared/usgs.js";
+import { forecast, wxLabel, windClass } from "../../shared/weather.js";
 
 // ---- Config -------------------------------------------------------------
+// NOTE: CKAN base must point to data.ca.gov (see shared/ckan.js).
+// The dataset migrated off data.cnra.ca.gov — resources there are
+// datastore_active:false with dead (404) download URLs.
 const DATASET = "surface-water-freshwater-harmful-algal-blooms";
-
-// Confirmed resource IDs (used as fallback if package_show fails).
 const FALLBACK_RESOURCE_IDS = [
-  "c6a36b91-ad38-4611-8750-87ee99e497dd", // FHABS BLOOM REPORTS (active, primary)
+  "c6a36b91-ad38-4611-8750-87ee99e497dd", // FHABS BLOOM REPORTS
   "67648948-034f-4882-bbc0-c07c7d38daf9", // FHABS CASES
   "4283c060-c22f-48f5-a75c-8bccf0c54a99", // FHABS RESPONSES
+  "9d4e1df4-0cd6-4165-9e63-effcafd9dccc", // FHABS RESULTS (corrected — was a dupe of RESPONSES)
 ];
 
-// Real column names (confirmed from the API schema).
 const WATERBODY_FIELDS = ["Water_Body_Name", "Official_Water_Body_Name", "Case_Water_Body_Name"];
 const DATE_FIELDS      = ["Observation_Date", "Bloom_Date_Created"];
 const ADVISORY_TEXT_FIELDS = ["Reported_Advisory_Types", "AdvisoryDetail", "Advisory_Detail_Description"];
 const ADVISORY_START = "AdvisoryStartDate";
 const ADVISORY_END   = "AdvisoryEndDate";
 
-// Advisory tiers, worst-first.
 const TIERS = ["danger", "warning", "caution"];
 
-// Distance tiers mirror the original spot list.
-const TIER_WEEKDAY  = "📅 Weekday Only (crowded on weekends)";
-const TIER_ANYDAY   = "✅ Good Any Day";
-const TIER_NOTALLOW = "🚫 Not Allowed";
-const GROUP_ORDER = [TIER_ANYDAY, TIER_WEEKDAY, TIER_NOTALLOW];
+// Cache versions — bump to invalidate stale cached values after logic changes.
+const TEMP_CACHE_VERSION  = "v2";
+const DRIVE_CACHE_VERSION = "v2";
 
-// Candidate spots. `match` = substrings to look for in the waterbody name.
+// Spots. coords=[lng,lat] launch point; parking=Apple Maps links;
+// notes=manual metadata (mussel/quarantine/SUP rules — not in any feed).
+// Flags: weekend=crowded on weekends (badge); noSup=SUP prohibited (badge).
 const SPOTS = [
-  { name: "Del Valle Reservoir",   match: ["del valle"],            dist: "1 hr",        group: TIER_WEEKDAY },
-  { name: "Lake Berryessa",        match: ["berryessa"],            dist: "2 hrs",       group: TIER_WEEKDAY },
-  { name: "Clear Lake",            match: ["clear lake"],           dist: "3 hrs",       group: TIER_WEEKDAY },
-  { name: "Lake Natoma",           match: ["natoma"],               dist: "2.5-3.5 hrs", group: TIER_WEEKDAY },
-  { name: "Folsom Lake",           match: ["folsom"],               dist: "2.5-3.5 hrs", group: TIER_WEEKDAY },
-  { name: "Bass Lake",             match: ["bass lake"],            dist: "3 hrs",       group: TIER_WEEKDAY },
-  { name: "Millerton Lake",        match: ["millerton"],            dist: "3.5 hrs",     group: TIER_WEEKDAY },
-  { name: "Pyramid Lake",          match: ["pyramid"],              dist: "4 hrs",       group: TIER_WEEKDAY },
-  { name: "Shadow Cliffs",         match: ["shadow cliff"],         dist: "40 min",      group: TIER_ANYDAY },
-  { name: "Contra Loma Reservoir", match: ["contra loma"],          dist: "1.5 hrs",     group: TIER_ANYDAY },
-  { name: "Don Pedro Reservoir",   match: ["don pedro"],            dist: "2.5 hrs",     group: TIER_ANYDAY },
-  { name: "New Melones Reservoir", match: ["new melones","melones"],dist: "2.5 hrs",     group: TIER_ANYDAY },
-  { name: "Lake Nacimiento",       match: ["nacimiento"],           dist: "3.5 hrs",     group: TIER_ANYDAY },
-  { name: "Lake San Antonio",      match: ["san antonio"],          dist: "3.5 hrs",     group: TIER_ANYDAY },
-  { name: "Lake Chabot",           match: ["chabot"],               dist: "15-20 min",   group: TIER_NOTALLOW },
+
+{ name: "Del Valle Reservoir", match: ["del valle"], coords: [-121.7130, 37.5860], weekend: true,
+  parking: [{ label: "Parking", url: "https://maps.apple/p/gJI.9nNyJAj.Qn" }],
+  notes: [
+    { text: "⚠️ DWR lists a CAUTION advisory (2026) not reflected in the FHAB feed (FHAB data here ends ~2024). Verify current status before going.",
+      url: "https://water.ca.gov/What-We-Do/Recreation/Algal-Blooms" },
+    { text: "ℹ️ Golden mussel inspection program (EBRPD, since May 7 2025). Inflatables/float tubes may be exempt.",
+      url: "https://www.ebparks.org/about-us/whats-new/news/new-watercraft-inspection-requirements" },
+  ] },
+
+{ name: "Lake Berryessa", match: ["berryessa"], coords: [-122.2320, 38.5130], weekend: true,
+  parking: [
+    { label: "Oak Shores", url: "https://maps.apple/p/7vUhK9yqJZxNPW" },
+    { label: "Pope Creek", url: "https://maps.apple/p/KG2ebQzB.iSJ_i" },
+  ] },
+
+{ name: "Clear Lake", match: ["clear lake"], coords: [-122.6390, 39.0290], weekend: true,
+  notes: [
+    { text: "⚠️ Large lake — advisories vary by area and may lag actual bloom severity." },
+  ] },
+
+{ name: "Lake Natoma", match: ["natoma"], coords: [-121.1660, 38.6350], weekend: true },
+{ name: "Folsom Lake", match: ["folsom"], coords: [-121.1560, 38.7080], weekend: true },
+{ name: "Bass Lake", match: ["bass lake"], coords: [-119.5580, 37.3210], weekend: true },
+{ name: "Millerton Lake", match: ["millerton"], coords: [-119.6910, 37.0250], weekend: true },
+{ name: "Pyramid Lake", match: ["pyramid"], coords: [-118.7960, 34.6820], weekend: true },
+
+{ name: "Quarry Lakes", match: ["quarry lakes","horseshoe lake"], coords: [-121.9880, 37.5720], weekend: true,
+  notes: [
+    { text: "ℹ️ SUP allowed on Horseshoe Lake only.",
+      url: "https://www.ebparks.org/recreation/boating" },
+    { text: "⚠️ Crowded on weekends — swim beach has a capacity cap. Weekday paddling recommended.",
+      url: "https://www.ebparks.org/recreation/swimming/niles-beach" },
+    { text: "ℹ️ Golden mussel inspection program (EBRPD, since May 7 2025). Inflatables/float tubes may be exempt.",
+      url: "https://www.ebparks.org/about-us/whats-new/news/new-watercraft-inspection-requirements" },
+  ] },
+
+{ name: "Shadow Cliffs", match: ["shadow cliff"], coords: [-121.8850, 37.6690],
+  parking: [{ label: "Parking", url: "https://maps.apple/p/2W0buqSHHFbGjF" }],
+  notes: [
+    { text: "ℹ️ Golden mussel inspection program (EBRPD, since May 7 2025). Inflatables/float tubes may be exempt.",
+      url: "https://www.ebparks.org/about-us/whats-new/news/new-watercraft-inspection-requirements" },
+  ] },
+
+{ name: "Contra Loma Reservoir", match: ["contra loma"], coords: [-121.8460, 37.9760],
+  notes: [
+    { text: "⚠️ Golden mussels DETECTED. Launching here quarantines your boat 30 days from Del Valle, Shadow Cliffs, Chabot & Quarry Lakes.",
+      url: "https://www.ebparks.org/recreation/boating/invasive-mussels" },
+    { text: "ℹ️ Inflatable SUP likely exempt from inspection — verify before relying on it.",
+      url: "https://www.ebparks.org/recreation/boating" },
+  ] },
+
+{ name: "Don Pedro Reservoir", match: ["don pedro"], coords: [-120.4230, 37.7000] },
+{ name: "New Melones Reservoir", match: ["new melones","melones"], coords: [-120.5270, 37.9480],
+  parking: [{ label: "Glory Hole", url: "https://maps.apple/p/FmIpWeN0wcPjyB" }] },
+{ name: "Lake Nacimiento", match: ["nacimiento"], coords: [-120.8900, 35.7560] },
+{ name: "Lake San Antonio", match: ["san antonio"], coords: [-120.8560, 35.8000] },
+
+{ name: "Lake Chabot", match: ["chabot"], coords: [-122.1050, 37.7250], noSup: true,
+  notes: [
+    { text: "🚫 SUP prohibited — kayaks/canoes/float tubes only." },
+    { text: "ℹ️ Golden mussel inspection program (EBRPD, since May 7 2025).",
+      url: "https://www.ebparks.org/about-us/whats-new/news/new-watercraft-inspection-requirements" },
+  ] },
 ];
 
-// ---- Fetch --------------------------------------------------------------
+// ---- HAB record fetch ---------------------------------------------------
 async function getResourceIds() {
   try {
     const r = await fetch(`${CKAN}/package_show?id=${DATASET}`);
@@ -65,18 +120,10 @@ async function getResourceIds() {
   }
 }
 
-// ---- Helpers ------------------------------------------------------------
-function parseDate(v) {
-  if (!v) return null;
-  const d = new Date(v);
-  return isNaN(d) ? null : d;
-}
-
-const ACTIVE_WINDOW_DAYS = 120; // an "ongoing" advisory is only trusted if recent activity exists
-
-function daysAgo(d) {
-  return d ? (Date.now() - d) / 86400000 : Infinity;
-}
+// ---- Advisory helpers ---------------------------------------------------
+function parseDate(v) { if (!v) return null; const d = new Date(v); return isNaN(d) ? null : d; }
+const ACTIVE_WINDOW_DAYS = 120;
+function daysAgo(d) { return d ? (Date.now() - d) / 86400000 : Infinity; }
 
 function recentReportedAdvisory(rec) {
   const reported = (rec["Reported_Advisory_Types"] || "").toString().trim();
@@ -90,30 +137,41 @@ function advisoryActive(rec) {
   const start = parseDate(rec[ADVISORY_START]);
   const end   = parseDate(rec[ADVISORY_END]);
   const now = new Date();
-
   if (!start) return false;
   if (start > now) return false;
-
-  // If there's an explicit end date, honor it strictly.
   if (end) return end >= now;
-
-  // Open-ended ("ongoing") advisory: only trust it if there's RECENT activity.
-  // Use the most recent of advisory start or any observation date on this record.
   const obs = DATE_FIELDS.map(f => parseDate(rec[f])).filter(Boolean);
   const mostRecent = [start, ...obs].reduce((a, b) => (b > a ? b : a), start);
   return daysAgo(mostRecent) <= ACTIVE_WINDOW_DAYS;
 }
 
-// Phrases that explicitly indicate NO active health advisory.
 const NO_ADVISORY_PATTERNS = /below posting trigger|no advisory|routine monitoring|no bloom|below (the )?detection|rescinded|lifted|no action/i;
 
+// Fail-safe on mixed-status strings: a present tier word wins unless it's
+// CLEARLY the only tier and clearly cleared. Biases toward showing the disqualifier.
 function tierFromText(rec) {
   const text = ADVISORY_TEXT_FIELDS
     .map(f => (rec[f] || "").toString().toLowerCase())
     .join(" ");
-  if (NO_ADVISORY_PATTERNS.test(text)) return "none"; // explicitly not an advisory
-  for (const t of TIERS) if (text.includes(t)) return t;
-  return null; // active record but no recognizable tier
+
+  let presentTier = null;
+  for (const t of TIERS) { if (text.includes(t)) { presentTier = t; break; } }
+
+  const hasNegation = NO_ADVISORY_PATTERNS.test(text);
+
+  if (presentTier) {
+    const onlyOneTier = TIERS.filter(t => text.includes(t)).length === 1;
+    if (hasNegation && onlyOneTier) {
+      const clearlyCleared =
+        /(rescinded|lifted|removed|no longer)/i.test(text) &&
+        !/(remains|still|continues|in effect|active)/i.test(text);
+      if (clearlyCleared) return "none";
+    }
+    return presentTier;
+  }
+
+  if (hasNegation) return "none";
+  return null;
 }
 
 function advisoryDetailText(rec) {
@@ -122,40 +180,38 @@ function advisoryDetailText(rec) {
   const start = parseDate(rec[ADVISORY_START]);
   const end   = parseDate(rec[ADVISORY_END]);
   let dates = "";
-  if (start) {
-    dates = " (" + start.toISOString().slice(0,10) +
-            (end ? "–" + end.toISOString().slice(0,10) : "–ongoing") + ")";
-  }
+  if (start) dates = " (" + start.toISOString().slice(0,10) + (end ? "–" + end.toISOString().slice(0,10) : "–ongoing") + ")";
   return detail ? detail + dates : "";
 }
 
-const STALE_CLEAR_DAYS = 365; // CLEAR older than this is shown as "stale"
+const STALE_CLEAR_DAYS = 365;
+
 function classify(records) {
   let worst = null, latest = null, hasRealAdvisory = false, detail = "";
+  let hasHistory = false;   // any past Danger/Warning/Caution ever recorded
 
   for (const rec of records) {
     for (const f of DATE_FIELDS) {
       const d = parseDate(rec[f]);
       if (d && (!latest || d > latest)) latest = d;
     }
+
+    const histTier = tierFromText(rec);
+    if (histTier && histTier !== "none") hasHistory = true;
+
     if (advisoryActive(rec) || recentReportedAdvisory(rec)) {
       const t = tierFromText(rec);
       if (t && t !== "none") {
         hasRealAdvisory = true;
-        if (!worst || TIERS.indexOf(t) < TIERS.indexOf(worst)) {
-          worst = t;
-          detail = advisoryDetailText(rec);
-        }
+        if (!worst || TIERS.indexOf(t) < TIERS.indexOf(worst)) { worst = t; detail = advisoryDetailText(rec); }
       }
     }
   }
 
-  if (!records.length) return { tier: "nodata", latest: null, detail: "", stale: false };
-  if (hasRealAdvisory) return { tier: worst, latest, detail, stale: false };
-
-  // CLEAR — flag as stale if the newest report is old.
+  if (!records.length) return { tier: "nodata", latest: null, detail: "", stale: false, hasHistory: false };
+  if (hasRealAdvisory) return { tier: worst, latest, detail, stale: false, hasHistory };
   const stale = latest ? daysAgo(latest) > STALE_CLEAR_DAYS : true;
-  return { tier: "clear", latest, detail: "", stale };
+  return { tier: "clear", latest, detail: "", stale, hasHistory };
 }
 
 function matchesSpot(rec, spot) {
@@ -163,60 +219,243 @@ function matchesSpot(rec, spot) {
   return spot.match.some(m => wb.includes(m));
 }
 
+// ---- Sorting ------------------------------------------------------------
+let SORT_MODE = localStorage.getItem("sortMode") || "tier";
+
+// Lower = better paddling. Wind dominates (SUP-critical), then rain, then cool temps.
+function paddleScore(r) {
+  const cur = r.forecast?.current, today = r.forecast?.days?.[0];
+  const wind = cur?.windMph ?? today?.wind ?? 99;
+  const rain = today?.rain ?? 0;
+  const hi   = today?.hi ?? cur?.airF ?? 0;
+  return wind * 3 + rain * 0.5 + Math.max(0, 75 - hi) * 0.8;
+}
+
+const TIER_SAFEST_FIRST = ["clear","nodata","caution","warning","danger"];
+
+// Fresh clear ranks above stale clear. Everything else by tier.
+function safestRank(r) {
+  if (r.tier === "clear") return r.stale ? 0.5 : 0;   // 0 = fresh clear (top), 0.5 = stale clear
+  return TIER_SAFEST_FIRST.indexOf(r.tier);           // nodata=1, caution=2, warning=3, danger=4
+}
+
+function sortComparator(mode) {
+  switch (mode) {
+    case "drive":   return (a, b) => (a.driveSecs ?? Infinity) - (b.driveSecs ?? Infinity);
+    case "weather": return (a, b) => paddleScore(a) - paddleScore(b);
+    default:        return (a, b) =>
+      safestRank(a) - safestRank(b)
+      || (a.driveSecs ?? Infinity) - (b.driveSecs ?? Infinity);
+  }
+}
+
+// Unsafe tiers always sink; NO-SUP spots sink below paddleable ones.
+// Preserves the disqualifier logic the old grouping used to guarantee.
+function withSafetyFloor(cmp) {
+  const rank = r =>
+    (r.tier === "danger" || r.tier === "warning" ? 4 : 0) +
+    (r.tier === "caution" ? 2 : 0) +          // ← add this line to sink caution too
+    (r.noSup ? 1 : 0);
+  return (a, b) => rank(a) - rank(b) || cmp(a, b);
+}
+
+// ---- Drive-time helpers -------------------------------------------------
+function fmtDrive(secs) {
+  if (secs == null || !isFinite(secs)) return "—";
+  const m = Math.round(secs / 60);
+  return m < 60 ? `${m} min` : `${Math.floor(m/60)} hr ${m%60} min`;
+}
+function driveCacheKey() { return `driveCache_${DRIVE_CACHE_VERSION}_${new Date().toISOString().slice(0,10)}`; }
+function invalidateDriveCache() { localStorage.removeItem(driveCacheKey()); }
+async function getCachedDriveTimes(origin, spots) {
+  const key = driveCacheKey();
+  const cached = localStorage.getItem(key);
+  if (cached) return JSON.parse(cached);
+  const secs = await driveTimes(origin, spots.map(s => s.coords));
+  localStorage.setItem(key, JSON.stringify(secs));
+  return secs;
+}
+
+// ---- Temp helper --------------------------------------------------------
+async function getWaterTemp(spot) {
+  const day = new Date().toISOString().slice(0,10);
+  const key = `temp_${TEMP_CACHE_VERSION}_${spot.name}_${day}`;
+  const cached = localStorage.getItem(key);
+  if (cached !== null) return cached === "null" ? null : JSON.parse(cached);
+  const result = await waterTempForCoords(spot.coords);
+  localStorage.setItem(key, result ? JSON.stringify(result) : "null");
+  return result;
+}
+
 // ---- Render -------------------------------------------------------------
-function monthsAgo(d) {
-  return d ? Math.round((Date.now() - d) / (86400000 * 30.44)) : null;
+function monthsAgo(d) { return d ? Math.round((Date.now() - d) / (86400000 * 30.44)) : null; }
+function shortDay(dateStr) {
+  return new Date(dateStr + "T12:00").toLocaleDateString(undefined, { weekday: "short" });
 }
 
 function render(results) {
   const el = document.getElementById("spots");
-  const order = ["danger","warning","caution","clear","nodata"];
-  let html = "";
 
-  for (const group of GROUP_ORDER) {
-    const inGroup = results.filter(r => r.group === group);
-    if (!inGroup.length) continue;
-    inGroup.sort((a,b) => order.indexOf(a.tier) - order.indexOf(b.tier));
-    html += `<h2>${group}</h2>`;
-    html += inGroup.map(r => {
-      const badgeClass = (r.tier === "clear" && r.stale) ? "clear stale" : r.tier;
-      const badgeLabel = (r.tier === "clear" && r.stale) ? "CLEAR*" : r.tier.toUpperCase();
-      const ageNote = (r.tier === "clear" && r.stale && r.latest)
-        ? `<div class="detail muted">ℹ️ Data is ~${monthsAgo(r.latest)} months old — not a fresh all-clear.</div>`
-        : "";
-      return `
-      <div class="spot">
-        <span class="badge ${badgeClass}">${badgeLabel}</span>
-        <span class="name">
-          <strong>${r.name}</strong> <span class="dist">— ${r.dist}</span>
-          <div class="meta">${r.latest
-            ? "Latest report: " + r.latest.toISOString().slice(0,10)
-            : "No reports found"}</div>
-          ${r.detail ? `<div class="detail">⚠️ ${r.detail}</div>` : ""}
-          ${ageNote}
-        </span>
-      </div>`;
-    }).join("");
-  }
-  el.innerHTML = html;
+  const sorted = [...results].sort(withSafetyFloor(sortComparator(SORT_MODE)));
+
+  el.innerHTML = sorted.map(r => {
+    const badgeClass = (r.tier === "clear" && r.stale) ? "clear stale" : r.tier;
+    const badgeLabel = (r.tier === "clear" && r.stale) ? "CLEAR*" : r.tier.toUpperCase();
+
+    const weekendBadge = r.weekend ? `<span class="badge weekend">📅 WEEKEND CROWDS</span>` : "";
+    const noSupBadge   = r.noSup   ? `<span class="badge nosup">🚫 NO SUP</span>` : "";
+
+    const ageNote = (r.tier === "clear" && r.stale && r.latest)
+      ? `<div class="detail muted">ℹ️ Data is ~${monthsAgo(r.latest)} months old — not a fresh all-clear.</div>` : "";
+    const historyNote = (r.hasHistory && (r.tier === "clear" || r.tier === "nodata"))
+      ? `<div class="detail muted">🕓 Prior bloom advisory on record — recurring-bloom water, worth a fresh check.</div>` : "";
+
+    const cur = r.forecast?.current;
+    const curLine = cur
+      ? `<div class="meta wx">${wxLabel(cur.code)} ${cur.airF}°F · <span class="${windClass(cur.windMph)}">💨 ${cur.windMph} mph</span></div>`
+      : "";
+
+    const fcLine = (r.forecast?.days?.length)
+      ? `<div class="forecast">${r.forecast.days.map(d => `
+          <span class="fc-day" title="${d.date}">
+            ${shortDay(d.date)} ${wxLabel(d.code).split(" ")[0]} ${d.hi}°/${d.lo}°
+            ${d.rain > 20 ? ` ☔${d.rain}%` : ""}
+            <span class="${windClass(d.wind)}">💨${d.wind}</span>
+          </span>`).join("")}</div>`
+      : "";
+
+    const notesLines = (r.notes && r.notes.length)
+      ? r.notes.map(n => {
+          const txt = typeof n === "string" ? n : n.text;
+          const link = (typeof n === "object" && n.url)
+            ? ` <a href="${n.url}" target="_blank" rel="noopener">↗</a>` : "";
+          return `<div class="detail note">${txt}${link}</div>`;
+        }).join("")
+      : "";
+
+    const parkingLine = (r.parking && r.parking.length)
+      ? `<div class="parking">📍 ${r.parking.map(p =>
+          `<a href="${p.url}" target="_blank" rel="noopener">${p.label}</a>`).join(" · ")}</div>` : "";
+
+    return `
+    <div class="spot">
+      <span class="badge ${badgeClass}">${badgeLabel}</span>
+      <span class="name">
+        <strong>${r.name}</strong> <span class="dist">— ${r.dist}</span>
+        ${weekendBadge} ${noSupBadge}
+        ${r.tempLabel ? `<span class="warmth">${r.tempLabel}</span>` : ""}
+        <div class="meta">${r.latest ? "Latest report: " + r.latest.toISOString().slice(0,10) : "No reports found"}</div>
+        ${r.detail ? `<div class="detail">⚠️ ${r.detail}</div>` : ""}
+        ${ageNote}
+        ${historyNote}
+        ${notesLines}
+        ${curLine}
+        ${fcLine}
+        ${parkingLine}
+      </span>
+    </div>`;
+  }).join("");
 }
 
 // ---- Main ---------------------------------------------------------------
-(async function main() {
+let ALL_RECORDS = null;
+let LAST_RESULTS = null;
+
+async function computeAndRender() {
+  const origin = await resolveOrigin();
+
+  const [driveSecs, temps, forecasts] = await Promise.all([
+    getCachedDriveTimes(origin, SPOTS).catch(() => SPOTS.map(() => null)),
+    Promise.allSettled(SPOTS.map(getWaterTemp)).then(rs => rs.map(r => r.value ?? null)),
+    Promise.allSettled(SPOTS.map(s => forecast(s.coords))).then(rs => rs.map(r => r.value ?? null)),
+  ]);
+
+  const results = SPOTS.map((spot, i) => {
+    const recs = ALL_RECORDS.filter(rec => matchesSpot(rec, spot));
+    const t = temps[i];
+    return {
+      ...spot,
+      ...classify(recs),
+      driveSecs: driveSecs[i],
+      dist: fmtDrive(driveSecs[i]),
+      tempLabel: t ? `🌡️ ${t.tempF}°F` + (t.miles > 3 ? ` (~${t.miles} mi away)` : "") : "",
+      forecast: forecasts[i],
+    };
+  });
+
+  LAST_RESULTS = results;
+  render(results);
+  document.getElementById("updated").textContent = "Checked " + new Date().toLocaleString();
+
+  const status = document.getElementById("location-status");
+  if (status) {
+    status.textContent = getSavedOrigin()
+      ? "Using your saved location (this browser only)."
+      : "Using generic Hayward location — click to set yours.";
+  }
+}
+
+function parseLatLng(str) {
+  const s = str.trim();
+  const dir = s.match(/(-?\d+(?:\.\d+)?)\s*°?\s*([NS])\s*,\s*(-?\d+(?:\.\d+)?)\s*°?\s*([EW])/i);
+  if (dir) {
+    let lat = parseFloat(dir[1]); if (/s/i.test(dir[2])) lat = -lat;
+    let lng = parseFloat(dir[3]); if (/w/i.test(dir[4])) lng = -lng;
+    if (Math.abs(lat) <= 90 && Math.abs(lng) <= 180) return [lng, lat];
+    return null;
+  }
+  const plain = s.match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
+  if (plain) {
+    const lat = parseFloat(plain[1]), lng = parseFloat(plain[2]);
+    if (Math.abs(lat) <= 90 && Math.abs(lng) <= 180) return [lng, lat];
+  }
+  return null;
+}
+
+function wireLocationButton() {
+  const btn = document.getElementById("set-location");
+  if (!btn) return;
+  btn.addEventListener("click", async () => {
+    const addr = prompt(
+      "Enter an address OR paste coordinates as \"lat, lng\".\n\n" +
+      "Stored ONLY in this browser (localStorage) — never uploaded or committed.\n\n" +
+      "Leave blank and press OK to clear a saved location."
+    );
+    if (addr === null) return;
+    if (addr.trim() === "") { clearSavedOrigin(); invalidateDriveCache(); await computeAndRender(); return; }
+    const direct = parseLatLng(addr);
+    if (direct) { saveOrigin(direct[0], direct[1]); invalidateDriveCache(); await computeAndRender(); return; }
+    btn.disabled = true; btn.textContent = "Locating…";
+    const coords = await geocode(addr.trim());
+    btn.disabled = false; btn.textContent = "📍 Set my location";
+    if (!coords) { alert("Couldn't find that address. Try pasting coordinates as \"lat, lng\" instead."); return; }
+    saveOrigin(coords[0], coords[1]); invalidateDriveCache(); await computeAndRender();
+  });
+}
+
+function wireSortControl() {
+  const sel = document.getElementById("sort-select");
+  if (!sel) return;
+  sel.value = SORT_MODE;
+  sel.addEventListener("change", () => {
+    SORT_MODE = sel.value;
+    localStorage.setItem("sortMode", SORT_MODE);
+    if (LAST_RESULTS) render(LAST_RESULTS);   // re-sort without re-fetching
+  });
+}
+
+async function main() {
   try {
     const ids = await getResourceIds();
-    const all = (await Promise.all(ids.map(id => queryResource(id)))).flat();
-    console.log("Total records fetched:", all.length);
-
-    const results = SPOTS.map(spot => {
-      const recs = all.filter(rec => matchesSpot(rec, spot));
-      return { ...spot, ...classify(recs) };
-    });
-
-    render(results);
-    document.getElementById("updated").textContent =
-      "Checked " + new Date().toLocaleString();
+    ALL_RECORDS = (await Promise.all(ids.map(id => queryResource(id).catch(() => [])))).flat();
+    console.log("Total records fetched:", ALL_RECORDS.length);
+    await computeAndRender();
+    wireLocationButton();
+    wireSortControl();
   } catch (e) {
-    document.getElementById("spots").textContent = "Error loading data: " + e;
+    console.error("main() failed:", e);
+    document.getElementById("spots").innerHTML = `<div class="error">Couldn't load: ${e.message}</div>`;
   }
-})();
+}
+
+main();

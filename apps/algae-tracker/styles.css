@@ -6,12 +6,18 @@
     margin-bottom: 20px;
 }
 
+#location-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+#location-status { color: var(--text-muted); }
+
 #legend {
     font-size: 12.5px;
     color: var(--text-muted);
-    margin-bottom: 24px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border-bright);
+    margin-top: 16px;   /* just a little space between subtitle and badges */
 }
 
 #legend .badge {
@@ -28,22 +34,6 @@
     font-size: 13px;
     font-family: var(--font-mono);
     margin-bottom: 8px;
-}
-
-.section h2 {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 2.5px;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin: 28px 0 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
-}
-
-.section h2:first-child {
-    margin-top: 0;
 }
 
 /* ── Spot cards ── */
@@ -93,11 +83,59 @@
 .badge.danger  { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(230, 57, 70, 0.35); }
 .badge.warning { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(212, 169, 106, 0.35); }
 .badge.caution { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(212, 169, 106, 0.25); }
-.badge.clear   { background: var(--green-dim); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.25); }
 .badge.nodata  { background: var(--bg-elevated); color: var(--silver); border: 1px solid var(--border-bright); }
+
+/* Clear zone — same hue, two emphasis levels.
+   Fresh (this season) = bright & filled + glow.
+   Stale (prior season) = dim, quiet, no glow. */
+.badge.clear {
+    background: var(--green-dim);
+    color: var(--green);
+    border: 1px solid var(--green);
+    font-weight: 700;
+    box-shadow: 0 0 6px rgba(16, 185, 129, 0.45);  /* subtle glow = fresh/confident */
+}
 
 .badge.clear.stale {
     background: transparent;
     color: var(--green);
-    border: 1.5px solid var(--green);
+    opacity: 0.55;
+    border: 1px solid var(--border-bright);
+    font-weight: 600;
+    box-shadow: none;
+}
+
+/* manual notes (mussel / quarantine / SUP rules) */
+.detail.note { color: var(--text-label); }
+
+/* parking links */
+.parking { font-size: 12.5px; margin-top: 6px; }
+.parking a { color: var(--blue); text-decoration: none; }
+.parking a:hover { text-decoration: underline; }
+
+/* water temp */
+.warmth { font-size: 12px; font-family: var(--font-mono); color: var(--gold); margin-left: 6px; }
+
+/* current weather + forecast */
+.meta.wx { margin-top: 4px; }
+.forecast {
+  display: flex; gap: 14px; margin-top: 6px;
+  font-size: 11.5px; color: var(--text-muted); font-family: var(--font-mono);
+  flex-wrap: wrap;
+}
+.fc-day { white-space: nowrap; }
+
+/* wind color coding (SUP-critical) */
+.wind-ok   { color: var(--green); }
+.wind-warn { color: var(--gold); }
+.wind-bad  { color: var(--accent); }
+
+.badge.weekend { background: var(--bg-elevated); color: var(--gold); border: 1px solid rgba(212, 169, 106, 0.35); font-weight: 600; }
+.badge.nosup   { background: var(--bg-elevated); color: var(--silver); border: 1px solid var(--border-bright); font-weight: 600; }
+
+#sort-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 13px; color: var(--text-muted); }
+#sort-bar select {
+  background: var(--bg-elevated); color: var(--text-bright);
+  border: 1px solid var(--border-bright); border-radius: 4px;
+  padding: 4px 8px; font-family: inherit; font-size: 13px;
 }

@@ -4,7 +4,10 @@
 // (https://data.ca.gov, and other CKAN-powered portals).
 // ==========================================================================
 
-export const CKAN = "https://data.ca.gov/api/3/action";
+// The FHAB dataset migrated from data.cnra.ca.gov (dead — resources datastore_active:false,
+// download URLs 404) to data.ca.gov (live — datastore_active:true). This one line
+// was the root cause of "no data / everything stale".
+export const CKAN = "https://data.ca.gov/api/3/action";   // was: https://data.cnra.ca.gov/api/3/action
 
 export async function queryResource(id, limit = 20000) {
   try {
