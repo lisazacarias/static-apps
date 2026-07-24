@@ -1,47 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SUP Algae Advisory Tracker</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="../../shared/base.css">
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>SUP Algae Advisory Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="../../shared/base.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
+<div class="container">
     <header>
-      <h1>🏄 Paddleboard Algae Advisory Tracker</h1>
-      <p class="subtitle">Live freshwater HAB reports from California's FHAB open dataset.
-         "No recent data" ≠ safe — it may just be unmonitored.</p>
-      <div id="legend">
-        <span class="badge danger">DANGER</span>
-        <span class="badge warning">WARNING</span>
-        <span class="badge caution">CAUTION</span>
-        <span class="badge clear">CLEAR</span>
-        <span class="badge clear stale">CLEAR*</span>
-        <span class="badge nodata">NO DATA</span>
-        <div class="legend-note">CLEAR* = no active advisory, but data is over a year old.</div>
-      </div>
+        <h1>🏄 Paddleboard Algae Advisory Tracker</h1>
+        <p class="subtitle">Live freshwater HAB reports from California's FHAB
+            open dataset.
+            "No recent data" ≠ safe — it may just be unmonitored.</p>
+        <div id="legend">
+            <span class="badge danger">DANGER</span>
+            <span class="badge warning">WARNING</span>
+            <span class="badge caution">CAUTION</span>
+            <span class="badge clear">CLEAR</span>
+            <span class="badge clear stale">CLEAR*</span>
+            <span class="badge nodata">NO DATA</span>
+            <div class="legend-note">CLEAR* = no active advisory, but data is
+                over a year old.
+            </div>
+        </div>
     </header>
 
     <div id="updated"></div>
     <div id="location-bar">
-      <button id="set-location" class="btn">📍 Set my location</button>
-      <span id="location-status" class="meta"></span>
+        <button id="set-location" class="btn">📍 Set my location</button>
+        <span id="location-status" class="meta"></span>
     </div>
-    <div id="sort-bar">
-  <label for="sort-select">Sort:</label>
-  <select id="sort-select">
-    <option value="tier">Advisory (safest first)</option>
-    <option value="drive">Drive time (nearest first)</option>
-    <option value="weather">Best conditions (today)</option>
-  </select>
-</div>
+    <div id="controls-bar">
+        <div id="sort-bar">
+            <label for="sort-select">Sort:</label>
+            <select id="sort-select">
+                <option value="tier">Advisory (safest first)</option>
+                <option value="drive">Drive time (nearest first)</option>
+                <option value="weather">Best conditions (today)</option>
+            </select>
+        </div>
+        <div id="filter-bar">
+            <label><input type="checkbox" id="filter-range"/>Within 2 hr
+                drive</label>
+        </div>
+    </div>
 
-    <div id="spots"><div class="loading">Loading…</div></div>
-  </div>
-  <script type="module" src="app.js"></script>
+    <div id="spots">
+        <div class="loading">Loading…</div>
+    </div>
+</div>
+<script type="module" src="app.js"></script>
 </body>
 </html>

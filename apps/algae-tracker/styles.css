@@ -7,17 +7,20 @@
 }
 
 #location-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
 }
-#location-status { color: var(--text-muted); }
+
+#location-status {
+    color: var(--text-muted);
+}
 
 #legend {
     font-size: 12.5px;
     color: var(--text-muted);
-    margin-top: 16px;   /* just a little space between subtitle and badges */
+    margin-top: 16px; /* just a little space between subtitle and badges */
 }
 
 #legend .badge {
@@ -80,10 +83,29 @@
 }
 
 /* ── Advisory badges ── */
-.badge.danger  { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(230, 57, 70, 0.35); }
-.badge.warning { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(212, 169, 106, 0.35); }
-.badge.caution { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(212, 169, 106, 0.25); }
-.badge.nodata  { background: var(--bg-elevated); color: var(--silver); border: 1px solid var(--border-bright); }
+.badge.danger {
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid rgba(230, 57, 70, 0.35);
+}
+
+.badge.warning {
+    background: var(--gold-dim);
+    color: var(--gold);
+    border: 1px solid rgba(212, 169, 106, 0.35);
+}
+
+.badge.caution {
+    background: var(--gold-dim);
+    color: var(--gold);
+    border: 1px solid rgba(212, 169, 106, 0.25);
+}
+
+.badge.nodata {
+    background: var(--bg-elevated);
+    color: var(--silver);
+    border: 1px solid var(--border-bright);
+}
 
 /* Clear zone — same hue, two emphasis levels.
    Fresh (this season) = bright & filled + glow.
@@ -93,7 +115,7 @@
     color: var(--green);
     border: 1px solid var(--green);
     font-weight: 700;
-    box-shadow: 0 0 6px rgba(16, 185, 129, 0.45);  /* subtle glow = fresh/confident */
+    box-shadow: 0 0 6px rgba(16, 185, 129, 0.45); /* subtle glow = fresh/confident */
 }
 
 .badge.clear.stale {
@@ -106,36 +128,166 @@
 }
 
 /* manual notes (mussel / quarantine / SUP rules) */
-.detail.note { color: var(--text-label); }
+.detail.note {
+    color: var(--text-label);
+}
 
 /* parking links */
-.parking { font-size: 12.5px; margin-top: 6px; }
-.parking a { color: var(--blue); text-decoration: none; }
-.parking a:hover { text-decoration: underline; }
+.parking {
+    font-size: 12.5px;
+    margin-top: 6px;
+}
+
+.parking a {
+    color: var(--blue);
+    text-decoration: none;
+}
+
+.parking a:hover {
+    text-decoration: underline;
+}
 
 /* water temp */
-.warmth { font-size: 12px; font-family: var(--font-mono); color: var(--gold); margin-left: 6px; }
+.warmth {
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--gold);
+    margin-left: 6px;
+}
 
 /* current weather + forecast */
-.meta.wx { margin-top: 4px; }
-.forecast {
-  display: flex; gap: 14px; margin-top: 6px;
-  font-size: 11.5px; color: var(--text-muted); font-family: var(--font-mono);
-  flex-wrap: wrap;
+.meta.wx {
+    margin-top: 4px;
 }
-.fc-day { white-space: nowrap; }
+
+.forecast {
+    display: flex;
+    gap: 14px;
+    margin-top: 6px;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    flex-wrap: wrap;
+}
+
+.fc-day {
+    white-space: nowrap;
+}
 
 /* wind color coding (SUP-critical) */
-.wind-ok   { color: var(--green); }
-.wind-warn { color: var(--gold); }
-.wind-bad  { color: var(--accent); }
+.wind-ok {
+    color: var(--green);
+}
 
-.badge.weekend { background: var(--bg-elevated); color: var(--gold); border: 1px solid rgba(212, 169, 106, 0.35); font-weight: 600; }
-.badge.nosup   { background: var(--bg-elevated); color: var(--silver); border: 1px solid var(--border-bright); font-weight: 600; }
+.wind-warn {
+    color: var(--gold);
+}
 
-#sort-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 13px; color: var(--text-muted); }
+.wind-bad {
+    color: var(--accent);
+}
+
+.badge.weekend {
+    background: var(--bg-elevated);
+    color: var(--gold);
+    border: 1px solid rgba(212, 169, 106, 0.35);
+    font-weight: 600;
+}
+
+.badge.nosup {
+    background: var(--bg-elevated);
+    color: var(--silver);
+    border: 1px solid var(--border-bright);
+    font-weight: 600;
+}
+
+#controls-bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+#sort-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
 #sort-bar select {
-  background: var(--bg-elevated); color: var(--text-bright);
-  border: 1px solid var(--border-bright); border-radius: 4px;
-  padding: 4px 8px; font-family: inherit; font-size: 13px;
+    background: var(--bg-elevated);
+    color: var(--text-bright);
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-family: inherit;
+    font-size: 13px;
+}
+
+#filter-bar {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* hide the raw checkbox, keep it accessible */
+#filter-bar input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* the label becomes the clickable pill */
+#filter-bar label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 5px 12px;
+    border: 1px solid var(--border-bright);
+    border-radius: 999px;
+    background: var(--bg-elevated);
+    color: var(--text-muted);
+    user-select: none;
+    transition: background .15s, color .15s, border-color .15s;
+}
+
+/* small custom check dot before the text */
+#filter-bar label::before {
+    content: "";
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    border: 1.5px solid var(--border-bright);
+    background: transparent;
+    transition: background .15s, border-color .15s;
+}
+
+/* checked state: pill lights up green, dot fills with a ✓ */
+#filter-bar input:checked + label,
+#filter-bar label:has(input:checked) {
+    border-color: var(--green);
+    color: var(--text-bright);
+}
+
+#filter-bar label:has(input:checked)::before {
+    background: var(--green);
+    border-color: var(--green);
+    content: "✓";
+    color: var(--bg-base, #000);
+    font-size: 10px;
+    line-height: 14px; /* was 12px */
+    text-align: center;
+}
+
+/* keyboard focus ring for accessibility */
+#filter-bar input:focus-visible + label,
+#filter-bar label:has(input:focus-visible) {
+    outline: 2px solid var(--green);
+    outline-offset: 2px;
 }
