@@ -4,21 +4,46 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<meta name="theme-color" content="#14161A">
+<meta name="theme-color" content="#0d0809">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
+  /* Two palettes, one set of names.
+
+     The chrome — nav, buttons, panels, prose — matches the other apps in this
+     repo: dark, warm, low-contrast. Notation does not. Staves, key signatures
+     and keyboard diagrams stay ink on paper, because that is what reading
+     music at speed wants, and because the red and blue are pencil marks and
+     have to look like pencil marks.
+
+     Rather than thread two sets of variable names through every SVG, the names
+     below are bound to the chrome values here and rebound to the paper values
+     on .paper. Custom properties inherit, so everything drawn inside a paper
+     panel resolves to ink-on-light without knowing it moved. */
   :root {
-    --ground: #E1E4E1;
+    --ground: #0d0809;   /* the desk */
+    --page: #150e0f;     /* a panel on it */
+    --ink: #e8dede;      /* primary text */
+    --rule: #3d2829;     /* borders, dividers */
+    --soft: #9e8283;     /* secondary text */
+    --red: #c2747a;      /* emphasis: the next thing to do, the live clock */
+    --blue: #8fb4d4;     /* affirmation: cleared, correct, trending well */
+    --raised: #1c1415;   /* lifted off the desk */
+    --gold: #d4a96a;     /* a stretch: amber, and legible on either ground */
+    --display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  .paper {
     --page: #FCFCFB;
     --ink: #14161A;
     --rule: #A8ADA8;
     --soft: #6E746E;
     --red: #B62B2B;      /* conductor's red pencil */
     --blue: #2C5A9E;     /* blue pencil */
-    --display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
-    --ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --gold: #7A5C1F;     /* dark enough to read against paper */
+    background: var(--page);
   }
+  svg.paper { display: block; margin: 0 auto; border-radius: 2px; padding: 6px 4px; }
   * { box-sizing: border-box; }
   body {
     margin: 0; background: var(--ground); color: var(--ink);
@@ -44,7 +69,7 @@
   p { margin: 0 0 12px; }
 
   /* the one thing to do next */
-  .now { border-left: 3px solid var(--red); background: #F3F1ED; padding: 13px 16px; margin: 0 0 20px; }
+  .now { border-left: 3px solid var(--red); background: var(--raised); padding: 13px 16px; margin: 0 0 20px; }
   .now .eyebrow { margin-bottom: 4px; }
   .now p { margin: 0; font-size: 14px; max-width: 54ch; }
   .now .row { margin-top: 11px; }
@@ -105,7 +130,13 @@
   .letters { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
   .letters button { font-family: var(--display); font-size: 18px; width: 46px; height: 46px; }
 
-  .kb { position: relative; height: 152px; margin: 0 auto; overflow-x: auto; overflow-y: hidden; }
+  /* A keyboard is a keyboard: white keys are white and black keys are black,
+     so it carries the paper palette even though it is chrome-adjacent. */
+  .kb {
+    position: relative; height: 152px; margin: 0 auto;
+    overflow-x: auto; overflow-y: hidden;
+    --ink: #14161A; --soft: #6E746E; --blue: #2C5A9E; --red: #B62B2B;
+  }
   .kbinner { position: relative; height: 150px; }
   .keybtn { position: absolute; padding: 0; border: 1px solid var(--ink); cursor: pointer; }
   .white { background: #fff; width: 40px; height: 150px; top: 0; border-radius: 0 0 3px 3px; }
@@ -599,7 +630,7 @@ const keySigStaffSVG = (key, state) => {
   const none = (key.sharps || key.flats) ? '' :
     `<text x="170" y="82" text-anchor="middle" font-size="13" fill="var(--soft)"
       font-family="ui-monospace, monospace">(no sharps or flats)</text>`;
-  return `<svg viewBox="0 0 310 168" xmlns="http://www.w3.org/2000/svg" role="img"
+  return `<svg class="paper" viewBox="0 0 310 168" xmlns="http://www.w3.org/2000/svg" role="img"
     aria-label="A key signature on the grand staff">
     ${lines}<line x1="12" y1="30" x2="12" y2="130" stroke="var(--ink)" stroke-width="2"/>
     ${clefs()}${sig}${none}</svg>`;
@@ -626,7 +657,7 @@ const staffSVG = (d, state) => {
     note += `<line x1="${sx}" y1="${y}" x2="${sx}" y2="${sy2}" stroke="${colour}" stroke-width="1.6"/>`;
     note += `<ellipse class="notehead" cx="${noteX}" cy="${y}" rx="7.5" ry="5.4" fill="${colour}" transform="rotate(-18 ${noteX} ${y})"/>`;
   }
-  return `<svg viewBox="0 0 470 165" xmlns="http://www.w3.org/2000/svg" role="img"
+  return `<svg class="paper" viewBox="0 0 470 165" xmlns="http://www.w3.org/2000/svg" role="img"
             aria-label="${d === null ? 'Empty grand staff' : 'A note on the grand staff'}">
             ${lines}${braces}${clefMarks}${note}</svg>`;
 }
@@ -656,7 +687,7 @@ const solfegeStaffSVG = (d, key, state) => {
   const sy2 = stemUp ? y - 32 : y + 32;
   note += `<line x1="${sx}" y1="${y}" x2="${sx}" y2="${sy2}" stroke="${colour}" stroke-width="1.6"/>`;
   note += `<ellipse class="notehead" cx="${noteX}" cy="${y}" rx="7.5" ry="5.4" fill="${colour}" transform="rotate(-18 ${noteX} ${y})"/>`;
-  return `<svg viewBox="0 0 ${right} 165" xmlns="http://www.w3.org/2000/svg" role="img"
+  return `<svg class="paper" viewBox="0 0 ${right} 165" xmlns="http://www.w3.org/2000/svg" role="img"
             aria-label="A note on the grand staff with a key signature">
             ${lines}${braces}${clefs()}${sig}${note}</svg>`;
 }
@@ -1010,7 +1041,7 @@ const landmarkSVG = () => {
       <text x="${x}" y="158" text-anchor="middle" font-size="10" fill="var(--red)"
         font-family="ui-monospace, monospace">${m.label}</text>`;
   }).join('');
-  return `<svg viewBox="0 0 470 168" xmlns="http://www.w3.org/2000/svg" role="img"
+  return `<svg class="paper" viewBox="0 0 470 168" xmlns="http://www.w3.org/2000/svg" role="img"
     aria-label="The four landmark notes on the grand staff">${lines}${frame}${notes}</svg>`;
 }
 
@@ -1878,7 +1909,7 @@ const melodySVG = (mel, clefFn, mark, askBar, hideKey) => {
     }
     out += `<g transform="translate(0,${sys * sysH})">${g}</g>`;
   }
-  return `<svg viewBox="0 0 ${right + 8} ${sysH + botExtent}" xmlns="http://www.w3.org/2000/svg"
+  return `<svg class="paper" viewBox="0 0 ${right + 8} ${sysH + botExtent}" xmlns="http://www.w3.org/2000/svg"
     role="img" aria-label="Generated eight-bar sight-reading exercise${hideKey ? '' : ' in ' + melKeyLabel(mel)}${askBar ? '. Tap a bar to mark where you stumbled.' : ''}">${out}</svg>`;
 }
 
@@ -1999,7 +2030,7 @@ const namingStaff = (key) => {
     lines += `<line x1="12" y1="${30 + i * 10}" x2="250" y2="${30 + i * 10}" stroke="var(--rule)"/>`;
     lines += `<line x1="12" y1="${90 + i * 10}" x2="250" y2="${90 + i * 10}" stroke="var(--rule)"/>`;
   }
-  return `<svg viewBox="0 0 260 168" xmlns="http://www.w3.org/2000/svg" role="img"
+  return `<svg class="paper" viewBox="0 0 260 168" xmlns="http://www.w3.org/2000/svg" role="img"
     aria-label="The key signature for ${key.name} major">
     ${lines}<line x1="12" y1="30" x2="12" y2="130" stroke="var(--ink)" stroke-width="2"/>
     ${clefs()}${keySigSVG(key, 'treble', 48, true)}${keySigSVG(key, 'bass', 48, true)}</svg>`;
@@ -2070,7 +2101,7 @@ const miniKeys = (lo, hi, marks) => {
       font-size="11" font-weight="600" fill="${mk.on}" font-family="ui-monospace, monospace">${mk.label}</text>`;
   });
 
-  return `<svg viewBox="-2 0 ${whites.length * W + 4} ${H + 4}"
+  return `<svg class="paper" viewBox="-2 0 ${whites.length * W + 4} ${H + 4}"
     style="max-width:${whites.length * W + 4}px;width:100%;height:auto"
     xmlns="http://www.w3.org/2000/svg" role="img"
     aria-label="Keyboard showing the seventh and the tonic">${keys}${labels}</svg>`;
@@ -2219,7 +2250,7 @@ const handBoard = (map, home) => {
     const e = map.get(m);
     const stretch = e.how === 'stretch-up' || e.how === 'stretch-down';
     marks[m] = e.finger
-      ? { fill: stretch ? '#7A5C1F' : 'var(--blue)', label: String(e.finger), on: '#fff' }
+      ? { fill: stretch ? 'var(--gold)' : 'var(--blue)', label: String(e.finger), on: '#fff' }
       : { fill: 'var(--red)', label: '\u2022', on: '#fff' };
   });
   const all = Object.keys(marks).map(Number);
@@ -2249,8 +2280,8 @@ const fingeringDiagram = (mel) => {
     ${p.accMap ? `<p class="eyebrow" style="margin-top:16px">${accName} \u2014 accompaniment</p>
       <div style="overflow-x:auto">${handBoard(p.accMap, p.accHome)}</div>
       <p style="max-width:58ch;font-size:14px;margin-top:8px">${left ? 'Thumb (1)' : 'Little finger (5)'} on <b>${nm(p.accRoot)}</b>. Only ${p.accMap.size} notes, so that hand can stay put.</p>` : ''}
-    <p style="font-size:13px;color:var(--soft);max-width:58ch;margin-top:12px">Numbers are fingers \u2014 1 is the thumb on both hands. All five are shown because the hand rests on all five; <span style="color:#7A93BC">the pale ones are keys this particular tune never touches</span>, so leave the finger resting there.
-      ${stretches.length ? `<span style="color:#7A5C1F"><b>Amber</b> is a stretch:</span> ${stretches.map(e =>
+    <p style="font-size:13px;color:var(--soft);max-width:58ch;margin-top:12px">Numbers are fingers \u2014 1 is the thumb on both hands. All five are shown because the hand rests on all five; <span style="color:var(--blue)">the pale ones are keys this particular tune never touches</span>, so leave the finger resting there.
+      ${stretches.length ? `<span style="color:var(--gold)"><b>Amber</b> is a stretch:</span> ${stretches.map(e =>
           `${nm(e.d)} with finger ${e.finger}`).join(', ')} \u2014 reach out with that finger and let the rest of the hand stay where it is.` : ''}
       ${shifts.length ? `<span style="color:var(--red)"><b>Red dots</b> are outside reach entirely</span> \u2014 the hand has to move. Work out where it lands before you start, not mid-bar.` : ''}
       ${!stretches.length && !shifts.length ? 'Every note falls under a finger without moving the hand.' : ''}</p>`;
