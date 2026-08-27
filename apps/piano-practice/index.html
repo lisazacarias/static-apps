@@ -1,0 +1,3503 @@
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#14161A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+  :root {
+    --ground: #E1E4E1;
+    --page: #FCFCFB;
+    --ink: #14161A;
+    --rule: #A8ADA8;
+    --soft: #6E746E;
+    --red: #B62B2B;      /* conductor's red pencil */
+    --blue: #2C5A9E;     /* blue pencil */
+    --display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font-family: var(--ui); font-size: 15px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 780px; margin: 0 auto; padding: 24px 16px 80px; }
+  .page {
+    background: var(--page); border: 1px solid var(--rule);
+    padding: 28px 26px 32px;
+  }
+  h1 {
+    font-family: var(--display); font-weight: 400; font-size: 30px;
+    margin: 0 0 2px; letter-spacing: -0.01em;
+  }
+  .sub { font-family: var(--display); font-style: italic; color: var(--soft); margin: 0 0 20px; font-size: 15px; }
+  .eyebrow {
+    font-family: var(--display); font-style: italic; font-size: 13px;
+    color: var(--red); letter-spacing: 0.04em; margin: 0 0 6px;
+  }
+  h2 { font-family: var(--display); font-weight: 400; font-size: 21px; margin: 0 0 14px; }
+  h3 { font-size: 14px; margin: 0 0 4px; font-weight: 600; }
+  p { margin: 0 0 12px; }
+
+  /* the one thing to do next */
+  .now { border-left: 3px solid var(--red); background: #F3F1ED; padding: 13px 16px; margin: 0 0 20px; }
+  .now .eyebrow { margin-bottom: 4px; }
+  .now p { margin: 0; font-size: 14px; max-width: 54ch; }
+  .now .row { margin-top: 11px; }
+  nav button.rec { position: relative; }
+  nav button.rec::after {
+    content: ''; position: absolute; top: 8px; right: 3px;
+    width: 5px; height: 5px; border-radius: 50%; background: var(--red);
+  }
+
+  /* progress spine */
+  .spine { margin: 0 0 22px; }
+  .spine svg { display: block; width: 100%; height: auto; max-width: 420px; }
+
+  /* tabs */
+  nav { display: flex; gap: 2px; border-bottom: 1px solid var(--rule); margin: 0 0 24px; flex-wrap: wrap; }
+  nav button {
+    font-family: var(--ui); font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase;
+    background: none; border: 0; border-bottom: 2px solid transparent;
+    padding: 9px 13px; margin-bottom: -1px; color: var(--soft); cursor: pointer;
+  }
+  nav button:hover { color: var(--ink); }
+  nav button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--red); }
+
+  button:focus-visible, input:focus-visible, .keybtn:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  .btn {
+    font-family: var(--ui); font-size: 14px; background: var(--page); color: var(--ink);
+    border: 1px solid var(--rule); padding: 8px 14px; cursor: pointer;
+  }
+  .btn:hover { border-color: var(--ink); }
+  .btn.primary { background: var(--ink); color: var(--page); border-color: var(--ink); }
+  .btn.primary:hover { background: var(--red); border-color: var(--red); }
+  .btn.small { padding: 5px 10px; font-size: 13px; }
+  .btn[disabled] { opacity: .4; cursor: default; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+  /* practice slots */
+  .slot {
+    border-top: 1px solid var(--rule); padding: 14px 0; display: flex; gap: 14px; align-items: flex-start;
+  }
+  .slot:last-of-type { border-bottom: 1px solid var(--rule); }
+  .slot.done .slottext { opacity: .45; }
+  .slot.done h3 { text-decoration: line-through; }
+  .slotnum { font-family: var(--mono); font-size: 12px; color: var(--soft); padding-top: 3px; min-width: 18px; }
+  .slottext { flex: 1; }
+  .slottext p { margin: 0; color: var(--soft); font-size: 14px; }
+  .clock { font-family: var(--mono); font-size: 18px; min-width: 58px; text-align: right; letter-spacing: -0.02em; }
+  .clock.running { color: var(--red); }
+  .slotctl { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+
+  /* drill */
+  .staffwrap { text-align: center; margin: 6px 0 16px; }
+  .staffwrap svg { max-width: 100%; height: auto; }
+  .clef { font-family: var(--ui); font-size: 9px; letter-spacing: 0.18em; fill: var(--soft); }
+  .verdict { font-family: var(--display); font-style: italic; font-size: 16px; min-height: 24px; text-align: center; margin: 0 0 12px; }
+  .verdict.ok { color: var(--blue); }
+  .verdict.no { color: var(--red); }
+  .letters { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+  .letters button { font-family: var(--display); font-size: 18px; width: 46px; height: 46px; }
+
+  .kb { position: relative; height: 152px; margin: 0 auto; overflow-x: auto; overflow-y: hidden; }
+  .kbinner { position: relative; height: 150px; }
+  .keybtn { position: absolute; padding: 0; border: 1px solid var(--ink); cursor: pointer; }
+  .white { background: #fff; width: 40px; height: 150px; top: 0; border-radius: 0 0 3px 3px; }
+  .white:hover { background: #EDF1F7; }
+  .black { background: var(--ink); width: 24px; height: 94px; top: 0; z-index: 2; border-radius: 0 0 3px 3px; }
+  .black:hover { background: #3A4048; }
+  .keybtn.hit { background: var(--blue); }
+  .keybtn.miss { background: var(--red); }
+  .kbnote { position: absolute; bottom: 6px; left: 0; right: 0; text-align: center; font-size: 10px; color: var(--soft); pointer-events: none; }
+
+  .stats { display: flex; gap: 22px; justify-content: center; margin: 16px 0 0; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat b { font-family: var(--mono); font-size: 20px; font-weight: 500; display: block; }
+  .stat span { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--soft); }
+
+  /* stages */
+  .stage { border-top: 1px solid var(--rule); }
+  .stage:last-child { border-bottom: 1px solid var(--rule); }
+  .stagehead {
+    display: flex; align-items: baseline; gap: 12px; width: 100%; text-align: left;
+    background: none; border: 0; padding: 14px 0; cursor: pointer; font-family: var(--ui); font-size: 15px; color: var(--ink);
+  }
+  .stagenum { font-family: var(--mono); font-size: 12px; color: var(--soft); min-width: 18px; }
+  .stagename { flex: 1; font-family: var(--display); font-size: 18px; }
+  .badge { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--soft); }
+  .badge.now { color: var(--red); }
+  .badge.done { color: var(--blue); }
+  .stagebody { padding: 0 0 18px 30px; font-size: 14px; }
+  .stagebody .lbl { font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--soft); margin: 12px 0 4px; }
+  label.check { display: flex; gap: 9px; align-items: flex-start; padding: 5px 0; cursor: pointer; }
+  label.check input { margin: 3px 0 0; accent-color: var(--blue); flex-shrink: 0; }
+
+  details.ref { margin-top: 22px; border-top: 1px solid var(--rule); padding-top: 14px; }
+  details.ref summary { cursor: pointer; font-family: var(--display); font-style: italic; color: var(--soft); }
+  details.ref ul { padding-left: 18px; font-size: 14px; }
+  details.ref li { margin-bottom: 6px; }
+
+  /* log */
+  .bars { display: flex; align-items: flex-end; gap: 4px; height: 90px; border-bottom: 1px solid var(--rule); margin: 4px 0 6px; }
+  .bar { flex: 1; background: var(--blue); min-height: 2px; }
+  .bar.empty { background: var(--rule); opacity: .35; }
+  .barlbl { display: flex; justify-content: space-between; font-size: 11px; color: var(--soft); }
+  .sess { display: flex; justify-content: space-between; border-top: 1px solid var(--rule); padding: 8px 0; font-size: 14px; }
+  .sess span { color: var(--soft); font-family: var(--mono); font-size: 13px; }
+  .empty-state { color: var(--soft); font-family: var(--display); font-style: italic; }
+  @media (prefers-reduced-motion: no-preference) {
+    .notehead { animation: drop .4s ease-out; }
+    @keyframes drop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+  }
+  .stumble-hit {
+    fill: transparent;
+    stroke: var(--red);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+    cursor: pointer;
+    transition: fill 80ms ease;
+  }
+  .stumble-hit.flash { fill: var(--red); fill-opacity: .55; }
+</style>
+
+<div class="shell">
+  <div class="page">
+    <h1>Piano, from choir up</h1>
+    <p class="sub">Milestone-based. Advance on the exit test, not the calendar.</p>
+
+    <div class="spine" id="spine"></div>
+
+    <div id="now"></div>
+
+    <nav role="tablist">
+      <button role="tab" data-tab="sight" aria-selected="true">Read</button>
+      <button role="tab" data-tab="reading" aria-selected="false">Drills</button>
+      <button role="tab" data-tab="learn" aria-selected="false">Learn</button>
+      <button role="tab" data-tab="progress" aria-selected="false">Progress</button>
+    </nav>
+
+    <div id="view"></div>
+    <div id="nowfoot"></div>
+  </div>
+</div>
+
+<script>
+// ---------- storage ----------
+const KEY = 'piano:v1';
+let S = null;
+const fallback = {};
+
+const blank = () => ({
+  stage: 0,
+  log: [],
+  lastExported: null,
+  drill: { asked: 0, right: 0, streak: 0, best: 0, perNote: {}, rounds: [] },
+  stumbles: [],
+  muted: false,
+  ignoreSilent: true,
+  engine: 'auto',
+  sight: { attempts: 0, key: 'random', mode: null, allKeys: false, step: 0,
+           history: {}, passed: {}, focus: null, focusChosen: false },
+  session: null
+});
+
+// Three tiers. Inside a Claude artifact only window.storage exists; served from
+// a real origin only localStorage does. Without the second tier the app looked
+// like it was saving and silently lost everything on refresh.
+const localGet = () => {
+  try { return window.localStorage && window.localStorage.getItem(KEY); }
+  catch (e) { return null; }
+}
+const localSet = (v) => {
+  try { if (window.localStorage) window.localStorage.setItem(KEY, v); }
+  catch (e) { /* private mode, quota, or no storage at all */ }
+}
+
+async function load() {
+  try {
+    if (window.storage) {
+      const r = await window.storage.get(KEY);
+      if (r && r.value) return normalize({ ...blank(), ...JSON.parse(r.value) });
+    }
+  } catch (e) { /* first run, no key */ }
+  try {
+    const raw = localGet();
+    if (raw) return normalize({ ...blank(), ...JSON.parse(raw) });
+  } catch (e) { /* corrupt or unreadable */ }
+  return normalize(fallback[KEY] ? { ...blank(), ...fallback[KEY] } : blank());
+}
+
+// older saves predate some fields
+const normalize = (s) => {
+  s.drill = { ...blank().drill, ...(s.drill || {}) };
+  if (!Array.isArray(s.drill.rounds)) s.drill.rounds = [];
+  if (!Array.isArray(s.log)) s.log = [];
+  s.sight = { attempts: 0, key: 'random', mode: null, allKeys: false, step: 0,
+              history: {}, passed: {}, focus: null, focusChosen: false, ...(s.sight || {}) };
+  if (!Array.isArray(s.stumbles)) s.stumbles = [];
+  if (s.sight.mode === 'major') s.sight.mode = null;          // was the old default
+  if (typeof s.sight.step !== 'number') s.sight.step = 0;     // pre-ladder saves
+  s.sight.history = s.sight.history || {};
+  delete s.sight.streaks;                                     // pre-window-mastery saves
+  s.sight.passed = s.sight.passed || {};
+  // Saves from the stage era credited progress against stages, which no longer
+  // exist. Anything they had cleared maps onto the first steps of the ladder.
+  if (s.checks) {
+    if (s.checks['1-0']) { s.sight.passed[0] = true; s.sight.passed[1] = true; s.sight.passed[2] = true; }
+    if (s.checks['2-0']) { s.sight.passed[3] = true; s.sight.passed[4] = true; s.sight.passed[5] = true; }
+    if (s.checks['3-0']) { s.sight.passed[6] = true; s.sight.passed[7] = true; }
+    delete s.checks;
+  }
+  if (s.ignoreSilent === undefined) s.ignoreSilent = true;
+  if (!s.engine) s.engine = 'auto';
+  s.checks = s.checks || {};
+  // A session can arrive here from a normal load (reopened after the tab or
+  // the whole browser was closed mid-slot) or from restoring a backup, and
+  // either one can be old enough to predate wall-clock timing. Both need the
+  // same reconciliation, so it lives here rather than duplicated at each call
+  // site — an unrecognized shape is dropped rather than left to throw
+  // NaN/undefined into the timer later.
+  if (s.session) {
+    if (Array.isArray(s.session.slots)) {
+      s.session.slots.forEach(x => {
+        if (x.spent === undefined) x.spent = x.total - (x.left !== undefined ? x.left : x.total);  // pre-wall-clock saves
+        if (x.running && x.startedAt) x.spent = Math.min(x.total, x.spent + (Date.now() - x.startedAt) / 1000);
+        x.running = false; x.startedAt = null;
+      });
+    } else {
+      s.session = null;
+    }
+  }
+  return s;
+}
+let saveTimer = null;
+const save = () => {
+  fallback[KEY] = S;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    const json = JSON.stringify(S);
+    localSet(json);                       // works on any real origin
+    try { if (window.storage) await window.storage.set(KEY, json); }
+    catch (e) { console.error('Could not save progress', e); }
+  }, 250);
+}
+
+// ---------- sound ----------
+const SEMI = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+const midiOf = d => (octOf(d) + 1) * 12 + SEMI[letterOf(d)];
+// The ear hears a low note as quieter than a high one at the same linear
+// amplitude (equal-loudness contours), and both synthesis paths otherwise use
+// one fixed peak gain regardless of pitch — without this, bass notes are
+// genuinely harder to hear, not just an EQ preference. Unboosted above middle
+// C, ramping to +8dB at the app's lowest playable note (E2) — a first, milder
+// attempt still measured out as much quieter than the metronome in practice.
+// Deliberately stops at 8dB rather than chasing full equal-loudness parity
+// (15-25dB at these frequencies): the shared soft limiter has no per-voice
+// headroom, so pushing further starts audibly compressing a bass note held
+// under a treble one in two-hand playback.
+const loudnessBoost = (midi) => Math.pow(10, Math.min(8, Math.max(0, 60 - midi) * 0.4) / 20);
+let ctx = null, audioReady = false;
+
+const ensureCtx = () => {
+  if (!ctx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    try { ctx = new AC(); } catch (e) { return null; }
+  }
+  if (ctx.state === 'suspended') ctx.resume();
+  audioReady = ctx.state === 'running';
+  return ctx;
+}
+
+// --- getting past the iPhone silent switch ---
+// Safari's default audio session behaves as "ambient", which the hardware mute
+// switch silences. Two ways out, both applied:
+//   1. AudioSession API (Safari 16.4+): ask for the "playback" session type.
+//   2. Older iOS: HTML5 <audio> is exempt from the mute switch where Web Audio
+//      is not, so nudging a silent <audio> element flips the channel over.
+const SILENT_WAV = 'data:audio/wav;base64,UklGRoQJAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YWAJAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA=';
+let silentEl = null;
+
+let capturing = false;   // true while the microphone is open
+
+const armAudioSession = () => {
+  // 'playback' refuses audio capture outright, so recording needs its own type
+  const want = capturing ? 'play-and-record'
+             : (S && S.ignoreSilent === false) ? 'auto' : 'playback';
+  try {
+    if (typeof navigator !== 'undefined' && navigator && 'audioSession' in navigator) {
+      navigator.audioSession.type = want;
+      return true;
+    }
+  } catch (e) { /* not supported */ }
+  return false;
+}
+
+const nudgeSilent = () => {
+  if (capturing) { if (silentEl) silentEl.pause(); return; }
+  if (S && S.ignoreSilent === false) { if (silentEl) silentEl.pause(); return; }
+  try {
+    if (!silentEl) {
+      silentEl = new Audio(SILENT_WAV);
+      silentEl.loop = true;
+      silentEl.setAttribute('playsinline', '');
+    }
+    const p = silentEl.play();
+    if (p && p.catch) p.catch(() => {});
+  } catch (e) { /* nothing to do */ }
+}
+
+// iOS also leaves the context suspended until audio is produced inside a real
+// gesture, so every touch re-arms everything. Cheap, and idempotent.
+const unlockAudio = () => {
+  armAudioSession();
+  nudgeSilent();
+  const c = ensureCtx();
+  if (!c) return;
+  try {
+    const s = c.createBufferSource();
+    s.buffer = c.createBuffer(1, 1, 22050);
+    s.connect(c.destination);
+    s.start(0);
+  } catch (e) { /* nothing to do */ }
+  audioReady = c.state === 'running';
+}
+if (typeof document !== 'undefined' && document.addEventListener) {
+  ['pointerdown', 'touchend', 'keydown'].forEach(ev =>
+    document.addEventListener(ev, unlockAudio, { passive: true }));
+}
+
+// --- media-element playback engine ---
+// WKWebView (the Claude app, and any in-app browser) gives the page no way to
+// set its audio category directly; only an HTML5 media element can flip it off
+// "ambient". So notes get synthesised to a WAV and played through <audio>,
+// which the silent switch does not touch.
+// Render notes to PCM, then to a WAV container. HTML5 <audio> is exempt from the
+// iOS silent switch where Web Audio is not, so this is the path that survives it.
+const WAV_RATE = 22050;
+
+// e.len is how long the note is HELD, in seconds. Without it every note rang
+// for the same 1.5s and the written rhythm was inaudible.
+const RELEASE = 0.28;
+const renderNotes = (events, rate) => {
+  rate = rate || WAV_RATE;
+  const held = e => Math.max(0.12, e.len === undefined ? 1.2 : e.len);
+  const end = events.reduce((a, e) => Math.max(a, e.at + held(e) + RELEASE), 0.3) + 0.1;
+  const n = Math.ceil(end * rate);
+  const out = new Float32Array(n);
+  const parts = [[1, 1], [2, 0.3], [3, 0.12], [4, 0.05]];
+  const norm = parts.reduce((a, p) => a + p[1], 0);
+
+  for (const e of events) {
+    const f = 440 * Math.pow(2, (e.midi - 69) / 12);
+    const hold = held(e);
+    const boost = loudnessBoost(e.midi);
+    const start = Math.max(0, Math.floor(e.at * rate));
+    const len = Math.min(n - start, Math.ceil((hold + RELEASE) * rate));
+    for (let i = 0; i < len; i++) {
+      const t = i / rate;
+      // natural string decay while the key is down, damper when it lifts
+      const decay = Math.exp(-t * 1.3);
+      const damp = t <= hold ? 1 : Math.exp(-(t - hold) * 26);
+      const env = 0.42 * boost * decay * damp * (1 - Math.exp(-t * 500));
+      let s = 0;
+      for (const [mult, amp] of parts) s += amp * Math.sin(2 * Math.PI * f * mult * t);
+      out[start + i] += env * s / norm;
+    }
+  }
+  for (let i = 0; i < n; i++) out[i] = Math.tanh(out[i] * 1.4);
+  return out;
+}
+
+const encodeWav = (samples, rate) => {
+  rate = rate || WAV_RATE;
+  const n = samples.length;
+  const buf = new ArrayBuffer(44 + n * 2);
+  const v = new DataView(buf);
+  const tag = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  tag(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); tag(8, 'WAVE');
+  tag(12, 'fmt '); v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true);
+  v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  tag(36, 'data'); v.setUint32(40, n * 2, true);
+  for (let i = 0; i < n; i++) {
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    v.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+  }
+  return buf;
+}
+
+let lastUrl = null, elAudio = null;
+
+const playViaElement = (events) => {
+  try {
+    const pcm = renderNotes(events);
+    const buf = encodeWav(pcm);
+    const blob = new Blob([buf], { type: 'audio/wav' });
+    if (lastUrl) URL.revokeObjectURL(lastUrl);
+    lastUrl = URL.createObjectURL(blob);
+    if (!elAudio) {
+      elAudio = new Audio();
+      elAudio.setAttribute('playsinline', '');
+    }
+    elAudio.src = lastUrl;
+    const p = elAudio.play();
+    if (p && p.catch) p.catch(e => { lastError = 'element play rejected: ' + e.name; });
+    return true;
+  } catch (e) {
+    lastError = 'element render failed: ' + e.message;
+    return false;
+  }
+}
+
+let lastError = '';
+// true when the page cannot control its own audio category — i.e. an in-app
+// WebView, or any iOS browser without the AudioSession API
+const needsElementAudio = () => {
+  if (S && S.engine === 'element') return true;
+  if (S && S.engine === 'webaudio') return false;
+  const ua = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
+  const iOS = /iPad|iPhone|iPod/.test(ua) ||
+              (/Macintosh/.test(ua) && typeof navigator !== 'undefined' && navigator.maxTouchPoints > 1);
+  return iOS;                       // default to the engine that survives the switch
+}
+
+// single entry point for anything that makes a sound
+const playEvents = (events) => {
+  if (!events || !events.length) return;
+  if (S && S.muted) return;
+  if (needsElementAudio() && playViaElement(events)) return;
+  events.forEach(e => play(e.midi, e.at, e.len));
+}
+
+// `when` is seconds from now. Everything is scheduled on the audio clock rather
+// than with setTimeout, so a whole melody is created inside the tap that asked
+// for it — which is the only thing iOS will allow.
+const play = (midi, when, len) => {
+  if (S && S.muted) return;
+  const c = ensureCtx();
+  if (!c) return;
+  const hold = Math.max(0.12, len === undefined ? 1.2 : len);
+  const f = 440 * Math.pow(2, (midi - 69) / 12);
+  const boost = loudnessBoost(midi);
+  const t = c.currentTime + (when || 0) + 0.02;
+  const out = c.createGain();
+  const lp = c.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.setValueAtTime(Math.min(6000, f * 8), t);
+  lp.frequency.exponentialRampToValueAtTime(Math.max(400, f * 2), t + 1.1);
+  out.connect(lp); lp.connect(c.destination);
+
+  const endT = t + hold + 0.26;
+  out.gain.setValueAtTime(0.0001, t);
+  out.gain.exponentialRampToValueAtTime(0.3 * boost, t + 0.006);
+  out.gain.exponentialRampToValueAtTime(Math.max(0.0002, 0.3 * boost * Math.exp(-hold * 1.3)), t + hold);
+  out.gain.exponentialRampToValueAtTime(0.0001, endT);
+
+  [[1, 1, 'triangle'], [2, 0.3, 'sine'], [3, 0.12, 'sine'], [4, 0.05, 'sine']]
+    .forEach(([mult, amp, type]) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = type; o.frequency.value = f * mult;
+      g.gain.value = amp;
+      o.connect(g); g.connect(out);
+      o.start(t); o.stop(endT + 0.05);
+    });
+}
+
+const audioDiagnostics = () => {
+  const nav = typeof navigator !== 'undefined' ? navigator : {};
+  const ua = nav.userAgent || '';
+  let sessionType = 'not supported';
+  try { if ('audioSession' in nav) sessionType = nav.audioSession.type + ' / state ' + nav.audioSession.state; }
+  catch (e) { sessionType = 'present but unreadable'; }
+  const rows = [
+    ['Engine in use', needsElementAudio() ? 'media element (WAV)' : 'Web Audio'],
+    ['Setting', (S && S.engine) || 'auto'],
+    ['AudioSession API', sessionType],
+    ['AudioContext', ctx ? ctx.state : 'not created'],
+    ['Inside a frame', (typeof window !== 'undefined' && window.self !== window.top) ? 'yes' : 'no'],
+    ['Element audio started', elAudio ? (elAudio.paused ? 'created, paused' : 'playing') : 'not created'],
+    ['Last error', lastError || 'none'],
+    ['Browser', /CriOS/.test(ua) ? 'Chrome on iOS' : /FxiOS/.test(ua) ? 'Firefox on iOS'
+      : /Safari/.test(ua) && !/Version/.test(ua) ? 'in-app WebView (not Safari)'
+      : /Safari/.test(ua) ? 'Safari' : 'other']
+  ];
+  return `<table style="font-size:13px;border-collapse:collapse;margin-top:10px">
+    ${rows.map(([k, v]) => `<tr>
+      <td style="padding:3px 12px 3px 0;color:var(--soft);vertical-align:top">${k}</td>
+      <td style="padding:3px 0;font-family:ui-monospace,monospace">${v}</td></tr>`).join('')}</table>`;
+}
+
+const audioHint = () => {
+  if (audioReady || (S && S.muted)) return '';
+  return `<p style="font-size:13px;color:var(--red);max-width:56ch;margin-top:8px">
+    No sound yet. On an iPhone the side switch silences web audio even when the
+    volume is up \u2014 flick it off silent, then tap a key again.</p>`;
+}
+
+// ---------- content ----------
+const SLOTS = {
+  tech:   { name: 'Technique',   short: 'Five-finger pattern, hands separate, slow.',
+            long: 'Five-finger patterns both hands, then scales you know. Watch hand shape, not sound: knuckles domed, wrist level, forearm parallel to the floor.' },
+  read:   { name: 'Reading',     short: 'One generated melody from the Read tab. Once through, no stopping.',
+            long: 'Generate a melody in the Read tab and play it once through. Then a second one. No repeats \u2014 reading is a first-pass skill, and repeating turns it into memorising.' },
+  rep:    { name: 'Repertoire',  short: 'One hard bar. Hands separate. Five times correct.',
+            long: 'Next piece in Beyer Op. 101, or a line from your choir folder. Each hand to fluency alone, then together at the tempo where you make zero errors. Three clean run-throughs before you speed up.' },
+  theory: { name: 'Geography',   short: 'Name bass-clef notes out loud.',
+            long: 'Bass-clef landmarks, chord shapes, key signatures. Find named keys with your eyes closed.' },
+  choir:  { name: 'Choir work',  short: 'Plunk your own part from current repertoire.',
+            long: 'Your line, then a second voice, hands separate. Then both together slowly enough to hear the interval.' }
+};
+
+const PLANS = {
+  5:  [['theory', 5]],
+  10: [['tech', 3], ['rep', 7]],
+  20: [['tech', 3], ['read', 3], ['rep', 14]],
+  35: [['tech', 5], ['read', 5], ['rep', 15], ['choir', 10]],
+  60: [['tech', 10], ['read', 10], ['rep', 20], ['theory', 8], ['choir', 12]]
+};
+const LONGFORM = { 5: false, 10: false, 20: false, 35: true, 60: true };
+
+// ---------- staff maths ----------
+const LETTERS = ['C','D','E','F','G','A','B'];
+const dOf = (letter, oct) => oct * 7 + LETTERS.indexOf(letter);
+const letterOf = d => LETTERS[((d % 7) + 7) % 7];
+const octOf = d => Math.floor(d / 7);
+const nameOf = d => letterOf(d) + octOf(d);
+
+const LOW = dOf('C', 3), HIGH = dOf('C', 5);
+const MIDDLE_C = dOf('C', 4);
+const yOf = d => d >= MIDDLE_C ? 70 - (d - 30) * 5 : 90 - (d - 26) * 5;
+
+// Clefs from Wikimedia Commons: Treble clef.svg and Bass clef.svg by Tlusťa
+// (2006), both released PD-self. Each source file embeds its own five staff
+// lines at 590.5-unit spacing, so the transforms below are derived rather than
+// eyeballed: the treble spiral centres exactly on G4 (y=60) and the bass bulb
+// sits on F3 (y=100) with its dots straddling that line.
+const clefs = () => {
+  return `<g transform="translate(-0.085,-78.002) scale(0.016935)">
+      <path fill="var(--ink)" fill-rule="evenodd" d="M 2002,7851 C 1941,7868 1886,7906 1835,7964 C 1784,8023 1759,8088 1759,8158 C 1759,8202 1774,8252 1803,8305 C 1832,8359 1876,8398 1933,8423 C 1952,8427 1961,8437 1961,8451 C 1961,8456 1954,8461 1937,8465 C 1846,8442 1771,8393 1713,8320 C 1655,8246 1625,8162 1623,8066 C 1626,7963 1657,7867 1716,7779 C 1776,7690 1853,7627 1947,7590 L 1878,7235 C 1724,7363 1599,7496 1502,7636 C 1405,7775 1355,7926 1351,8089 C 1353,8162 1368,8233 1396,8301 C 1424,8370 1466,8432 1522,8489 C 1635,8602 1782,8661 1961,8667 C 2022,8663 2087,8652 2157,8634 L 2002,7851 z M 2074,7841 L 2230,8610 C 2384,8548 2461,8413 2461,8207 C 2452,8138 2432,8076 2398,8021 C 2365,7965 2321,7921 2265,7889 C 2209,7857 2146,7841 2074,7841 z M 1869,6801 C 1902,6781 1940,6746 1981,6697 C 2022,6649 2062,6592 2100,6528 C 2139,6463 2170,6397 2193,6330 C 2216,6264 2227,6201 2227,6143 C 2227,6118 2225,6093 2220,6071 C 2216,6035 2205,6007 2186,5988 C 2167,5970 2143,5960 2113,5960 C 2053,5960 1999,5997 1951,6071 C 1914,6135 1883,6211 1861,6297 C 1838,6384 1825,6470 1823,6557 C 1828,6656 1844,6737 1869,6801 z M 1806,6859 C 1761,6697 1736,6532 1731,6364 C 1732,6256 1743,6155 1764,6061 C 1784,5967 1813,5886 1851,5816 C 1888,5746 1931,5693 1979,5657 C 2022,5625 2053,5608 2070,5608 C 2083,5608 2094,5613 2104,5622 C 2114,5631 2127,5646 2143,5666 C 2262,5835 2322,6039 2322,6277 C 2322,6390 2307,6500 2277,6610 C 2248,6719 2205,6823 2148,6920 C 2090,7018 2022,7103 1943,7176 L 2024,7570 C 2068,7565 2098,7561 2115,7561 C 2191,7561 2259,7577 2322,7609 C 2385,7641 2439,7684 2483,7739 C 2527,7793 2561,7855 2585,7925 C 2608,7995 2621,8068 2621,8144 C 2621,8262 2590,8370 2528,8467 C 2466,8564 2373,8635 2248,8681 C 2256,8730 2270,8801 2291,8892 C 2311,8984 2326,9057 2336,9111 C 2346,9165 2350,9217 2350,9268 C 2350,9347 2331,9417 2293,9479 C 2254,9541 2202,9589 2136,9623 C 2071,9657 1999,9674 1921,9674 C 1811,9674 1715,9643 1633,9582 C 1551,9520 1507,9437 1503,9331 C 1506,9284 1517,9240 1537,9198 C 1557,9156 1584,9122 1619,9096 C 1653,9069 1694,9055 1741,9052 C 1780,9052 1817,9063 1852,9084 C 1886,9106 1914,9135 1935,9172 C 1955,9209 1966,9250 1966,9294 C 1966,9353 1946,9403 1906,9444 C 1866,9485 1815,9506 1754,9506 L 1731,9506 C 1770,9566 1834,9597 1923,9597 C 1968,9597 2014,9587 2060,9569 C 2107,9550 2146,9525 2179,9493 C 2212,9461 2234,9427 2243,9391 C 2260,9350 2268,9293 2268,9222 C 2268,9174 2263,9126 2254,9078 C 2245,9031 2231,8968 2212,8890 C 2193,8813 2179,8753 2171,8712 C 2111,8727 2049,8735 1984,8735 C 1875,8735 1772,8713 1675,8668 C 1578,8623 1493,8561 1419,8481 C 1346,8401 1289,8311 1248,8209 C 1208,8108 1187,8002 1186,7892 C 1190,7790 1209,7692 1245,7600 C 1281,7507 1327,7419 1384,7337 C 1441,7255 1500,7180 1561,7113 C 1623,7047 1704,6962 1806,6859 z"/></g>
+    <g transform="translate(-0.982,-18.002) scale(0.016935)">
+      <path fill="var(--ink)" fill-rule="evenodd" d="M 1239,8245 C 1397,8138 1515,8057 1591,8001 C 1667,7946 1747,7877 1829,7795 C 1911,7713 1980,7620 2036,7517 C 2080,7441 2118,7353 2149,7253 C 2180,7154 2196,7058 2199,6967 C 2199,6882 2188,6801 2165,6725 C 2143,6648 2105,6585 2051,6534 C 1997,6484 1927,6459 1840,6459 C 1756,6459 1677,6476 1603,6509 C 1530,6543 1478,6597 1449,6673 C 1449,6680 1445,6689 1439,6702 C 1441,6718 1449,6730 1464,6739 C 1479,6748 1492,6752 1504,6752 C 1510,6752 1527,6749 1553,6743 C 1580,6737 1602,6733 1620,6733 C 1673,6733 1720,6752 1763,6789 C 1805,6826 1826,6871 1826,6924 C 1826,6962 1815,6998 1794,7031 C 1773,7064 1744,7091 1707,7110 C 1670,7130 1629,7139 1585,7139 C 1505,7139 1437,7115 1381,7066 C 1326,7016 1298,6953 1298,6874 C 1298,6773 1329,6686 1390,6612 C 1452,6538 1530,6483 1626,6446 C 1721,6408 1817,6390 1915,6390 C 2022,6390 2124,6417 2219,6472 C 2315,6526 2390,6601 2446,6694 C 2502,6788 2531,6888 2531,6996 C 2531,7188 2467,7366 2339,7531 C 2211,7696 2053,7839 1864,7961 C 1738,8044 1534,8156 1253,8297 L 1239,8245 z M 2628,6698 C 2628,6662 2641,6632 2667,6608 C 2692,6583 2723,6571 2760,6571 C 2792,6571 2822,6585 2849,6612 C 2876,6638 2889,6669 2889,6703 C 2889,6739 2875,6770 2849,6795 C 2821,6819 2790,6831 2755,6831 C 2718,6831 2688,6819 2664,6792 C 2640,6766 2628,6735 2628,6698 z M 2628,7222 C 2628,7186 2641,7155 2665,7131 C 2690,7106 2721,7094 2760,7094 C 2792,7094 2821,7107 2849,7134 C 2875,7161 2889,7190 2889,7222 C 2889,7261 2876,7292 2851,7317 C 2825,7342 2795,7355 2760,7355 C 2721,7355 2690,7342 2665,7318 C 2641,7294 2628,7262 2628,7222 z"/></g>`;
+}
+
+const keySigStaffSVG = (key, state) => {
+  const colour = state === 'ok' ? 'var(--blue)' : state === 'no' ? 'var(--red)' : 'var(--ink)';
+  let lines = '';
+  for (let i = 0; i < 5; i++) {
+    lines += `<line x1="12" y1="${30 + i * 10}" x2="300" y2="${30 + i * 10}" stroke="var(--rule)"/>`;
+    lines += `<line x1="12" y1="${90 + i * 10}" x2="300" y2="${90 + i * 10}" stroke="var(--rule)"/>`;
+  }
+  const sig = `<g style="--ink:${colour}">${keySigSVG(key, 'treble', 48)}${keySigSVG(key, 'bass', 48)}</g>`;
+  const none = (key.sharps || key.flats) ? '' :
+    `<text x="170" y="82" text-anchor="middle" font-size="13" fill="var(--soft)"
+      font-family="ui-monospace, monospace">(no sharps or flats)</text>`;
+  return `<svg viewBox="0 0 310 168" xmlns="http://www.w3.org/2000/svg" role="img"
+    aria-label="A key signature on the grand staff">
+    ${lines}<line x1="12" y1="30" x2="12" y2="130" stroke="var(--ink)" stroke-width="2"/>
+    ${clefs()}${sig}${none}</svg>`;
+}
+
+const staffSVG = (d, state) => {
+  const noteX = 250;
+  const y = d === null ? 0 : yOf(d);
+  const colour = state === 'ok' ? 'var(--blue)' : state === 'no' ? 'var(--red)' : 'var(--ink)';
+  let lines = '';
+  for (let i = 0; i < 5; i++) {
+    lines += `<line x1="12" y1="${30 + i * 10}" x2="440" y2="${30 + i * 10}" stroke="var(--rule)" stroke-width="1"/>`;
+    lines += `<line x1="12" y1="${90 + i * 10}" x2="440" y2="${90 + i * 10}" stroke="var(--rule)" stroke-width="1"/>`;
+  }
+  const braces = `<line x1="12" y1="30" x2="12" y2="130" stroke="var(--ink)" stroke-width="2"/>
+                  <line x1="440" y1="30" x2="440" y2="130" stroke="var(--rule)" stroke-width="1"/>`;
+  const clefMarks = clefs();
+  let note = '';
+  if (d !== null) {
+    if (d === MIDDLE_C) note += `<line x1="${noteX - 15}" y1="80" x2="${noteX + 15}" y2="80" stroke="var(--ink)" stroke-width="1"/>`;
+    const stemUp = d < (d >= MIDDLE_C ? 34 : 22);
+    const sx = stemUp ? noteX + 7 : noteX - 7;
+    const sy2 = stemUp ? y - 32 : y + 32;
+    note += `<line x1="${sx}" y1="${y}" x2="${sx}" y2="${sy2}" stroke="${colour}" stroke-width="1.6"/>`;
+    note += `<ellipse class="notehead" cx="${noteX}" cy="${y}" rx="7.5" ry="5.4" fill="${colour}" transform="rotate(-18 ${noteX} ${y})"/>`;
+  }
+  return `<svg viewBox="0 0 470 165" xmlns="http://www.w3.org/2000/svg" role="img"
+            aria-label="${d === null ? 'Empty grand staff' : 'A note on the grand staff'}">
+            ${lines}${braces}${clefMarks}${note}</svg>`;
+}
+
+// staffSVG shows a note with no key signature; keySigStaffSVG shows a
+// signature with no note. Solfège needs both at once, so this combines them
+// rather than complicating either — the note shifts right by keySigWidth to
+// clear the signature glyphs.
+const solfegeStaffSVG = (d, key, state) => {
+  const w = keySigWidth(key);
+  const right = 440 + w;
+  const noteX = 250 + w;
+  const y = yOf(d);
+  const colour = state === 'ok' ? 'var(--blue)' : state === 'no' ? 'var(--red)' : 'var(--ink)';
+  let lines = '';
+  for (let i = 0; i < 5; i++) {
+    lines += `<line x1="12" y1="${30 + i * 10}" x2="${right}" y2="${30 + i * 10}" stroke="var(--rule)" stroke-width="1"/>`;
+    lines += `<line x1="12" y1="${90 + i * 10}" x2="${right}" y2="${90 + i * 10}" stroke="var(--rule)" stroke-width="1"/>`;
+  }
+  const braces = `<line x1="12" y1="30" x2="12" y2="130" stroke="var(--ink)" stroke-width="2"/>
+                  <line x1="${right}" y1="30" x2="${right}" y2="130" stroke="var(--rule)" stroke-width="1"/>`;
+  const sig = `${keySigSVG(key, 'treble', 48)}${keySigSVG(key, 'bass', 48)}`;
+  let note = '';
+  if (d === MIDDLE_C) note += `<line x1="${noteX - 15}" y1="80" x2="${noteX + 15}" y2="80" stroke="var(--ink)" stroke-width="1"/>`;
+  const stemUp = d < (d >= MIDDLE_C ? 34 : 22);
+  const sx = stemUp ? noteX + 7 : noteX - 7;
+  const sy2 = stemUp ? y - 32 : y + 32;
+  note += `<line x1="${sx}" y1="${y}" x2="${sx}" y2="${sy2}" stroke="${colour}" stroke-width="1.6"/>`;
+  note += `<ellipse class="notehead" cx="${noteX}" cy="${y}" rx="7.5" ry="5.4" fill="${colour}" transform="rotate(-18 ${noteX} ${y})"/>`;
+  return `<svg viewBox="0 0 ${right} 165" xmlns="http://www.w3.org/2000/svg" role="img"
+            aria-label="A note on the grand staff with a key signature">
+            ${lines}${braces}${clefs()}${sig}${note}</svg>`;
+}
+
+// ---------- progress spine ----------
+// One note per step of the ladder, ascending. Filled where cleared.
+const renderSpine = () => {
+  const total = STEPS.length;
+  const cleared = STEPS.filter((_, i) => stepPassed(i)).length;
+  const cur = stepIndex();
+  let lines = '';
+  for (let i = 0; i < 5; i++) lines += `<line x1="10" y1="${8 + i * 9}" x2="410" y2="${8 + i * 9}" stroke="var(--rule)"/>`;
+  let notes = '';
+  const gap = 386 / total;
+  for (let i = 0; i < total; i++) {
+    const x = 22 + i * gap + gap / 2;
+    const y = 46 - i * (30 / total);
+    const done = stepPassed(i), now = i === cur;
+    const c = done ? 'var(--blue)' : now ? 'var(--red)' : 'var(--rule)';
+    if (done || now) notes += `<line x1="${x + 5}" y1="${y}" x2="${x + 5}" y2="${y - 22}" stroke="${c}" stroke-width="1.4"/>`;
+    notes += `<ellipse cx="${x}" cy="${y}" rx="5.4" ry="3.9" fill="${done ? c : 'none'}"
+      stroke="${c}" stroke-width="1.5" transform="rotate(-18 ${x} ${y})"/>`;
+  }
+  document.getElementById('spine').innerHTML =
+    `<svg viewBox="0 0 420 62" xmlns="http://www.w3.org/2000/svg" role="img"
+      aria-label="Progress: ${cleared} of ${total} steps cleared">${lines}${notes}</svg>
+     <p style="font-family:var(--display);font-style:italic;color:var(--soft);margin:2px 0 0;font-size:14px">
+       Step ${cur + 1} of ${total} \u00b7 ${cleared} cleared</p>`;
+}
+
+// ---------- metronome ----------
+// Rendered to a WAV of a whole number of bars and looped through a media
+// element, for the same reason the notes are: it has to survive the silent
+// switch, and a looping element does that where scheduled Web Audio does not.
+let metroEl = null, metroUrl = null, metroBpm = 84, metroOn = false, metroBars = 8;
+
+const renderClickTrack = (bpm, bars) => {
+  const rate = WAV_RATE, spb = 60 / bpm;
+  const n = Math.round(bars * 4 * spb * rate);
+  const out = new Float32Array(n);
+  for (let beat = 0; beat < bars * 4; beat++) {
+    const accent = beat % 4 === 0;
+    const f = accent ? 1600 : 1050;
+    const start = Math.round(beat * spb * rate);
+    const len = Math.min(n - start, Math.round(0.045 * rate));
+    for (let i = 0; i < len; i++) {
+      const t = i / rate;
+      const env = Math.exp(-t * 90) * (accent ? 0.55 : 0.34);
+      out[start + i] += env * Math.sin(2 * Math.PI * f * t);
+    }
+  }
+  return out;
+}
+
+const startMetro = () => {
+  try {
+    const buf = encodeWav(renderClickTrack(metroBpm, metroBars));
+    if (metroUrl) URL.revokeObjectURL(metroUrl);
+    metroUrl = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+    if (!metroEl) { metroEl = new Audio(); metroEl.setAttribute('playsinline', ''); metroEl.loop = true; }
+    metroEl.src = metroUrl;
+    const p = metroEl.play();
+    if (p && p.catch) p.catch(() => {});
+    metroOn = true;
+  } catch (e) { metroOn = false; }
+}
+
+const stopMetro = () => {
+  if (metroEl) { metroEl.pause(); metroEl.currentTime = 0; }
+  metroOn = false;
+}
+
+// tap tempo: median of the gaps, which ignores one bad tap in a way a mean does not
+let taps = [];
+const tapTempo = () => {
+  const now = Date.now();
+  taps = taps.filter(t => now - t < 3000);
+  taps.push(now);
+  if (taps.length < 3) return null;
+  const gaps = [];
+  for (let i = 1; i < taps.length; i++) gaps.push(taps[i] - taps[i - 1]);
+  gaps.sort((a, b) => a - b);
+  const med = gaps[Math.floor(gaps.length / 2)];
+  const bpm = Math.round(60000 / med);
+  return (bpm >= 30 && bpm <= 240) ? bpm : null;
+}
+
+const TEMPO_MARKS = [[0,'Grave'],[46,'Adagio'],[60,'Andante'],[80,'Moderato'],[110,'Allegro'],[150,'Presto']];
+const tempoMark = b => TEMPO_MARKS.filter(t => b >= t[0]).pop()[1];
+
+const metronomeHTML = () => {
+  return `<div style="border-top:1px solid var(--rule);margin-top:26px;padding-top:16px">
+    <p class="eyebrow">Metronome</p>
+    <div class="row" style="align-items:baseline">
+      <button class="btn small" data-bpm="-8">\u2212\u2212</button>
+      <button class="btn small" data-bpm="-1">\u2212</button>
+      <span style="font-family:var(--mono);font-size:26px;min-width:70px;text-align:center" id="bpmval">${metroBpm}</span>
+      <button class="btn small" data-bpm="1">+</button>
+      <button class="btn small" data-bpm="8">++</button>
+      <span style="font-family:var(--display);font-style:italic;color:var(--soft)" id="bpmmark">${tempoMark(metroBpm)}</span>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn ${metroOn ? '' : 'primary'}" id="metrotoggle">${metroOn ? 'Stop' : 'Start'}</button>
+      <button class="btn small" id="metrotap">Tap tempo</button>
+      ${[60, 72, 84, 100, 120].map(b => `<button class="btn small" data-setbpm="${b}">${b}</button>`).join('')}
+    </div>
+    <p style="font-size:13px;color:var(--soft);margin-top:8px;max-width:56ch">First beat of each bar is accented. Practise at the tempo where you make no errors \u2014 if that is 40, it is 40.</p>
+  </div>`;
+}
+
+const wireMetronome = (root) => {
+  const paint = () => {
+    const v = document.getElementById('bpmval'), m = document.getElementById('bpmmark');
+    if (v) v.textContent = metroBpm;
+    if (m) m.textContent = tempoMark(metroBpm);
+    const t = document.getElementById('metrotoggle');
+    if (t) { t.textContent = metroOn ? 'Stop' : 'Start'; t.classList.toggle('primary', !metroOn); }
+  };
+  const setBpm = b => {
+    metroBpm = Math.max(30, Math.min(240, b));
+    if (metroOn) startMetro();          // re-render the loop at the new tempo
+    paint();
+  };
+  root.querySelectorAll('[data-bpm]').forEach(b => b.onclick = () => setBpm(metroBpm + +b.dataset.bpm));
+  root.querySelectorAll('[data-setbpm]').forEach(b => b.onclick = () => setBpm(+b.dataset.setbpm));
+  const t = root.querySelector('#metrotoggle');
+  if (t) t.onclick = () => { metroOn ? stopMetro() : startMetro(); paint(); };
+  const tap = root.querySelector('#metrotap');
+  if (tap) tap.onclick = () => { const b = tapTempo(); if (b) setBpm(b); };
+}
+
+// ---------- practice tab ----------
+// Slot timing is wall-clock: a slot records when it started and how much time
+// it had already banked. setInterval only repaints — locking the phone or
+// backgrounding the tab throttles the timer but no longer loses the minutes.
+let ticker = null;
+
+const slotSpent = s => s.spent + (s.running && s.startedAt ? (Date.now() - s.startedAt) / 1000 : 0);
+const slotLeft = s => Math.max(0, Math.round(s.total - slotSpent(s)));
+
+const renderPractice = (targetId) => {
+  const v = document.getElementById(targetId || 'view');
+  if (!S.session) {
+    v.innerHTML = `
+      <p class="eyebrow">Start here</p>
+      <h2>How long do you actually have?</h2>
+      <p style="color:var(--soft);font-size:14px">Four twelve-minute sessions beat one fifty-minute session. Short counts.</p>
+      <div class="row">
+        ${[5, 10, 20, 35, 60].map(m => `<button class="btn" data-mins="${m}">${m} min</button>`).join('')}
+      </div>
+      ${metronomeHTML()}`;
+    v.querySelectorAll('[data-mins]').forEach(b => b.onclick = () => startSession(+b.dataset.mins));
+    wireMetronome(v);
+    return;
+  }
+
+  const s = S.session;
+  const longform = LONGFORM[s.mins];
+  const allDone = s.slots.every(x => x.done);
+  v.innerHTML = `
+    <p class="eyebrow">${s.mins}-minute session</p>
+    <h2>${allDone ? 'Done. Log it.' : 'Work the slots in order'}</h2>
+    ${s.mins === 60 ? '<p style="color:var(--soft);font-size:14px">Take a break after the repertoire slot.</p>' : ''}
+    ${s.slots.map((x, i) => {
+      const def = SLOTS[x.id];
+      return `<div class="slot ${x.done ? 'done' : ''}">
+        <div class="slotnum">${i + 1}</div>
+        <div class="slottext">
+          <h3>${def.name}</h3>
+          <p>${longform ? def.long : def.short}</p>
+        </div>
+        <div class="slotctl">
+          <div class="clock ${x.running ? 'running' : ''}" id="clk${i}">${fmt(slotLeft(x))}</div>
+          <div class="row" style="gap:6px">
+            <button class="btn small" data-toggle="${i}">${x.running ? 'Pause' : x.spent > 0 ? 'Resume' : 'Start'}</button>
+            <button class="btn small" data-done="${i}" ${x.done ? 'disabled' : ''}>Done</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+    <div class="row" style="margin-top:18px">
+      <button class="btn primary" id="endsess">Log this session</button>
+      <button class="btn" id="cancelsess">Discard</button>
+    </div>
+    ${metronomeHTML()}`;
+
+  v.querySelectorAll('[data-toggle]').forEach(b => b.onclick = () => toggleSlot(+b.dataset.toggle));
+  v.querySelectorAll('[data-done]').forEach(b => b.onclick = () => finishSlot(+b.dataset.done));
+  document.getElementById('endsess').onclick = endSession;
+  document.getElementById('cancelsess').onclick = () => { stopTicker(); S.session = null; save(); refreshSession(); };
+  wireMetronome(v);
+}
+
+// Session state lives in the Progress tab's sesspane, but the timer needs to
+// stay visible and controllable from any tab via the persistent strip. This
+// updates whichever of those is actually on screen instead of always
+// re-rendering #view, which would clobber a tab that isn't Progress.
+const refreshSession = () => {
+  if (tab === 'progress') renderPractice('sesspane');
+  renderNow();
+}
+
+const startSession = (mins) => {
+  S.session = {
+    mins,
+    slots: PLANS[mins].map(([id, m]) => ({ id, total: m * 60, spent: 0, running: false, startedAt: null, done: false }))
+  };
+  save(); refreshSession();
+}
+
+const pauseSlot = (x) => {
+  if (x.running) { x.spent = slotSpent(x); x.running = false; x.startedAt = null; }
+}
+
+const toggleSlot = (i) => {
+  const s = S.session;
+  const wasRunning = s.slots[i].running;
+  s.slots.forEach(pauseSlot);
+  if (!wasRunning) { s.slots[i].running = true; s.slots[i].startedAt = Date.now(); startTicker(); }
+  else stopTicker();
+  save(); refreshSession();
+}
+
+const finishSlot = (i) => {
+  const x = S.session.slots[i];
+  pauseSlot(x);
+  x.done = true;
+  if (!S.session.slots.some(y => y.running)) stopTicker();
+  save(); refreshSession();
+}
+
+const startTicker = () => {
+  stopTicker();
+  ticker = setInterval(() => {
+    const s = S.session; if (!s) return stopTicker();
+    const i = s.slots.findIndex(x => x.running);
+    if (i < 0) return stopTicker();
+    const el = document.getElementById('clk' + i);
+    if (el) el.textContent = fmt(slotLeft(s.slots[i]));
+    // duplicated into both the header and footer strip, so update every copy
+    document.querySelectorAll('.nowclk').forEach(c => c.textContent = fmt(slotLeft(s.slots[i])));
+    if (slotLeft(s.slots[i]) <= 0) { finishSlot(i); save(); }
+  }, 500);
+}
+const stopTicker = () => { clearInterval(ticker); ticker = null; }
+
+const endSession = () => {
+  const s = S.session;
+  s.slots.forEach(pauseSlot);
+  const spent = s.slots.reduce((a, x) => a + Math.min(x.total, x.spent), 0);
+  const mins = Math.max(1, Math.round(spent / 60));
+  S.log.unshift({ date: today(), mins, slots: s.slots.filter(x => x.done).map(x => SLOTS[x.id].name) });
+  S.log = S.log.slice(0, 400);
+  S.session = null;
+  stopTicker(); save();
+  switchTab('progress');
+}
+
+const fmt = sec => `${Math.floor(sec / 60)}:${String(Math.max(0, sec % 60)).padStart(2, '0')}`;
+const today = () => new Date().toISOString().slice(0, 10);
+
+// ---------- reading drill ----------
+let drill = { d: null, keyIdx: null, mode: 'find', minor: false, state: null, t0: 0, round: null, done: false };
+let showLM = false;
+let namingIdx = 0;
+const ROUND_LEN = 20;
+// The benchmark is 20 notes in 30 seconds. Clicking a key costs motor time
+// that naming out loud does not, so the two modes get different benchmarks.
+const TARGET = { name: 1.5, find: 3.0, key: 3.0, solfege: 3.0 };
+
+const startRound = () => {
+  drill.round = { n: 0, correct: 0, secs: 0 };
+  drill.done = false;
+  drill.d = null;
+  newQuestion();
+}
+
+const advance = () => {
+  if (drill.round.n >= ROUND_LEN) {
+    drill.done = true;
+    const per = drill.round.secs / ROUND_LEN;
+    S.drill.rounds.push({
+      date: today(), mode: drill.mode,
+      correct: drill.round.correct, per: +per.toFixed(2)
+    });
+    S.drill.rounds = S.drill.rounds.slice(-200);
+    // a clean fast Name round is the benchmark itself — don't make her judge it
+    drill.autoChecked = false;
+    if (drill.mode === 'name' && drill.round.correct === ROUND_LEN
+        && per <= TARGET.name && !S.drill.namedFast) {
+      S.drill.namedFast = true;
+      drill.autoChecked = 'drill';
+    }
+    if (drill.mode === 'key' && drill.round.correct === ROUND_LEN
+        && per <= TARGET.key && !S.drill.keysFast) {
+      S.drill.keysFast = true;
+      drill.autoChecked = 'keys';
+    }
+    const prev = S.drill.bestRound;
+    if (!prev || drill.round.correct > prev.correct ||
+        (drill.round.correct === prev.correct && per < prev.per)) {
+      S.drill.bestRound = { correct: drill.round.correct, per: +per.toFixed(2), mode: drill.mode };
+    }
+    save();
+    renderReading();
+    return;
+  }
+  newQuestion();
+  renderReading();
+}
+
+const newQuestion = () => {
+  if (drill.mode === 'key') {
+    let i;
+    do { i = Math.floor(Math.random() * KEYS.length); } while (i === drill.keyIdx);
+    drill.keyIdx = i;
+  } else {
+    if (drill.mode === 'solfege') {
+      let i;
+      do { i = Math.floor(Math.random() * KEYS.length); } while (i === drill.keyIdx);
+      drill.keyIdx = i;
+      drill.minor = MINOR_OK.includes(KEYS[i].name) && Math.random() < 0.5;
+    }
+    let d;
+    do { d = LOW + Math.floor(Math.random() * (HIGH - LOW + 1)); } while (d === drill.d);
+    drill.d = d;
+  }
+  drill.state = null; drill.t0 = Date.now();
+}
+
+const landmarkSVG = () => {
+  const marks = [
+    { d: dOf('C', 3), label: 'Bass C' },
+    { d: dOf('F', 3), label: 'Bass F' },
+    { d: MIDDLE_C,    label: 'Middle C' },
+    { d: dOf('G', 4), label: 'Treble G' }
+  ];
+  let lines = '';
+  for (let i = 0; i < 5; i++) {
+    lines += `<line x1="12" y1="${30 + i * 10}" x2="440" y2="${30 + i * 10}" stroke="var(--rule)"/>`;
+    lines += `<line x1="12" y1="${90 + i * 10}" x2="440" y2="${90 + i * 10}" stroke="var(--rule)"/>`;
+  }
+  const frame = `<line x1="12" y1="30" x2="12" y2="130" stroke="var(--ink)" stroke-width="2"/>${clefs()}`;
+  const notes = marks.map((m, i) => {
+    const x = 110 + i * 88, y = yOf(m.d);
+    const ledger = m.d === MIDDLE_C
+      ? `<line x1="${x - 15}" y1="80" x2="${x + 15}" y2="80" stroke="var(--ink)"/>` : '';
+    return `${ledger}
+      <ellipse cx="${x}" cy="${y}" rx="7.5" ry="5.4" fill="var(--red)" transform="rotate(-18 ${x} ${y})"/>
+      <line x1="${x}" y1="${y + 8}" x2="${x}" y2="146" stroke="var(--red)" stroke-width="0.8" stroke-dasharray="2 3"/>
+      <text x="${x}" y="158" text-anchor="middle" font-size="10" fill="var(--red)"
+        font-family="ui-monospace, monospace">${m.label}</text>`;
+  }).join('');
+  return `<svg viewBox="0 0 470 168" xmlns="http://www.w3.org/2000/svg" role="img"
+    aria-label="The four landmark notes on the grand staff">${lines}${frame}${notes}</svg>`;
+}
+
+const LANDMARK_NOTES = [
+  ['Bass F', 'The two dots of the bass clef straddle this line. That is what the symbol is for \u2014 it is the F-clef.'],
+  ['Treble G', 'The curl of the treble clef wraps this line. The G-clef.'],
+  ['Middle C', 'One ledger line above the bass staff, one below the treble. Same key, written two ways.'],
+  ['Bass C', 'Second space up in the bass staff, an octave below middle C.']
+];
+
+const renderReading = () => {
+  if (!drill.round) startRound();
+  const v = document.getElementById('view');
+  const st = S.drill;
+
+  // read this before the first round, not by accident afterwards
+  if (!S.primerSeen) {
+    v.innerHTML = `
+      <p class="eyebrow">Read this first \u2014 two minutes</p>
+      <h2>Four landmarks, then everything else</h2>
+      <p style="max-width:56ch">Don\u2019t use mnemonics like \u201cGood Boys Do Fine Always.\u201d They make you count up from a letter every single time, which caps your reading speed permanently. Memorise these four cold instead, and read every other note as one or two steps from the nearest one.</p>
+      <div class="staffwrap">${landmarkSVG()}</div>
+      <ul style="font-size:14px;max-width:60ch;padding-left:18px">
+        ${LANDMARK_NOTES.map(([n, t]) => `<li style="margin-bottom:7px"><b>${n}</b> \u2014 ${t}</li>`).join('')}
+      </ul>
+      <p style="max-width:56ch;color:var(--soft);font-size:14px">The drill is twenty notes. You can reopen this diagram any time with the Landmarks button.</p>
+      <div class="row" style="margin-top:16px">
+        <button class="btn primary" id="primerdone">Got it \u2014 start the drill</button>
+      </div>`;
+    document.getElementById('primerdone').onclick = () => {
+      S.primerSeen = true; save(); startRound(); renderReading(); renderNow();
+    };
+    return;
+  }
+
+  if (drill.done) {
+    const r = drill.round;
+    const per = r.secs / ROUND_LEN;
+    const target = TARGET[drill.mode];
+    const clean = r.correct === ROUND_LEN;
+    const fast = per <= target;
+    let verdict;
+    if (drill.autoChecked === 'drill') {
+      verdict = 'Twenty of twenty inside the target. That is the note drill at speed \u2014 you are reading the landmarks now, not counting up from them.';
+    } else if (drill.autoChecked === 'keys') {
+      verdict = 'All seven signatures, cold, inside the target. You can name every key signature cold.';
+    } else if (clean && fast && drill.mode === 'find') {
+      verdict = 'Clean and inside the target. Now switch to <b>Name the letter</b> and do the same \u2014 naming from the page, with no keyboard in front of you, is the harder half.';
+    } else if (clean) {
+      verdict = `All twenty right, but ${per.toFixed(1)}s each against a ${target}s target. You are counting up from a landmark rather than recognising it. That resolves with repetition, not effort \u2014 run it again.`;
+    } else {
+      verdict = `${ROUND_LEN - r.correct} missed. Accuracy before speed \u2014 run it again, slower, and use the Landmarks button when you are unsure.`;
+    }
+    v.innerHTML = `
+      <p class="eyebrow">Round complete</p>
+      <h2>${r.correct} of ${ROUND_LEN}</h2>
+      <div class="stats" style="justify-content:flex-start;margin:0 0 18px">
+        <div class="stat"><b>${per.toFixed(1)}s</b><span>per note</span></div>
+        <div class="stat"><b>${target}s</b><span>target</span></div>
+        <div class="stat"><b>${Math.round(r.secs)}s</b><span>total</span></div>
+      </div>
+      <p style="max-width:46ch">${verdict}</p>
+      ${weakSpots()}
+      <div class="row" style="margin-top:20px">
+        <button class="btn primary" id="again">Another round</button>
+        ${drill.mode === 'find' && !S.drill.namedFast
+          ? '<button class="btn" id="switchname">Switch to Name the letter</button>' : ''}
+      </div>`;
+    document.getElementById('again').onclick = () => { startRound(); renderReading(); };
+    const sw = document.getElementById('switchname');
+    if (sw) sw.onclick = () => { drill.mode = 'name'; startRound(); renderReading(); };
+    return;
+  }
+
+  const acc = st.asked ? Math.round(st.right / st.asked * 100) : 0;
+  v.innerHTML = `
+    <p class="eyebrow">Note drill \u00b7 ${Math.min(ROUND_LEN, drill.round.n + 1)} of ${ROUND_LEN}</p>
+    <h2>${drill.mode === 'find' ? 'Play the note'
+      : drill.mode === 'key' ? 'Which major key?'
+      : drill.mode === 'solfege' ? `Name the syllable \u2014 ${drill.minor ? KEYS[drill.keyIdx].relName + ' minor' : KEYS[drill.keyIdx].name + ' major'}`
+      : 'Name the note'}</h2>
+    <div class="row" style="margin-bottom:8px">
+      <button class="btn small ${drill.mode === 'find' ? 'primary' : ''}" data-mode="find">Find the key</button>
+      <button class="btn small ${drill.mode === 'name' ? 'primary' : ''}" data-mode="name">Name the letter</button>
+      <button class="btn small ${drill.mode === 'key' ? 'primary' : ''}" data-mode="key">Name the key</button>
+      <button class="btn small ${drill.mode === 'solfege' ? 'primary' : ''}" data-mode="solfege">Name the solf\u00e8ge</button>
+      <button class="btn small ${showLM ? 'primary' : ''}" id="lm">Landmarks</button>
+      <button class="btn small" id="mute" style="margin-left:auto">${S.muted ? 'Sound off' : 'Sound on'}</button>
+    </div>
+    ${showLM ? `<div style="border:1px solid var(--rule);padding:8px 4px;margin-bottom:12px">${landmarkSVG()}</div>` : ''}
+    <div class="staffwrap">${drillStaffSVG()}</div>
+    <p class="verdict ${drill.state === 'ok' ? 'ok' : drill.state === 'no' ? 'no' : ''}" id="verdict">${verdictText()}</p>
+    <div id="answers">${drill.mode === 'find' ? keyboardHTML()
+      : drill.mode === 'key' ? keyNamesHTML()
+      : drill.mode === 'solfege' ? solfegeHTML(drill.minor)
+      : lettersHTML()}</div>
+    ${audioHint()}
+    ${drill.mode === 'key' ? `<details class="ref" id="namebox">
+      <summary>How do you work out the name from the signature?</summary>
+      <div style="margin-top:14px">${renderNaming(namingIdx)}</div>
+    </details>` : ''}
+    <div class="stats">
+      <div class="stat"><b>${drill.round.correct}</b><span>this round</span></div>
+      <div class="stat"><b>${st.best}</b><span>best streak</span></div>
+      <div class="stat"><b>${acc}%</b><span>all-time</span></div>
+      <div class="stat"><b>${st.bestRound ? st.bestRound.correct + '/' + ROUND_LEN : '\u2014'}</b><span>best round</span></div>
+    </div>`;
+
+  v.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => {
+    drill.mode = b.dataset.mode; startRound(); renderReading();
+  });
+  v.querySelectorAll('[data-answer]').forEach(b => b.onclick = () => answer(b.dataset.answer, b));
+  document.getElementById('mute').onclick = () => {
+    S.muted = !S.muted; save();
+    document.getElementById('mute').textContent = S.muted ? 'Sound off' : 'Sound on';
+  };
+  document.getElementById('lm').onclick = () => { showLM = !showLM; renderReading(); };
+  const nb = document.getElementById('namebox');
+  if (nb) {
+    wireNaming(nb);
+    nb.ontoggle = () => { if (!S.namingSeen) { S.namingSeen = true; save(); } };
+  }
+}
+
+const verdictText = () => {
+  if (drill.mode === 'key') {
+    const k = KEYS[drill.keyIdx];
+    if (drill.state === 'ok') return `Yes \u2014 or ${k.relName} minor, same signature.`;
+    if (drill.state === 'no') return `That was ${k.name} major, or ${k.relName} minor \u2014 ${keyRule(k)}`;
+    return 'Read the signature, not the notes.';
+  }
+  if (drill.mode === 'solfege') {
+    const syllable = solfegeSyllable(drill.d, KEYS[drill.keyIdx], drill.minor);
+    if (drill.state === 'ok') return 'Yes.';
+    if (drill.state === 'no') return `That was ${syllable} (${nameOf(drill.d)}).`;
+    return 'Which syllable is this, in the key shown?';
+  }
+  if (drill.state === 'ok') return 'Yes.';
+  if (drill.state === 'no') return `That was ${nameOf(drill.d)}.`;
+  return drill.mode === 'find' ? 'Which key is this?' : 'Which letter is this?';
+}
+
+// the two rules, stated for the key just missed
+const keyRule = (k) => {
+  if (!k.sharps && !k.flats) return 'no sharps or flats is C major.';
+  if (k.sharps) return `last sharp is ${SHARP_ORDER[k.sharps - 1]}\u266f, and the key is one semitone above it.`;
+  if (k.flats === 1) return 'a single flat is always F major.';
+  return `second-to-last flat is ${FLAT_ORDER[k.flats - 2]}, and that names the key.`;
+}
+
+const keyNamesHTML = () => {
+  return `<div class="letters">${KEYS.map(k =>
+    `<button class="btn" style="width:auto;padding:0 14px" data-answer="${k.name}">${k.name}</button>`).join('')}</div>`;
+}
+
+const lettersHTML = () => {
+  return `<div class="letters">${LETTERS.map(l =>
+    `<button class="btn" data-answer="${l}">${l}</button>`).join('')}</div>`;
+}
+
+const solfegeHTML = (minor) => {
+  const syllables = minor ? SOLFEGE_MINOR : SOLFEGE_MAJOR;
+  return `<div class="letters">${syllables.map(s =>
+    `<button class="btn" style="width:auto;padding:0 14px" data-answer="${s}">${s}</button>`).join('')}</div>`;
+}
+
+const keyboardHTML = () => {
+  const whites = [];
+  for (let d = dOf('C', 3); d <= dOf('C', 5); d++) whites.push(d);
+  const W = 40;
+  let html = '';
+  whites.forEach((d, i) => {
+    html += `<button class="keybtn white" data-answer="${d}" data-midi="${midiOf(d)}" style="left:${i * W}px"
+              aria-label="${nameOf(d)}"><span class="kbnote">${letterOf(d) === 'C' ? nameOf(d) : ''}</span></button>`;
+  });
+  whites.forEach((d, i) => {
+    if (i === whites.length - 1) return;
+    if (['C','D','F','G','A'].includes(letterOf(d)))
+      html += `<button class="keybtn black" data-answer="x" data-midi="${midiOf(d) + 1}"
+                style="left:${(i + 1) * W - 12}px" aria-label="black key, ${letterOf(d)} sharp"></button>`;
+  });
+  return `<div class="kb"><div class="kbinner" style="width:${whites.length * W}px">${html}</div></div>`;
+}
+
+const answer = (val, btn) => {
+  if (drill.state) { advance(); return; }
+  const correct = drill.mode === 'find' ? String(drill.d) === val
+    : drill.mode === 'key' ? KEYS[drill.keyIdx].name === val
+    : drill.mode === 'solfege' ? solfegeSyllable(drill.d, KEYS[drill.keyIdx], drill.minor) === val
+    : letterOf(drill.d) === val;
+  // sound the key you actually pressed, then the right one if you missed it
+  if (drill.mode !== 'key') {
+    const ev = [];
+    if (btn.dataset.midi) ev.push({ midi: +btn.dataset.midi, at: 0 });
+    else if (correct) ev.push({ midi: midiOf(drill.d), at: 0 });
+    if (!correct) ev.push({ midi: midiOf(drill.d), at: 0.7 });
+    playEvents(ev);
+  }
+  drill.round.n++;
+  drill.round.secs += Math.min(15, (Date.now() - drill.t0) / 1000);
+  if (correct) drill.round.correct++;
+  const st = S.drill;
+  st.asked++;
+  const key = drill.mode === 'key' ? KEYS[drill.keyIdx].name + ' maj'
+    : drill.mode === 'solfege' ? `${KEYS[drill.keyIdx].name}${drill.minor ? 'm' : ''}:${nameOf(drill.d)}`
+    : nameOf(drill.d);
+  st.perNote[key] = st.perNote[key] || { a: 0, r: 0 };
+  st.perNote[key].a++;
+  if (correct) {
+    st.right++; st.perNote[key].r++;
+    st.streak++; st.best = Math.max(st.best, st.streak);
+    drill.state = 'ok';
+    btn.classList.add('hit');
+    save();
+    setTimeout(advance, 550);
+    renderVerdictOnly();
+  } else {
+    st.streak = 0;
+    drill.state = 'no';
+    btn.classList.add('miss');
+    save();
+    renderVerdictOnly();
+  }
+}
+
+// picks the right staff renderer for whichever drill mode is active — used both
+// for the initial render and to redraw the staff in its answered colour,
+// so the two can never drift out of sync with each other
+const drillStaffSVG = () => drill.mode === 'key'
+  ? keySigStaffSVG(KEYS[drill.keyIdx], drill.state)
+  : drill.mode === 'solfege'
+  ? solfegeStaffSVG(drill.d, KEYS[drill.keyIdx], drill.state)
+  : staffSVG(drill.d, drill.state);
+
+const renderVerdictOnly = () => {
+  const vd = document.getElementById('verdict');
+  vd.textContent = verdictText();
+  vd.className = 'verdict ' + (drill.state === 'ok' ? 'ok' : 'no');
+  document.querySelector('.staffwrap').innerHTML = drillStaffSVG();
+  if (drill.state === 'no') {
+    document.querySelectorAll('[data-answer]').forEach(b => {
+      b.onclick = () => advance();
+    });
+  }
+}
+
+const weakSpots = () => {
+  const rows = Object.entries(S.drill.perNote)
+    .filter(([, v]) => v.a >= 4 && v.r / v.a < 0.8)
+    .sort((a, b) => a[1].r / a[1].a - b[1].r / b[1].a).slice(0, 5);
+  if (!rows.length) return '';
+  return `<p style="margin-top:20px;font-size:14px;color:var(--soft)">
+    <em style="font-family:var(--display)">Slowest to recognise:</em>
+    ${rows.map(([n, v]) => `${n} (${Math.round(v.r / v.a * 100)}%)`).join(' \u00b7 ')}</p>`;
+}
+
+// ---------- stages ----------
+
+const referenceBody = () => {
+  return `
+    <p class="lbl" style="font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--soft);margin:14px 0 4px">Bass clef by landmark, not mnemonic</p>
+    <ul>
+      <li><b>Bass F</b> \u2014 the two dots of the clef straddle this line. That is what the symbol is for; it is the F-clef.</li>
+      <li><b>Middle C</b> \u2014 one ledger line above the bass staff, one below the treble. Same key, written two ways.</li>
+      <li><b>Treble G</b> \u2014 the curl of the clef wraps this line. The G-clef.</li>
+      <li><b>Bass C</b> \u2014 second space up in the bass staff, an octave below middle C.</li>
+    </ul>
+    <p>Read everything else as one or two steps from the nearest landmark. Mnemonics make you count up from a letter every time, which caps your reading speed permanently.</p>
+    <p class="lbl" style="font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--soft);margin:14px 0 4px">Key signatures \u2014 two rules, no counting</p>
+    <ul>
+      <li>Sharps always appear in the order <b>F C G D A E B</b>; flats always in the reverse, <b>B E A D G C F</b>. Never a gap, never out of order \u2014 so three sharps is always F\u266f C\u266f G\u266f.</li>
+      <li><b>Sharp keys:</b> the last sharp is the 7th degree of the key \u2014 one semitone below home. Go up a semitone. Last sharp C\u266f \u2192 D major.</li>
+      <li><b>Flat keys:</b> the last flat is the 4th degree. Go down a fourth. Last flat A\u266d \u2192 E\u266d major.</li>
+      <li>\u201cSecond-to-last flat\u201d is the same rule \u2014 the flats are stacked in fourths, so a fourth below the last flat is the one before it. Saying \u201cdown a fourth\u201d removes the apparent exception: with one flat there is no second-to-last, but a fourth below B\u266d is still F.</li>
+      <li>The signature is stated once and holds for every bar. A B\u266d in the signature means every B in the piece is flat, in both hands, in every octave, with nothing printed on the notes.</li>
+      <li>This is why the same note under your finger changes name and key between pieces \u2014 and why choir music in E\u266d feels alien until the signature is automatic.</li>
+    </ul>
+    <p class="lbl" style="font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--soft);margin:14px 0 4px">Relative minors \u2014 one signature, two keys</p>
+    <ul>
+      <li>Every signature names <b>two</b> keys: a major and its relative minor. They use the same seven notes; what differs is which note feels like home.</li>
+      <li>Find the minor by going <b>down three semitones</b> from the major tonic \u2014 the 6th degree of the major scale. C\u2192A, G\u2192E, D\u2192B, F\u2192D, B\u266d\u2192G, E\u266d\u2192C.</li>
+      <li>So three flats is <b>E\u266d major or C minor</b>. The signature alone cannot tell you which. Nothing about it can.</li>
+    </ul>
+    <p class="lbl" style="font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--soft);margin:14px 0 4px">Telling major from minor</p>
+    <ul>
+      <li><b>Look at the last bass note.</b> Most reliable test by a wide margin. Pieces end on their tonic. Three flats ending on E\u266d is E\u266d major; three flats ending on C is C minor.</li>
+      <li><b>Look for accidentals the signature never mentioned.</b> This is the real giveaway. Minor raises its 7th degree to make a semitone leading up to the tonic \u2014 so C minor is speckled with B naturals even though the signature says B\u266d. Repeated accidentals on the note just below your suspected tonic means minor.</li>
+      <li><b>Why the raised 7th exists:</b> the natural minor 7th sits a whole step below the tonic and does not pull home. Raising it turns the v chord into a real V, which is what makes a cadence sound finished.</li>
+      <li><b>Use your ear \u2014 it is your strongest tool here.</b> Play the first chord and the last. You have sung enough minor to know it instantly; you just have not had to name it from the page before.</li>
+      <li>A first note on the tonic is suggestive but unreliable \u2014 plenty of pieces open elsewhere.</li>
+    </ul>
+    <p class="lbl" style="font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--soft);margin:14px 0 4px">Fingering</p>
+    <ul>
+      <li>Fingers number 1\u20135, thumb to pinky, on both hands. Numbers on the score are fingerings, not note names.</li>
+      <li>One finger per adjacent key. Don\u2019t reuse a finger unless the music forces it.</li>
+      <li>The thumb avoids black keys \u2014 it is short and pulls the hand out of position.</li>
+      <li>Decide the fingering before practising, write it in pencil, then never change it. Inconsistent fingering is the main reason a passage refuses to stabilise.</li>
+    </ul>
+    <p class="lbl" style="font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--soft);margin:14px 0 4px">Practice rules</p>
+    <ul>
+      <li>Practise at the tempo where you make zero errors, even if that is a quarter of performance speed.</li>
+      <li>Three consecutive correct repetitions, or it isn\u2019t learned. One is luck.</li>
+      <li>Never play through a mistake. Stop, back up two beats, fix it.</li>
+      <li>Don\u2019t always start at bar one, or the opening gets fifty reps and the hard part gets six.</li>
+      <li>Finish on something you can play. The last thing practised is what consolidates overnight.</li>
+      <li>Forearm burning is a grip reflex, not weakness. Stop, shake out, restart slower.</li>
+    </ul>
+  `;
+}
+
+const referenceHTML = () => {
+  return `<details class="ref"><summary>Reference \u2014 landmarks, fingering, practice rules</summary>${referenceBody()}</details>`;
+}
+
+// ---------- log ----------
+const backupStatusText = () => {
+  if (!S.lastExported) return 'You have not downloaded a backup yet.';
+  const days = Math.floor((Date.now() - S.lastExported) / 86400000);
+  if (days <= 0) return 'Backed up today.';
+  if (days >= 30) return `Last backed up ${days} days ago \u2014 worth a fresh copy.`;
+  return `Last backed up ${days} day${days === 1 ? '' : 's'} ago.`;
+};
+
+const renderLog = (targetId) => {
+  const v = document.getElementById(targetId || 'view');
+  const byDay = {};
+  S.log.forEach(e => byDay[e.date] = (byDay[e.date] || 0) + e.mins);
+  const days = [];
+  for (let i = 13; i >= 0; i--) {
+    const dt = new Date(); dt.setDate(dt.getDate() - i);
+    const k = dt.toISOString().slice(0, 10);
+    days.push({ k, mins: byDay[k] || 0 });
+  }
+  const max = Math.max(30, ...days.map(d => d.mins));
+  const total = S.log.reduce((a, e) => a + e.mins, 0);
+
+  let streak = 0;
+  for (let i = 0; ; i++) {
+    const dt = new Date(); dt.setDate(dt.getDate() - i);
+    const k = dt.toISOString().slice(0, 10);
+    if (byDay[k]) streak++; else if (i > 0) break;
+  }
+
+  v.innerHTML = `
+    <p class="eyebrow">Fourteen days</p>
+    <h2>${S.log.length ? 'What actually happened' : 'Nothing logged yet'}</h2>
+    <div class="bars">${days.map(d =>
+      `<div class="bar ${d.mins ? '' : 'empty'}" style="height:${Math.max(2, d.mins / max * 90)}px"
+        title="${d.k}: ${d.mins} min"></div>`).join('')}</div>
+    <div class="barlbl"><span>${days[0].k.slice(5)}</span><span>today</span></div>
+    <div class="stats" style="margin:22px 0 24px">
+      <div class="stat"><b>${streak}</b><span>day streak</span></div>
+      <div class="stat"><b>${S.log.length}</b><span>sessions</span></div>
+      <div class="stat"><b>${total}</b><span>minutes</span></div>
+    </div>
+    ${S.log.length
+      ? S.log.slice(0, 12).map(e => `<div class="sess">
+          <span>${e.date}</span>
+          <div style="flex:1;padding:0 12px;color:var(--soft);font-size:13px">${e.slots.join(', ') || '\u2014'}</div>
+          <span>${e.mins}m</span></div>`).join('')
+      : '<p class="empty-state">Start a session above and it lands here.</p>'}
+    <div style="margin-top:26px">${readingTrend()}</div>
+
+    <details class="ref" style="margin-top:26px">
+      <summary>Back up or move your progress</summary>
+      <div style="margin-top:12px">
+        <p style="font-size:14px;max-width:58ch">Everything \u2014 stage, exit tests, practice log, drill history, reading trend \u2014 lives inside this artifact. It does not follow you to another copy, and unpublishing an artifact deletes its stored data permanently. For a programme measured in months, keep a file.</p>
+        <div class="row">
+          <button class="btn primary" id="exportbtn">Download my progress</button>
+          <button class="btn" id="importtoggle">Restore from a backup</button>
+        </div>
+        <p id="backupstatus" style="font-size:13px;color:var(--soft);margin-top:8px">${backupStatusText()}</p>
+        <div id="importbox" style="display:none;margin-top:12px">
+          <p style="font-size:13px;color:var(--soft)">Paste the contents of a backup file. This replaces everything currently stored.</p>
+          <textarea id="importtext" rows="4" style="width:100%;font-family:var(--mono);font-size:12px;border:1px solid var(--rule);padding:8px"></textarea>
+          <div class="row" style="margin-top:8px">
+            <button class="btn" id="importgo">Replace my progress</button>
+            <span id="importmsg" style="font-size:13px;color:var(--soft)"></span>
+          </div>
+        </div>
+      </div>
+    </details>
+    <div style="margin-top:26px"><button class="btn small" id="reset">Erase all progress</button></div>`;
+
+  const ex = document.getElementById('exportbtn');
+  if (ex) ex.onclick = () => {
+    try {
+      const payload = JSON.stringify({ app: 'piano-practice', version: 1, saved: new Date().toISOString(), state: S }, null, 2);
+      const url = URL.createObjectURL(new Blob([payload], { type: 'application/json' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'piano-progress-' + today() + '.json';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      S.lastExported = Date.now(); save();
+      const st = document.getElementById('backupstatus');
+      if (st) st.textContent = backupStatusText();
+    } catch (e) {
+      const m = document.getElementById('importmsg');
+      if (m) m.textContent = 'Could not build the file: ' + e.message;
+    }
+  };
+  const it = document.getElementById('importtoggle');
+  if (it) it.onclick = () => {
+    const box = document.getElementById('importbox');
+    if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
+  };
+  const ig = document.getElementById('importgo');
+  if (ig) ig.onclick = () => {
+    const msg = document.getElementById('importmsg');
+    const raw = (document.getElementById('importtext') || {}).value || '';
+    try {
+      const parsed = JSON.parse(raw);
+      const incoming = parsed && parsed.state ? parsed.state : parsed;
+      if (!incoming || typeof incoming !== 'object' || typeof incoming.sight !== 'object')
+        throw new Error('that does not look like a progress file');
+      S = normalize({ ...blank(), ...incoming });
+      save(); renderSpine(); render();
+    } catch (e) {
+      if (msg) msg.textContent = 'Could not restore: ' + e.message;
+    }
+  };
+  document.getElementById('reset').onclick = () => {
+    if (confirm('Erase stages, drill stats and practice log? This cannot be undone.')) {
+      S = blank(); save(); render(); renderSpine();
+    }
+  };
+}
+
+// ---------- keys ----------
+const SHARP_ORDER = ['F','C','G','D','A','E','B'];
+const FLAT_ORDER  = ['B','E','A','D','G','C','F'];
+const SHARP_POS = { treble: [38,35,39,36,33,37,34], bass: [24,21,25,22,19,23,20] };
+const FLAT_POS  = { treble: [34,37,33,36,32,35,31], bass: [20,23,19,22,18,21,17] };
+
+// every signature names two keys: a major and its relative minor, a minor
+// third below. rel is the minor tonic letter; relName is how it's spoken.
+const KEYS = [
+  { name: 'C',       sharps: 0, flats: 0, tonic: 'C', rel: 'A', relName: 'A' },
+  { name: 'G',       sharps: 1, flats: 0, tonic: 'G', rel: 'E', relName: 'E' },
+  { name: 'D',       sharps: 2, flats: 0, tonic: 'D', rel: 'B', relName: 'B' },
+  { name: 'A',       sharps: 3, flats: 0, tonic: 'A', rel: 'F', relName: 'F\u266f' },
+  { name: 'F',       sharps: 0, flats: 1, tonic: 'F', rel: 'D', relName: 'D' },
+  { name: 'B\u266d', sharps: 0, flats: 2, tonic: 'B', rel: 'G', relName: 'G' },
+  { name: 'E\u266d', sharps: 0, flats: 3, tonic: 'E', rel: 'C', relName: 'C' }
+];
+// F#minor's raised 7th is E#, which is correct theory but a bad first encounter,
+// so minor generation skips the three-sharp signature
+const MINOR_OK = ['C','G','D','F','B\u266d','E\u266d'];
+
+// Movable-do, do-based minor. The syllable names a scale DEGREE \u2014 the letter's
+// distance from the tonic \u2014 so it never looks at the key's sharps/flats: G
+// major's 7th degree is "ti" whether or not it happens to be printed as F#.
+// Minor is renumbered so its own tonic is "do", with altered syllables for the
+// naturally-flatted 3rd, 6th and 7th degrees (me, le, te).
+const SOLFEGE_MAJOR = ['do', 're', 'mi', 'fa', 'sol', 'la', 'ti'];
+const SOLFEGE_MINOR = ['do', 're', 'me', 'fa', 'sol', 'le', 'te'];
+const solfegeSyllable = (d, key, minor) => {
+  const tonicLetter = minor ? key.rel : key.tonic;
+  const degree = ((LETTERS.indexOf(letterOf(d)) - LETTERS.indexOf(tonicLetter)) % 7 + 7) % 7;
+  return (minor ? SOLFEGE_MINOR : SOLFEGE_MAJOR)[degree];
+};
+// Difficulty is black keys under the five-finger position PLUS accidentals to
+// read in the signature — C 0, G 1, F 2, D 3, B\u266d 4, A 4, E\u266d 6.
+// A shuffled bag, not independent draws. Uniform random repeated the previous
+// key 35% of the time on a three-key pool and produced runs of up to seven,
+// which reads as "it keeps giving me the same one" because it does.
+let keyBag = [], keyBagPool = '', lastKeyDrawn = null;
+
+const drawKey = (pool) => {
+  if (pool.length === 1) return pool[0];
+  const sig = pool.join(',');
+  if (sig !== keyBagPool || !keyBag.length) {
+    keyBagPool = sig;
+    keyBag = pool.slice();
+    for (let i = keyBag.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [keyBag[i], keyBag[j]] = [keyBag[j], keyBag[i]];
+    }
+    if (keyBag[keyBag.length - 1] === lastKeyDrawn && keyBag.length > 1) {
+      const swap = Math.floor(Math.random() * (keyBag.length - 1));
+      [keyBag[keyBag.length - 1], keyBag[swap]] = [keyBag[swap], keyBag[keyBag.length - 1]];
+    }
+  }
+  lastKeyDrawn = keyBag.pop();
+  return lastKeyDrawn;
+}
+
+const keyByName = n => KEYS.find(k => k.name === n) || KEYS[0];
+
+const keyAlter = (key) => {
+  const a = {};
+  for (let i = 0; i < key.sharps; i++) a[SHARP_ORDER[i]] = 1;
+  for (let i = 0; i < key.flats; i++)  a[FLAT_ORDER[i]] = -1;
+  return a;
+}
+
+const sharpGlyph = (x, y) => {
+  return `<g stroke="var(--ink)">
+    <line x1="${x-2.7}" y1="${y-7}" x2="${x-2.7}" y2="${y+6}" stroke-width="1.1"/>
+    <line x1="${x+2.7}" y1="${y-8}" x2="${x+2.7}" y2="${y+5}" stroke-width="1.1"/>
+    <line x1="${x-5}" y1="${y+2}" x2="${x+5}" y2="${y-0.3}" stroke-width="2.5"/>
+    <line x1="${x-5}" y1="${y-3.2}" x2="${x+5}" y2="${y-5.5}" stroke-width="2.5"/></g>`;
+}
+const flatGlyph = (x, y) => {
+  return `<g stroke="var(--ink)" fill="none">
+    <line x1="${x-2.4}" y1="${y-12}" x2="${x-2.4}" y2="${y+4}" stroke-width="1.3"/>
+    <path d="M ${x-2.4},${y-2.5} C ${x+4},${y-5.5} ${x+5},${y+2} ${x-2.4},${y+4}" stroke-width="1.7"/></g>`;
+}
+
+const naturalGlyph = (x, y) => {
+  return `<g stroke="var(--ink)">
+    <line x1="${x-2.6}" y1="${y-6}" x2="${x-2.6}" y2="${y+8}" stroke-width="1.2"/>
+    <line x1="${x+2.6}" y1="${y-8}" x2="${x+2.6}" y2="${y+6}" stroke-width="1.2"/>
+    <line x1="${x-2.6}" y1="${y+1.5}" x2="${x+2.6}" y2="${y-0.5}" stroke-width="2.3"/>
+    <line x1="${x-2.6}" y1="${y-3}" x2="${x+2.6}" y2="${y-5}" stroke-width="2.3"/></g>`;
+}
+// what to print in front of a raised 7th, given what the signature already did
+const accidentalGlyph = (x, y, resulting) => {
+  return resulting === 0 ? naturalGlyph(x, y)
+       : resulting > 0 ? sharpGlyph(x, y) : flatGlyph(x, y);
+}
+
+const keySigSVG = (key, clef, x0, markLast) => {
+  const n = key.sharps || key.flats;
+  if (!n) return '';
+  const sharp = key.sharps > 0;
+  const solo = clef === 'bassSolo';
+  const pos = (sharp ? SHARP_POS : FLAT_POS)[solo ? 'bass' : clef];
+  const yFn = clef === 'treble' ? yTreble
+            : solo ? (d => 70 - (d - 18) * 5) : yBass;
+  let s = '';
+  for (let i = 0; i < n; i++) {
+    const x = x0 + 5 + i * 9.5;
+    const glyph = (sharp ? sharpGlyph : flatGlyph)(x, yFn(pos[i]));
+    // the last accidental is the one the naming rule turns on
+    s += (markLast && i === n - 1)
+      ? `<g style="--ink:var(--red)">${glyph}</g>
+         <circle cx="${x}" cy="${yFn(pos[i]) - 1}" r="9.5" fill="none" stroke="var(--red)"
+           stroke-width="1" stroke-dasharray="2 2"/>`
+      : glyph;
+  }
+  return s;
+}
+const keySigWidth = key => { const n = key.sharps || key.flats; return n ? n * 9.5 + 12 : 0; };
+
+// ---------- sight-read: generation and notation ----------
+const RHYTHMS = {
+  1: [[4], [2,2], [2,1,1], [1,1,2], [1,1,1,1]],
+  2: [[4], [2,2], [2,1,1], [1,1,2], [1,1,1,1]],
+  3: [[2,2], [2,1,1], [1,1,1,1], [1,0.5,0.5,2], [0.5,0.5,1,2], [1,1,0.5,0.5,1]]
+};
+
+const mulberry = (seed) => {
+  return function () {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+// An eight-bar period, not a random walk. Bars 1-2 state a motif; 3-4 answer it;
+// 5-6 restate the motif exactly; 7-8 answer it again and close on the tonic.
+// Repetition is the point: reading fluently means recognising a shape you have
+// already seen, which material with no shapes in it can never teach.
+// Reach: how far outside the five-finger position the line is allowed to go.
+// 0 = never (the hand never moves), 1 = one step either side, taken by
+// stretching finger 1 or 5, 2 = wide enough that the hand must shift.
+const REACH = { 0: [0, 0], 1: [1, 1], 2: [3, 3] };
+
+const genMelody = (stage, seed, key, minor, opts) => {
+  stage = Math.min(3, Math.max(1, stage));
+  key = key || KEYS[0];
+  minor = !!minor && MINOR_OK.includes(key.name);
+  opts = opts || {};
+  const hand = opts.hand || 'right';                 // right | left | both
+  const reach = opts.reach === undefined ? (stage === 1 ? 0 : stage === 2 ? 1 : 2) : opts.reach;
+  const rnd = mulberry(seed);
+  const pick = a => a[Math.floor(rnd() * a.length)];
+  const tonicLetter = minor ? key.rel : key.tonic;
+
+  // the melody hand sits where it can be read: right hand from middle C up,
+  // left hand low enough that its five-finger position fits the bass staff
+  let melTonic;
+  if (hand === 'left') { melTonic = dOf(tonicLetter, 3); while (melTonic > 23) melTonic -= 7; }
+  else melTonic = dOf(tonicLetter, 4);
+
+  // one melody stretches one way, not both — mixing a thumb-stretch-down with
+  // a pinky-stretch-up in the same eight bars teaches two things at once.
+  // Pick from whichever directions are actually usable first: melTonic can
+  // sit right at the instrument's floor or ceiling (e.g. a right-hand C-major
+  // tune starts on MIDDLE_C itself), which blocks one direction outright.
+  const [reachDown, reachUp] = REACH[reach] || REACH[0];
+  const absLo = hand === 'left' ? dOf('E', 2) : MIDDLE_C;
+  const absHi = hand === 'left' ? dOf('C', 4) - 1 : dOf('A', 5);
+  const canReachDown = reachDown > 0 && Math.max(absLo, melTonic - reachDown) < melTonic;
+  const canReachUp = reachUp > 0 && Math.min(melTonic + 4 + reachUp, absHi) > melTonic + 4;
+  const reachDir = canReachDown && canReachUp ? (rnd() < 0.5 ? 'down' : 'up')
+                 : canReachDown ? 'down' : canReachUp ? 'up' : null;
+  const down = reachDir === 'down' ? reachDown : 0;
+  const up = reachDir === 'up' ? reachUp : 0;
+  const lo = hand === 'left' ? Math.max(dOf('E', 2), melTonic - down)
+                             : Math.max(MIDDLE_C, melTonic - down);
+  const hi = hand === 'left' ? Math.min(melTonic + 4 + up, dOf('C', 4) - 1)
+                             : Math.min(melTonic + 4 + up, dOf('A', 5));
+  const clamp = d => Math.max(lo, Math.min(hi, d));
+  const pats = RHYTHMS[stage];
+
+  // focus tilts the material toward one difficulty without changing anything else
+  const focus = opts.focus || null;
+  const leapy = focus === 'leap';
+  const turny = focus === 'turn';
+  let lastSign = 0;
+  const stepDelta = () => {
+    const r = rnd();
+    const stepChance = leapy ? 0.32 : 0.68;
+    // turny biases the new step to reverse the previous one, rather than a
+    // fresh coin flip each time — that's what makes a line zigzag instead of
+    // wandering in one direction for a while before turning
+    const sign = (turny && lastSign && rnd() < 0.75) ? -lastSign : (rnd() < 0.5 ? 1 : -1);
+    const delta = r < stepChance ? sign
+         : r < 0.97 ? sign * (leapy ? 3 + Math.floor(rnd() * 3) : 2 + Math.floor(rnd() * 2))
+         : 0;
+    if (delta !== 0) lastSign = Math.sign(delta);
+    return delta;
+  };
+
+  function makeMotif(nBars) {
+    let rhythms = [], tries = 0;
+    const wantEighths = focus === 'eighths';
+    const pool = wantEighths ? (pats.filter(r => r.some(d => d === 0.5)).length ? pats.filter(r => r.some(d => d === 0.5)) : pats) : pats;
+    do {
+      rhythms = [];
+      for (let b = 0; b < nBars; b++) rhythms.push(pool[Math.floor(rnd() * pool.length)]);
+      tries++;
+    } while (tries < 12 && (rhythms[0].length < 2 ||
+             rhythms.reduce((a, r) => a + r.length, 0) < 4));
+    const deltas = [];
+    let moved = 0;
+    for (const r of rhythms) for (let k = 0; k < r.length; k++) {
+      if (deltas.length === 0) { deltas.push(0); continue; }
+      const d = stepDelta();
+      if (d !== 0) moved++;
+      deltas.push(d);
+    }
+    if (moved === 0 && deltas.length > 1) deltas[1] = rnd() < 0.5 ? 1 : 2;
+
+    // reach only widens where the walk is *allowed* to go — nothing above biases
+    // it to actually go there, so a "reaching out" step could silently generate
+    // a melody that never leaves the five-finger position. Force one note out
+    // if the walk didn't wander there on its own. Uses the real clamp(), not a
+    // reimplementation of its bounds — melTonic can sit right at the instrument's
+    // floor or ceiling (e.g. a right-hand C-major tune starts on MIDDLE_C itself),
+    // which silently caps away one direction regardless of what down/up allow.
+    if ((down > 0 || up > 0) && deltas.length > 2) {
+      let cur = melTonic;
+      const positions = [cur];
+      for (let i = 1; i < deltas.length; i++) {
+        cur = clamp(cur + deltas[i]);
+        positions.push(cur);
+      }
+      if (!positions.some(p => p - melTonic < 0 || p - melTonic > 4)) {
+        const canGoLow = clamp(melTonic - down) < melTonic;
+        const canGoHigh = clamp(melTonic + 4 + up) > melTonic + 4;
+        if (canGoLow || canGoHigh) {
+          const goLow = canGoLow && (!canGoHigh || rnd() < 0.5);
+          // nudge whichever note already sits closest to that edge — the
+          // smallest possible push, so the forced note crosses the position
+          // without also reading as an unrelated leap
+          let i = 1;
+          for (let k = 2; k < positions.length - 1; k++) { // never the last note
+            if (goLow ? positions[k] < positions[i] : positions[k] > positions[i]) i = k;
+          }
+          const target = goLow ? clamp(melTonic - 1) : clamp(melTonic + 5);
+          deltas[i] = target - positions[i - 1];
+        }
+      }
+    }
+    return { rhythms, deltas };
+  }
+
+  function realise(motif, startD, endOn) {
+    const bars = [];
+    let cur = clamp(startD), idx = 0;
+    for (const r of motif.rhythms) {
+      const notes = [];
+      for (const dur of r) {
+        if (idx > 0) cur = clamp(cur + motif.deltas[idx]);
+        notes.push({ d: cur, dur });
+        idx++;
+      }
+      bars.push(notes);
+    }
+    if (endOn !== undefined && motif.deltas.length) {
+      const lastBar = bars[bars.length - 1];
+      lastBar[lastBar.length - 1].d = clamp(endOn);
+    }
+    return bars;
+  }
+
+  const motif = makeMotif(2), answer = makeMotif(2);
+  const half = clamp(melTonic + pick([1, 2, 4]));
+  const line = [
+    ...realise(motif, melTonic),
+    ...realise(answer, melTonic, half),
+    ...realise(motif, melTonic),
+    ...realise(answer, melTonic, melTonic)
+  ];
+  line[7] = [{ d: melTonic, dur: 4 }];
+
+  if (minor) {
+    const alter = keyAlter(key);
+    const seventh = ((melTonic - 1) % 7 + 7) % 7;
+    const flat = line.flat();
+    flat.forEach((n, i) => {
+      if (((n.d % 7) + 7) % 7 !== seventh) return;
+      const nxt = flat[i + 1];
+      if ((nxt && nxt.d === n.d + 1) || i >= flat.length - 4) {
+        n.alt = (alter[letterOf(n.d)] || 0) + 1;
+      }
+    });
+  }
+
+  // the other hand: held roots, or at "both" a simple moving line of its own
+  function accompany(root, moving) {
+    return line.map((_, i) => {
+      if (i === 7) return [{ d: root, dur: 4 }];
+      const deg = pick([0, 3, 4]);
+      if (!moving) return [{ d: root + deg, dur: 4 }];
+      const other = pick([0, 3, 4]);
+      return [{ d: root + deg, dur: 2 }, { d: root + other, dur: 2 }];
+    });
+  }
+
+  // "left hand" means the left hand ALONE — one staff, nothing else to read.
+  // Adding the other hand is a separate, later step.
+  let bars = null, bass = null;
+  if (hand === 'left') {
+    bass = line;
+  } else if (hand === 'right') {
+    bars = line;
+  } else {                                  // both
+    bars = line;
+    let lhRoot = dOf(tonicLetter, 3);
+    while (lhRoot > 23) lhRoot -= 7;
+    bass = accompany(lhRoot, opts.moving !== false);
+  }
+
+  return { bars, bass, stage, seed, key, minor, hand, reach, lo, hi, melTonic };
+}
+
+// the melody staff, whichever hand is carrying it
+const melodyBars = mel => (mel.hand === 'left' ? mel.bass : mel.bars);
+
+// ---------- notation ----------
+const X0 = 12, CLEFPAD = 36, BARW = 104, PERSYS = 4;
+const yTreble = d => 70 - (d - 30) * 5;
+const yBass   = d => 130 - (d - 18) * 5;
+
+const melKeyLabel = mel => mel.minor
+  ? `${mel.key.relName} minor` : `${mel.key.name} major`;
+
+const melodySVG = (mel, clefFn, mark, askBar, hideKey) => {
+  const hasT = !!mel.bars, hasB = !!mel.bass;
+  const grand = hasT && hasB;
+  // a lone bass staff is drawn in the upper slot, with the bass clef moved to it
+  const yLower = grand ? yBass : d => 70 - (d - 18) * 5;
+  const ksw = keySigWidth(mel.key);
+  const barStart = b => X0 + CLEFPAD + ksw + b * BARW;
+  const right = X0 + CLEFPAD + ksw + PERSYS * BARW;
+  const sysH = grand ? 152 : 104;
+  const botExtent = grand ? 146 : 96;
+  const bottomY = grand ? 130 : 70;
+  void yLower;
+  const tint = (hand, i) => {
+    if (!mark || mark.hand !== hand) return null;
+    const beatMode = mark.mode === 'beat';
+    if (i < mark.upto) return beatMode ? 'var(--ink)' : 'var(--blue)';
+    if (i === mark.upto) return 'var(--red)';
+    return 'var(--rule)';
+  };
+  const counters = { right: 0, left: 0 };
+  let out = '';
+
+  // one routine draws a bar on either staff, so both hands can carry a real
+  // line — the bass used to be hard-coded to a single whole note per bar
+  function drawBar(notes, bx0, yFn, staffTop, staffBottom, hand) {
+    let g = '', beat = 0;
+    const placed = notes.map(n => {
+      const x = bx0 + 14 + (beat / 4) * (BARW - 24);
+      beat += n.dur;
+      return { ...n, x };
+    });
+    const groups = [];
+    for (let i = 0; i < placed.length; i++) {
+      if (placed[i].dur !== 0.5) continue;
+      let j = i;
+      while (j + 1 < placed.length && placed[j + 1].dur === 0.5) j++;
+      if (j > i) { groups.push([i, j]); i = j; }
+    }
+    const groupOf = i => groups.find(gr => i >= gr[0] && i <= gr[1]);
+    const mid = (staffTop + staffBottom) / 2;
+
+    placed.forEach((n, i) => {
+      const col = tint(hand, counters[hand]++);
+      const gr = groupOf(i);
+      n._col = col;
+      const y = yFn(n.d);
+      g += ledgers(n.x, n.d, yFn, staffTop, staffBottom);
+      if (n.alt !== undefined) g += accidentalGlyph(n.x - 13, y, n.alt);
+      g += noteGlyph(n.x, y, n.dur, col, gr ? false : true, mid);
+      if (n.dur === 0.5 && !gr) {
+        const up = y > mid, sx = up ? n.x + 6.6 : n.x - 6.6;
+        const tip = up ? y - 30 : y + 30, dir = up ? 1 : -1;
+        g += `<path d="M ${sx},${tip} C ${sx + 8},${tip + 7 * dir} ${sx + 9},${tip + 15 * dir} ${sx + 3},${tip + 21 * dir}"
+               fill="none" stroke="${col || 'var(--ink)'}" stroke-width="2.4" stroke-linecap="round"/>`;
+      }
+    });
+
+    groups.forEach(([a, b]) => {
+      const ys = [];
+      for (let i = a; i <= b; i++) ys.push(yFn(placed[i].d));
+      const up = ys.reduce((s, y) => s + y, 0) / ys.length > mid;
+      const sx = up ? 6.6 : -6.6, off = up ? -30 : 30;
+      const beamY = up ? Math.min(...ys) + off : Math.max(...ys) + off;
+      for (let i = a; i <= b; i++) {
+        g += `<line x1="${placed[i].x + sx}" y1="${yFn(placed[i].d)}" x2="${placed[i].x + sx}" y2="${beamY}"
+               stroke="${placed[i]._col || 'var(--ink)'}" stroke-width="1.5"/>`;
+      }
+      g += `<line x1="${placed[a].x + sx}" y1="${beamY}" x2="${placed[b].x + sx}" y2="${beamY}"
+             stroke="${placed[a]._col || 'var(--ink)'}" stroke-width="3.4"/>`;
+    });
+    return g;
+  }
+
+  for (let sys = 0; sys < 2; sys++) {
+    let g = '';
+    for (let s = 0; s < 5; s++) {
+      g += `<line x1="${X0}" y1="${30 + s * 10}" x2="${right}" y2="${30 + s * 10}" stroke="var(--rule)"/>`;
+      if (grand) g += `<line x1="${X0}" y1="${90 + s * 10}" x2="${right}" y2="${90 + s * 10}" stroke="var(--rule)"/>`;
+    }
+    g += `<line x1="${X0}" y1="30" x2="${X0}" y2="${bottomY}" stroke="var(--ink)" stroke-width="2"/>`;
+    g += clefFn(grand ? 'grand' : hasT ? 'treble' : 'bass');
+    g += keySigSVG(mel.key, hasT ? 'treble' : 'bassSolo', X0 + CLEFPAD);
+    if (grand) g += keySigSVG(mel.key, 'bass', X0 + CLEFPAD);
+
+    for (let b = 0; b < PERSYS; b++) {
+      const idx = sys * PERSYS + b;
+      const bx0 = barStart(b);
+      if (hasT) g += drawBar(mel.bars[idx], bx0, yTreble, 30, 70, 'right');
+      if (hasB) g += drawBar(mel.bass[idx], bx0, yLower, grand ? 90 : 30, grand ? 130 : 70, 'left');
+      const bx = bx0 + BARW;
+      if (idx === 7) {
+        g += `<line x1="${bx - 6}" y1="30" x2="${bx - 6}" y2="${bottomY}" stroke="var(--ink)"/>`;
+        g += `<line x1="${bx - 1}" y1="30" x2="${bx - 1}" y2="${bottomY}" stroke="var(--ink)" stroke-width="3"/>`;
+      } else {
+        g += `<line x1="${bx}" y1="30" x2="${bx}" y2="${bottomY}" stroke="var(--ink)"/>`;
+      }
+      if (askBar) {
+        g += `<rect class="stumble-hit" data-bar="${idx}" x="${bx0}" y="0"
+              width="${BARW}" height="${sysH}" role="button" tabindex="0"
+              aria-label="Mark bar ${idx + 1} as where it went wrong"/>`;
+      }
+    }
+    out += `<g transform="translate(0,${sys * sysH})">${g}</g>`;
+  }
+  return `<svg viewBox="0 0 ${right + 8} ${sysH + botExtent}" xmlns="http://www.w3.org/2000/svg"
+    role="img" aria-label="Generated eight-bar sight-reading exercise${hideKey ? '' : ' in ' + melKeyLabel(mel)}${askBar ? '. Tap a bar to mark where you stumbled.' : ''}">${out}</svg>`;
+}
+
+const noteGlyph = (x, y, dur, colour, withStem, mid) => {
+  const c = colour || 'var(--ink)';
+  let s = '';
+  if (dur < 4 && withStem !== false) {
+    const up = y > (mid === undefined ? 45 : mid), sx = up ? x + 6.6 : x - 6.6;
+    s += `<line x1="${sx}" y1="${y}" x2="${sx}" y2="${up ? y - 30 : y + 30}" stroke="${c}" stroke-width="1.5"/>`;
+  }
+  const hollow = dur >= 2;
+  // an open notehead must read as open at phone size, so the hole is filled with
+  // the page colour rather than left transparent for staff lines to run through
+  s += `<ellipse cx="${x}" cy="${y}" rx="7.2" ry="5.2" transform="rotate(-18 ${x} ${y})"
+        fill="${hollow ? 'var(--page)' : c}" stroke="${c}" stroke-width="${hollow ? 1.7 : 0}"/>`;
+  return s;
+}
+
+const ledgers = (x, d, yFn, staffTop, staffBottom) => {
+  let s = '', y = yFn(d);
+  for (let ly = staffBottom + 10; ly <= y; ly += 10)
+    s += `<line x1="${x - 13}" y1="${ly}" x2="${x + 13}" y2="${ly}" stroke="var(--ink)"/>`;
+  for (let ly = staffTop - 10; ly >= y; ly -= 10)
+    s += `<line x1="${x - 13}" y1="${ly}" x2="${x + 13}" y2="${ly}" stroke="var(--ink)"/>`;
+  return s;
+}
+
+// playback has to apply the key signature — the notation implies it, the synth doesn't
+const melodySeq = (mel) => {
+  const alter = keyAlter(mel.key);
+  const pitch = n => midiOf(n.d) + (n.alt !== undefined ? n.alt : (alter[letterOf(n.d)] || 0));
+  // either staff may be absent — one hand means one staff, and this assumed
+  // the treble always existed, so every left-hand melody threw on playback
+  const seq = [];
+  const staves = [mel.bars, mel.bass].filter(Boolean);
+  const barCount = staves.length ? staves[0].length : 0;
+  let t = 0;
+  for (let i = 0; i < barCount; i++) {
+    const barStart = t;
+    let barEnd = t;
+    staves.forEach(staff => {
+      let lt = barStart;
+      staff[i].forEach(n => { seq.push({ midi: pitch(n), beat: lt, dur: n.dur }); lt += n.dur; });
+      barEnd = Math.max(barEnd, lt);
+    });
+    t = barEnd;
+  }
+  return seq;
+}
+
+// ---------- naming a key from its signature ----------
+// the rules work because the last accidental always lands on a fixed scale
+// degree: the last sharp is the 7th, the last flat is the 4th.
+const namingFacts = (key) => {
+  const n = key.sharps || key.flats;
+  const sharp = key.sharps > 0;
+  const letter = n ? (sharp ? SHARP_ORDER : FLAT_ORDER)[n - 1] : null;
+  const lastMidi = n ? midiOf(dOf(letter, 4)) + (sharp ? 1 : -1) : null;
+  // derive the tonic BY the rule, so the demonstration cannot drift from the claim
+  const tonicMidi = n ? lastMidi + (sharp ? 1 : -5) : midiOf(dOf('C', 4));
+  return {
+    key, n, sharp, letter,
+    lastName: n ? nameWithAlt(letter, sharp ? 1 : -1) : null,
+    lastMidi, tonicMidi,
+    order: sharp ? SHARP_ORDER : FLAT_ORDER
+  };
+}
+
+const renderNaming = (idx) => {
+  const key = KEYS[idx];
+  const f = namingFacts(key);
+  const orderRow = f.n
+    ? `<p style="font-family:ui-monospace,monospace;font-size:15px;letter-spacing:.12em">
+         ${f.order.map((L, i) =>
+           i === f.n - 1 ? `<b style="color:var(--red)">${L}</b>`
+         : i < f.n ? `<b>${L}</b>`
+         : `<span style="color:var(--rule)">${L}</span>`).join(' ')}</p>`
+    : '';
+
+  let body;
+  if (!f.n) {
+    body = `<p style="max-width:58ch">Nothing to work out. No sharps and no flats is <b>C major</b>, or <b>A minor</b>.</p>`;
+  } else if (f.sharp) {
+    body = `<p style="max-width:58ch">Sharps are always added in this order, never with a gap, so ${f.n === 1 ? 'one sharp' : f.n + ' sharps'} can only be these. The one that matters is the <b style="color:var(--red)">last</b> one: <b>${f.lastName}</b>.</p>
+      <p style="max-width:58ch"><b>The last sharp is always the 7th degree of the key</b> \u2014 the note one semitone below home. That is not a coincidence to memorise; it is why the rule exists. So go <b>up one semitone</b> from ${f.lastName} and you are home: <b>${key.name} major</b>.</p>`;
+  } else {
+    body = `<p style="max-width:58ch">Flats are always added in this order, never with a gap. Again the <b style="color:var(--red)">last</b> one does the work: <b>${f.lastName}</b>.</p>
+      <p style="max-width:58ch"><b>The last flat is always the 4th degree of the key.</b> So go <b>down a fourth</b> from ${f.lastName} to get home: <b>${key.name} major</b>.</p>
+      <p style="max-width:58ch;font-size:14px;color:var(--soft)">You may have been taught \u201csecond-to-last flat.\u201d That is the same thing: the flats are themselves stacked in fourths, so a fourth below the last flat <em>is</em> the one before it. Stating it as \u201cdown a fourth\u201d also removes the supposed exception \u2014 with a single flat there is no second-to-last, but a fourth below B\u266d is still F.</p>`;
+  }
+
+  const marks = {};
+  if (f.n) marks[f.lastMidi] = { fill: 'var(--red)', label: f.lastName, on: '#fff' };
+  marks[f.tonicMidi] = { fill: 'var(--blue)', label: key.name, on: '#fff' };
+  const lo = Math.min(f.tonicMidi, f.lastMidi || f.tonicMidi) - 2;
+  const hi = Math.max(f.tonicMidi, f.lastMidi || f.tonicMidi) + 2;
+
+  return `
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <button class="btn small" data-nav="-1">\u2190</button>
+      <span class="eyebrow" style="margin:0">${idx + 1} of ${KEYS.length}</span>
+      <button class="btn small" data-nav="1">\u2192</button>
+    </div>
+    <div class="staffwrap" style="margin:10px 0 4px">${namingStaff(key)}</div>
+    ${orderRow}
+    ${body}
+    <div style="margin:14px 0">${miniKeys(lo, hi, marks)}</div>
+    <div class="row">
+      ${f.n ? `<button class="btn" data-name-play="step">${f.lastName} \u2192 ${key.name}</button>` : ''}
+      <button class="btn" data-name-play="chord">Hear ${key.name} major</button>
+    </div>
+    <p style="max-width:58ch;margin-top:18px">And the same signature is also <b>${key.relName} minor</b> \u2014 three semitones below ${key.name}. The signature alone can never tell you which of the two it is; only the last bass note and the stray accidentals can.</p>`;
+}
+
+const namingStaff = (key) => {
+  let lines = '';
+  for (let i = 0; i < 5; i++) {
+    lines += `<line x1="12" y1="${30 + i * 10}" x2="250" y2="${30 + i * 10}" stroke="var(--rule)"/>`;
+    lines += `<line x1="12" y1="${90 + i * 10}" x2="250" y2="${90 + i * 10}" stroke="var(--rule)"/>`;
+  }
+  return `<svg viewBox="0 0 260 168" xmlns="http://www.w3.org/2000/svg" role="img"
+    aria-label="The key signature for ${key.name} major">
+    ${lines}<line x1="12" y1="30" x2="12" y2="130" stroke="var(--ink)" stroke-width="2"/>
+    ${clefs()}${keySigSVG(key, 'treble', 48, true)}${keySigSVG(key, 'bass', 48, true)}</svg>`;
+}
+
+const wireNaming = (root) => {
+  const key = KEYS[namingIdx];
+  const f = namingFacts(key);
+  root.querySelectorAll('[data-nav]').forEach(b => b.onclick = () => {
+    namingIdx = (namingIdx + +b.dataset.nav + KEYS.length) % KEYS.length;
+    if (tab === 'learn') {
+      // keep the open/closed state of the panels across a step
+      const openIds = [...document.querySelectorAll('details.ref[open]')].map(d => d.id);
+      renderLearn();
+      openIds.forEach(id => { const d = id && document.getElementById(id); if (d) d.open = true; });
+      const n = document.getElementById('learn-naming');
+      if (n) { n.open = true; n.scrollIntoView({ block: 'nearest' }); }
+    } else {
+      renderReading();
+    }
+  });
+  root.querySelectorAll('[data-name-play]').forEach(b => b.onclick = () => {
+    if (S.muted) { S.muted = false; save(); }
+    if (b.dataset.namePlay === 'step') {
+      playEvents([{ midi: f.lastMidi, at: 0 }, { midi: f.tonicMidi, at: 0.62 }]);
+    } else {
+      playEvents([0, 4, 7].map(i => ({ midi: f.tonicMidi + i, at: 0 })));
+    }
+  });
+}
+
+// ---------- why the raised 7th ----------
+const WHITE_PC = [0,2,4,5,7,9,11];
+const isWhite = m => WHITE_PC.includes(((m % 12) + 12) % 12);
+const PC_NAME = { 0:'C', 2:'D', 4:'E', 5:'F', 7:'G', 9:'A', 11:'B' };
+
+const nameWithAlt = (letter, alt) => {
+  return letter + (alt > 0 ? '\u266f' : alt < 0 ? '\u266d' : '');
+}
+
+// small keyboard spanning lo..hi semitones, with specific notes called out.
+// labels sit inside the keys — three notes this close together collide if the
+// text hangs underneath.
+const miniKeys = (lo, hi, marks) => {
+  const W = 30, H = 100, BW = 18, BH = 62;
+  const whites = [];
+  for (let m = lo; m <= hi; m++) if (isWhite(m)) whites.push(m);
+  const xOf = m => whites.indexOf(m) * W;
+  let keys = '', labels = '';
+
+  whites.forEach(m => {
+    const mk = marks[m];
+    keys += `<rect x="${xOf(m)}" y="0" width="${W}" height="${H}" rx="2"
+      fill="${mk ? mk.fill : '#fff'}" stroke="var(--ink)" stroke-width="1"/>`;
+    if (mk) labels += `<text x="${xOf(m) + W / 2}" y="${H - 9}" text-anchor="middle"
+      font-size="12" font-weight="600" fill="${mk.on}" font-family="ui-monospace, monospace">${mk.label}</text>`;
+  });
+
+  whites.forEach((m, i) => {
+    if (i === whites.length - 1) return;
+    const b = m + 1;
+    if (isWhite(b) || b > hi) return;
+    const mk = marks[b];
+    const bx = (i + 1) * W - BW / 2;
+    keys += `<rect x="${bx}" y="0" width="${BW}" height="${BH}" rx="2"
+      fill="${mk ? mk.fill : 'var(--ink)'}" stroke="var(--ink)"/>`;
+    if (mk) labels += `<text x="${bx + BW / 2}" y="${BH - 8}" text-anchor="middle"
+      font-size="11" font-weight="600" fill="${mk.on}" font-family="ui-monospace, monospace">${mk.label}</text>`;
+  });
+
+  return `<svg viewBox="-2 0 ${whites.length * W + 4} ${H + 4}"
+    style="max-width:${whites.length * W + 4}px;width:100%;height:auto"
+    xmlns="http://www.w3.org/2000/svg" role="img"
+    aria-label="Keyboard showing the seventh and the tonic">${keys}${labels}</svg>`;
+}
+
+const playChord = (midis, at) => {              // kept for single-shot use
+  playEvents(midis.map(m => ({ midi: m, at: at || 0 })));
+}
+
+const raisedSeventhFacts = (key) => {
+  const alter = keyAlter(key);
+  const tonicD = dOf(key.rel, 4);
+  const sevD = tonicD - 1;
+  const sevLetter = letterOf(sevD);
+  const natAlt = alter[sevLetter] || 0;
+  const tonicMidi = midiOf(tonicD) + (alter[key.rel] || 0);
+  const natMidi = midiOf(sevD) + natAlt;
+  return {
+    key, tonicD, tonicMidi,
+    tonicName: nameWithAlt(key.rel, alter[key.rel] || 0),
+    natName: nameWithAlt(sevLetter, natAlt),
+    raisedName: nameWithAlt(sevLetter, natAlt + 1),
+    natMidi, raisedMidi: natMidi + 1,
+    printsNatural: natAlt + 1 === 0,
+    domRoot: tonicMidi - 5              // the 5th degree, a fourth below the tonic
+  };
+}
+
+const renderWhy = (key) => {
+  const f = raisedSeventhFacts(key);
+  const lo = f.natMidi - 3, hi = f.tonicMidi + 2;
+  const marks = {};
+  marks[f.natMidi]    = { fill: 'var(--rule)', label: f.natName,    on: 'var(--ink)' };
+  marks[f.raisedMidi] = { fill: 'var(--red)',  label: f.raisedName, on: '#fff' };
+  marks[f.tonicMidi]  = { fill: 'var(--blue)', label: f.tonicName,  on: '#fff' };
+
+  return `
+    <p style="max-width:58ch">Home is <b>${f.tonicName}</b>. The note just below home is supposed to lead you there \u2014 but only if it is close enough to feel like it is pointing somewhere.</p>
+    <p style="max-width:58ch">In ${f.tonicName} minor that note is <b>${f.natName}</b>, a whole step below: <b>two keys away</b>. Two keys is far enough that it does not sound like it is going anywhere. It sounds like a resting place of its own. Raise it to <b>${f.raisedName}</b> and it is <b>one key away</b> \u2014 close enough that it stops sounding like a note and starts sounding like an arrow.</p>
+    <div style="margin:16px 0">${miniKeys(lo, hi, marks)}</div>
+    <p style="font-size:13px;color:var(--soft);max-width:58ch;margin-top:-4px">
+      <span style="color:var(--ink)">Grey</span> is the natural 7th, two keys from home.
+      <span style="color:var(--red)">Red</span> is that same note raised, one key from home.
+      <span style="color:var(--blue)">Blue</span> is home.</p>
+    <p style="max-width:58ch;font-size:14px;color:var(--soft)">Play both. The difference is obvious in about one second, and no amount of reading will do what hearing it does.</p>
+    <div class="row">
+      <button class="btn" data-why="nat">${f.natName} \u2192 ${f.tonicName}</button>
+      <button class="btn" data-why="raised">${f.raisedName} \u2192 ${f.tonicName}</button>
+    </div>
+    <p style="max-width:58ch;margin-top:20px">That is the whole reason. Minor\u2019s own scale does not contain a note close enough to home to make an ending feel like an ending, so one gets borrowed. The signature is <b>not</b> rewritten \u2014 which is why the raised note has to be printed every single time it appears, and why minor music looks cluttered with accidentals.</p>
+    <p class="eyebrow" style="margin-top:20px">The same note, doing it to a chord</p>
+    <p style="max-width:58ch">The chord built on the fifth degree is naturally minor in a minor key. Swap that one note and it turns major \u2014 and suddenly it pulls hard toward home. This is the sound of a cadence being finished rather than merely stopped.</p>
+    <div class="row">
+      <button class="btn" data-why="vmin">minor chord, then home</button>
+      <button class="btn" data-why="vmaj">major chord, then home</button>
+    </div>
+    ${f.printsNatural ? `<p style="max-width:58ch;margin-top:18px;font-size:14px">One wrinkle specific to ${f.tonicName} minor: the signature already flattened that note, so raising it is written as a <b>natural sign</b>, not a sharp. You are cancelling the signature, not sharpening past it.</p>` : ''}`;
+}
+
+const wireWhy = (root, key) => {
+  const f = raisedSeventhFacts(key);
+  const beat = 0.62;                          // seconds
+  const chord = (roots, third) => roots.concat([]).map(r => r);
+  const acts = {
+    nat:    () => playEvents([{ midi: f.natMidi, at: 0 }, { midi: f.tonicMidi, at: beat }]),
+    raised: () => playEvents([{ midi: f.raisedMidi, at: 0 }, { midi: f.tonicMidi, at: beat }]),
+    vmin:   () => playEvents([
+                    ...[0, 3, 7].map(i => ({ midi: f.domRoot + i, at: 0 })),
+                    ...[0, 3, 7].map(i => ({ midi: f.tonicMidi + i, at: beat * 1.6 }))]),
+    vmaj:   () => playEvents([
+                    ...[0, 4, 7].map(i => ({ midi: f.domRoot + i, at: 0 })),
+                    ...[0, 3, 7].map(i => ({ midi: f.tonicMidi + i, at: beat * 1.6 }))])
+  };
+  root.querySelectorAll('[data-why]').forEach(b => b.onclick = () => {
+    if (S.muted) { S.muted = false; save(); }
+    acts[b.dataset.why]();
+  });
+}
+
+// ---------- where the fingers go ----------
+// Home position is the thumb on the tonic and one finger per scale step above
+// it. Which of those land on black keys changes with the key, so the shape has
+// to be derived from the actual melody rather than drawn once.
+// Right hand counts up from the thumb; left hand counts down from the little
+// finger. A note one step outside the position is a stretch of the outer finger;
+// anything further needs the hand to move.
+const fingerFor = (off, isLeft) => {
+  if (off >= 0 && off <= 4) return { finger: isLeft ? 5 - off : off + 1, how: 'in' };
+  if (off === -1) return { finger: isLeft ? 5 : 1, how: 'stretch-down' };
+  if (off === 5)  return { finger: isLeft ? 1 : 5, how: 'stretch-up' };
+  return { finger: null, how: 'shift' };
+}
+
+const fingerPlan = (mel) => {
+  const alter = keyAlter(mel.key);
+  const pitch = n => midiOf(n.d) + (n.alt !== undefined ? n.alt : (alter[letterOf(n.d)] || 0));
+  const tonicLetter = mel.minor ? mel.key.rel : mel.key.tonic;
+  const leftMelody = mel.hand === 'left';
+
+  const melTonic = mel.melTonic;
+  let accRoot = leftMelody ? dOf(tonicLetter, 4) : dOf(tonicLetter, 3);
+  if (!leftMelody) while (accRoot > 23) accRoot -= 7;
+
+  const build = (notes, rootD, isLeft) => {
+    const map = new Map();
+    notes.forEach(n => {
+      const off = n.d - rootD, m = pitch(n);
+      const f = fingerFor(off, isLeft);
+      if (!map.has(m) || (map.get(m).finger === null && f.finger !== null))
+        map.set(m, { finger: f.finger, how: f.how, d: n.d, alt: n.alt });
+    });
+    return map;
+  };
+
+  const melNotes = melodyBars(mel).flat();
+  const accStaff = leftMelody ? mel.bars : mel.bass;
+  const accNotes = accStaff ? accStaff.flat() : null;
+
+  const melMap = build(melNotes, melTonic, leftMelody);
+  const accMap = accNotes ? build(accNotes, accRoot, !leftMelody) : null;
+
+  // the hand rests on all five keys whether or not the tune touches them all,
+  // so the diagram has to show the position, not just the notes played
+  const homeOf = (rootD, isLeft) => [0, 1, 2, 3, 4].map(i => ({
+    midi: pitch({ d: rootD + i }), finger: isLeft ? 5 - i : i + 1
+  }));
+  const melHome = homeOf(melTonic, leftMelody);
+  const accHome = accNotes ? homeOf(accRoot, !leftMelody) : null;
+
+  return {
+    rh: leftMelody ? accMap : melMap,
+    lh: leftMelody ? melMap : accMap,
+    melMap, accMap, melHome, accHome, leftMelody,
+    tonicD: melTonic, bassRootD: leftMelody ? melTonic : accRoot,
+    accRoot, pitch, alter, tonicLetter
+  };
+}
+
+const handBoard = (map, home) => {
+  const marks = {};
+  // every finger of the home position first, faded where the tune never lands
+  (home || []).forEach(h => {
+    marks[h.midi] = { fill: '#B9C6DA', label: String(h.finger), on: '#33455E' };
+  });
+  [...map.keys()].forEach(m => {
+    const e = map.get(m);
+    const stretch = e.how === 'stretch-up' || e.how === 'stretch-down';
+    marks[m] = e.finger
+      ? { fill: stretch ? '#7A5C1F' : 'var(--blue)', label: String(e.finger), on: '#fff' }
+      : { fill: 'var(--red)', label: '\u2022', on: '#fff' };
+  });
+  const all = Object.keys(marks).map(Number);
+  if (!all.length) return '';
+  return miniKeys(Math.min(...all) - 2, Math.max(...all) + 2, marks);
+}
+
+const fingeringDiagram = (mel) => {
+  const p = fingerPlan(mel);
+  const nm = d => nameWithAlt(letterOf(d), p.alter[letterOf(d)] || 0);
+  const left = p.leftMelody;
+  const melName = left ? 'Left hand' : 'Right hand';
+  const accName = left ? 'Right hand' : 'Left hand';
+  const anchor = left ? 'Little finger (5)' : 'Thumb (1)';
+  const home = [0, 1, 2, 3, 4].map(i => nm(p.tonicD + i));
+  const vals = [...p.melMap.values()];
+  const stretches = vals.filter(e => e.how === 'stretch-up' || e.how === 'stretch-down');
+  const shifts = vals.filter(e => e.how === 'shift');
+  const blacks = [0, 1, 2, 3, 4].filter(i => (p.alter[letterOf(p.tonicD + i)] || 0) !== 0);
+  const blackFingers = blacks.map(i => left ? 5 - i : i + 1).sort();
+
+  return `
+    <p style="max-width:58ch;font-size:14px"><b>${melName} home position:</b> ${anchor} on <b>${home[0]}</b>, then one finger per step \u2014 ${home.join(' \u00b7 ')}. ${left ? 'The left hand counts the other way: 5 on the lowest note, thumb on the highest.' : ''} Set it there before you play a note and do not look down again.</p>
+    ${blacks.length ? `<p style="max-width:58ch;font-size:14px">In this key, finger ${blackFingers.join(' and ')} sits on a <b>black key</b>. That changes the shape of the hand, which is most of why a new key feels unfamiliar even when the notes are the same distance apart.</p>` : ''}
+    <p class="eyebrow" style="margin-top:16px">${melName} \u2014 the tune</p>
+    <div style="overflow-x:auto">${handBoard(p.melMap, p.melHome)}</div>
+    ${p.accMap ? `<p class="eyebrow" style="margin-top:16px">${accName} \u2014 accompaniment</p>
+      <div style="overflow-x:auto">${handBoard(p.accMap, p.accHome)}</div>
+      <p style="max-width:58ch;font-size:14px;margin-top:8px">${left ? 'Thumb (1)' : 'Little finger (5)'} on <b>${nm(p.accRoot)}</b>. Only ${p.accMap.size} notes, so that hand can stay put.</p>` : ''}
+    <p style="font-size:13px;color:var(--soft);max-width:58ch;margin-top:12px">Numbers are fingers \u2014 1 is the thumb on both hands. All five are shown because the hand rests on all five; <span style="color:#7A93BC">the pale ones are keys this particular tune never touches</span>, so leave the finger resting there.
+      ${stretches.length ? `<span style="color:#7A5C1F"><b>Amber</b> is a stretch:</span> ${stretches.map(e =>
+          `${nm(e.d)} with finger ${e.finger}`).join(', ')} \u2014 reach out with that finger and let the rest of the hand stay where it is.` : ''}
+      ${shifts.length ? `<span style="color:var(--red)"><b>Red dots</b> are outside reach entirely</span> \u2014 the hand has to move. Work out where it lands before you start, not mid-bar.` : ''}
+      ${!stretches.length && !shifts.length ? 'Every note falls under a finger without moving the hand.' : ''}</p>`;
+}
+
+// ---------- play along ----------
+// Renders the melody and a click track into one audio file and plays it as a
+// unit, so the two can never drift apart. Replaced microphone pitch-checking,
+// which was reliable in testing and not in a real room.
+let playState = 'off';          // off | counting | playing
+let playEl = null, playUrl = null, playTimer = null, playStart = 0;
+let playBpm = 84, playOnsets = [], playBeats = 0, playMode = 'both';
+
+const renderPlayAlong = (mel, bpm, mode) => {
+  const rate = WAV_RATE, spb = 60 / bpm;
+  playBeats = melodyBars(mel).reduce((a, b) => a + b.reduce((x, n) => x + n.dur, 0), 0);
+  const totalBeats = 4 + playBeats + 2;
+  const n = Math.ceil(totalBeats * spb * rate) + rate;
+  const out = new Float32Array(n);
+
+  if (mode !== 'melody') {
+    for (let b = 0; b < totalBeats; b++) {
+      const countIn = b < 4;
+      const accent = countIn || (b - 4) % 4 === 0;
+      const f = countIn ? 1750 : accent ? 1600 : 1050;
+      const start = Math.round(b * spb * rate);
+      const len = Math.min(n - start, Math.round(0.045 * rate));
+      for (let i = 0; i < len; i++) {
+        const t = i / rate;
+        out[start + i] += Math.exp(-t * 90) * (accent ? 0.5 : 0.3) * Math.sin(2 * Math.PI * f * t);
+      }
+    }
+  }
+
+  if (mode !== 'click') {
+    const events = melodySeq(mel).map(x => ({
+      midi: x.midi, at: 4 * spb + x.beat * spb, len: x.dur * spb
+    }));
+    const notes = renderNotes(events, rate);
+    for (let i = 0; i < notes.length && i < n; i++) out[i] += notes[i];
+  }
+
+  for (let i = 0; i < n; i++) out[i] = Math.tanh(out[i]);
+  return out;
+}
+
+const startPlayAlong = (mode) => {
+  stopMetro();
+  stopPlayAlong(true);
+  playMode = mode;
+  playBpm = metroBpm;
+  const spb = 60 / playBpm;
+  playOnsets = rhythmOnsets(mel, playBpm);
+
+  try {
+    const buf = encodeWav(renderPlayAlong(mel, playBpm, mode));
+    if (playUrl) URL.revokeObjectURL(playUrl);
+    playUrl = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+    if (!playEl) { playEl = new Audio(); playEl.setAttribute('playsinline', ''); }
+    playEl.src = playUrl;
+    const p = playEl.play();
+    if (p && p.catch) p.catch(() => {});
+  } catch (e) { /* the cursor still runs */ }
+
+  playStart = Date.now() + 4 * spb * 1000;
+  playState = 'counting';
+  renderSight();
+  playTimer = setInterval(playTick, 60);
+}
+
+const playTick = () => {
+  const spb = 60 / playBpm;
+  const elapsed = (Date.now() - playStart) / 1000;
+  if (playState === 'counting') {
+    if (elapsed >= 0) { playState = 'playing'; renderSight(); return; }
+    const el = document.getElementById('playcount');
+    if (el) el.textContent = String(Math.ceil(-elapsed / spb));
+    return;
+  }
+  if (elapsed > playOnsets[playOnsets.length - 1] + 2.2) { stopPlayAlong(); return; }
+  let passed = 0;
+  while (passed < playOnsets.length && playOnsets[passed] <= elapsed + 0.06) passed++;
+  const cur = Math.max(0, passed - 1);
+  const sc = document.getElementById('melscore');
+  if (sc) sc.innerHTML = melodySVG(mel, clefsFor,
+    { hand: mel.hand === 'left' ? 'left' : 'right', upto: cur, mode: 'beat' });
+  const bar = document.getElementById('playbar');
+  if (bar) bar.style.width = Math.max(0, Math.min(100, elapsed / spb / playBeats * 100)) + '%';
+}
+
+const stopPlayAlong = (quiet) => {
+  if (playTimer) clearInterval(playTimer);
+  playTimer = null;
+  if (playEl) { playEl.pause(); playEl.currentTime = 0; }
+  playState = 'off';
+  if (!quiet) renderSight();
+}
+
+const PLAY_MODES = [
+  ['both',   'Melody + click', 'Hear how it should go.'],
+  ['click',  'Click only',     'You play; the click keeps time.'],
+  ['melody', 'Melody only',    'No click, just the tune.']
+];
+
+const playAlongPanel = () => {
+  if (playState === 'counting' || playState === 'playing') {
+    const counting = playState === 'counting';
+    return `<div style="height:5px;background:var(--rule);margin:10px 0">
+        <div id="playbar" style="height:5px;width:0%;background:var(--red)"></div></div>
+      <p style="font-size:14px;max-width:56ch">${counting
+        ? 'Counting in\u2026'
+        : 'The red note is where the beat is now. Play along, or just listen.'}</p>
+      ${counting ? `<p id="playcount" style="font-family:var(--mono);font-size:44px;margin:4px 0">4</p>` : ''}
+      <div class="row"><button class="btn" id="playstop">Stop</button></div>`;
+  }
+  return `<p style="font-size:14px;max-width:58ch">Play it back at <b>${metroBpm} bpm</b> (set by the metronome below), with four clicks counting in. A cursor on the score follows the beat, so you can see where you should be as well as hear it.</p>
+    <div class="row">
+      ${PLAY_MODES.map(([id, label]) =>
+        `<button class="btn ${id === 'both' ? 'primary' : ''}" data-play="${id}">${label}</button>`).join('')}
+    </div>
+    <p style="font-size:13px;color:var(--soft);margin-top:8px;max-width:58ch">${
+      PLAY_MODES.map(([, l, d]) => `<b>${l}</b> \u2014 ${d}`).join('<br>')}</p>`;
+}
+
+const wirePlayAlong = (root) => {
+  root.querySelectorAll('[data-play]').forEach(b => b.onclick = () => startPlayAlong(b.dataset.play));
+  const s = root.querySelector('#playstop');
+  if (s) s.onclick = () => stopPlayAlong();
+}
+
+// ---------- rhythm check ----------
+// The click runs the whole way through, not just a count-in: tapping in silence
+// tests holding a pulse in your head, which is a different and much harder skill
+// than playing in time with a beat. A cursor tracks the click, not the taps —
+// the beat position is known exactly, so it can never mislead.
+let tapState = 'off';      // off | counting | running | done
+let tapTimes = [], tapExpected = [], tapStart = 0, tapTimer = null, tapResult = null;
+let tapEl = null, tapUrl = null, tapLast = null, tapBpm = 84, tapTotalBeats = 0;
+
+const rhythmOnsets = (mel, bpm) => {
+  const spb = 60 / bpm;
+  const out = [];
+  let beat = 0;
+  melodyBars(mel).forEach(bar => bar.forEach(n => { out.push(beat * spb); beat += n.dur; }));
+  return out;
+}
+
+const rhythmTrack = (bpm, totalBeats) => {
+  const rate = WAV_RATE, spb = 60 / bpm;
+  const beats = 4 + totalBeats + 2;                 // count-in, the piece, a tail
+  const n = Math.round(beats * spb * rate);
+  const out = new Float32Array(n);
+  for (let b = 0; b < beats; b++) {
+    const countIn = b < 4;
+    const accent = countIn || (b - 4) % 4 === 0;
+    const f = countIn ? 1750 : accent ? 1600 : 1050;
+    const start = Math.round(b * spb * rate);
+    const len = Math.min(n - start, Math.round(0.045 * rate));
+    for (let i = 0; i < len; i++) {
+      const t = i / rate;
+      out[start + i] += Math.exp(-t * 90) * (accent ? 0.55 : 0.32) * Math.sin(2 * Math.PI * f * t);
+    }
+  }
+  return out;
+}
+
+const startRhythm = () => {
+  stopMetro();                                   // one click track at a time
+  tapBpm = metroBpm;
+  tapExpected = rhythmOnsets(mel, tapBpm);
+  tapTotalBeats = melodyBars(mel).reduce((a, b) => a + b.reduce((x, n) => x + n.dur, 0), 0);
+  tapTimes = []; tapResult = null; tapLast = null;
+  const spb = 60 / tapBpm;
+
+  try {
+    const buf = encodeWav(rhythmTrack(tapBpm, tapTotalBeats));
+    if (tapUrl) URL.revokeObjectURL(tapUrl);
+    tapUrl = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+    if (!tapEl) { tapEl = new Audio(); tapEl.setAttribute('playsinline', ''); }
+    tapEl.src = tapUrl;
+    const p = tapEl.play();
+    if (p && p.catch) p.catch(() => {});
+  } catch (e) { /* the check still works silently */ }
+
+  tapStart = Date.now() + 4 * spb * 1000;        // downbeat, after the four counts
+  tapState = 'counting';
+  renderSight();
+  tapTimer = setInterval(rhythmTick, 60);
+}
+
+const rhythmTick = () => {
+  const spb = 60 / tapBpm;
+  const elapsed = (Date.now() - tapStart) / 1000;
+  if (tapState === 'counting') {
+    if (elapsed >= 0) {
+      tapState = 'running';
+      const lbl = document.getElementById('countin');
+      const pad = document.getElementById('tappad');
+      if (lbl && pad) {                       // swap in place; do not move the button
+        lbl.textContent = 'TAP';
+        pad.style.fontSize = '20px';
+        pad.classList.add('primary');
+        const fb = document.getElementById('tapfb');
+        if (fb) fb.textContent = '\u2014';
+      } else renderSight();
+      return;
+    }
+    const el = document.getElementById('countin');
+    if (el) el.textContent = String(Math.ceil(-elapsed / spb));
+    return;
+  }
+  const last = tapExpected[tapExpected.length - 1];
+  if (elapsed > last + 1.8) { finishRhythm(); return; }
+  paintBeat(elapsed);
+}
+
+// the cursor follows the click, so a missed tap cannot desync it
+const paintBeat = (elapsed) => {
+  let passed = 0;
+  while (passed < tapExpected.length && tapExpected[passed] <= elapsed + 0.06) passed++;
+  const cur = Math.max(0, passed - 1);   // the note now sounding, not the next one
+  const sc = document.getElementById('melscore');
+  if (sc) sc.innerHTML = melodySVG(mel, g => g ? clefs() : trebleOnlyClefs(),
+    { hand: 'right', upto: cur, mode: 'beat' });
+  const bar = document.getElementById('beatbar');
+  if (bar) {
+    const pct = Math.max(0, Math.min(100, elapsed / (60 / tapBpm) / tapTotalBeats * 100));
+    bar.style.width = pct + '%';
+  }
+}
+
+const registerTap = () => {
+  if (tapState !== 'running') return;
+  const t = (Date.now() - tapStart) / 1000;
+  tapTimes.push(t);
+  // nearest expected onset, for immediate feedback
+  let bestDiff = 1e9;
+  tapExpected.forEach(e => { const d = t - e; if (Math.abs(d) < Math.abs(bestDiff)) bestDiff = d; });
+  tapLast = bestDiff;
+  const fb = document.getElementById('tapfb');
+  if (fb) {
+    const ms = Math.round(bestDiff * 1000);
+    const good = Math.abs(ms) <= 60;
+    fb.textContent = good ? 'on the beat' : ms < 0 ? `${-ms}ms early` : `${ms}ms late`;
+    fb.style.color = good ? 'var(--blue)' : 'var(--red)';
+  }
+  const c = document.getElementById('tapcount');
+  if (c) c.textContent = tapTimes.length + ' / ' + tapExpected.length;
+}
+
+const finishRhythm = () => {
+  if (tapTimer) clearInterval(tapTimer);
+  tapTimer = null;
+  if (tapEl) tapEl.pause();
+  const spb = 60 / tapBpm;
+  const window = Math.min(0.2, Math.max(0.09, spb * 0.22));
+  const used = new Set();
+  let hit = 0; const offsets = [];
+  tapExpected.forEach(exp => {
+    let best = -1, bestDiff = 1e9;
+    tapTimes.forEach((t, i) => {
+      if (used.has(i)) return;
+      const d = Math.abs(t - exp);
+      if (d < bestDiff) { bestDiff = d; best = i; }
+    });
+    if (best >= 0 && bestDiff <= window) { used.add(best); hit++; offsets.push(tapTimes[best] - exp); }
+  });
+  const mean = offsets.length ? offsets.reduce((a, b) => a + b, 0) / offsets.length : 0;
+  const spread = offsets.length > 1
+    ? Math.sqrt(offsets.reduce((a, b) => a + (b - mean) * (b - mean), 0) / offsets.length) : 0;
+  tapResult = { hit, of: tapExpected.length, extra: Math.max(0, tapTimes.length - hit), mean, spread, window };
+  tapState = 'done';
+  renderSight();
+}
+
+const stopRhythm = () => {
+  if (tapTimer) clearInterval(tapTimer);
+  tapTimer = null;
+  if (tapEl) tapEl.pause();
+  tapState = 'off'; renderSight();
+}
+
+const rhythmPanel = () => {
+  // counting and running share one layout so the pad is already in place, and
+  // in the same spot, before the first note arrives
+  if (tapState === 'counting' || tapState === 'running') {
+    const counting = tapState === 'counting';
+    return `<p style="font-size:14px;max-width:56ch">${counting
+        ? 'Get your thumb on the pad. Start tapping on the first note \u2014 one tap per note, along with the clicks.'
+        : 'Tap once per note, along with the clicks. The red note is where the beat is now.'}</p>
+      <div style="height:5px;background:var(--rule);margin:10px 0">
+        <div id="beatbar" style="height:5px;width:0%;background:var(--red)"></div></div>
+      <button class="btn ${counting ? '' : 'primary'}" id="tappad"
+        style="width:100%;height:120px;font-size:${counting ? '46px' : '20px'};font-family:${counting ? 'var(--mono)' : 'inherit'}">
+        <span id="countin">${counting ? '4' : 'TAP'}</span></button>
+      <div class="row" style="justify-content:space-between;margin-top:8px">
+        <span id="tapfb" style="font-family:var(--mono);font-size:15px;color:var(--soft)">${counting ? 'counting in' : '\u2014'}</span>
+        <span id="tapcount" style="font-family:var(--mono);font-size:15px">0 / ${tapExpected.length}</span>
+      </div>
+      <div class="row"><button class="btn small" id="tapstop">${counting ? 'Cancel' : 'Stop'}</button></div>`;
+  }
+  if (tapState === 'done' && tapResult) {
+    const r = tapResult;
+    const pct = Math.round(r.hit / r.of * 100);
+    const ms = Math.round(r.mean * 1000), sd = Math.round(r.spread * 1000);
+    const drift = Math.abs(ms) < 25 ? 'Centred \u2014 neither rushing nor dragging.'
+      : ms < 0 ? `Ahead of the beat by ${-ms}ms on average. Rushing usually means you are anticipating the notes you find hard.`
+               : `Behind the beat by ${ms}ms on average. Dragging usually means the reading is the bottleneck, not the rhythm \u2014 drop the tempo.`;
+    const tight = sd < 45 ? 'Your spacing is even, which is the part that matters most.'
+      : `Your taps vary by about ${sd}ms around that average, so unevenness is the bigger problem here. Even spacing first; where the beat sits can wait.`;
+    const good = pct >= 90 && sd < 45 && !r.extra;
+    return `<div class="now" style="border-left-color:${good ? 'var(--blue)' : 'var(--red)'}">
+      <p class="eyebrow" style="color:${good ? 'var(--blue)' : 'var(--red)'}">${r.hit} of ${r.of} in time${sd >= 45 ? ', but uneven' : ''}</p>
+      <p style="font-size:14px">${drift} ${tight}${r.extra ? ` ${r.extra} extra tap${r.extra === 1 ? '' : 's'} landed nowhere near a note.` : ''}</p>
+      <p style="font-size:13px;color:var(--soft);margin-top:6px">Judged at ${tapBpm} bpm, \u00b1${Math.round(r.window * 1000)}ms counted as on time.</p>
+      <div class="row" style="margin-top:10px"><button class="btn primary" id="tapagain">Again</button></div>
+    </div>`;
+  }
+  return `<p style="font-size:14px;max-width:58ch">Tap the rhythm rather than playing it \u2014 pitch is ignored, so a wrong note cannot spoil a rhythm you got right. Four clicks count you in at <b>${metroBpm} bpm</b> (set by the metronome below), the click keeps going throughout, and a cursor on the score shows where the beat is.</p>
+    <div class="row"><button class="btn" id="tapstart">Count me in at ${metroBpm}</button></div>`;
+}
+
+const wireRhythm = (root) => {
+  const s = root.querySelector('#tapstart');
+  if (s) s.onclick = () => startRhythm();
+  const pad = root.querySelector('#tappad');
+  if (pad) pad.onclick = () => registerTap();
+  const st = root.querySelector('#tapstop');
+  if (st) st.onclick = () => stopRhythm();
+  const ag = root.querySelector('#tapagain');
+  if (ag) ag.onclick = () => { tapState = 'off'; tapResult = null; renderSight(); };
+}
+
+// ---------- what went wrong ----------
+// A stumble used to record nothing. Marking WHICH bar takes one tap and turns
+// "I keep messing up" into something with a cause attached.
+const FEATURES = [
+  ['leap',      'a leap of a fourth or more'],
+  ['leapDown',  'a leap of a fourth or more, going down'],
+  ['outPos',    'a note outside the hand position'],
+  ['weakFinger','a note taken with the 4th or 5th finger'],
+  ['blackKey',  'a black key'],
+  ['eighths',   'eighth notes'],
+  ['accidental','an accidental the key signature did not warn you about'],
+  ['turn',      'the line changing direction'],
+  ['ledger',    'a ledger-line note']
+];
+
+const barFeatures = (mel, barIdx) => {
+  const bars = melodyBars(mel);
+  const bar = bars[barIdx] || [];
+  const prevBar = bars[barIdx - 1] || [];
+  const prev = prevBar[prevBar.length - 1];
+  const alter = keyAlter(mel.key);
+  const p = fingerPlan(mel);
+  const notes = prev ? [prev].concat(bar) : bar.slice();
+
+  let leap = 0, leapDown = 0, turn = 0, lastDir = 0;
+  for (let i = 1; i < notes.length; i++) {
+    const d = notes[i].d - notes[i - 1].d;
+    leap = Math.max(leap, Math.abs(d));
+    if (d <= -3) leapDown = 1;
+    const dir = Math.sign(d);
+    if (dir && lastDir && dir !== lastDir) turn++;
+    if (dir) lastDir = dir;
+  }
+  const isBlack = n => (n.alt !== undefined ? n.alt : (alter[letterOf(n.d)] || 0)) !== 0;
+  const yFn = mel.hand === 'left' && mel.bass ? yBass : yTreble;
+  const top = mel.hand === 'left' && mel.bass ? 90 : 30, bot = mel.hand === 'left' && mel.bass ? 130 : 70;
+  const fingerOf = n => { const f = p.melMap.get(p.pitch(n)); return f ? f.finger : null; };
+
+  return {
+    leap: leap >= 3 ? 1 : 0,
+    leapDown,
+    outPos: bar.some(n => (n.d - p.tonicD) < 0 || (n.d - p.tonicD) > 4) ? 1 : 0,
+    weakFinger: bar.some(n => fingerOf(n) === 4 || fingerOf(n) === 5) ? 1 : 0,
+    blackKey: bar.some(isBlack) ? 1 : 0,
+    eighths: bar.some(n => n.dur === 0.5) ? 1 : 0,
+    accidental: bar.some(n => n.alt !== undefined) ? 1 : 0,
+    turn: turn >= 2 ? 1 : 0,
+    ledger: bar.some(n => yFn(n.d) < top || yFn(n.d) > bot) ? 1 : 0
+  };
+}
+
+// how common each feature is across the whole melody, as the yardstick
+const melodyBaseline = (mel) => {
+  const n = melodyBars(mel).length;
+  const sum = {};
+  FEATURES.forEach(([k]) => sum[k] = 0);
+  for (let i = 0; i < n; i++) {
+    const f = barFeatures(mel, i);
+    FEATURES.forEach(([k]) => sum[k] += f[k]);
+  }
+  const base = {};
+  FEATURES.forEach(([k]) => base[k] = sum[k] / n);
+  return base;
+}
+
+const recordStumble = (mel, barIdx) => {
+  S.stumbles = S.stumbles || [];
+  S.stumbles.push({
+    date: today(), step: stepIndex(), key: mel.key.name, minor: !!mel.minor,
+    hand: mel.hand, reach: mel.reach, bar: barIdx,
+    feat: barFeatures(mel, barIdx), base: melodyBaseline(mel)
+  });
+  S.stumbles = S.stumbles.slice(-200);
+  save();
+}
+
+// observed vs. what chance alone would give
+// Thresholds set by measurement, not taste: at five observations and 1.8x a
+// purely random stumbler is flagged about 5% of the time. The looser 3-and-1.4
+// tried first flagged noise in roughly a third of runs.
+const INSIGHT_MIN_N = 8, INSIGHT_MIN_OBS = 5, INSIGHT_RATIO = 1.8;
+
+const stumbleInsight = () => {
+  const list = S.stumbles || [];
+  if (list.length < INSIGHT_MIN_N) return { enough: false, n: list.length };
+  // stumbles recorded before feat/base existed have neither — this used to be
+  // reached only from the insight panel deep in the page, but newMelody() now
+  // calls it on every melody (for auto-focus), so it can't throw on old data
+  // without breaking the Sight tab from loading at all
+  const rows = FEATURES.map(([k, label]) => {
+    const obs = list.reduce((a, s) => a + ((s.feat && s.feat[k]) || 0), 0);
+    const exp = list.reduce((a, s) => a + ((s.base && s.base[k]) || 0), 0);
+    return { k, label, obs, exp, ratio: exp > 0.5 ? obs / exp : null };
+  }).filter(r => r.ratio !== null && r.obs >= INSIGHT_MIN_OBS)
+    .sort((a, b) => b.ratio - a.ratio);
+  return { enough: true, n: list.length, rows };
+}
+
+// whether a detected weakness is something the generator can actually dial
+// up right now, given the current step's rhythm/reach
+const focusableFeature = k => {
+  const step = curStep();
+  const canEighths = (RHYTHMS[step.rhythm] || []).some(r => r.some(d => d === 0.5));
+  const atMaxReach = step.reach >= 2;
+  return k === 'leap' ? true :
+    k === 'turn' ? true :
+    k === 'eighths' ? canEighths :
+    k === 'outPos' ? !atMaxReach : false;
+};
+
+// the strongest focusable weakness, if any \u2014 this is what melodies weight
+// toward by default, unless the player has explicitly chosen otherwise
+const autoFocus = () => {
+  const ins = stumbleInsight();
+  if (!ins.enough) return null;
+  const top = ins.rows.find(r => r.ratio >= INSIGHT_RATIO && focusableFeature(r.k));
+  return top ? top.k : null;
+};
+
+const effFocus = () => S.sight.focusChosen ? (S.sight.focus || null) : autoFocus();
+
+const insightPanel = () => {
+  const ins = stumbleInsight();
+  if (!ins.enough) {
+    return `<details class="ref" style="margin-top:20px">
+      <summary>What you stumble on</summary>
+      <div style="margin-top:12px"><p style="font-size:14px;max-width:58ch">${ins.n
+        ? `${ins.n} of ${INSIGHT_MIN_N} stumbles recorded. Below that the comparison is not worth making \u2014 with a handful of marks, ordinary chance throws up a convincing-looking pattern about a third of the time.`
+        : `Nothing recorded yet. Marking a stumble asks which bar; after ${INSIGHT_MIN_N} the app can compare those bars against the rest of the melody and say what they have in common.`}</p></div>
+    </details>`;
+  }
+  const strong = ins.rows.filter(r => r.ratio >= INSIGHT_RATIO);
+  const cur = effFocus();
+
+  return `<details class="ref" open style="margin-top:20px">
+    <summary>What you stumble on \u2014 ${ins.n} recorded</summary>
+    <div style="margin-top:12px">
+      ${strong.length
+        ? `<p style="font-size:14px;max-width:58ch">Compared with the rest of the melody, the bars you trip on contain these far more often than chance would give:</p>
+           <ul style="font-size:14px;max-width:58ch;padding-left:18px">
+             ${strong.slice(0, 3).map(r => `<li style="margin-bottom:6px"><b>${r.label}</b> \u2014 ${r.obs} of your ${ins.n} stumbles, against ${r.exp.toFixed(1)} expected. <span style="color:var(--red)">${r.ratio.toFixed(1)}\u00d7</span></li>`).join('')}
+           </ul>`
+        : `<p style="font-size:14px;max-width:58ch">No single feature stands out yet \u2014 your stumbles look spread across the ordinary difficulty of the material rather than concentrated on one thing. That is a decent sign; keep going and check again.</p>`}
+      ${strong.some(r => focusableFeature(r.k)) ? `
+        <p class="eyebrow" style="margin-top:14px">Practise that on purpose</p>
+        <div class="row">
+          ${strong.filter(r => focusableFeature(r.k)).slice(0, 3).map(r =>
+            `<button class="btn small ${cur === r.k ? 'primary' : ''}" data-focus="${r.k}">${r.label}</button>`).join('')}
+          <button class="btn small ${!cur ? 'primary' : ''}" data-focus="none">Ordinary mix</button>
+        </div>
+        <p style="font-size:13px;color:var(--soft);margin-top:6px;max-width:58ch">${cur && S.sight.focusChosen
+          ? 'Melodies are now weighted toward that. Everything else \u2014 key, hand, step \u2014 is unchanged, so it is the same exercise with the hard thing made frequent.'
+          : cur
+          ? 'Melodies are automatically weighted toward your strongest weakness. Choose one yourself, or Ordinary mix, to override this.'
+          : 'Weighting melodies toward a weakness is the fastest way to fix it, and the least pleasant. Short bursts.'}</p>` : ''}
+      ${strong.length && !strong.some(r => focusableFeature(r.k)) ? `<p style="font-size:13px;color:var(--soft);margin-top:10px;max-width:58ch">There is no weighting to offer for that at your current step \u2014 ${
+        strong[0].k === 'eighths' ? 'eighth notes only appear from step 9 onward' :
+        strong[0].k === 'outPos' ? 'you are already at the widest reach' :
+        'it is not something the generator can dial up'}.</p>` : ''}
+      <p style="font-size:13px;color:var(--soft);margin-top:12px;max-width:58ch">Read this as a hint, not a verdict \u2014 it compares your marked bars against how often each feature appears anyway, so it corrects for the obvious objection that leaps are simply common.</p>
+      <div class="row" style="margin-top:8px"><button class="btn small" id="clearstumbles">Clear this history</button></div>
+    </div>
+  </details>`;
+}
+
+// ---------- what this stage is working on ----------
+// Every option says which stage it belongs to, so choosing one is a decision
+// rather than a guess. Nothing is locked — but "ahead of you" is now visible.
+const KEYS_C    = ['C'];
+const KEYS_EASY = ['C', 'G', 'F'];
+const KEYS_MID  = ['C', 'G', 'D', 'F', 'B\u266d'];
+const KEYS_ALL  = ['C', 'G', 'D', 'A', 'F', 'B\u266d', 'E\u266d'];
+
+// One ladder, one axis of difficulty. Every step adds exactly one new thing to
+// the step before it, and nothing else changes. Hands, reach, keys, mode and
+// rhythm all live here — there is no second progression running alongside.
+const STEPS = [
+  { label: 'Right hand, C major', hand: 'right', reach: 0, keys: KEYS_C, mode: 'major', rhythm: 1,
+    why: 'One hand, one position, no sharps or flats. Nothing moves.' },
+  { label: 'Right hand, three keys', hand: 'right', reach: 0, keys: KEYS_EASY, mode: 'major', rhythm: 1,
+    why: 'Adds G and F, so you have to read the signature before you start.' },
+  { label: 'Left hand', hand: 'left', reach: 0, keys: KEYS_EASY, mode: 'major', rhythm: 1,
+    why: 'The same again in the bass clef, where the fingering runs the other way.' },
+  { label: 'Right hand, reaching out (C only)', hand: 'right', reach: 1, keys: KEYS_C, mode: 'major', rhythm: 1,
+    why: 'Notes just past the thumb and little finger, taken by stretching — in the one key you already know cold, so the stretch is the only new thing.' },
+  { label: 'Right hand, reaching out', hand: 'right', reach: 1, keys: KEYS_EASY, mode: 'major', rhythm: 1,
+    why: 'The same stretch, now in G and F too.' },
+  { label: 'Left hand, reaching out', hand: 'left', reach: 1, keys: KEYS_EASY, mode: 'major', rhythm: 1,
+    why: 'The same stretch, mirrored.' },
+  { label: 'Both hands', hand: 'both', reach: 0, keys: KEYS_EASY, mode: 'major', rhythm: 1,
+    why: 'Two staves at once, but neither hand moves. Expect this one to be slow.' },
+  { label: 'Both hands, reaching out', hand: 'both', reach: 1, keys: KEYS_EASY, mode: 'major', rhythm: 1,
+    why: 'Two staves, and both hands stretching.' },
+  { label: 'More keys \u2014 D and B\u266d', hand: 'both', reach: 1, keys: KEYS_MID, mode: 'major', rhythm: 1,
+    why: 'Two sharps and two flats, so more fingers land on black keys.' },
+  { label: 'Quicker notes', hand: 'both', reach: 1, keys: KEYS_MID, mode: 'major', rhythm: 3,
+    why: 'Eighth notes, beamed in pairs. The reading gets denser, not wider.' },
+  { label: 'Minor keys', hand: 'both', reach: 1, keys: KEYS_MID, mode: 'mixed', rhythm: 3,
+    why: 'Same signatures, different home note \u2014 and the raised 7th brings accidentals the signature never mentioned.' },
+  { label: 'All seven keys', hand: 'both', reach: 1, keys: KEYS_ALL, mode: 'mixed', rhythm: 3,
+    why: 'Adds A, and E\u266d with three fingers on black keys.' },
+  { label: 'Hand shifts', hand: 'both', reach: 2, keys: KEYS_ALL, mode: 'mixed', rhythm: 3,
+    why: 'Wide enough that the hand has to move to a new position mid-phrase.' }
+];
+
+// Mastery is a rolling window, not a consecutive streak: requiring 3 in a row
+// was tried and was a wall, not a checkpoint, so it was dialed back to a bare
+// 2. A window keeps the evidence a single lucky pass could never provide,
+// without one unlucky read wiping out everything — a stumble just ages out
+// after WINDOW more attempts instead of resetting the count to zero.
+const WINDOW = 5, WINDOW_TARGET = 4;
+const stepWindow = i => (S.sight.history && S.sight.history[i]) || [];
+const stepCleanCount = i => stepWindow(i).filter(x => x === 'ok').length;
+// returns whether this specific outcome is what tipped the step over into passed
+const recordStepOutcome = (i, outcome) => {
+  S.sight.history = S.sight.history || {};
+  const wasPassed = stepPassed(i);
+  const w = stepWindow(i).concat(outcome).slice(-WINDOW);
+  S.sight.history[i] = w;
+  if (w.filter(x => x === 'ok').length >= WINDOW_TARGET) S.sight.passed[i] = true;
+  return !wasPassed && stepPassed(i);
+};
+const windowProgressText = i => {
+  const w = stepWindow(i);
+  return w.length
+    ? `${stepCleanCount(i)} of your last ${w.length} clean (need ${WINDOW_TARGET} of ${WINDOW})`
+    : `${WINDOW_TARGET} of your next ${WINDOW} reads clean`;
+};
+const stepPassed = i => !!(S.sight.passed && S.sight.passed[i]);
+const curStep = () => STEPS[stepIndex()] || STEPS[0];
+
+// The ladder unlocks on its own progress, not on formal stage promotion. Gating
+// it on the stage meant clearing a step never opened the next one, because the
+// stage was itself waiting on tests done away from the app.
+const unlockedThrough = () => {
+  let last = -1;
+  STEPS.forEach((_, i) => { if (stepPassed(i)) last = i; });
+  return Math.min(STEPS.length - 1, last + 1);
+}
+
+// stored directly now: several steps share a hand and reach and differ only in
+// keys, mode or rhythm, so it can no longer be inferred from those
+const stepIndex = () => Math.max(0, Math.min(STEPS.length - 1, S.sight.step || 0));
+
+const stepPicker = () => {
+  const cur = stepIndex();
+  const unlocked = unlockedThrough();
+  const done = stepPassed(cur);
+  const cleared = STEPS.filter((_, i) => stepPassed(i)).length;
+  return `
+    <p class="eyebrow" style="margin-top:22px">What you are reading</p>
+    <div style="border:1px solid var(--rule);border-left:3px solid ${done ? 'var(--blue)' : 'var(--red)'};padding:10px 12px;margin-bottom:10px">
+      <p style="margin:0;font-size:15px"><b>${cur + 1}. ${STEPS[cur].label}</b>
+        ${done ? '<span style="color:var(--blue);font-size:13px"> \u2713 cleared</span>' : ''}</p>
+      <p style="margin:4px 0 0;font-size:14px;color:var(--soft)">${STEPS[cur].why}</p>
+      ${done ? '' : `<p style="margin:6px 0 0;font-size:14px"><b>${windowProgressText(cur)}</b> to clear this step.</p>`}
+    </div>
+    <div class="row">
+      <button class="btn small" data-step="${Math.max(0, cur - 1)}" ${cur === 0 ? 'disabled' : ''}>\u2190 Easier</button>
+      <button class="btn small" data-step="${Math.min(STEPS.length - 1, cur + 1)}" ${cur === STEPS.length - 1 ? 'disabled' : ''}>Harder \u2192</button>
+      <span style="font-size:13px;color:var(--soft)">step ${cur + 1} of ${STEPS.length}</span>
+    </div>
+    <div class="row" style="margin-top:8px">
+      ${STEPS.map((s, i) => {
+        const locked = i > unlocked;
+        const done = stepPassed(i);
+        const style = locked ? 'opacity:.5'
+          : done && i !== cur ? 'border-color:var(--blue);color:var(--blue)'
+          : i === unlocked && !done && i !== cur ? 'border-color:var(--red);color:var(--red)' : '';
+        return `<button class="btn small ${i === cur ? 'primary' : ''}" data-step="${i}"
+          title="${s.label}" style="${style}">${i + 1}${done ? '<sup style="font-size:9px">\u2713</sup>' : ''}</button>`;
+      }).join('')}
+    </div>
+    <p style="font-size:13px;color:var(--soft);margin-top:6px;max-width:58ch">${cleared} of ${STEPS.length} cleared. <span style="color:var(--red)">Step ${unlocked + 1} is the next one open</span>${unlocked + 1 < STEPS.length ? `; ${unlocked + 2}\u2013${STEPS.length} unlock as you clear the ones before them` : ''}. Nothing is locked for good \u2014 you can jump ahead, and if a step feels overwhelming that is information rather than failure, so drop back one.</p>`;
+}
+
+// ---------- sight-read view ----------
+let mel = null, melPlaying = false;
+// the melody just judged, so it can be brought back to work on
+let prevMel = null, lastVerdict = null, askBar = false, justClearedStep = false;
+let keyIdentified = false, keyIdMsg = '';
+// pending "lock and flash" timeout from tapping a bar in activateBar(); cancelled
+// on the next renderSight() or on leaving the sight tab so it can't fire stale
+let stumbleTimer = null;
+
+// The ladder step governs the HANDS. Keys and minor are reading difficulty, not
+// hand difficulty, so they follow the stage instead — and by default you never
+// have to set either. Overriding is possible but tucked away.
+const defaultMode = () => curStep().mode;
+const effMode = () => S.sight.mode || defaultMode();
+const followingDefaults = () => !S.sight.mode && S.sight.key === 'random' && !S.sight.allKeys;
+
+const allowedKeys = () => {
+  return S.sight.allKeys ? KEYS_ALL : curStep().keys;
+}
+
+const newMelody = () => {
+  const m = effMode();
+  const wantMinor = m === 'minor' || (m === 'mixed' && Math.random() < 0.5);
+  let pool = allowedKeys();
+  if (wantMinor) pool = pool.filter(k => MINOR_OK.includes(k));
+  if (!pool.length) pool = allowedKeys();
+  let name = S.sight.key;
+  if (name === 'random' || !pool.includes(name)) name = drawKey(pool);
+  const step = curStep();
+  const focus = effFocus();
+  const reach = focus === 'outPos' ? Math.min(2, step.reach + 1) : step.reach;
+  mel = genMelody(step.rhythm, (Math.random() * 1e9) | 0, keyByName(name), wantMinor,
+    { hand: step.hand, reach, focus });
+  keyIdentified = false; keyIdMsg = '';
+}
+
+const trebleOnlyClefs = () => { return clefs().split('</g>')[0] + '</g>'; }
+const bassOnlyClefs = () => { return clefs().split('</g>')[1] + '</g>'; }
+// a lone bass staff sits in the upper slot, so its clef moves up with it
+const clefsFor = (mode) => {
+  if (mode === 'grand' || mode === true) return clefs();
+  if (mode === 'bass') return `<g transform="translate(0,-60)">${bassOnlyClefs()}</g>`;
+  return trebleOnlyClefs();
+}
+
+const playMelody = (bpm) => {
+  if (melPlaying || S.muted) return;
+  melPlaying = true;
+  const spb = 60 / bpm;                       // seconds per beat
+  const seq = melodySeq(mel);
+  playEvents(seq.map(n => ({ midi: n.midi, at: n.beat * spb, len: n.dur * spb })));
+  const total = seq.reduce((a, n) => Math.max(a, n.beat + n.dur), 0) * spb * 1000;
+  setTimeout(() => {                          // UI only, no audio depends on this
+    melPlaying = false;
+    const b = document.getElementById('hear');
+    if (b) b.textContent = 'Hear it';
+  }, total + 500);
+}
+
+const renderSight = () => {
+  if (stumbleTimer) { clearTimeout(stumbleTimer); stumbleTimer = null; }
+  if (!mel) newMelody();
+  const v = document.getElementById('view');
+  const alter = keyAlter(mel.key);
+  const blacks = Object.keys(alter);
+  // explain in the key she is actually reading, unless it has no usable minor
+  const explainKey = MINOR_OK.includes(mel.key.name) ? mel.key : keyByName('C');
+  // while a check is running the score has to stay on screen — it is the thing
+  // being read, and it was previously scrolled far above the tap pad
+  const checkRunning = tapState === 'counting' || tapState === 'running'
+    || playState === 'counting' || playState === 'playing';
+  const sigDesc = blacks.length
+    ? `${blacks.join(' and ')} ${blacks.length > 1 ? 'are' : 'is'} ${mel.key.sharps ? 'sharpened' : 'flattened'}`
+    : 'no sharps or flats';
+  const raised = melodyBars(mel).flat().filter(n => n.alt !== undefined).length;
+  const keyNote = mel.minor
+    ? `${mel.key.relName} minor \u2014 same signature as ${mel.key.name} major (${sigDesc}), different home note. It ends on ${mel.key.relName}, not ${mel.key.name}.` +
+      (raised ? ` The accidentals you can see are the raised 7th: the signature never mentioned them, and that is the giveaway that this is minor.` : '')
+    : `${mel.key.name} major: ${sigDesc}. The signature says so once, at the start, and means it for every bar \u2014 nothing is printed on the notes themselves.`;
+  const hands = mel.hand === 'both'
+    ? 'Both hands moving. Learn each alone first, then together.'
+    : `${mel.hand === 'left' ? 'Left' : 'Right'} hand alone.`;
+
+  v.innerHTML = `
+    <p class="eyebrow">Generated \u00b7 eight bars${keyIdentified ? ` \u00b7 ${melKeyLabel(mel)}` : ''} \u00b7 step ${stepIndex() + 1}</p>
+    <h2>Sight-read this once</h2>
+    ${keyIdentified
+      ? `<p style="max-width:56ch;font-size:14px"><b>${keyNote}</b></p>`
+      : `<p style="max-width:56ch;font-size:14px"><b>Which key signature is this?</b> Read it off the staff below before you start.</p>
+         <div class="row" style="margin-bottom:8px">${KEYS.map(k =>
+           `<button class="btn small" data-keyid="${k.name}">${k.name}</button>`).join('')}</div>
+         ${keyIdMsg ? `<p style="font-size:13px;color:var(--red);margin:0 0 8px">${keyIdMsg}</p>` : ''}`}
+    <p style="max-width:56ch;font-size:14px">${hands} Play it through <b>once, without stopping</b>, even if you fumble. Stopping to fix things turns sight-reading into memorising \u2014 a different skill, and not the one this trains.</p>
+    <div id="melscore" style="${checkRunning
+        ? 'position:sticky;top:0;z-index:5;background:var(--page);box-shadow:0 6px 10px -8px rgba(0,0,0,.35);'
+        : ''}border:1px solid var(--rule);padding:10px 4px;margin:14px 0;overflow-x:auto">
+      ${melodySVG(mel, clefsFor, null, askBar, !keyIdentified)}
+    </div>
+
+    <p class="eyebrow" style="margin-top:20px">Hear it played</p>
+    ${playAlongPanel()}
+
+    <p class="eyebrow" style="margin-top:24px">How did it go?</p>
+    <div class="row">
+      <button class="btn primary" id="cleanbtn">Played it clean</button>
+      <button class="btn" id="stumble">I stumbled</button>
+    </div>
+    <div class="stats" style="justify-content:flex-start;margin-top:14px">
+      <div class="stat"><b>${stepCleanCount(stepIndex())}/${WINDOW_TARGET}</b><span>this step</span></div>
+      <div class="stat"><b>${STEPS.filter((_, i) => stepPassed(i)).length}/${STEPS.length}</b><span>steps cleared</span></div>
+      <div class="stat"><b>${S.sight.attempts || 0}</b><span>attempted</span></div>
+    </div>
+    ${askBar ? `<div class="now" style="border-left-color:var(--red);margin-top:12px">
+      <p class="eyebrow" style="color:var(--red)">Tap the bar that went wrong, above</p>
+      <p style="margin:0 0 8px;font-size:14px">One tap and it moves on. Over a few of these the app can tell you what the bars you trip on have in common.</p>
+      <div class="row">
+        <button class="btn small" data-bar="skip">Not sure</button>
+      </div>
+    </div>` : ''}
+    ${askBar ? '' : (() => {
+      const i = stepIndex();
+      const nextStep = i + 1 < STEPS.length ? i + 1 : null;
+      if (!lastVerdict) return `<p style="font-size:13px;color:var(--soft);margin-top:8px;max-width:58ch">Either answer brings up a fresh melody \u2014 re-reading one you have already seen is not sight-reading, and you can always bring the old one back.</p>`;
+      if (justClearedStep) return `<div class="now" style="border-left-color:var(--blue);margin-top:12px">
+        <p class="eyebrow" style="color:var(--blue)">Step ${i + 1} cleared</p>
+        <p style="margin:0;font-size:14px">${nextStep === null
+          ? 'That is the last step on the ladder.'
+          : `Next: <b>${nextStep + 1}. ${STEPS[nextStep].label}</b> \u2014 ${STEPS[nextStep].why}`}</p>
+        <div class="row" style="margin-top:10px">
+          ${nextStep === null ? '' : `<button class="btn primary small" data-step="${nextStep}">Go to step ${nextStep + 1}</button>`}
+          <button class="btn small" data-step="${i}">Stay on this one</button>
+        </div>
+      </div>`;
+      return `<div class="now" style="border-left-color:${lastVerdict === 'clean' ? 'var(--blue)' : 'var(--red)'};margin-top:12px">
+        <p style="margin:0;font-size:14px">Counted \u2014 ${windowProgressText(i)} to clear step ${i + 1}. ${lastVerdict === 'clean'
+          ? 'New melody below.'
+          : 'A fresh melody is up; re-reading one you have already seen is not sight-reading.'}</p>
+        <div class="row" style="margin-top:8px">
+          <button class="btn small" id="keeplast">Bring back the last one to work on</button>
+        </div>
+      </div>`;
+    })()}
+
+    <p class="eyebrow" style="margin-top:24px">Check the rhythm</p>
+    ${rhythmPanel()}
+
+    ${keyIdentified ? `<details class="ref" open style="margin-top:4px">
+      <summary>Where do my fingers go?</summary>
+      <div style="margin-top:12px">${fingeringDiagram(mel)}</div>
+    </details>` : ''}
+    <div class="row" style="margin-top:16px">
+      <button class="btn primary" id="fresh">New melody</button>
+      <button class="btn" id="hear" ${S.muted ? 'disabled' : ''}>Hear it</button>
+    </div>
+    ${metronomeHTML()}
+    ${stepPicker()}
+    ${insightPanel()}
+
+    <p class="eyebrow" style="margin-top:22px">Keys and mode</p>
+    <p style="font-size:14px;max-width:58ch;margin:0 0 8px">${followingDefaults()
+      ? `Set by step ${stepIndex() + 1}: <b>${defaultMode() === 'mixed' ? 'major and minor mixed' : 'major only'}</b>, drawn from ${allowedKeys().join(', ')} in shuffled order. You should not need to touch this.`
+      : `<b style="color:var(--red)">Overridden.</b> ${effMode() === 'mixed' ? 'Major and minor' : effMode() === 'minor' ? 'Minor only' : 'Major only'}, ${S.sight.key === 'random' ? 'keys mixed' : 'key of ' + S.sight.key}${S.sight.allKeys ? ', all seven unlocked' : ''}.`}</p>
+    ${followingDefaults() ? '' : '<div class="row" style="margin-bottom:8px"><button class="btn small" id="followdefaults">Go back to following the stage</button></div>'}
+
+    <details class="ref" ${followingDefaults() ? '' : 'open'}>
+      <summary>Choose a key or mode by hand</summary>
+      <div style="margin-top:12px">
+    <p class="eyebrow">Major or minor</p>
+    <div class="row">
+      ${[['major','Major'],['minor','Minor'],['mixed','Mixed']].map(([id, lbl]) =>
+        `<button class="btn small ${effMode() === id ? 'primary' : ''}" data-mode2="${id}">${lbl}</button>`).join('')}
+    </div>
+    <p class="eyebrow" style="margin-top:20px">Key signature</p>
+    <div class="row">
+      ${['random'].concat(allowedKeys()).map(k =>
+        `<button class="btn small ${(S.sight.key || 'random') === k ? 'primary' : ''}" data-key="${k}">${k === 'random' ? 'Mixed' : k}</button>`).join('')}
+    </div>
+    <label class="check" style="margin-top:8px">
+      <input type="checkbox" id="allkeys" ${S.sight.allKeys ? 'checked' : ''}>
+      <span>Use all seven keys, ignoring the stage limit</span>
+    </label>
+    <p style="font-size:13px;color:var(--soft);margin-top:4px;max-width:58ch">${S.sight.allKeys
+      ? 'All seven. B\u266d and E\u266d put two and three fingers on black keys, which is a real jump in hand shape \u2014 that is what the staging was protecting you from, not the reading.'
+      : `Step ${stepIndex() + 1} uses ${allowedKeys().join(', ')}.`} Mixed cycles through them in shuffled order, so every key comes up before any repeats \u2014 reading a signature you did not choose is the actual skill.</p>
+      </div>
+    </details>
+    <details class="ref" id="whybox" ${S.whySeen ? '' : 'open'} style="margin-top:26px">
+      <summary>Why does minor raise its 7th? \u2014 play it and hear why</summary>
+      <div style="margin-top:14px">${renderWhy(explainKey)}</div>
+    </details>
+    <p style="font-size:13px;color:var(--soft);margin-top:24px;max-width:56ch">Only call it clean if you got through without stopping and without a wrong note you noticed. Clearing a step takes ${WINDOW_TARGET} clean reads out of your last ${WINDOW} at it \u2014 more evidence than a bare streak, and one stumble does not erase your progress; it just ages out after ${WINDOW} more attempts.</p>`;
+  justClearedStep = false;
+
+  v.querySelectorAll('[data-keyid]').forEach(b => b.onclick = () => {
+    if (b.dataset.keyid === mel.key.name) { keyIdentified = true; keyIdMsg = ''; }
+    else keyIdMsg = 'Not quite \u2014 look again.';
+    renderSight();
+  });
+  document.getElementById('fresh').onclick = () => {
+    stopPlayAlong(true);
+    if (tapState !== 'off') stopRhythm();
+    prevMel = null; lastVerdict = null; askBar = false;
+    newMelody(); renderSight();
+  };
+  v.querySelectorAll('[data-key]').forEach(b => b.onclick = () => {
+    S.sight.key = b.dataset.key; save(); newMelody(); renderSight();
+  });
+  v.querySelectorAll('[data-focus]').forEach(b => b.onclick = () => {
+    S.sight.focus = b.dataset.focus === 'none' ? null : b.dataset.focus;
+    S.sight.focusChosen = true;
+    save(); newMelody(); renderSight();
+  });
+  const cs = document.getElementById('clearstumbles');
+  if (cs) cs.onclick = () => {
+    S.stumbles = []; S.sight.focus = null; S.sight.focusChosen = false; save(); renderSight();
+  };
+  v.querySelectorAll('[data-step]').forEach(b => b.onclick = () => {
+    S.sight.step = +b.dataset.step;
+    save(); newMelody(); renderSight();
+  });
+  const ak = document.getElementById('allkeys');
+  if (ak) ak.onchange = () => {
+    S.sight.allKeys = ak.checked;
+    if (!allowedKeys().includes(S.sight.key)) S.sight.key = 'random';
+    keyBag = []; save(); newMelody(); renderSight();
+  };
+  v.querySelectorAll('[data-mode2]').forEach(b => b.onclick = () => {
+    S.sight.mode = b.dataset.mode2 === defaultMode() ? null : b.dataset.mode2;
+    save(); newMelody(); renderSight();
+  });
+  const fd = document.getElementById('followdefaults');
+  if (fd) fd.onclick = () => {
+    S.sight.mode = null; S.sight.key = 'random'; S.sight.allKeys = false;
+    keyBag = []; save(); newMelody(); renderSight();
+  };
+  const why = document.getElementById('whybox');
+  if (why) {
+    wireWhy(why, explainKey);
+    why.ontoggle = () => { if (!S.whySeen) { S.whySeen = true; save(); } };
+  }
+  const h = document.getElementById('hear');
+  if (h) h.onclick = () => { h.textContent = 'Playing\u2026'; playMelody(72); };
+  wireRhythm(v);
+  wireMetronome(v);
+  wirePlayAlong(v);
+  document.getElementById('cleanbtn').onclick = () => {
+    const i = stepIndex();
+    S.sight.attempts = (S.sight.attempts || 0) + 1;
+    justClearedStep = recordStepOutcome(i, 'ok');
+    save();
+    prevMel = mel; lastVerdict = 'clean';
+    stopPlayAlong(true);
+    if (tapState !== 'off') stopRhythm();
+    newMelody(); renderSight(); renderNow();
+  };
+  document.getElementById('stumble').onclick = () => {
+    const i = stepIndex();
+    S.sight.attempts = (S.sight.attempts || 0) + 1;
+    if (!stepPassed(i)) recordStepOutcome(i, 'no');
+    save();
+    stopPlayAlong(true);
+    if (tapState !== 'off') stopRhythm();
+    askBar = true;                       // which bar? one tap, then move on
+    renderSight();
+  };
+  let barLocked = false;
+  const finishStumble = idx => {
+    if (idx !== 'skip') recordStumble(mel, +idx);
+    askBar = false;
+    prevMel = mel; lastVerdict = 'stumble';
+    newMelody(); renderSight(); renderNow();
+  };
+  const activateBar = b => {
+    if (barLocked) return;
+    barLocked = true;
+    v.querySelectorAll('[data-bar]').forEach(other => {
+      other.disabled = true;
+      other.setAttribute('aria-disabled', 'true');
+      other.style.pointerEvents = 'none';
+    });
+    if (b.classList.contains('stumble-hit')) b.classList.add('flash');
+    stumbleTimer = setTimeout(() => { stumbleTimer = null; finishStumble(b.dataset.bar); }, 250);
+  };
+  v.querySelectorAll('[data-bar]').forEach(b => {
+    b.onclick = () => activateBar(b);
+    b.onkeydown = e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activateBar(b); }
+    };
+  });
+  const keep = document.getElementById('keeplast');
+  if (keep) keep.onclick = () => {
+    if (!prevMel) return;
+    mel = prevMel; prevMel = null; lastVerdict = null;
+    renderSight();
+  };
+}
+
+// ---------- learn tab ----------
+// everything explanatory lives here. the in-context panels elsewhere are
+// conveniences; this is the place you go looking.
+const learnMinorKey = () => {
+  const k = KEYS[namingIdx];
+  return MINOR_OK.includes(k.name) ? k : keyByName('C');
+}
+
+const renderLearn = () => {
+  const v = document.getElementById('view');
+  const mk = learnMinorKey();
+  const minorName = raisedSeventhFacts(mk).tonicName + ' minor';
+
+  v.innerHTML = `
+    <p class="eyebrow">Explanations, not drills</p>
+    <h2>Learn</h2>
+    <p style="max-width:56ch;font-size:14px">Nothing here needs doing in order. Open what you are stuck on.</p>
+
+    <details class="ref" id="learn-sound">
+      <summary>No sound?</summary>
+      <div style="margin-top:12px">
+        <div class="row">
+          <button class="btn" id="soundtest">Play a test note</button>
+          <button class="btn small" id="soundtoggle">${S.muted ? 'Sound is off' : 'Sound is on'}</button>
+        </div>
+        <p id="soundstate" style="font-size:14px;color:var(--soft);margin-top:10px;max-width:56ch">Tap the test note.</p>
+        <label class="check" style="margin-top:6px">
+          <input type="checkbox" id="ignoresilent" ${S.ignoreSilent === false ? '' : 'checked'}>
+          <span><b>Play even when the phone is on silent</b> \u2014 on by default. This asks iOS to treat the app as a media player rather than as incidental page noise, which is what lets other apps ignore the switch. The tradeoff is that iOS may pause music playing in another app.</span>
+        </label>
+        <p class="eyebrow" style="margin-top:18px">Playback engine</p>
+        <div class="row">
+          ${[['auto','Auto'],['element','Media element'],['webaudio','Web Audio']].map(([id,lbl]) =>
+            `<button class="btn small ${((S && S.engine) || 'auto') === id ? 'primary' : ''}" data-engine="${id}">${lbl}</button>`).join('')}
+        </div>
+        <p style="font-size:13px;color:var(--soft);max-width:58ch;margin-top:8px"><b>Media element</b> synthesises each sound into an audio file and plays it through a media element, which iOS exempts from the silent switch. Slightly slower to start, and the only thing that works inside an app\u2019s built-in browser. <b>Web Audio</b> responds instantly but the switch silences it. Auto picks media element on iOS.</p>
+        <div id="audiodiag">${audioDiagnostics()}</div>
+        <ul style="font-size:14px;max-width:58ch;padding-left:18px;margin-top:14px">
+          <li><b>If the table says \u201cin-app WebView\u201d</b>, the app hosting this page controls the audio category and the page cannot override it. Open the artifact in Safari itself and it should work.</li>
+          <li><b>Still silent?</b> Turn the switch off silent once and tap the test note \u2014 that hands the browser an audio channel it can keep using.</li>
+          <li><b>Media volume, not ringer volume.</b> Press volume up <em>while a note is playing</em>, or the phone adjusts the wrong one.</li>
+          <li><b>Bluetooth.</b> If headphones or a speaker are paired, the sound is going there.</li>
+          <li><b>Older iOS.</b> Below Safari 16.4 there is no way to request this properly, and the fallback is unreliable. The switch is the only certain fix.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="ref" open>
+      <summary>Reading the staff: four landmarks</summary>
+      <div style="margin-top:12px">
+        <p style="max-width:58ch;font-size:14px">Memorise these four cold, then read every other note as one or two steps from the nearest one. Mnemonics make you count up from a letter every time, which caps your reading speed permanently.</p>
+        <div class="staffwrap">${landmarkSVG()}</div>
+        <ul style="font-size:14px;max-width:60ch;padding-left:18px">
+          ${LANDMARK_NOTES.map(([n, t]) => `<li style="margin-bottom:7px"><b>${n}</b> \u2014 ${t}</li>`).join('')}
+        </ul>
+      </div>
+    </details>
+
+    <details class="ref" id="learn-naming">
+      <summary>Working out a key\u2019s name from its signature</summary>
+      <div style="margin-top:12px">${renderNaming(namingIdx)}</div>
+    </details>
+
+    <details class="ref" id="learn-why">
+      <summary>Why minor raises its 7th \u2014 play it and hear why (${minorName})</summary>
+      <div style="margin-top:12px">${renderWhy(mk)}</div>
+    </details>
+
+    <details class="ref">
+      <summary>Everything else \u2014 key signatures, minors, fingering, practice rules</summary>
+      <div style="margin-top:12px">${referenceBody()}</div>
+    </details>`;
+
+  const t = document.getElementById('soundtest');
+  if (t) t.onclick = () => {
+    if (S.muted) { S.muted = false; save(); }
+    playEvents([{ midi: midiOf(MIDDLE_C), at: 0 }, { midi: midiOf(MIDDLE_C) + 7, at: 0.35 }]);
+    const s = document.getElementById('soundstate');
+    const tg = document.getElementById('soundtoggle');
+    if (tg) tg.textContent = 'Sound is on';
+    const hasSession = typeof navigator !== 'undefined' && navigator && 'audioSession' in navigator;
+    const via = hasSession
+      ? 'This browser supports the audio-session request, so the silent switch should not matter.'
+      : 'This browser has no audio-session support, so the silent switch may still win.';
+    if (s) s.textContent = !ctx ? 'This browser did not provide an audio engine at all.'
+      : ctx.state === 'running'
+        ? 'Audio engine running; two notes were just sent. ' + via
+        : 'Audio engine still suspended (' + ctx.state + '). Tap once more \u2014 iOS sometimes needs a second gesture.';
+  };
+  document.querySelectorAll('[data-engine]').forEach(b => b.onclick = () => {
+    S.engine = b.dataset.engine; save();
+    lastError = '';
+    playEvents([{ midi: midiOf(MIDDLE_C), at: 0 }]);
+    renderLearn();
+    const d = document.getElementById('learn-sound');
+    if (d) d.open = true;
+  });
+  const ig = document.getElementById('ignoresilent');
+  if (ig) ig.onchange = () => {
+    S.ignoreSilent = ig.checked; save();
+    armAudioSession(); nudgeSilent();
+    const s = document.getElementById('soundstate');
+    if (s) s.textContent = ig.checked
+      ? 'Requested the media-playback session. Tap the test note.'
+      : 'Back to default \u2014 the silent switch will mute the app again.';
+  };
+  const tg = document.getElementById('soundtoggle');
+  if (tg) tg.onclick = () => {
+    S.muted = !S.muted; save();
+    tg.textContent = S.muted ? 'Sound is off' : 'Sound is on';
+  };
+  const nb = document.getElementById('learn-naming');
+  if (nb) wireNaming(nb);
+  const wb = document.getElementById('learn-why');
+  if (wb) wireWhy(wb, mk);
+}
+
+// ---------- progress ----------
+const renderProgress = () => {
+  const cleared = STEPS.filter((_, i) => stepPassed(i)).length;
+  const cur = stepIndex(), unlocked = unlockedThrough();
+  document.getElementById('view').innerHTML = `
+    <p class="eyebrow">Where you are</p>
+    <h2>${cleared} of ${STEPS.length} steps cleared</h2>
+    <div>
+      ${STEPS.map((s, i) => {
+        const done = stepPassed(i), now = i === cur, locked = i > unlocked;
+        return `<div class="stage" style="${locked ? 'opacity:.5' : ''}">
+          <button class="stagehead" data-gostep="${i}">
+            <span class="stagenum">${done ? '\u2713' : i + 1}</span>
+            <span class="stagename">${s.label}</span>
+            <span class="badge ${done ? 'done' : now ? 'now' : ''}">${
+              done ? 'cleared' : now ? 'current \u00b7 ' + stepCleanCount(i) + '/' + WINDOW_TARGET
+              : locked ? 'locked' : stepCleanCount(i) + '/' + WINDOW_TARGET}</span>
+          </button>
+          ${now ? `<div class="stagebody"><p>${s.why}</p>
+            <p style="font-size:13px;color:var(--soft)">${s.keys.length === 1 ? 'Key of ' + s.keys[0]
+              : s.keys.length + ' keys: ' + s.keys.join(', ')} \u00b7 ${s.mode === 'mixed' ? 'major and minor' : 'major'}
+              \u00b7 ${s.rhythm >= 3 ? 'with eighth notes' : 'quarters, halves and wholes'}</p></div>` : ''}
+        </div>`;
+      }).join('')}
+    </div>
+    <p style="margin-top:18px;font-size:14px;color:var(--soft);max-width:58ch">${WINDOW_TARGET} of your last ${WINDOW} clean reads clears a step and opens the next \u2014 not a streak, so one stumble does not undo your progress. Explanations for anything here \u2014 landmarks, key signatures, minors, fingering \u2014 are in the <b>Learn</b> tab.</p>
+    <div id="sesspane" style="margin-top:34px;border-top:1px solid var(--rule);padding-top:22px"></div>
+    <div id="logpane" style="margin-top:34px;border-top:1px solid var(--rule);padding-top:22px"></div>`;
+  renderPractice('sesspane');
+  renderLog('logpane');
+  document.querySelectorAll('[data-gostep]').forEach(b => b.onclick = () => {
+    S.sight.step = +b.dataset.gostep; save(); newMelody(); switchTab('sight');
+  });
+}
+
+// ---------- what to do next ----------
+const nextAction = () => {
+  const st = S.drill;
+  const loggedToday = S.log.some(e => e.date === today());
+
+  if (S.session) return { tab: 'progress', text: 'You have a session open. Finish the slots, then log it.' };
+
+  if (!S.primerSeen) return { tab: 'reading',
+    text: 'Two minutes first: the four bass-clef landmarks. Everything else reads off them, so this is the one thing worth doing before anything else.' };
+
+  if (st.asked === 0) return { tab: 'reading',
+    text: 'One round of the note drill \u2014 twenty notes, naming what you see. It is the fastest way to stop counting up from a landmark every time.' };
+
+  const cur = stepIndex(), unlocked = unlockedThrough();
+  const next = STEPS.findIndex((_, i) => !stepPassed(i));
+
+  if (next === -1) return { tab: 'sight',
+    text: 'Every step on the ladder is cleared. Keep reading \u2014 mixed keys, both hands, shifts \u2014 and the real next move is repertoire away from the app.' };
+
+  if (cur !== next && stepPassed(cur)) return { tab: 'sight',
+    text: `Step ${cur + 1} is cleared. Step ${next + 1} of ${STEPS.length} \u2014 ${STEPS[next].label} \u2014 is where the work is now.` };
+
+  if (!stepPassed(cur)) return { tab: 'sight',
+    text: `Step ${cur + 1} of ${STEPS.length}: ${STEPS[cur].label}. ${windowProgressText(cur)} clears it and opens the next.` };
+
+  if (!loggedToday) return { tab: 'progress',
+    text: 'Reading is moving. Pick how long you have and work the slots \u2014 the repertoire slot is the one the app cannot do for you.' };
+
+  return { tab: 'sight',
+    text: 'Logged for today \u2014 that is enough. If you want more, one more melody is the best use of a spare five minutes.' };
+}
+
+// While a session slot is still open, the strip shows live controls for it
+// instead of the generic directive — that is the one thing worth seeing and
+// touching from any tab, since the whole point of a session timer is staying
+// visible while you are doing something else (reading, drilling).
+const sessionStripBlock = () => {
+  const s = S.session;
+  const i = s.slots.findIndex(x => !x.done);
+  if (i < 0) return null;
+  const x = s.slots[i], def = SLOTS[x.id];
+  return `<div class="now">
+    <p class="eyebrow">Session running \u00b7 slot ${i + 1} of ${s.slots.length}</p>
+    <p><b>${def.name}</b></p>
+    <div class="row" style="align-items:baseline;gap:10px">
+      <span class="nowclk" style="font-family:var(--mono);font-size:22px">${fmt(slotLeft(x))}</span>
+      <button class="btn small" data-nowtoggle="${i}">${x.running ? 'Pause' : x.spent > 0 ? 'Resume' : 'Start'}</button>
+      <button class="btn small" data-nowdone="${i}">Done</button>
+    </div>
+  </div>`;
+};
+
+const renderNow = () => {
+  const a = nextAction();
+  const here = tab === a.tab;
+  const sess = S.session ? sessionStripBlock() : null;
+  const block = (withBtn) => sess || `<div class="now">
+    <p class="eyebrow">Do this now</p>
+    <p>${a.text}</p>
+    ${withBtn ? '<div class="row"><button class="btn primary small" data-goto="1">Take me there</button></div>' : ''}
+  </div>`;
+  document.getElementById('now').innerHTML = block(!here);
+  // long views (drill keyboard, session slots) push the top strip off screen
+  const foot = document.getElementById('nowfoot');
+  const showFoot = !(tab === 'reading' && !S.primerSeen);
+  foot.innerHTML = showFoot ? `<div style="margin-top:28px">${block(!here)}</div>` : '';
+  document.querySelectorAll('[data-nowtoggle]').forEach(b => b.onclick = () => toggleSlot(+b.dataset.nowtoggle));
+  document.querySelectorAll('[data-nowdone]').forEach(b => b.onclick = () => finishSlot(+b.dataset.nowdone));
+  document.querySelectorAll('[data-goto]').forEach(b => b.onclick = () => switchTab(a.tab));
+  document.querySelectorAll('nav button').forEach(b =>
+    b.classList.toggle('rec', b.dataset.tab === a.tab && !here));
+}
+
+const readingTrend = () => {
+  const all = S.drill.rounds;
+  if (!all.length) return '';
+  const rs = all.slice(-18);
+  const W = 420, H = 104, PADL = 4, PADR = 4;
+  const target = Math.min(...rs.map(r => TARGET[r.mode] || 3));
+  const yMax = Math.max(target * 1.25, ...rs.map(r => r.per)) * 1.05;
+  const x = i => PADL + (rs.length === 1 ? (W - PADL - PADR) / 2 : i * (W - PADL - PADR) / (rs.length - 1));
+  const y = v => H - 14 - (v / yMax) * (H - 24);
+
+  const pts = rs.map((r, i) => `${x(i).toFixed(1)},${y(r.per).toFixed(1)}`).join(' ');
+  const dots = rs.map((r, i) => {
+    const clean = r.correct === ROUND_LEN;
+    return `<circle cx="${x(i).toFixed(1)}" cy="${y(r.per).toFixed(1)}" r="3.2"
+      fill="${clean ? 'var(--blue)' : 'var(--red)'}" stroke="var(--page)" stroke-width="1">
+      <title>${r.date} \u00b7 ${r.mode} \u00b7 ${r.correct}/${ROUND_LEN} \u00b7 ${r.per}s per note</title></circle>`;
+  }).join('');
+
+  const first = rs[0].per, last = rs[rs.length - 1].per;
+  const delta = rs.length > 2
+    ? (last < first
+        ? `Down from ${first.toFixed(1)}s to ${last.toFixed(1)}s per note \u2014 that is recognition replacing counting.`
+        : `Flat or up, ${first.toFixed(1)}s to ${last.toFixed(1)}s. Not a problem yet; it moves in steps, not a line.`)
+    : 'Two more rounds and a trend becomes readable.';
+
+  return `<p class="eyebrow">Reading rounds \u00b7 seconds per note \u00b7 lower is better</p>
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" role="img"
+      aria-label="Trend of seconds per note across ${rs.length} rounds">
+      <line x1="${PADL}" y1="${y(target)}" x2="${W - PADR}" y2="${y(target)}"
+        stroke="var(--rule)" stroke-dasharray="4 4"/>
+      <text x="${W - PADR}" y="${y(target) - 5}" text-anchor="end" font-size="9"
+        fill="var(--soft)" font-family="ui-monospace, monospace">target ${target}s</text>
+      <polyline points="${pts}" fill="none" stroke="var(--blue)" stroke-width="1.6"/>
+      ${dots}
+    </svg>
+    <p style="font-size:13px;color:var(--soft);margin-top:6px">
+      ${all.length} round${all.length === 1 ? '' : 's'} recorded. Red dots are rounds with a wrong answer. ${delta}</p>`;
+}
+
+// ---------- shell ----------
+let tab = 'sight';
+// The one path that has to work even when saved data has a shape this
+// version doesn't handle \u2014 a render triggered from here has nowhere else
+// to fall back to (no other tab is guaranteed to render either, since any
+// of them can read the same broken S). Shown for a bootstrap failure AND
+// for any later render() failure, e.g. switching tabs after S ended up null.
+const showFatalError = (e) => {
+  console.error('Failed to render', e);
+  const v = document.getElementById('view');
+  v.innerHTML = `
+    <p class="eyebrow" style="color:var(--red)">Something went wrong loading your progress</p>
+    <p style="max-width:56ch;font-size:13px;font-family:var(--mono);color:var(--soft)">${(e && e.message) || String(e)}</p>
+    <p style="max-width:56ch;font-size:14px">This usually means saved progress has a shape this version does not expect. Trying again costs nothing; clearing starts the ladder over from step 1 and loses the practice log and stumble history on this device.</p>
+    <div class="row" style="margin-top:12px">
+      <button class="btn" id="bootretry">Try again</button>
+      <button class="btn primary" id="bootreset">Clear my progress and start over</button>
+    </div>`;
+  document.getElementById('bootretry').onclick = () => location.reload();
+  document.getElementById('bootreset').onclick = () => {
+    if (confirm('This clears all saved progress, drill stats, and practice log on this device. Continue?')) {
+      try { localStorage.removeItem(KEY); } catch (e2) { /* nothing more to try */ }
+      location.reload();
+    }
+  };
+};
+
+const switchTab = (t) => {
+  tab = t;
+  document.querySelectorAll('nav button').forEach(b =>
+    b.setAttribute('aria-selected', b.dataset.tab === t));
+  render();
+}
+const render = () => {
+  // the session ticker is no longer tied to any one tab — it has to keep
+  // running so the persistent strip can show a live countdown from anywhere
+  if (tab !== 'sight' && stumbleTimer) { clearTimeout(stumbleTimer); stumbleTimer = null; }
+  try {
+    ({ reading: renderReading, sight: renderSight,
+       learn: renderLearn, progress: renderProgress })[tab]();
+    renderNow();
+  } catch (e) {
+    showFatalError(e);
+  }
+}
+
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+
+(async () => {
+  const v = document.getElementById('view');
+  v.innerHTML = '<p class="empty-state">Loading\u2026</p>';
+  try {
+    S = await load();
+    // land where the work is. Only the landmark primer and an open session
+    // outrank reading music.
+    tab = !S.primerSeen ? 'reading' : S.session ? 'progress' : nextAction().tab;
+    document.querySelectorAll('nav button').forEach(b =>
+      b.setAttribute('aria-selected', b.dataset.tab === tab));
+    renderSpine();
+    render();
+  } catch (e) {
+    // deliberately leave S as whatever it was (often still null) — falling
+    // back to blank() here would make other tabs quietly usable again, and
+    // the first save() from that state would overwrite real (if broken)
+    // saved data with a blank slate with no explicit confirmation. Every
+    // render() call while S can't be trusted should hit the same error
+    // screen consistently, via render()'s own try/catch, until the user
+    // explicitly retries or resets.
+    showFatalError(e);
+  }
+})();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {
+      // offline support is a nicety, not a requirement — a registration
+      // failure (unsupported browser, blocked by an embedding webview)
+      // should never stop the app itself from working
+    });
+  });
+}
+</script>

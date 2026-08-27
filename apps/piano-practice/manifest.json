@@ -1,0 +1,14 @@
+{
+  "name": "Piano, from choir up",
+  "short_name": "Piano practice",
+  "description": "Sight-reading trainer with generated notation, play-along, and drills.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#E1E4E1",
+  "theme_color": "#14161A",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
