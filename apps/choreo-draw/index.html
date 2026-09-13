@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Choreo homework draw · Redefine Recruits</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,500&family=Archivo:wght@400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:   #16080D;
+    --card:  #25101A;
+    --bone:  #F4EAE6;
+    --hot:   #FF4A5A;
+    --dim:   #9A7480;
+    --rule:  rgba(244, 234, 230, 0.13);
+
+    --display: 'Bodoni Moda', 'Didot', 'Bodoni MT', Georgia, serif;
+    --body:    'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --mono:    'Space Mono', 'SF Mono', Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 28px 20px;
+    background: var(--ink);
+    background-image: radial-gradient(120% 80% at 50% 0%, #3A1522 0%, var(--ink) 62%);
+    color: var(--bone);
+    font-family: var(--body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 620px;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 34px 36px 30px;
+    box-shadow: 0 30px 70px -20px rgba(0,0,0,0.7);
+  }
+
+  .label {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  /* ---- eyebrow ---- */
+  .eyebrow {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .eyebrow strong { color: var(--bone); font-weight: 700; }
+
+  /* ---- winner (post-draw) ---- */
+  .winner { padding: 24px 0 26px; }
+  .winner .label { color: var(--hot); margin-bottom: 14px; }
+  .winner-title {
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(2.3rem, 8.5vw, 4rem);
+    line-height: 1.02;
+    letter-spacing: -0.015em;
+    margin: 0 0 14px;
+  }
+  .winner-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    font-size: 14.5px;
+  }
+  .winner-meta .time { font-family: var(--mono); color: var(--dim); font-size: 13px; }
+
+  /* ---- the pool ---- */
+  .pool { padding-top: 20px; }
+  .pool.has-winner { border-top: 1px solid var(--rule); padding-top: 18px; }
+  .pool .label { margin-bottom: 12px; }
+  .pool ol { list-style: none; margin: 0; padding: 0; }
+  .pool li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 14px;
+    padding: 6px 0;
+    font-size: 13.5px;
+    color: var(--dim);
+    transition: color 0.2s ease;
+  }
+  /* Title and artist sit together on the left, runtimes align right, so the
+     rows read as one ledger column instead of three ragged ones. */
+  .pool li .song { flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pool li .who { flex: 1 1 auto; color: rgba(154, 116, 128, 0.66); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pool li .time { flex: 0 0 auto; font-family: var(--mono); font-size: 11.5px; }
+
+  /* Before the draw these are live options, so they read at full strength.
+     Afterwards they stay dim, which is the point. */
+  .pool.is-live li { color: var(--bone); }
+  .pool.is-live li .who { color: var(--dim); }
+
+  /* The cursor sweeping the list during the draw. */
+  .pool li.is-cursor,
+  .pool.is-live li.is-cursor { color: var(--hot); }
+  .pool li.is-cursor .who { color: var(--hot); opacity: 0.7; }
+  .pool li.is-cursor .time { color: var(--hot); }
+
+  @keyframes rowIn { to { opacity: 1; transform: none; } }
+  .pool.has-winner li {
+    opacity: 0;
+    transform: translateY(5px);
+    animation: rowIn 0.42s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+  }
+
+  /* ---- draw button ---- */
+  .actions { padding: 26px 0 4px; text-align: center; }
+  .draw-btn {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: var(--hot);
+    border: 0;
+    border-radius: 2px;
+    padding: 15px 40px;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.18s ease;
+  }
+  .draw-btn:hover { background: #FF6270; transform: translateY(-1px); }
+  .draw-btn:focus-visible { outline: 2px solid var(--bone); outline-offset: 3px; }
+  .draw-btn[disabled] { background: var(--dim); cursor: default; transform: none; }
+
+  /* ---- receipt ---- */
+  .receipt {
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.85;
+    color: var(--dim);
+  }
+  .receipt dl { margin: 0; }
+  .receipt div { display: flex; gap: 14px; }
+  .receipt dt {
+    flex: 0 0 58px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(154, 116, 128, 0.68);
+  }
+  .receipt dd { margin: 0; color: var(--bone); }
+
+  /* Quiet on purpose: the coral is spent on the draw itself, and this sits in
+     frame if anyone screenshots rather than downloading. */
+  .save { margin-top: 18px; text-align: right; }
+  .save-btn {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--dim);
+    background: none;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 9px 16px;
+    cursor: pointer;
+    transition: color 0.18s ease, border-color 0.18s ease;
+  }
+  .save-btn:hover { color: var(--bone); border-color: rgba(244, 234, 230, 0.32); }
+  .save-btn:focus-visible { outline: 2px solid var(--hot); outline-offset: 3px; }
+
+  [hidden] { display: none !important; }
+
+  @media (max-width: 460px) {
+    .card { padding: 26px 22px 24px; }
+    .pool li .who { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .draw-btn { transition: none; }
+    .pool li { transition: none; }
+    .pool.has-winner li { opacity: 1; transform: none; animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<main class="card">
+  <!-- Team name and occasion. Edit these two spans if the wording is off. -->
+  <div class="eyebrow">
+    <span class="label"><strong>Redefine</strong> Recruits</span>
+    <span class="label">Choreo homework</span>
+  </div>
+
+  <section class="winner" id="winner" hidden>
+    <div class="label">Drawn</div>
+    <h1 class="winner-title" id="winnerTitle"></h1>
+    <div class="winner-meta">
+      <span id="winnerArtist"></span>
+      <span class="time" id="winnerTime"></span>
+    </div>
+  </section>
+
+  <section class="pool is-live" id="pool">
+    <div class="label" id="poolLabel">Submissions</div>
+    <ol id="poolList"></ol>
+  </section>
+
+  <div class="actions" id="actions">
+    <button class="draw-btn" id="drawBtn">Draw one</button>
+  </div>
+
+  <section class="receipt" id="receipt" hidden>
+    <dl>
+      <div><dt>Drawn</dt><dd id="rDrawn"></dd></div>
+      <div><dt>Pool</dt><dd id="rPool"></dd></div>
+    </dl>
+  </section>
+
+  <div class="save" id="save" hidden>
+    <button class="save-btn" id="saveBtn">Download PNG</button>
+  </div>
+</main>
+
+<script>
+// The team's submissions, in the order they were posted. Edit this list to
+// change the pool -- the order is kept as-is on screen so the card is
+// recognisably the same list everyone submitted to.
+const SONGS = [
+  { title: 'Unholy',                                  artist: 'Sam Smith & Kim Petras',            time: '2:37' },
+  { title: 'Young Rich & In Love (KAYTRANADA Remix)',  artist: 'Kali Uchis',                        time: '3:53' },
+  { title: 'ATARI',                                   artist: 'DANNA',                             time: '2:56' },
+  { title: 'Aphrodite',                               artist: 'RINI',                              time: '4:31' },
+  { title: 'Lovely',                                  artist: 'Sonder',                            time: '4:51' },
+  { title: 'Poison',                                  artist: 'Brent Faiyaz',                      time: '3:33' },
+  { title: 'One Of The Girls',                        artist: 'The Weeknd, JENNIE, Lily-Rose Depp', time: '4:05' },
+  { title: 'MATADORA',                                artist: 'KAROL G',                           time: '2:25' },
+];
+
+/**
+ * Returns a uniformly random integer in [0, max) from the OS entropy pool.
+ *
+ * Rejection sampling rather than `byte % max`: 256 is not always a multiple of
+ * max, and when it isn't, the low indices come up more often. It happens to be
+ * exact for max = 8, but the pool above is meant to be edited, so the bias must
+ * not be waiting for whoever adds a ninth song.
+ */
+function randomIndex(max) {
+  const limit = Math.floor(256 / max) * max;
+  const byte = new Uint8Array(1);
+  let n;
+  do {
+    crypto.getRandomValues(byte);
+    n = byte[0];
+  } while (n >= limit);
+  return n % max;
+}
+
+const els = {
+  btn: document.getElementById('drawBtn'),
+  actions: document.getElementById('actions'),
+  winner: document.getElementById('winner'),
+  title: document.getElementById('winnerTitle'),
+  artist: document.getElementById('winnerArtist'),
+  time: document.getElementById('winnerTime'),
+  pool: document.getElementById('pool'),
+  poolLabel: document.getElementById('poolLabel'),
+  poolList: document.getElementById('poolList'),
+  receipt: document.getElementById('receipt'),
+  rDrawn: document.getElementById('rDrawn'),
+  rPool: document.getElementById('rPool'),
+  save: document.getElementById('save'),
+  saveBtn: document.getElementById('saveBtn'),
+};
+
+// Set by reveal(), read by the PNG renderer. The image is drawn from this
+// rather than captured from the page, so the buttons and the browser's own
+// chrome can never end up in it, and the output is the same size on every
+// machine instead of being however wide the window happened to be.
+let result = null;
+
+function row(song) {
+  const li = document.createElement('li');
+  const title = document.createElement('span');
+  title.className = 'song';
+  title.textContent = song.title;
+  const who = document.createElement('span');
+  who.className = 'who';
+  who.textContent = song.artist;
+  const time = document.createElement('span');
+  time.className = 'time';
+  time.textContent = song.time;
+  li.append(title, who, time);
+  return li;
+}
+
+function renderPool(songs) {
+  els.poolList.replaceChildren(...songs.map(row));
+  return [...els.poolList.children];
+}
+
+// Pre-draw: the whole pool, at full strength, nothing chosen yet.
+renderPool(SONGS);
+
+function reveal(index) {
+  const won = SONGS[index];
+
+  els.title.textContent = won.title;
+  els.artist.textContent = won.artist;
+  els.time.textContent = won.time;
+  els.winner.hidden = false;
+
+  els.pool.classList.remove('is-live');
+  els.pool.classList.add('has-winner');
+  els.poolLabel.textContent = 'Not drawn';
+
+  const rows = renderPool(SONGS.filter((_, i) => i !== index));
+  // Stagger the rows in. On a screen recording this reads as the pool settling
+  // after the draw; on a still screenshot it has finished before the shutter.
+  rows.forEach((li, i) => { li.style.animationDelay = `${i * 55}ms`; });
+
+  const now = new Date();
+  els.rDrawn.textContent = now.toLocaleString(undefined, {
+    day: 'numeric', month: 'short', year: 'numeric',
+    hour: 'numeric', minute: '2-digit', second: '2-digit',
+    timeZoneName: 'short',
+  });
+  els.rPool.textContent = `${SONGS.length} songs, equal odds`;
+  els.receipt.hidden = false;
+
+  result = {
+    won,
+    rest: SONGS.filter((_, i) => i !== index),
+    stamp: els.rDrawn.textContent,
+    pool: els.rPool.textContent,
+    at: now,
+  };
+  els.save.hidden = false;
+}
+
+function draw() {
+  // The result is decided here, once, before any animation runs. The sweep
+  // below is theatre played back over an answer that already exists -- if the
+  // animation chose where to stop instead, its timing would decide the draw.
+  const index = randomIndex(SONGS.length);
+
+  els.btn.disabled = true;
+  els.actions.hidden = true;   // keeps the button out of the screenshot
+
+  const rows = [...els.poolList.children];
+  const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (still) {
+    reveal(index);
+    return;
+  }
+
+  // A cursor sweeps the list and decelerates onto the row already drawn. The
+  // step timings are walked backwards from `index` so the last stop is it.
+  const steps = [55, 55, 60, 65, 70, 80, 90, 105, 125, 150, 180, 220, 270, 330];
+  let i = 0;
+  const tick = () => {
+    rows.forEach((li) => li.classList.remove('is-cursor'));
+    if (i >= steps.length) {
+      setTimeout(() => reveal(index), 240);
+      return;
+    }
+    const at = (index - (steps.length - 1 - i) + rows.length * 2) % rows.length;
+    rows[at].classList.add('is-cursor');
+    setTimeout(tick, steps[i]);
+    i++;
+  };
+  tick();
+}
+
+els.btn.addEventListener('click', draw, { once: true });
+
+/* ---------------------------------------------------------------------------
+   PNG export
+   --------------------------------------------------------------------------- */
+
+const PNG = {
+  scale: 2,          // drawn at 2x so it stays sharp on a phone screen
+  width: 620,
+  pad: 36,
+  ink: '#25101A',
+  glow: '#3A1522',
+  bone: '#F4EAE6',
+  hot: '#FF4A5A',
+  dim: '#9A7480',
+  dimmer: 'rgba(154, 116, 128, 0.66)',
+  rule: 'rgba(244, 234, 230, 0.13)',
+  receiptLabel: 'rgba(154, 116, 128, 0.68)',
+  display: '"Bodoni Moda", Didot, "Bodoni MT", Georgia, serif',
+  body: 'Archivo, "Helvetica Neue", Arial, sans-serif',
+  mono: '"Space Mono", "SF Mono", Menlo, Consolas, monospace',
+};
+
+/**
+ * Draws letter-spaced text a character at a time.
+ *
+ * `ctx.letterSpacing` only landed in Safari 17.4, and the tracked mono labels
+ * are most of this card's voice -- losing the tracking silently on an older
+ * browser would look like a different design, so this does it by hand.
+ */
+function tracked(ctx, text, x, y, spacing) {
+  let cx = x;
+  for (const ch of text) {
+    ctx.fillText(ch, cx, y);
+    cx += ctx.measureText(ch).width + spacing;
+  }
+  return cx - x - spacing;
+}
+
+/** Truncates to fit `maxW`, with an ellipsis when it has to cut. */
+function clamp(ctx, text, maxW) {
+  if (ctx.measureText(text).width <= maxW) return text;
+  let s = text;
+  while (s.length > 1 && ctx.measureText(s + '…').width > maxW) s = s.slice(0, -1);
+  return s + '…';
+}
+
+/**
+ * Picks the largest display size that fits the title on one line, falling back
+ * to two wrapped lines. "Young Rich & In Love (KAYTRANADA Remix)" is more than
+ * twice the length of "Poison", so a fixed size would either clip the long one
+ * or waste the short one.
+ */
+function fitTitle(ctx, text, maxW) {
+  for (let size = 64; size >= 34; size -= 2) {
+    ctx.font = `italic 500 ${size}px ${PNG.display}`;
+    if (ctx.measureText(text).width <= maxW) return { lines: [text], size };
+  }
+  const size = 38;
+  ctx.font = `italic 500 ${size}px ${PNG.display}`;
+  const words = text.split(' ');
+  let first = '';
+  let second = '';
+  for (const w of words) {
+    const attempt = first ? `${first} ${w}` : w;
+    if (!first || (!second && ctx.measureText(attempt).width <= maxW)) first = attempt;
+    else second = second ? `${second} ${w}` : w;
+  }
+  return { lines: second ? [first, clamp(ctx, second, maxW)] : [clamp(ctx, first, maxW)], size };
+}
+
+function renderCard(data) {
+  const { width: W, pad, scale: S } = PNG;
+  const contentW = W - pad * 2;
+
+  // Measure first: the title's fitted size decides the card's height.
+  const probe = document.createElement('canvas').getContext('2d');
+  const title = fitTitle(probe, data.won.title, contentW);
+  const titleLineH = title.size * 1.06;
+
+  const rowH = 26;
+  const H = Math.round(
+    34                                  // top padding
+    + 13 + 16 + 1                       // eyebrow, its gap, rule
+    + 24 + 13 + 14                       // winner padding, DRAWN label, gap
+    + title.lines.length * titleLineH + 14
+    + 20 + 26 + 1                        // artist line, padding, rule
+    + 18 + 13 + 12                       // gap, NOT DRAWN label, gap
+    + data.rest.length * rowH
+    + 22 + 1 + 16                        // gap, rule, gap
+    + 2 * 20                             // receipt lines
+    + 30                                 // bottom padding
+  );
+
+  const canvas = document.createElement('canvas');
+  canvas.width = W * S;
+  canvas.height = H * S;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(S, S);
+  ctx.textBaseline = 'top';
+
+  // Background: the page's warm top glow, flattened onto the card colour so
+  // the image is full-bleed rather than a small card floating on a big field.
+  const glow = ctx.createRadialGradient(W / 2, 0, 0, W / 2, 0, W * 0.95);
+  glow.addColorStop(0, PNG.glow);
+  glow.addColorStop(0.62, PNG.ink);
+  glow.addColorStop(1, PNG.ink);
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, W, H);
+
+  const rule = (y) => {
+    ctx.fillStyle = PNG.rule;
+    ctx.fillRect(pad, y, contentW, 1);
+  };
+
+  let y = 34;
+
+  // Eyebrow
+  ctx.font = `700 10.5px ${PNG.mono}`;
+  ctx.fillStyle = PNG.bone;
+  const teamW = tracked(ctx, 'REDEFINE', pad, y, 1.89);
+  ctx.font = `400 10.5px ${PNG.mono}`;
+  ctx.fillStyle = PNG.dim;
+  tracked(ctx, ' RECRUITS', pad + teamW, y, 1.89);
+  const occasion = 'CHOREO HOMEWORK';
+  let occasionW = 0;
+  for (const ch of occasion) occasionW += ctx.measureText(ch).width + 1.89;
+  tracked(ctx, occasion, W - pad - occasionW + 1.89, y, 1.89);
+  y += 13 + 16;
+  rule(y);
+  y += 1 + 24;
+
+  // Winner
+  ctx.font = `400 10.5px ${PNG.mono}`;
+  ctx.fillStyle = PNG.hot;
+  tracked(ctx, 'DRAWN', pad, y, 1.89);
+  y += 13 + 14;
+
+  ctx.fillStyle = PNG.bone;
+  ctx.font = `italic 500 ${title.size}px ${PNG.display}`;
+  for (const line of title.lines) {
+    ctx.fillText(line, pad, y);
+    y += titleLineH;
+  }
+  y += 14;
+
+  ctx.font = `400 14.5px ${PNG.body}`;
+  ctx.fillStyle = PNG.bone;
+  ctx.fillText(clamp(ctx, data.won.artist, contentW - 70), pad, y + 2);
+  ctx.font = `400 13px ${PNG.mono}`;
+  ctx.fillStyle = PNG.dim;
+  ctx.textAlign = 'right';
+  ctx.fillText(data.won.time, W - pad, y + 3);
+  ctx.textAlign = 'left';
+  y += 20 + 26;
+  rule(y);
+  y += 1 + 18;
+
+  // Not drawn
+  ctx.font = `400 10.5px ${PNG.mono}`;
+  ctx.fillStyle = PNG.dim;
+  tracked(ctx, 'NOT DRAWN', pad, y, 1.89);
+  y += 13 + 12;
+
+  for (const song of data.rest) {
+    ctx.font = `400 11.5px ${PNG.mono}`;
+    const timeW = ctx.measureText(song.time).width;
+    ctx.fillStyle = PNG.dim;
+    ctx.textAlign = 'right';
+    ctx.fillText(song.time, W - pad, y + 3);
+    ctx.textAlign = 'left';
+
+    const leftMax = contentW - timeW - 14;
+    ctx.font = `400 13.5px ${PNG.body}`;
+    ctx.fillStyle = PNG.dim;
+    const songText = clamp(ctx, song.title, leftMax);
+    ctx.fillText(songText, pad, y);
+
+    const used = ctx.measureText(songText).width;
+    const room = leftMax - used - 10;
+    if (room > 40 && songText === song.title) {
+      ctx.fillStyle = PNG.dimmer;
+      ctx.fillText(clamp(ctx, song.artist, room), pad + used + 10, y);
+    }
+    y += rowH;
+  }
+
+  y += 22;
+  rule(y);
+  y += 1 + 16;
+
+  // Receipt
+  for (const [label, value] of [['DRAWN', data.stamp], ['POOL', data.pool]]) {
+    ctx.font = `400 11px ${PNG.mono}`;
+    ctx.fillStyle = PNG.receiptLabel;
+    tracked(ctx, label, pad, y, 1.54);
+    ctx.fillStyle = PNG.bone;
+    ctx.fillText(value, pad + 58, y);
+    y += 20;
+  }
+
+  return canvas;
+}
+
+function slug(text) {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+async function savePng() {
+  if (!result) return;
+
+  // Without this the first click can bake the fallback serif into the image
+  // while the real face is still in flight.
+  if (document.fonts && document.fonts.ready) await document.fonts.ready;
+
+  const canvas = renderCard(result);
+  const d = result.at;
+  const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const name = `choreo-draw-${date}-${slug(result.won.title)}.png`;
+
+  canvas.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(url);
+    els.saveBtn.textContent = 'Downloaded';
+    setTimeout(() => { els.saveBtn.textContent = 'Download PNG'; }, 2200);
+  }, 'image/png');
+}
+
+els.saveBtn.addEventListener('click', savePng);
+</script>
+</body>
+</html>
