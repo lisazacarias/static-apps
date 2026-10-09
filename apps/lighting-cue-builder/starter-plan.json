@@ -1183,11 +1183,8 @@
       "end": null,
       "outFade": null,
       "lights": [
-        1,
-        4,
         7,
-        10,
-        11
+        10
       ],
       "action": "off",
       "color": "#fbb612",
@@ -1196,10 +1193,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Black half a beat before the pulse, so the first one reads",
+      "note": "Before the pulse: apparatus out, 1, 4, 11 stay — first pulse brings them back",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791598200000
+      "updatedAt": 1791598800000
     },
     {
       "id": "battle-pulse",
@@ -1265,7 +1262,6 @@
         1,
         4,
         7,
-        10,
         11
       ],
       "action": "off",
@@ -1275,10 +1271,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Black half a beat before the big hits, so the first one reads",
+      "note": "Before the big hits: only the loops (10) stay lit — hit 1 swaps to 1, 4, 7, 11",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791598200000
+      "updatedAt": 1791598800000
     },
     {
       "id": "battle-hits-1",
@@ -1392,8 +1388,6 @@
       "lights": [
         1,
         4,
-        7,
-        10,
         11
       ],
       "action": "off",
@@ -1403,10 +1397,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Black just before the post-battle hits",
+      "note": "Before the post-battle hits: only the apparatus (7, 10) stay lit — first hit brings in all five",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791598200000
+      "updatedAt": 1791598800000
     },
     {
       "id": "stinger-1",
