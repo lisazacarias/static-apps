@@ -161,6 +161,7 @@
       "lights": [
         1,
         4,
+        7,
         9
       ],
       "action": "on",
@@ -172,7 +173,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791589200000
+      "updatedAt": 1791589800000
     },
     {
       "id": "intro-lavender",
@@ -200,7 +201,6 @@
       "end": null,
       "outFade": null,
       "lights": [
-        7,
         12
       ],
       "action": "on",
@@ -212,7 +212,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791589200000
+      "updatedAt": 1791589800000
     },
     {
       "id": "rustage-hit1-lime",
