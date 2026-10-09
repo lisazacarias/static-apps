@@ -195,8 +195,11 @@
 <dialog id="editor" class="editor" aria-labelledby="editorTitle">
     <form id="cueForm" method="dialog">
         <div class="editor-head">
-            <h3 id="editorTitle">New cue</h3>
-            <span class="muted tiny"><span id="fSection"></span>Stage shows this cue live while you edit.</span>
+            <div>
+                <h3 id="editorTitle">New cue</h3>
+                <span class="muted tiny"><span id="fSection"></span>Stage shows this cue live while you edit.</span>
+            </div>
+            <button type="button" class="editor-close" id="fClose" aria-label="Close without saving" title="Close without saving (Esc)">✕</button>
         </div>
 
         <div class="row two">

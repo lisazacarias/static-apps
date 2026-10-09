@@ -802,7 +802,15 @@ $('fDelete').onclick = () => {
 };
 $('fTimeNow').onclick = () => { $('fTime').value = formatTime(now()); readForm(); };
 $('fEndNow').onclick = () => { $('fEnd').value = formatTime(now()); readForm(); };
-editor.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); closeEditor(); } });
+$('fClose').onclick = closeEditor;
+// Listen on the document, not the editor: the editor isn't modal, so focus
+// is often on the stage or the page when someone reaches for Esc.
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape' || !editing) return;
+  if ($('sheetDialog').open || $('pasteDialog').open || $('mergeDialog').open) return;
+  e.preventDefault();
+  closeEditor();
+});
 document.querySelectorAll('[data-pick]').forEach((b) => {
   b.onclick = () => {
     const which = b.dataset.pick;

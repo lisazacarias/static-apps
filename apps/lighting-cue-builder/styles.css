@@ -334,15 +334,55 @@ body.presenting .title-input { pointer-events: none; border-bottom-color: transp
 
 /* The cue editor is non-modal and docks right, so the stage stays visible
    (and clickable) while it previews the cue being edited. */
+/* A dialog's default height is fit-content, so top+bottom alone don't
+   bound it — the max-height is what makes a tall form scroll instead of
+   running off the bottom of a laptop screen. */
 #editor[open] {
     position: fixed;
-    inset: 12px 12px 12px auto;
+    top: 12px;
+    right: 12px;
+    bottom: auto;
+    left: auto;
     margin: 0;
     width: min(500px, calc(100vw - 24px));
-    max-height: none;
+    max-height: calc(100vh - 24px);
+    max-height: calc(100dvh - 24px);
     overflow: auto;
+    overscroll-behavior: contain;
     z-index: 20;
+    padding-top: 0;
+    padding-bottom: 0;
 }
+/* Header (with the close button) and Save/Cancel stay in view while the
+   form scrolls between them. */
+#editor .editor-head {
+    position: sticky; top: 0; z-index: 1;
+    background: var(--bg-card);
+    padding: 16px 20px 10px;
+    margin: 0 -20px;
+    flex-wrap: nowrap;
+}
+#editor .editor-head > div { min-width: 0; }
+#editor .editor-head { align-items: flex-start; }
+#editor .editor-actions {
+    position: sticky; bottom: 0; z-index: 1;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    padding: 12px 20px 16px;
+    margin: 0 -20px;
+}
+.editor-close {
+    flex-shrink: 0;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--border-bright);
+    background: var(--bg-elevated);
+    color: var(--text-label);
+    font-size: 16px; line-height: 1;
+    cursor: pointer;
+}
+.editor-close:hover { color: var(--text-bright); border-color: var(--hot); }
+.editor-close:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .time-field .btn { white-space: nowrap; flex-shrink: 0; }
 .level-row { display: flex; gap: 12px; align-items: center; }
 .level-row input[type="range"] { flex: 1; accent-color: var(--gold); }
