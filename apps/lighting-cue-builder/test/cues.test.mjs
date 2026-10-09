@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ALL_LIGHTS, formatTime, parseTime, normalizePlan, serializePlan, stateAt,
-  cueSheet, lightsLabel, encodeShare, decodeShare, nearestPreset, normalizeCue,
+  cueSheet, lightsLabel, encodeShare, decodeShare, nearestPreset, normalizeCue, colorLabel,
 } from '../cues.js';
 
 const cue = (o) => ({ id: o.id || Math.random().toString(36), time: 0, end: null, lights: [], action: 'on',
@@ -430,4 +430,14 @@ test('a pulse dims between flashes instead of going dark, and fades', () => {
   assert.match(cueSheet({ cues: [c] }), /dimming to 35% between/);
   assert.equal(normalizeRepeat({ bpm: 120, count: 4 }).dimTo, 0, 'old runs still go fully off');
   assert.equal(normalizeRepeat({ bpm: 120, count: 4, dimTo: 33 }).dimTo, 0);
+});
+
+import { LOGO_COLORS, APPARATUS } from '../cues.js';
+
+test('logo colours are named on the sheet, and the rig names the apparatus', () => {
+  const c = normalizeCue({ time: 4, lights: [3], color: '#00ACEE' });
+  assert.equal(colorLabel(c), 'Titans blue');
+  assert.equal(LOGO_COLORS.length, 5);
+  assert.deepEqual(APPARATUS, { 3: 'pole', 7: 'pole', 10: 'loops' });
+  assert.match(cueSheet({ cues: [c] }), /Rig: Apparatus 3 \(pole\), 7 \(pole\), 10 \(loops\)/);
 });

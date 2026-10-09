@@ -2,7 +2,7 @@ import {
   GROUPS, ALL_LIGHTS, PRESETS, groupOf, formatTime, parseTime, blankCue, sortCues,
   normalizePlan, serializePlan, stateAt, cueSheet, lightsLabel, colorLabel,
   transitionLabel, encodeShare, decodeShare, DEFAULT_FADE,
-  normalizeRepeat, flashGap, flashTimes, flashEnd, flashesPerSecond, fitTaps,
+  APPARATUS, LOGO_COLORS, normalizeRepeat, flashGap, flashTimes, flashEnd, flashesPerSecond, fitTaps,
   DEFAULT_TEMPO, normalizeTempo, parseStart, formatStart, normalizeSection,
   sectionStart, sortSections, sectionAt, parseSectionLines, timeToBar,
   diffPlans, applyMerge,
@@ -438,7 +438,7 @@ function buildStage() {
     const s = SHAPES[n];
     const g = svg('g', { class: `light g-${groupOf(n)}`, 'data-light': n });
     const title = svg('title', {});
-    title.textContent = `Light ${n} · ${GROUPS.find((x) => x.id === groupOf(n)).label}`;
+    title.textContent = `Light ${n} · ${GROUPS.find((x) => x.id === groupOf(n)).label}${APPARATUS[n] ? ` (${APPARATUS[n]})` : ''}`;
     const halo = shapeEl(s, { class: 'halo', filter: 'url(#glow)', opacity: 0 });
     const beam = shapeEl(s, { class: 'beam', opacity: 0 });
     const off = shapeEl(s, { class: 'off-shape' });
@@ -448,6 +448,11 @@ function buildStage() {
     num.textContent = n === 11 ? '11 · BACKDROP' : String(n);
     const ng = svg('g', { class: `light g-${groupOf(n)}` });
     ng.append(num);
+    if (APPARATUS[n]) {
+      const sub = svg('text', { x: s.lx, y: s.ly + 30, class: 'num sub', 'text-anchor': 'middle', 'dominant-baseline': 'middle' });
+      sub.textContent = APPARATUS[n].toUpperCase();
+      ng.append(sub);
+    }
     labels.append(ng);
     lightEls[n] = { g, halo, beam, off, ng, last: '' };
     g.addEventListener('click', () => onStageLightClick(n));
@@ -666,18 +671,20 @@ function buildEditor() {
     for (const n of g.lights) {
       const chip = document.createElement('label');
       chip.className = `chip g-${g.id}`;
-      chip.innerHTML = `<input type="checkbox" name="light" value="${n}"><span>${n}</span>`;
+      chip.innerHTML = `<input type="checkbox" name="light" value="${n}"><span>${n}</span>${APPARATUS[n] ? `<small>${APPARATUS[n]}</small>` : ''}`;
+      if (APPARATUS[n]) chip.title = `Light ${n} — ${APPARATUS[n]}`;
       row.append(chip);
     }
     picker.append(row);
   }
-  const sw = $('swatches');
-  for (const p of PRESETS) {
+  for (const [box, list] of [[$('swatches'), PRESETS], [$('swatchesLogo'), LOGO_COLORS]]) for (const p of list) {
+    const sw = box;
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'swatch'; b.title = p.name;
     b.style.background = p.hex; b.dataset.hex = p.hex; b.dataset.name = p.name;
     b.setAttribute('aria-label', p.name);
-    b.onclick = () => { $('fColor').value = p.hex; $('fColorName').value = ''; readForm(); };
+    // Logo colours carry their name onto the cue sheet.
+    b.onclick = () => { $('fColor').value = p.hex; $('fColorName').value = LOGO_COLORS.includes(p) ? p.name : ''; readForm(); };
     sw.append(b);
   }
 }
@@ -747,7 +754,7 @@ function syncFormUi() {
     $(id).disabled = d.action === 'off';
   }
   syncFlashUi();
-  document.querySelectorAll('#swatches .swatch').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.hex === d.color)));
+  document.querySelectorAll('#swatches .swatch, #swatchesLogo .swatch').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.hex === d.color)));
 }
 
 // Read the form into the draft without validating, so the stage previews

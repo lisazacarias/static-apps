@@ -450,3 +450,9 @@ label:has(> .file-input:focus-visible) { outline: 2px solid var(--blue); outline
 input:disabled { opacity: 0.45; }
 @media (max-width: 560px) { .flash-grid { grid-template-columns: 1fr; } }
 .flash-grid label > .btn { justify-self: start; }
+
+/* ── apparatus names, logo palette ── */
+.stage .num.sub { font-size: 20px; letter-spacing: 2px; font-weight: 500; }
+.chip { display: inline-grid; justify-items: center; gap: 1px; }
+.chip small { font-size: 9.5px; font-family: var(--font-mono); letter-spacing: 0.06em; color: var(--text-muted); text-transform: uppercase; }
+.swatch-label { display: block; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin: 10px 0 6px; }

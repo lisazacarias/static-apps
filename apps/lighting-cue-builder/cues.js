@@ -10,6 +10,9 @@ export const GROUPS = [
 
 export const ALL_LIGHTS = GROUPS.flatMap((g) => g.lights).sort((a, b) => a - b);
 
+// What each apparatus spot is lighting, for the stage plot and cue sheet.
+export const APPARATUS = { 3: 'pole', 7: 'pole', 10: 'loops' };
+
 export function groupOf(light) {
   return GROUPS.find((g) => g.lights.includes(light))?.id;
 }
@@ -28,6 +31,15 @@ export const PRESETS = [
   { name: 'Deep blue', hex: '#2a4bff' },
   { name: 'Cyan', hex: '#2ad8ff' },
   { name: 'Green', hex: '#2aff7a' },
+];
+
+// The show's palette: the five colours of the Teen Titans logo.
+export const LOGO_COLORS = [
+  { name: 'Titans red', hex: '#ec1b24' },
+  { name: 'Titans orange', hex: '#fbb612' },
+  { name: 'Titans lime', hex: '#c0d62d' },
+  { name: 'Titans lavender', hex: '#858ac2' },
+  { name: 'Titans blue', hex: '#00acee' },
 ];
 
 export const DEFAULT_FADE = 2;
@@ -90,7 +102,7 @@ export function nearestPreset(hex) {
 
 export function colorLabel(cue) {
   if (cue.colorName) return cue.colorName;
-  const exact = PRESETS.find((p) => p.hex.toLowerCase() === cue.color.toLowerCase());
+  const exact = [...PRESETS, ...LOGO_COLORS].find((p) => p.hex.toLowerCase() === cue.color.toLowerCase());
   return exact ? exact.name : `~${nearestPreset(cue.color).name}`;
 }
 
@@ -550,7 +562,7 @@ export function cueSheet({ title, audio, cues, tempo, sections = [] }) {
   const out = [];
   out.push(`LIGHTING CUE SHEET${title ? ' — ' + title : ''}`);
   if (audio?.name) out.push(`Audio: ${audio.name}${audio.duration ? ` (${formatTime(audio.duration, 1)})` : ''}`);
-  out.push(`Rig: Apparatus 3, 7, 10 · Floor 1, 2, 4, 5, 6, 8, 9, 12 · Backdrop 11`);
+  out.push(`Rig: Apparatus ${Object.entries(APPARATUS).map(([n, what]) => `${n} (${what})`).join(', ')} · Floor 1, 2, 4, 5, 6, 8, 9, 12 · Backdrop 11`);
   out.push(`Times are from the start of the track (m:ss.s). ${sorted.length} cue${sorted.length === 1 ? '' : 's'}.`);
   out.push('');
   out.push(line(head));
