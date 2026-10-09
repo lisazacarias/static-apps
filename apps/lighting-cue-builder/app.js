@@ -85,6 +85,7 @@ function commit() {
   plan.cues = sortCues(plan.cues);
   plan.sections = sortSections(plan.sections, plan.tempo);
   savePlan();
+  showExpectedAudio();
   renderSections();
   renderCueList();
   dirtyStage = dirtyWave = true;
@@ -112,7 +113,10 @@ async function idbPut(value) {
       tx.objectStore('audio').put(value, 'current');
       tx.oncomplete = res; tx.onerror = () => rej(tx.error);
     });
-  } catch { /* the cue list still saves; audio just needs re-picking */ }
+  } catch {
+    // The cue list still saves; only the audio needs re-picking after a reload.
+    notify('This browser couldn’t keep a copy of the audio (private window or storage full) — you’ll need to pick the file again after a reload. Your cues are unaffected.');
+  }
 }
 async function idbGet() {
   try {
@@ -815,11 +819,14 @@ document.querySelectorAll('[data-pick]').forEach((b) => {
   b.onclick = () => {
     const which = b.dataset.pick;
     const g = GROUPS.find((x) => x.id === which);
+    // Decide once, before changing anything: a whole group already on turns
+    // off, otherwise the group turns on.
+    const groupOn = g ? !g.lights.every((l) => form.querySelector(`input[name="light"][value="${l}"]`).checked) : null;
     form.querySelectorAll('input[name="light"]').forEach((box) => {
       const n = Number(box.value);
       if (which === 'all') box.checked = true;
       else if (which === 'none') box.checked = false;
-      else if (g.lights.includes(n)) box.checked = !g.lights.every((l) => form.querySelector(`input[name="light"][value="${l}"]`).checked);
+      else if (g.lights.includes(n)) box.checked = groupOn;
     });
     readForm();
   };
@@ -871,6 +878,7 @@ function syncTempoInputs() {
 function onTempoChange() {
   if (viewingShared) return;
   plan.tempo = normalizeTempo({ bpm: $('tempoBpm').value, beatsPerBar: $('tempoBpb').value });
+  syncTempoInputs(); // show what's actually in use if the entry was out of range
   commit();
 }
 $('tempoBpm').addEventListener('change', onTempoChange);
@@ -1188,6 +1196,7 @@ function setPresenting(on) {
   if (on && editing) closeEditor();
   document.body.classList.toggle('presenting', on);
   document.body.classList.toggle('edit-mode', !on);
+  $('title').readOnly = on || viewingShared;
   $('presentToggle').setAttribute('aria-pressed', String(on));
   $('presentToggle').textContent = on ? 'Exit presentation' : 'Presentation mode';
   dirtyStage = dirtyWave = true;
@@ -1230,6 +1239,7 @@ function leaveShared() {
   $('title').value = plan.title;
   syncTempoInputs();
   setPresenting(false);
+  showExpectedAudio();
   renderSections();
   renderCueList();
   dirtyStage = dirtyWave = true;

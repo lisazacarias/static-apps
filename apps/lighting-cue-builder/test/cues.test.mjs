@@ -325,3 +325,19 @@ test('edit stamps survive export/import; old files load as 0', () => {
   const back = normalizePlan(JSON.parse(JSON.stringify(serializePlan(p))));
   assert.equal(back.cues[0].updatedAt, 1234);
 });
+
+test('merge offers a title the other copy cleared', () => {
+  const d = diffPlans({ title: 'Showcase', cues: [] }, { title: '', cues: [] });
+  assert.deepEqual(d.settings.map((x) => [x.key, x.mine, x.theirs, x.pick]), [['title', 'Showcase', '', 'mine']]);
+});
+
+test('duplicate section ids (or ones clashing with a cue) are renumbered', () => {
+  const p = normalizePlan({
+    cues: [{ id: 'x', time: 1, lights: [1] }],
+    sections: [{ id: 'x', name: 'A', time: 0 }, { id: 's', name: 'B', time: 5 }, { id: 's', name: 'C', time: 9 }],
+  });
+  const ids = [...p.cues, ...p.sections].map((i) => i.id);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.equal(p.cues[0].id, 'x');
+  assert.deepEqual(p.sections.map((s) => s.name), ['A', 'B', 'C']);
+});

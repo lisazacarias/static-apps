@@ -87,14 +87,14 @@
             <div id="audioEmpty" class="drop">
                 <p><strong>Load the performance audio</strong></p>
                 <p class="muted" id="expectedAudio">Drop an audio file here, or</p>
-                <label class="btn primary-btn file-btn">Choose audio file<input id="audioFile" type="file" accept="audio/*" hidden></label>
+                <label class="btn primary-btn file-btn">Choose audio file<input id="audioFile" class="file-input" type="file" accept="audio/*"></label>
                 <p class="muted tiny">The file stays on this device — it's never uploaded.</p>
             </div>
 
             <div id="audioLoaded" hidden>
                 <div class="track-row">
                     <span id="trackName" class="track-name"></span>
-                    <label class="link-ish">Change<input id="audioFile2" type="file" accept="audio/*" hidden></label>
+                    <label class="link-ish">Change<input id="audioFile2" class="file-input" type="file" accept="audio/*"></label>
                 </div>
 
                 <div class="time-row">
@@ -175,7 +175,7 @@
             <div class="section-line"></div>
             <div class="file-actions">
                 <button id="exportJson" class="btn" type="button">Export JSON</button>
-                <label class="btn">Import JSON<input id="importJson" type="file" accept="application/json,.json" hidden></label>
+                <label class="btn">Import JSON<input id="importJson" class="file-input" type="file" accept="application/json,.json"></label>
                 <button id="exportSheet" class="btn" type="button">Readable cue sheet</button>
                 <button id="shareLink" class="btn" type="button">Copy preview link</button>
             </div>

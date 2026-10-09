@@ -185,7 +185,12 @@ export function normalizePlan(raw) {
   }
   const audio = raw.audio && typeof raw.audio === 'object' ? raw.audio : {};
   const tempo = normalizeTempo(raw.tempo);
+  // Sections share the id space with cues: the merge and delete key on ids.
   const sections = (Array.isArray(raw.sections) ? raw.sections : []).map(normalizeSection).filter(Boolean);
+  for (const s of sections) {
+    if (seen.has(s.id)) s.id = newId();
+    seen.add(s.id);
+  }
   return {
     title: typeof raw.title === 'string' ? raw.title.slice(0, 120) : '',
     audio: {
@@ -517,7 +522,7 @@ export function diffPlans(mine, theirs) {
     ...diffList('section', mine.sections || [], theirs.sections || [], SECTION_FIELDS),
   ];
   const settings = [];
-  if ((mine.title || '') !== (theirs.title || '') && theirs.title) {
+  if ((mine.title || '') !== (theirs.title || '')) {
     settings.push({ key: 'title', mine: mine.title || '', theirs: theirs.title, pick: mine.title ? 'mine' : 'theirs' });
   }
   const mt = normalizeTempo(mine.tempo);

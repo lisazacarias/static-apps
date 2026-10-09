@@ -425,3 +425,9 @@ body.presenting .title-input { pointer-events: none; border-bottom-color: transp
 .merge-kind { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-label); }
 .merge-choice { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; cursor: pointer; }
 .merge-choice input { margin-top: 3px; accent-color: var(--hot); flex-shrink: 0; }
+
+/* File pickers: the input stays in the tab order (visually hidden), and its
+   label shows the focus ring, so keyboard users can open the picker. */
+.file-input { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+label:has(> .file-input) { position: relative; }
+label:has(> .file-input:focus-visible) { outline: 2px solid var(--blue); outline-offset: 2px; }
