@@ -239,7 +239,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Rustage hit 1/14 \u2014 same look on every hit: lime 1, 3, 6, 8, 12 / lavender 2, 4, 5, 9, 11; pole 7 stays lit, loops 10 dark",
+      "note": "Rustage hit 1/14 — same look on every hit: lime 1, 3, 6, 8, 12 / lavender 2, 4, 5, 9, 11; pole 7 stays lit, loops 10 dark",
       "repeat": null,
       "option": null,
       "updatedAt": 1791593400000
@@ -283,7 +283,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Loops (10) go dark on the first Rustage hit and stay dark through Raven\u2019s solo",
+      "note": "Loops (10) go dark on the first Rustage hit and stay dark through Raven’s solo",
       "repeat": null,
       "option": null,
       "updatedAt": 1791594600000
@@ -1172,19 +1172,22 @@
       "transition": "fade",
       "fade": 3.42,
       "othersOff": false,
-      "note": "Slade: slow fade up to orange right after the lightning, full as he starts talking (2:02.15); only 1, 4, 7, 10, 11 \u2014 the rest black",
+      "note": "Slade: slow fade up to orange right after the lightning, full as he starts talking (2:02.15); only 1, 4, 7, 10, 11 — the rest black",
       "repeat": null,
       "option": null,
       "updatedAt": 1791596400000
     },
     {
-      "id": "battle-pulse-prep",
-      "time": 153.96,
+      "id": "battle-in-off",
+      "time": 146.79,
       "end": null,
       "outFade": null,
       "lights": [
+        1,
+        4,
         7,
-        10
+        10,
+        11
       ],
       "action": "off",
       "color": "#fbb612",
@@ -1193,10 +1196,36 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Before the pulse: apparatus out, 1, 4, 11 stay \u2014 first pulse brings them back",
+      "note": "Battle starts (2:26.79): Slade’s five pools out…",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791598800000
+      "updatedAt": 1791603600000
+    },
+    {
+      "id": "battle-in-on",
+      "time": 146.79,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        3,
+        5,
+        6,
+        8,
+        9,
+        12
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "…and the other seven on, in orange",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791603600000
     },
     {
       "id": "battle-pulse",
@@ -1217,7 +1246,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle: soft pulse \u2014 snaps up on each beat and eases down to 35%",
+      "note": "Battle: soft pulse — snaps up on each beat and eases down to 35%",
       "repeat": {
         "bpm": 96.37,
         "beats": 1,
@@ -1229,6 +1258,32 @@
       },
       "option": null,
       "updatedAt": 1791598200000
+    },
+    {
+      "id": "battle-others-off",
+      "time": 154.27,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        3,
+        5,
+        6,
+        8,
+        9,
+        12
+      ],
+      "action": "off",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "First pulse: the seven go dark, the five battle pools take over",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791603600000
     },
     {
       "id": "battle-full",
@@ -1272,7 +1327,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Before the big hits: only the loops (10) stay lit \u2014 hit 1 swaps to 1, 4, 7, 11",
+      "note": "Before the big hits: only the loops (10) stay lit — hit 1 swaps to 1, 4, 7, 11",
       "repeat": null,
       "option": null,
       "updatedAt": 1791598800000
@@ -1295,7 +1350,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle hits 1\u20138: 1, 4, 11 and the pole (7) strobe; loops dark",
+      "note": "Battle hits 1–8: 1, 4, 11 and the pole (7) strobe; loops dark",
       "repeat": {
         "bpm": 96.37,
         "beats": 1,
@@ -1323,7 +1378,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Loops dark for hits 1\u20138 (they were resting at 35% from the pulse)",
+      "note": "Loops dark for hits 1–8 (they were resting at 35% from the pulse)",
       "repeat": null,
       "option": null,
       "updatedAt": 1791596400000
@@ -1346,7 +1401,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle hits 9\u201316: 1, 4, 11 and the loops (10) strobe; pole dark",
+      "note": "Battle hits 9–16: 1, 4, 11 and the loops (10) strobe; pole dark",
       "repeat": {
         "bpm": 96.37,
         "beats": 1,
@@ -1400,7 +1455,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Before the post-battle hits: only the apparatus (7, 10) stay lit \u2014 first hit brings in all five",
+      "note": "Before the post-battle hits: only the apparatus (7, 10) stay lit — first hit brings in all five",
       "repeat": null,
       "option": null,
       "updatedAt": 1791599400000
@@ -1658,7 +1713,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Victory: piano on the 1 of bars 1\u20133 \u2014 snap up, ring down to 50%; the 4th lands on the drums switch",
+      "note": "Victory: piano on the 1 of bars 1–3 — snap up, ring down to 50%; the 4th lands on the drums switch",
       "repeat": {
         "bpm": 105.88,
         "beats": 4,
@@ -1687,7 +1742,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Drums: two looks swapping on the 1 and the 2& \u2014 A on the 1 (the victory colours)",
+      "note": "Drums: two looks swapping on the 1 and the 2& — A on the 1 (the victory colours)",
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
@@ -1834,7 +1889,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Drums: B on the 2& \u2014 each colour shifted one along (lime\u2192lavender\u2192red\u2192orange\u2192blue\u2192lime)",
+      "note": "Drums: B on the 2& — each colour shifted one along (lime→lavender→red→orange→blue→lime)",
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
@@ -1981,7 +2036,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Victory: hold the victory colours still from 3:17.50 to about 3:22 \u2014 no switching, no fades",
+      "note": "Victory: hold the victory colours still from 3:17.50 to about 3:22 — no switching, no fades",
       "repeat": null,
       "option": null,
       "updatedAt": 1791602400000
@@ -2342,7 +2397,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Finale: the last hit \u2014 look A at full",
+      "note": "Finale: the last hit — look A at full",
       "repeat": null,
       "option": null,
       "updatedAt": 1791603000000
