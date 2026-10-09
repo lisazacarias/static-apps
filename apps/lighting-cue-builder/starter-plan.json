@@ -1966,23 +1966,99 @@
       "updatedAt": 1791601800000
     },
     {
-      "id": "victory-solid",
+      "id": "victory-hold-red",
+      "time": 197.5,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        5
+      ],
+      "action": "on",
+      "color": "#ec1b24",
+      "colorName": "Titans red",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Victory: hold the victory colours still from 3:17.50 to about 3:22 — no switching, no fades",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791602400000
+    },
+    {
+      "id": "victory-hold-orange",
+      "time": 197.5,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        4,
+        9
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791602400000
+    },
+    {
+      "id": "victory-hold-lime",
+      "time": 197.5,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        3,
+        7,
+        12
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791602400000
+    },
+    {
+      "id": "victory-hold-lavender",
       "time": 197.5,
       "end": null,
       "outFade": null,
       "lights": [
         1,
-        2,
-        3,
-        4,
-        5,
         6,
-        7,
+        10
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791602400000
+    },
+    {
+      "id": "victory-hold-blue",
+      "time": 197.5,
+      "end": null,
+      "outFade": null,
+      "lights": [
         8,
-        9,
-        10,
-        11,
-        12
+        11
       ],
       "action": "on",
       "color": "#00acee",
@@ -1991,10 +2067,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Victory: one solid colour from 3:17.50 to about 3:22",
+      "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791601800000
+      "updatedAt": 1791602400000
     }
   ]
 }
