@@ -1691,14 +1691,14 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
-        "count": 6,
+        "count": 5,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791601200000
+      "updatedAt": 1791601800000
     },
     {
       "id": "drums-a-orange",
@@ -1720,14 +1720,14 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
-        "count": 6,
+        "count": 5,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791601200000
+      "updatedAt": 1791601800000
     },
     {
       "id": "drums-a-lime",
@@ -1750,14 +1750,14 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
-        "count": 6,
+        "count": 5,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791601200000
+      "updatedAt": 1791601800000
     },
     {
       "id": "drums-a-lavender",
@@ -1780,14 +1780,14 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
-        "count": 6,
+        "count": 5,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791601200000
+      "updatedAt": 1791601800000
     },
     {
       "id": "drums-a-blue",
@@ -1809,14 +1809,14 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
-        "count": 6,
+        "count": 5,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791601200000
+      "updatedAt": 1791601800000
     },
     {
       "id": "drums-b-red",
@@ -1838,14 +1838,14 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
-        "count": 6,
+        "count": 5,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791601200000
+      "updatedAt": 1791601800000
     },
     {
       "id": "drums-b-orange",
@@ -1867,14 +1867,14 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
-        "count": 6,
+        "count": 5,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791601200000
+      "updatedAt": 1791601800000
     },
     {
       "id": "drums-b-lime",
@@ -1897,14 +1897,14 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
-        "count": 6,
+        "count": 5,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791601200000
+      "updatedAt": 1791601800000
     },
     {
       "id": "drums-b-lavender",
@@ -1927,14 +1927,14 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
-        "count": 6,
+        "count": 5,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791601200000
+      "updatedAt": 1791601800000
     },
     {
       "id": "drums-b-blue",
@@ -1956,14 +1956,45 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
-        "count": 6,
+        "count": 5,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791601200000
+      "updatedAt": 1791601800000
+    },
+    {
+      "id": "victory-solid",
+      "time": 197.5,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#00acee",
+      "colorName": "Titans blue",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Victory: one solid colour from 3:17.50 to about 3:22",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791601800000
     }
   ]
 }
