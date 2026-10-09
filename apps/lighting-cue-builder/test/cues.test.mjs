@@ -386,7 +386,7 @@ test('repeat normalises, drops End, and Off cues cannot flash', () => {
   assert.equal(normalizeRepeat({ bpm: 10, count: 4 }), null);
   assert.equal(normalizeRepeat({ bpm: 120, count: 1 }), null);
   assert.deepEqual(normalizeRepeat({ bpm: '96.4', count: '16', beats: 3, onFrac: 2, altColor: 'nope' }),
-    { bpm: 96.4, beats: 1, count: 16, onFrac: 0.5, altColor: null, dimTo: 0 });
+    { bpm: 96.4, beats: 1, count: 16, onFrac: 0.5, altColor: null, dimTo: 0, keepColor: false });
   const c = normalizeCue({ time: 1, end: 5, lights: [1], repeat: { bpm: 120, count: 4 } });
   assert.equal(c.end, null);
   assert.equal(normalizeCue({ time: 1, lights: [1], action: 'off', repeat: { bpm: 120, count: 4 } }).repeat, null);
@@ -541,4 +541,17 @@ test('a flash run can snap up and ease out at its own speed', () => {
   assert.equal(lv(10.5), 1, 'next beat snaps back up');
   assert.match(cueSheet({ cues: [c] }), /snapping up and easing out over 0\.4s/);
   assert.equal(normalizePlan(JSON.parse(JSON.stringify(serializePlan({ cues: [c] })))).cues[0].outFade, 0.4);
+});
+
+test("a brightness-only pulse keeps each light's own colour", () => {
+  const look = [normalizeCue({ time: 0, lights: [1], color: '#c0d62d' }), normalizeCue({ time: 0, lights: [2], color: '#858ac2' })];
+  const pulse = normalizeCue({ time: 10, lights: [1, 2], color: '#ffffff', transition: 'sharp', outFade: 0.3,
+    repeat: { bpm: 120, beats: 4, count: 3, onFrac: 0.25, dimTo: 70, keepColor: true } });
+  const s = (t) => stateAt([...look, pulse], t).lights;
+  assert.equal(s(10)[1].level, 1);
+  assert.equal(s(10)[1].color, '#c0d62d', 'lime stays lime');
+  assert.equal(s(10)[2].color, '#858ac2', 'lavender stays lavender');
+  assert.ok(Math.abs(s(11.5)[1].level - 0.7) < 1e-9, 'rests at 70% between');
+  assert.equal(s(12)[2].level, 1, 'next bar swells again');
+  assert.match(cueSheet({ cues: [pulse] }), /each light keeps its colour/);
 });

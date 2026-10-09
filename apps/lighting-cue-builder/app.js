@@ -791,6 +791,7 @@ function openEditor(cue, preset = {}) {
   $('fCount').value = r.count;
   $('fOnFrac').value = String(r.onFrac);
   $('fDimTo').value = String(r.dimTo ?? 0);
+  $('fKeepColor').checked = Boolean(r.keepColor);
   $('fAlt').checked = Boolean(r.altColor);
   if (r.altColor) $('fAltColor').value = r.altColor;
   taps = [];
@@ -853,6 +854,7 @@ function readForm() {
       bpm: $('fBpm').value, beats: $('fBeats').value, count: $('fCount').value,
       onFrac: $('fOnFrac').value, altColor: $('fAlt').checked ? $('fAltColor').value : null,
       dimTo: $('fDimTo').value,
+      keepColor: $('fKeepColor').checked,
     })
     : null;
   if (d.repeat) d.end = null;

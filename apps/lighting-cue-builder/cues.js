@@ -161,6 +161,8 @@ export function normalizeRepeat(raw) {
     altColor: isHex(raw.altColor) ? raw.altColor.toLowerCase() : null,
     // Runs saved before dimming existed went fully off between flashes.
     dimTo: FLASH_DIM.includes(Number(raw.dimTo)) ? Number(raw.dimTo) : 0,
+    // Brightness only: each light keeps whatever colour it already has.
+    keepColor: Boolean(raw.keepColor),
   };
 }
 
@@ -189,8 +191,9 @@ export function flashLabel(cue) {
   const r = cue.repeat;
   const on = r.onFrac >= 1 ? 'held until the next' : `on for ${Math.round(r.onFrac * 100)}% of the gap`;
   const dim = r.onFrac < 1 && r.dimTo ? `, dimming to ${r.dimTo}% between` : '';
+  const bright = r.keepColor ? ', brightness only' : '';
   const shape = cue.outFade ? `, ${cue.transition === 'fade' ? 'fading up' : 'snapping up'} and easing out over ${cue.outFade}s` : '';
-  return `Flash ×${r.count}, every ${beatsLabel(r.beats)} at ${r.bpm} BPM (${flashGap(r).toFixed(3)}s apart), ${on}${dim}${shape}`;
+  return `Flash ×${r.count}, every ${beatsLabel(r.beats)} at ${r.bpm} BPM (${flashGap(r).toFixed(3)}s apart), ${on}${dim}${shape}${bright}`;
 }
 
 // More than three flashes a second is the common photosensitivity limit.
@@ -429,7 +432,7 @@ function pushFlashes(events, c, order, dur, level) {
   // A fade longer than the flash would never arrive; cap it inside the flash.
   const d = Math.min(dur, onFor * 0.9);
   flashTimes(c).forEach((at, k) => {
-    const color = k % 2 === 1 && c.repeat.altColor ? c.repeat.altColor : c.color;
+    const color = c.repeat.keepColor ? null : k % 2 === 1 && c.repeat.altColor ? c.repeat.altColor : c.color;
     const targets = c.lights.map((l) => ({ light: l, level, color }));
     // "All others off" is a one-time clear at the start of the run.
     if (c.othersOff && k === 0) {
@@ -628,7 +631,8 @@ export function cueSheet({ title, audio, cues, tempo, sections = [], optionPicks
 function cueRow(c, label) {
   if (c.repeat) {
     const r = c.repeat;
-    const color = `${colorLabel(c)} ${c.color.toUpperCase()}` + (r.altColor ? ` / ${colorLabel({ color: r.altColor, colorName: '' })} ${r.altColor.toUpperCase()} alternating` : '');
+    const color = r.keepColor ? 'each light keeps its colour'
+      : `${colorLabel(c)} ${c.color.toUpperCase()}` + (r.altColor ? ` / ${colorLabel({ color: r.altColor, colorName: '' })} ${r.altColor.toUpperCase()} alternating` : '');
     const extras = [c.othersOff ? 'ALL OTHERS OFF at first flash' : '', c.note].filter(Boolean);
     return [label, `${formatTime(c.time, 1)}–${formatTime(flashEnd(c), 1)}`, lightsLabel(c.lights), `${c.level ?? 100}%`, color, flashLabel(c), extras.join(' · ')];
   }
