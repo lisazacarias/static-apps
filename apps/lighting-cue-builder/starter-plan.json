@@ -39,6 +39,7 @@
     "bpm": 120,
     "beatsPerBar": 4
   },
+  "optionPicks": {},
   "sections": [
     {
       "id": "sec-1",
@@ -130,6 +131,7 @@
       "othersOff": false,
       "note": "Intro: fade up from the very start in logo colours, full as the vocals come in (0:04.15)",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591000000
     },
     {
@@ -150,6 +152,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591000000
     },
     {
@@ -171,6 +174,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591000000
     },
     {
@@ -192,6 +196,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591000000
     },
     {
@@ -212,6 +217,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591000000
     },
     {
@@ -234,8 +240,9 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Rustage hit 1/9 — same look on every hit: lime 1, 3, 6, 7, 8, 12 / lavender the rest",
+      "note": "Rustage hit 1/14 — same look on every hit: lime 1, 3, 6, 7, 8, 12 / lavender the rest",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591600000
     },
     {
@@ -260,6 +267,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591600000
     },
     {
@@ -282,8 +290,9 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Rustage hit 2/9",
+      "note": "Rustage hit 2/14",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591600000
     },
     {
@@ -308,6 +317,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591600000
     },
     {
@@ -330,8 +340,9 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Rustage hit 3/9",
+      "note": "Rustage hit 3/14",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591600000
     },
     {
@@ -356,6 +367,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591600000
     },
     {
@@ -378,8 +390,9 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Rustage hit 4/9",
+      "note": "Rustage hit 4/14",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591600000
     },
     {
@@ -404,6 +417,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591600000
     },
     {
@@ -426,8 +440,9 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Rustage hit 5/9",
+      "note": "Rustage hit 5/14",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591600000
     },
     {
@@ -452,6 +467,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591600000
     },
     {
@@ -474,8 +490,9 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Rustage hit 6/9",
+      "note": "Rustage hit 6/14",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591600000
     },
     {
@@ -500,6 +517,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591600000
     },
     {
@@ -522,8 +540,9 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Rustage hit 7/9",
+      "note": "Rustage hit 7/14",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591600000
     },
     {
@@ -548,6 +567,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591600000
     },
     {
@@ -570,8 +590,9 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Rustage hit 8/9",
+      "note": "Rustage hit 8/14",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591600000
     },
     {
@@ -596,6 +617,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591600000
     },
     {
@@ -618,8 +640,9 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Rustage hit 9/9",
+      "note": "Rustage hit 9/14",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591600000
     },
     {
@@ -644,10 +667,11 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791591600000
     },
     {
-      "id": "raven-solo-lime",
+      "id": "raven-solo-fade-lime",
       "time": 36.75,
       "end": null,
       "outFade": null,
@@ -668,10 +692,16 @@
       "othersOff": false,
       "note": "Fade up into Raven's solo look, full as her solo starts (0:37.52); loops (10) stay dark",
       "repeat": null,
-      "updatedAt": 1791592200000
+      "option": {
+        "group": "solo-run",
+        "label": "Run into Raven's solo",
+        "choice": "Fade",
+        "primary": false
+      },
+      "updatedAt": 1791592800000
     },
     {
-      "id": "raven-solo-lav",
+      "id": "raven-solo-fade-lav",
       "time": 36.75,
       "end": null,
       "outFade": null,
@@ -691,7 +721,337 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791592200000
+      "option": {
+        "group": "solo-run",
+        "label": "Run into Raven's solo",
+        "choice": "Fade",
+        "primary": false
+      },
+      "updatedAt": 1791592800000
+    },
+    {
+      "id": "rustage-hit10-lime",
+      "time": 36.75,
+      "end": 36.79,
+      "outFade": 0.1,
+      "lights": [
+        1,
+        3,
+        6,
+        7,
+        8,
+        12
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Rustage hit 10/14 (run into solo)",
+      "repeat": null,
+      "option": {
+        "group": "solo-run",
+        "label": "Run into Raven's solo",
+        "choice": "Hits",
+        "primary": true
+      },
+      "updatedAt": 1791592800000
+    },
+    {
+      "id": "rustage-hit10-lav",
+      "time": 36.75,
+      "end": 36.79,
+      "outFade": 0.1,
+      "lights": [
+        2,
+        4,
+        5,
+        9,
+        10,
+        11
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": {
+        "group": "solo-run",
+        "label": "Run into Raven's solo",
+        "choice": "Hits",
+        "primary": true
+      },
+      "updatedAt": 1791592800000
+    },
+    {
+      "id": "rustage-hit11-lime",
+      "time": 36.91,
+      "end": 36.95,
+      "outFade": 0.11,
+      "lights": [
+        1,
+        3,
+        6,
+        7,
+        8,
+        12
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Rustage hit 11/14 (run into solo)",
+      "repeat": null,
+      "option": {
+        "group": "solo-run",
+        "label": "Run into Raven's solo",
+        "choice": "Hits",
+        "primary": true
+      },
+      "updatedAt": 1791592800000
+    },
+    {
+      "id": "rustage-hit11-lav",
+      "time": 36.91,
+      "end": 36.95,
+      "outFade": 0.11,
+      "lights": [
+        2,
+        4,
+        5,
+        9,
+        10,
+        11
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": {
+        "group": "solo-run",
+        "label": "Run into Raven's solo",
+        "choice": "Hits",
+        "primary": true
+      },
+      "updatedAt": 1791592800000
+    },
+    {
+      "id": "rustage-hit12-lime",
+      "time": 37.08,
+      "end": 37.12,
+      "outFade": 0.06,
+      "lights": [
+        1,
+        3,
+        6,
+        7,
+        8,
+        12
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Rustage hit 12/14 (run into solo)",
+      "repeat": null,
+      "option": {
+        "group": "solo-run",
+        "label": "Run into Raven's solo",
+        "choice": "Hits",
+        "primary": true
+      },
+      "updatedAt": 1791592800000
+    },
+    {
+      "id": "rustage-hit12-lav",
+      "time": 37.08,
+      "end": 37.12,
+      "outFade": 0.06,
+      "lights": [
+        2,
+        4,
+        5,
+        9,
+        10,
+        11
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": {
+        "group": "solo-run",
+        "label": "Run into Raven's solo",
+        "choice": "Hits",
+        "primary": true
+      },
+      "updatedAt": 1791592800000
+    },
+    {
+      "id": "rustage-hit13-lime",
+      "time": 37.2,
+      "end": 37.24,
+      "outFade": 0.26,
+      "lights": [
+        1,
+        3,
+        6,
+        7,
+        8,
+        12
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Rustage hit 13/14 (run into solo)",
+      "repeat": null,
+      "option": {
+        "group": "solo-run",
+        "label": "Run into Raven's solo",
+        "choice": "Hits",
+        "primary": true
+      },
+      "updatedAt": 1791592800000
+    },
+    {
+      "id": "rustage-hit13-lav",
+      "time": 37.2,
+      "end": 37.24,
+      "outFade": 0.26,
+      "lights": [
+        2,
+        4,
+        5,
+        9,
+        10,
+        11
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": {
+        "group": "solo-run",
+        "label": "Run into Raven's solo",
+        "choice": "Hits",
+        "primary": true
+      },
+      "updatedAt": 1791592800000
+    },
+    {
+      "id": "rustage-hit14-lime",
+      "time": 37.52,
+      "end": 37.56,
+      "outFade": 0.54,
+      "lights": [
+        10
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Rustage hit 14/14 — loops flash out; solo look holds",
+      "repeat": null,
+      "option": {
+        "group": "solo-run",
+        "label": "Run into Raven's solo",
+        "choice": "Hits",
+        "primary": true
+      },
+      "updatedAt": 1791592800000
+    },
+    {
+      "id": "raven-solo-lime",
+      "time": 37.52,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        3,
+        6,
+        7,
+        8,
+        12
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Raven solo: all on but the loops (10); pole 7 lime",
+      "repeat": null,
+      "option": {
+        "group": "solo-run",
+        "label": "Run into Raven's solo",
+        "choice": "Hits",
+        "primary": true
+      },
+      "updatedAt": 1791592800000
+    },
+    {
+      "id": "raven-solo-lav",
+      "time": 37.52,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        4,
+        5,
+        9,
+        11
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": {
+        "group": "solo-run",
+        "label": "Run into Raven's solo",
+        "choice": "Hits",
+        "primary": true
+      },
+      "updatedAt": 1791592800000
     },
     {
       "id": "raven-out",
@@ -710,6 +1070,7 @@
       "othersOff": false,
       "note": "Pole 7 fades to dark as she comes in",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791586800000
     },
     {
@@ -734,6 +1095,7 @@
       "othersOff": false,
       "note": "Starfire solo: all on but the pole (7); loops lavender",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791586800000
     },
     {
@@ -757,6 +1119,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791586800000
     },
     {
@@ -787,6 +1150,7 @@
       "othersOff": false,
       "note": "Thunderclap: hard cut to black",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791586200000
     },
     {
@@ -817,6 +1181,7 @@
       "othersOff": false,
       "note": "Thunderclap: one big white flash, fading out",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791588000000
     },
     {
@@ -847,6 +1212,7 @@
       "othersOff": false,
       "note": "Slade monologue: fade up to orange as he starts talking",
       "repeat": null,
+      "option": null,
       "updatedAt": 1791587400000
     }
   ]
