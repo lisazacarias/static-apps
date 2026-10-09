@@ -1313,6 +1313,30 @@
       "updatedAt": 1791596400000
     },
     {
+      "id": "battle-full-2",
+      "time": 174.28,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        4,
+        7,
+        10,
+        11
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Battle: the five pools back to full on the beat after the last hit, holding into the victory fade",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791597600000
+    },
+    {
       "id": "victory-red",
       "time": 178.63,
       "end": null,
