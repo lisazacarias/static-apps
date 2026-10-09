@@ -118,9 +118,9 @@
       "end": null,
       "outFade": null,
       "lights": [
-        3,
-        8,
-        11
+        1,
+        5,
+        9
       ],
       "action": "on",
       "color": "#ec1b24",
@@ -131,7 +131,7 @@
       "othersOff": false,
       "note": "Intro: fade up from the very start in logo colours, full as the vocals come in (0:04.15)",
       "repeat": null,
-      "updatedAt": 1791589200000
+      "updatedAt": 1791590400000
     },
     {
       "id": "intro-orange",
@@ -139,8 +139,9 @@
       "end": null,
       "outFade": null,
       "lights": [
+        2,
         6,
-        10
+        11
       ],
       "action": "on",
       "color": "#fbb612",
@@ -151,7 +152,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791589200000
+      "updatedAt": 1791590400000
     },
     {
       "id": "intro-lime",
@@ -159,10 +160,7 @@
       "end": null,
       "outFade": null,
       "lights": [
-        1,
-        4,
-        7,
-        9
+        7
       ],
       "action": "on",
       "color": "#c0d62d",
@@ -173,7 +171,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791589800000
+      "updatedAt": 1791590400000
     },
     {
       "id": "intro-lavender",
@@ -181,8 +179,8 @@
       "end": null,
       "outFade": null,
       "lights": [
-        2,
-        5
+        3,
+        10
       ],
       "action": "on",
       "color": "#858ac2",
@@ -193,7 +191,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791589200000
+      "updatedAt": 1791590400000
     },
     {
       "id": "intro-blue",
@@ -201,6 +199,8 @@
       "end": null,
       "outFade": null,
       "lights": [
+        4,
+        8,
         12
       ],
       "action": "on",
@@ -212,7 +212,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791589800000
+      "updatedAt": 1791590400000
     },
     {
       "id": "rustage-hit1-lime",
