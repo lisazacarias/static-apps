@@ -1161,9 +1161,7 @@
       "lights": [
         1,
         4,
-        5,
         7,
-        9,
         10,
         11
       ],
@@ -1174,10 +1172,10 @@
       "transition": "fade",
       "fade": 3.42,
       "othersOff": false,
-      "note": "Slade: slow fade up to orange right after the lightning, full as he starts talking (2:02.15); sparse, with the pole (7) and loops (10) lit",
+      "note": "Slade: slow fade up to orange right after the lightning, full as he starts talking (2:02.15); only 1, 4, 7, 10, 11 — the rest black",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791595800000
+      "updatedAt": 1791596400000
     },
     {
       "id": "battle-pulse",
@@ -1186,17 +1184,10 @@
       "outFade": null,
       "lights": [
         1,
-        2,
-        3,
         4,
-        5,
-        6,
         7,
-        8,
-        9,
         10,
-        11,
-        12
+        11
       ],
       "action": "on",
       "color": "#fbb612",
@@ -1205,7 +1196,7 @@
       "transition": "fade",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle: soft pulse on the beat, easing to 35% between",
+      "note": "Battle: soft pulse on the beat on the same five pools, easing to 35% between",
       "repeat": {
         "bpm": 96.37,
         "beats": 1,
@@ -1215,7 +1206,7 @@
         "dimTo": 35
       },
       "option": null,
-      "updatedAt": 1791595200000
+      "updatedAt": 1791596400000
     },
     {
       "id": "battle-hits-1",
@@ -1224,15 +1215,9 @@
       "outFade": null,
       "lights": [
         1,
-        2,
-        3,
         4,
-        5,
-        6,
-        8,
-        9,
-        11,
-        12
+        7,
+        11
       ],
       "action": "on",
       "color": "#fbb612",
@@ -1241,7 +1226,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle hits 1–8: everything but the apparatus flashes; pole 7 lit steady",
+      "note": "Battle hits 1–8: 1, 4, 11 and the pole (7) strobe; loops dark",
       "repeat": {
         "bpm": 96.37,
         "beats": 1,
@@ -1251,27 +1236,7 @@
         "dimTo": 0
       },
       "option": null,
-      "updatedAt": 1791595800000
-    },
-    {
-      "id": "battle-pole",
-      "time": 164.32,
-      "end": 169.3,
-      "outFade": null,
-      "lights": [
-        7
-      ],
-      "action": "on",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "Pole 7 lit through hits 1–8",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791595800000
+      "updatedAt": 1791596400000
     },
     {
       "id": "battle-loops-off",
@@ -1288,10 +1253,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Loops dark for hits 1–8",
+      "note": "Loops dark for hits 1–8 (they were resting at 35% from the pulse)",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791595800000
+      "updatedAt": 1791596400000
     },
     {
       "id": "battle-hits-2",
@@ -1300,15 +1265,9 @@
       "outFade": null,
       "lights": [
         1,
-        2,
-        3,
         4,
-        5,
-        6,
-        8,
-        9,
-        11,
-        12
+        10,
+        11
       ],
       "action": "on",
       "color": "#fbb612",
@@ -1317,7 +1276,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle hits 9–16: everything but the apparatus flashes; loops 10 lit steady",
+      "note": "Battle hits 9–16: 1, 4, 11 and the loops (10) strobe; pole dark",
       "repeat": {
         "bpm": 96.37,
         "beats": 1,
@@ -1327,27 +1286,7 @@
         "dimTo": 0
       },
       "option": null,
-      "updatedAt": 1791595800000
-    },
-    {
-      "id": "battle-loops",
-      "time": 169.3,
-      "end": 173.97,
-      "outFade": null,
-      "lights": [
-        10
-      ],
-      "action": "on",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "Loops 10 lit through hits 9–16",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791595800000
+      "updatedAt": 1791596400000
     },
     {
       "id": "victory-red",
