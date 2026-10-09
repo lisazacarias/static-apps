@@ -1982,7 +1982,7 @@
     },
     {
       "id": "drums-b-red",
-      "time": 186.91,
+      "time": 189.2,
       "end": null,
       "outFade": null,
       "lights": [
@@ -2000,18 +2000,18 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
-        "count": 5,
+        "count": 4,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791601800000
+      "updatedAt": 1791605400000
     },
     {
       "id": "drums-b-orange",
-      "time": 186.91,
+      "time": 189.2,
       "end": null,
       "outFade": null,
       "lights": [
@@ -2029,18 +2029,18 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
-        "count": 5,
+        "count": 4,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791601800000
+      "updatedAt": 1791605400000
     },
     {
       "id": "drums-b-lime",
-      "time": 186.91,
+      "time": 189.2,
       "end": null,
       "outFade": null,
       "lights": [
@@ -2059,18 +2059,18 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
-        "count": 5,
+        "count": 4,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791601800000
+      "updatedAt": 1791605400000
     },
     {
       "id": "drums-b-lavender",
-      "time": 186.91,
+      "time": 189.2,
       "end": null,
       "outFade": null,
       "lights": [
@@ -2089,18 +2089,18 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
-        "count": 5,
+        "count": 4,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791601800000
+      "updatedAt": 1791605400000
     },
     {
       "id": "drums-b-blue",
-      "time": 186.91,
+      "time": 189.2,
       "end": null,
       "outFade": null,
       "lights": [
@@ -2118,14 +2118,14 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
-        "count": 5,
+        "count": 4,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791601800000
+      "updatedAt": 1791605400000
     },
     {
       "id": "victory-hold-red",
