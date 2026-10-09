@@ -1,0 +1,48 @@
+# Lighting Cue Builder
+
+Plan a dance piece's lighting by listening to the track and adding cues as you
+go. The stage plot shows what every light is doing at the playhead, so you can
+scrub anywhere and check the plan.
+
+## Using it
+
+1. Load the track (pick or drop the file). It stays in this browser — it's
+   kept in IndexedDB so a reload doesn't lose it, and it's never uploaded.
+2. Play, pause, nudge (←/→ 0.1s, Shift 1s), or loop ±1/2/4s around a moment.
+   The zoom strip shows 8 seconds around the playhead; drag it like tape.
+3. **Add cue here** (or `C`) captures the time and opens the editor. The stage
+   previews the cue as you edit; click lights on the stage to toggle them.
+4. Cues autosave to `localStorage` under `lighting-cue-builder:plan`.
+
+## What a cue means
+
+- **Start** is the GO. **End** is optional: the cue's lights go out there with
+  the same transition (snap, or fade over the same time).
+- **Fade** ramps level over the fade time. A light that's already lit
+  cross-fades colour. A dark light takes the new colour instantly.
+- **Off** takes the selected lights dark and keeps their colour while fading.
+- **All others off** takes every light the cue doesn't name dark, using the
+  cue's transition. "All others off" with no lights is a blackout.
+- Two cues at the same time: the one entered later wins.
+
+## Sharing
+
+- **Export JSON / Import JSON** — the full plan, for backups or for a partner
+  to edit in their own copy and send back. Import replaces the list (Undo is
+  offered right after).
+- **Readable cue sheet** — fixed-width text columns (time / lights / colour /
+  transition / notes) to paste into a submission or download as `.txt`.
+- **Copy preview link** — the plan compressed into the URL hash. It opens in
+  presentation mode as a read-only view; the viewer loads their own copy of
+  the audio. It's a snapshot, so re-copy after changes. Opening one never
+  touches the viewer's own saved plan unless they choose to import it.
+- **Presentation mode** hides the editing UI: stage, transport, read-only list.
+
+## Tests
+
+```
+npm test
+```
+
+Covers `cues.js` (time parsing, state-at-time, import normalisation, cue sheet,
+share tokens). Node's built-in runner, no dependencies.

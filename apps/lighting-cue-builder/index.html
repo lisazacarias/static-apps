@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lighting Cue Builder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="../../shared/base.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="container wide">
+    <header class="top">
+        <div>
+            <h1>Lighting Cue Builder</h1>
+            <p class="subtitle">
+                <input id="title" class="title-input" type="text" placeholder="Name this piece (shows on the cue sheet)" maxlength="120" aria-label="Piece title">
+            </p>
+        </div>
+        <div class="top-actions">
+            <button id="presentToggle" class="btn" type="button" aria-pressed="false">Presentation mode</button>
+        </div>
+    </header>
+
+    <div id="sharedBanner" class="info-box shared-banner" hidden>
+        <span>You're viewing a shared cue plan. Nothing here is saved to your copy until you import it.</span>
+        <span class="banner-actions">
+            <button id="adoptShared" class="btn edit-only-inline" type="button">Import into my cue list</button>
+            <button id="leaveShared" class="btn" type="button">Back to my cue list</button>
+        </span>
+    </div>
+
+    <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+
+    <div class="layout">
+        <!-- ── Stage ───────────────────────────────────────────────── -->
+        <section class="panel stage-panel" aria-label="Stage preview">
+            <div class="stage-head">
+                <span class="label">Stage · top-down</span>
+                <span id="activeCueLabel" class="label active-cue">No cue yet</span>
+            </div>
+            <svg id="stage" class="stage" viewBox="30 70 1560 1030" role="img" aria-label="Stage plot with 12 lights">
+                <defs>
+                    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur stdDeviation="22"/>
+                    </filter>
+                    <pattern id="floorGrain" width="40" height="40" patternUnits="userSpaceOnUse">
+                        <rect width="40" height="40" fill="#1b1412"/>
+                        <path d="M0 10h40M0 27h40" stroke="#221916" stroke-width="2"/>
+                    </pattern>
+                </defs>
+                <!-- room -->
+                <polygon points="10,78 1612,78 1452,186 172,186" class="wall"/>
+                <text x="790" y="152" class="room-label" text-anchor="middle">MIRROR</text>
+                <rect x="172" y="186" width="1280" height="844" fill="url(#floorGrain)" class="floor"/>
+                <polygon points="45,155 175,228 175,465 45,438" class="wall"/>
+                <text class="room-label small" transform="translate(130 330) rotate(-90)" text-anchor="middle">GARAGE DOOR</text>
+                <text class="room-label pole" transform="translate(1505 555) rotate(90)" text-anchor="middle">POLE SIDE</text>
+                <!-- audience -->
+                <polygon class="audience" points="389,266 900,266 900,455 812,372 684,372 614,442 614,558 389,558"/>
+                <text class="audience-label" x="535" y="350" text-anchor="middle">AUDIENCE</text>
+                <polygon class="audience" points="968,269 1374,269 1374,558 1087,558 968,466"/>
+                <text class="audience-label" x="1208" y="402" text-anchor="middle">AUDIENCE</text>
+                <polygon class="audience" points="389,650 616,650 583,760 583,901 389,901"/>
+                <text class="audience-label" x="485" y="745" text-anchor="middle">AUDIENCE</text>
+                <polygon class="audience" points="1088,650 1376,650 1376,813 971,813"/>
+                <text class="audience-label" x="1208" y="745" text-anchor="middle">AUDIENCE</text>
+                <!-- speakers / rig frame -->
+                <rect class="rig" x="243" y="455" width="718" height="453" rx="2"/>
+                <rect class="speaker" x="568" y="588" width="77" height="29"/>
+                <rect class="speaker" x="1088" y="587" width="106" height="29"/>
+                <rect class="speaker" x="155" y="930" width="60" height="110"/>
+                <g id="lightsLayer"></g>
+            </svg>
+            <div class="legend">
+                <span><i class="sw sw-apparatus"></i>Apparatus 3 · 7 · 10</span>
+                <span><i class="sw sw-floor"></i>Floor 1 · 2 · 4 · 5 · 6 · 8 · 9 · 12</span>
+                <span><i class="sw sw-backdrop"></i>Backdrop 11</span>
+                <span class="edit-only legend-hint">Tip: click a light to add it to the cue you're editing.</span>
+            </div>
+        </section>
+
+        <!-- ── Player ──────────────────────────────────────────────── -->
+        <section class="panel player-panel" aria-label="Audio">
+            <div id="audioEmpty" class="drop">
+                <p><strong>Load the performance audio</strong></p>
+                <p class="muted" id="expectedAudio">Drop an audio file here, or</p>
+                <label class="btn primary-btn file-btn">Choose audio file<input id="audioFile" type="file" accept="audio/*" hidden></label>
+                <p class="muted tiny">The file stays on this device — it's never uploaded.</p>
+            </div>
+
+            <div id="audioLoaded" hidden>
+                <div class="track-row">
+                    <span id="trackName" class="track-name"></span>
+                    <label class="link-ish">Change<input id="audioFile2" type="file" accept="audio/*" hidden></label>
+                </div>
+
+                <div class="time-row">
+                    <span id="timeNow" class="time-now">0:00.00</span>
+                    <span class="time-total">/ <span id="timeTotal">0:00.00</span></span>
+                </div>
+
+                <div class="wave-wrap" id="waveWrap" title="Click or drag to scrub">
+                    <canvas id="wave" class="wave"></canvas>
+                    <div class="playhead" id="playhead"></div>
+                    <div class="loop-band" id="loopBand" hidden></div>
+                </div>
+                <div class="zoom-head">
+                    <span class="label">Zoom · 8 seconds around the playhead</span>
+                </div>
+                <div class="wave-wrap zoom" id="zoomWrap" title="Click or drag to scrub finely">
+                    <canvas id="zoom" class="wave"></canvas>
+                    <div class="playhead center"></div>
+                </div>
+
+                <div class="transport">
+                    <button class="btn tbtn" data-nudge="-1" type="button" title="Back 1s (Shift+←)">−1s</button>
+                    <button class="btn tbtn" data-nudge="-0.1" type="button" title="Back 0.1s (←)">−0.1</button>
+                    <button id="playBtn" class="btn tbtn play" type="button" title="Play / pause (Space)">▶ Play</button>
+                    <button class="btn tbtn" data-nudge="0.1" type="button" title="Forward 0.1s (→)">+0.1</button>
+                    <button class="btn tbtn" data-nudge="1" type="button" title="Forward 1s (Shift+→)">+1s</button>
+                </div>
+
+                <div class="transport secondary">
+                    <span class="loop-ctl">
+                        <button id="loopBtn" class="btn tbtn" type="button" aria-pressed="false" title="Loop a short window around this moment (L)">⟲ Loop here</button>
+                        <select id="loopLen" aria-label="Loop length">
+                            <option value="1">±1s</option>
+                            <option value="2" selected>±2s</option>
+                            <option value="4">±4s</option>
+                        </select>
+                    </span>
+                    <label class="rate">Speed
+                        <select id="rate" aria-label="Playback speed">
+                            <option value="0.5">0.5×</option>
+                            <option value="0.75">0.75×</option>
+                            <option value="1" selected>1×</option>
+                        </select>
+                    </label>
+                </div>
+
+                <button id="addCue" class="add-cue edit-only" type="button" title="Add a cue at the current time (C)">
+                    + Add cue here <span id="addCueTime" class="add-cue-time">0:00.00</span>
+                </button>
+                <p class="keys muted tiny edit-only">Keys: <kbd>Space</kbd> play · <kbd>←</kbd><kbd>→</kbd> 0.1s · <kbd>Shift</kbd>+arrows 1s · <kbd>L</kbd> loop · <kbd>C</kbd> add cue · <kbd>[</kbd><kbd>]</kbd> prev/next cue</p>
+            </div>
+        </section>
+    </div>
+
+    <!-- ── Cue list ────────────────────────────────────────────────── -->
+    <section class="section edit-only" aria-label="Cue list">
+        <div class="section-header">
+            <h2>Cues <span id="cueCount" class="count"></span></h2>
+            <div class="section-line"></div>
+            <div class="file-actions">
+                <button id="exportJson" class="btn" type="button">Export JSON</button>
+                <label class="btn">Import JSON<input id="importJson" type="file" accept="application/json,.json" hidden></label>
+                <button id="exportSheet" class="btn" type="button">Readable cue sheet</button>
+                <button id="shareLink" class="btn" type="button">Copy preview link</button>
+            </div>
+        </div>
+        <div id="cueList" class="cue-list"></div>
+        <p class="save-state muted tiny" id="saveState"></p>
+    </section>
+
+    <!-- presentation mode shows a read-only list so a viewer can follow along -->
+    <section class="section present-only" aria-label="Cue list (read only)">
+        <div class="section-header"><h2>Cues</h2><div class="section-line"></div></div>
+        <div id="cueListRO" class="cue-list"></div>
+    </section>
+</div>
+
+<!-- ── Cue editor ──────────────────────────────────────────────────── -->
+<dialog id="editor" class="editor" aria-labelledby="editorTitle">
+    <form id="cueForm" method="dialog">
+        <div class="editor-head">
+            <h3 id="editorTitle">New cue</h3>
+            <span class="muted tiny">Stage shows this cue live while you edit.</span>
+        </div>
+
+        <div class="row two">
+            <label class="field">
+                <span class="label">Start</span>
+                <span class="time-field">
+                    <input id="fTime" type="text" inputmode="decimal" required placeholder="m:ss.ss" autocomplete="off">
+                    <button type="button" class="btn small" id="fTimeNow" title="Use the current playback time">⌖ now</button>
+                </span>
+            </label>
+            <label class="field">
+                <span class="label">End <em>(optional — lights go out here)</em></span>
+                <span class="time-field">
+                    <input id="fEnd" type="text" inputmode="decimal" placeholder="—" autocomplete="off">
+                    <button type="button" class="btn small" id="fEndNow" title="Use the current playback time">⌖ now</button>
+                </span>
+            </label>
+        </div>
+
+        <fieldset class="field">
+            <legend class="label">Lights</legend>
+            <div class="quick">
+                <button type="button" class="btn small" data-pick="apparatus">Apparatus</button>
+                <button type="button" class="btn small" data-pick="floor">Floor</button>
+                <button type="button" class="btn small" data-pick="backdrop">Backdrop</button>
+                <button type="button" class="btn small" data-pick="all">All</button>
+                <button type="button" class="btn small" data-pick="none">None</button>
+            </div>
+            <div id="lightPicker" class="light-picker"></div>
+        </fieldset>
+
+        <div class="row two">
+            <fieldset class="field">
+                <legend class="label">Turn selected</legend>
+                <div class="seg">
+                    <label><input type="radio" name="action" value="on" checked><span>On</span></label>
+                    <label><input type="radio" name="action" value="off"><span>Off</span></label>
+                </div>
+            </fieldset>
+            <fieldset class="field">
+                <legend class="label">Transition</legend>
+                <div class="seg">
+                    <label><input type="radio" name="transition" value="sharp" checked><span>Sharp</span></label>
+                    <label><input type="radio" name="transition" value="fade"><span>Fade</span></label>
+                </div>
+                <label class="fade-len" id="fadeLenWrap">over <input id="fFade" type="number" min="0.1" max="60" step="0.1" value="2"> s</label>
+            </fieldset>
+        </div>
+
+        <fieldset class="field" id="colorField">
+            <legend class="label">Color</legend>
+            <div class="swatches" id="swatches"></div>
+            <div class="color-row">
+                <input id="fColor" type="color" value="#ffffff" aria-label="Custom color">
+                <input id="fColorName" type="text" maxlength="40" placeholder="Name for the tech (optional, e.g. 'L201 blue')" autocomplete="off">
+            </div>
+        </fieldset>
+
+        <label class="toggle">
+            <input id="fOthersOff" type="checkbox">
+            <span>All others off <em class="muted">— every light not selected goes dark</em></span>
+        </label>
+
+        <label class="field">
+            <span class="label">Note <em>(what you're cueing off — "beat drop", "lyric: fall")</em></span>
+            <input id="fNote" type="text" maxlength="200" autocomplete="off">
+        </label>
+
+        <p id="formError" class="error" hidden></p>
+
+        <div class="editor-actions">
+            <button type="button" class="btn danger" id="fDelete">Delete</button>
+            <span class="spacer"></span>
+            <button type="button" class="btn" id="fCancel">Cancel</button>
+            <button type="submit" class="btn primary-btn" id="fSave">Save cue</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- ── Cue sheet ───────────────────────────────────────────────────── -->
+<dialog id="sheetDialog" class="editor sheet-dialog" aria-labelledby="sheetTitle">
+    <div class="editor-head">
+        <h3 id="sheetTitle">Readable cue sheet</h3>
+        <span class="muted tiny">Plain text, monospaced columns — paste straight into a submission.</span>
+    </div>
+    <textarea id="sheetText" class="sheet-text" readonly spellcheck="false"></textarea>
+    <div class="editor-actions">
+        <span class="spacer"></span>
+        <button type="button" class="btn" id="sheetClose">Close</button>
+        <button type="button" class="btn" id="sheetDownload">Download .txt</button>
+        <button type="button" class="btn primary-btn" id="sheetCopy">Copy to clipboard</button>
+    </div>
+</dialog>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
