@@ -1318,6 +1318,7 @@
         1,
         4,
         7,
+        10,
         11
       ],
       "action": "off",
@@ -1327,10 +1328,36 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Before the big hits: only the loops (10) stay lit — hit 1 swaps to 1, 4, 7, 11",
+      "note": "Before the big hits: the five pools hand over to the other seven…",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791598800000
+      "updatedAt": 1791604200000
+    },
+    {
+      "id": "battle-hits-others-on",
+      "time": 164.01,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        3,
+        5,
+        6,
+        8,
+        9,
+        12
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "…the other seven on, in orange",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791604200000
     },
     {
       "id": "battle-hits-1",
@@ -1382,6 +1409,32 @@
       "repeat": null,
       "option": null,
       "updatedAt": 1791596400000
+    },
+    {
+      "id": "battle-hits-others-off",
+      "time": 164.32,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        3,
+        5,
+        6,
+        8,
+        9,
+        12
+      ],
+      "action": "off",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Hit 1: the seven go dark as the strobing starts on the five",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791604200000
     },
     {
       "id": "battle-hits-2",
