@@ -468,11 +468,20 @@ test('the shipped show plan loads cleanly', () => {
   assert.ok(p.cues.length >= 33);
   assert.equal(new Set(p.cues.map((c) => c.id)).size, p.cues.length);
   assert.equal(p.sections[0].name, 'Theme song intro');
-  // pole 7 is lime on every Rustage hit
+  // pole 7 is lime on every Rustage hit; on the last it holds into the solo
   const hits = p.cues.filter((c) => c.id.startsWith('rustage-hit'));
   for (const n of new Set(hits.map((c) => c.id.split('-')[1]))) {
     const withSeven = hits.filter((c) => c.id.includes(`-${n}-`) && c.lights.includes(7));
+    if (n === 'hit14') { assert.equal(withSeven.length, 0); continue; }
     assert.equal(withSeven.length, 1);
     assert.equal(withSeven[0].color, '#c0d62d');
   }
+  // the solo handoff: pole lit through the solo, loops dark until she comes in,
+  // pole faded out by then, black on the thunderclap
+  const at = (t) => stateAt(p.cues, t).lights;
+  assert.equal(at(60)[7].level, 1);
+  assert.equal(at(60)[10].level, 0);
+  assert.equal(at(100)[7].level, 0);
+  assert.equal(at(100)[10].level, 1);
+  assert.ok(ALL_LIGHTS.every((l) => at(117.75)[l].level === 0));
 });

@@ -65,15 +65,15 @@
       "id": "sec-4",
       "name": "Starfire solo",
       "bar": null,
-      "time": 77.07,
-      "updatedAt": 1791585600000
+      "time": 77.54,
+      "updatedAt": 1791586200000
     },
     {
       "id": "sec-5",
       "name": "Thunder",
       "bar": null,
-      "time": 117.17,
-      "updatedAt": 1791585600000
+      "time": 117.74,
+      "updatedAt": 1791586200000
     },
     {
       "id": "sec-6",
@@ -846,7 +846,6 @@
       "lights": [
         3,
         5,
-        7,
         9,
         10
       ],
@@ -859,7 +858,7 @@
       "othersOff": false,
       "note": "Rustage hit 14/14 — solo starts",
       "repeat": null,
-      "updatedAt": 1791585175100
+      "updatedAt": 1791586200000
     },
     {
       "id": "rustage-hit14-lav",
@@ -885,6 +884,93 @@
       "note": "",
       "repeat": null,
       "updatedAt": 1791585175100
+    },
+    {
+      "id": "raven-solo-pole",
+      "time": 37.52,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Raven solo: pole 7 holds in lime; everything else fades with the last Rustage hit",
+      "repeat": null,
+      "updatedAt": 1791586200000
+    },
+    {
+      "id": "starfire-solo-loops",
+      "time": 77.54,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        10
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Starfire solo: loops snap on with her first hit",
+      "repeat": null,
+      "updatedAt": 1791586200000
+    },
+    {
+      "id": "raven-out",
+      "time": 77.54,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "off",
+      "color": "#ffffff",
+      "colorName": "",
+      "level": 100,
+      "transition": "fade",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Pole 7 fades to dark as she comes in",
+      "repeat": null,
+      "updatedAt": 1791586200000
+    },
+    {
+      "id": "thunder-blackout",
+      "time": 117.74,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "action": "off",
+      "color": "#ffffff",
+      "colorName": "",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Thunderclap: hard cut to black",
+      "repeat": null,
+      "updatedAt": 1791586200000
     }
   ]
 }
