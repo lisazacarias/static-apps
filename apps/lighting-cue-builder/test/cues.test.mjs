@@ -489,3 +489,15 @@ test('the shipped show plan loads cleanly', () => {
   assert.ok(ALL_LIGHTS.filter((l) => l !== 7).every((l) => at(100)[l].level === 1));
   assert.equal(at(100)[10].color, '#858ac2', 'her loops in lavender');
 });
+
+import { planSignature } from '../cues.js';
+
+test('plan signature ignores edit stamps and audio, but not edits', () => {
+  const a = normalizePlan({ title: 'T', audio: { name: 'x.mp3', duration: 1 }, cues: [{ id: 'q', time: 1, lights: [1], updatedAt: 5 }] });
+  const b = structuredClone(a);
+  b.cues[0].updatedAt = 999;
+  b.audio = { name: 'y.mp3', duration: 200 };
+  assert.equal(planSignature(a), planSignature(b));
+  b.cues[0].level = 50;
+  assert.notEqual(planSignature(a), planSignature(b));
+});

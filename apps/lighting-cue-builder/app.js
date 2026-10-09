@@ -5,7 +5,7 @@ import {
   APPARATUS, LOGO_COLORS, normalizeRepeat, flashGap, flashTimes, flashEnd, flashesPerSecond, fitTaps,
   DEFAULT_TEMPO, normalizeTempo, parseStart, formatStart, normalizeSection,
   sectionStart, sortSections, sectionAt, parseSectionLines, timeToBar,
-  diffPlans, applyMerge,
+  diffPlans, applyMerge, planSignature,
 } from './cues.js';
 
 // localStorage is shared by every app on the Pages origin — keep the prefix.
@@ -135,10 +135,18 @@ async function idbGet() {
 /* ── notices ─────────────────────────────────────────────────────────── */
 
 let noticeTimer = 0;
-function notify(msg, { error = false, withUndo = false, sticky = false } = {}) {
+function notify(msg, { error = false, withUndo = false, sticky = false, action = null } = {}) {
   const el = $('notice');
   el.className = 'notice' + (error ? ' is-error' : '');
   el.textContent = msg;
+  if (action) {
+    const b = document.createElement('button');
+    b.className = 'btn small';
+    b.style.marginLeft = '10px';
+    b.textContent = action.label;
+    b.onclick = () => { el.hidden = true; action.run(); };
+    el.append(b);
+  }
   if (withUndo && undo) {
     const b = document.createElement('button');
     b.className = 'btn small';
@@ -177,17 +185,22 @@ async function loadAudio(blob, name, { persist = true } = {}) {
   if (plan.audio.name && plan.audio.name !== name && plan.cues.length) {
     notify(`Heads up: this cue list was built against "${plan.audio.name}", and you loaded "${name}". Times may not line up.`, { sticky: false });
   }
-  try {
-    peaks = await computePeaks(await blob.arrayBuffer());
-    dirtyWave = true;
-  } catch {
+  // The waveform is a nicety: decode it in the background so playback and
+  // the stage never wait on it (a 5 MB track takes a second or more).
+  const forURL = audioURL;
+  blob.arrayBuffer().then(computePeaks).then((p) => {
+    if (audioURL === forURL) { peaks = p; dirtyWave = true; }
+  }).catch(() => {
     notify('Playback works, but this browser could not draw the waveform for that file.');
-  }
+  });
 }
 
 async function computePeaks(buf) {
-  const Ctx = window.AudioContext || window.webkitAudioContext;
-  const ctx = new Ctx();
+  // An OfflineAudioContext decodes without needing a click first, which a
+  // live AudioContext does in Safari.
+  const ctx = window.OfflineAudioContext
+    ? new OfflineAudioContext(1, 1, 44100)
+    : new (window.AudioContext || window.webkitAudioContext)();
   try {
     const decoded = await ctx.decodeAudioData(buf);
     const per = Math.max(1, Math.floor(decoded.sampleRate / PEAKS_PER_SEC));
@@ -512,6 +525,12 @@ function previewCues() {
 
 let lastActive = undefined;
 function frame() {
+  // Schedule the next frame first: one bad frame mustn't freeze the stage.
+  requestAnimationFrame(frame);
+  try { drawFrame(); } catch (err) { console.error(err); }
+}
+
+function drawFrame() {
   if (loop && !audio.paused && audio.currentTime >= loop.end) audio.currentTime = loop.start;
   const t = now();
   const moved = t !== lastFrame.t;
@@ -539,7 +558,6 @@ function frame() {
   }
   if (moved || dirtyWave) { renderWaves(); dirtyWave = false; }
   lastFrame.t = t;
-  requestAnimationFrame(frame);
 }
 
 function activeLabel(id) {
@@ -1157,6 +1175,7 @@ function bringIn(incoming, source) {
 function adopt(incoming, msg) {
   snapshot('import');
   plan = planFrom(incoming);
+  if (pendingShowSig) { rememberShowPlan(pendingShowSig); pendingShowSig = null; }
   syncTempoInputs();
   if (audioName) plan.audio = { name: audioName, duration: Math.round(duration() * 100) / 100 };
   $('title').value = plan.title;
@@ -1266,7 +1285,7 @@ function readPicks() {
   return picks;
 }
 
-$('mergeCancel').onclick = () => { merging = null; $('mergeDialog').close(); };
+$('mergeCancel').onclick = () => { merging = null; pendingShowSig = null; $('mergeDialog').close(); };
 $('mergeReplace').onclick = () => {
   const { incoming, source } = merging;
   merging = null;
@@ -1395,9 +1414,40 @@ async function fetchShowPlan() {
   return normalizePlan(await res.json());
 }
 
+// Which show plan this browser last took on, and what its own plan looked
+// like right after. If the plan is still untouched when a newer show plan
+// ships, it updates on its own; once edited, it offers a merge instead.
+const SHOW_KEY = 'lighting-cue-builder:show-plan';
+let pendingShowSig = null;
+
+function rememberShowPlan(showSig) {
+  try { localStorage.setItem(SHOW_KEY, JSON.stringify({ show: showSig, plan: planSignature(plan) })); } catch { /* best effort */ }
+}
+
+function lastShowPlan() {
+  try { return JSON.parse(localStorage.getItem(SHOW_KEY)) || null; } catch { return null; }
+}
+
+function checkShowUpdate(show) {
+  const sig = planSignature(show);
+  const last = lastShowPlan();
+  if (last?.show === sig) return;
+  if (last && planSignature(plan) === last.plan) {
+    pendingShowSig = sig;
+    adopt(show, 'Updated to the latest show plan.');
+    return;
+  }
+  notify('The show plan has been updated since this browser last loaded it.', {
+    sticky: true,
+    action: { label: 'Review & merge', run: () => { pendingShowSig = sig; bringIn(show, 'the latest show plan'); } },
+  });
+}
+
 $('loadShowPlan').onclick = async () => {
   try {
-    bringIn(await fetchShowPlan(), 'the show plan');
+    const show = await fetchShowPlan();
+    pendingShowSig = planSignature(show);
+    bringIn(show, 'the show plan');
   } catch {
     notify('Couldn’t load the show plan right now — check your connection and try again.', { error: true });
   }
@@ -1421,11 +1471,14 @@ async function boot() {
   buildStage();
   buildEditor();
   document.body.classList.add('edit-mode');
-  if (firstVisit && !location.hash.includes('plan=')) {
-    try {
-      plan = planFrom(await fetchShowPlan());
-      notify('Loaded the show plan to start from. Your edits save in this browser; use Export JSON to send them back.');
-    } catch { /* offline or missing: start empty, as before */ }
+  let show = null;
+  if (!location.hash.includes('plan=')) {
+    try { show = await fetchShowPlan(); } catch { /* offline or missing: carry on without it */ }
+  }
+  if (firstVisit && show) {
+    plan = planFrom(show);
+    rememberShowPlan(planSignature(show));
+    notify('Loaded the show plan to start from. Your edits save in this browser; use Export JSON to send them back.');
   }
   $('title').value = plan.title;
   const shared = await openSharedFromHash();
@@ -1435,11 +1488,12 @@ async function boot() {
   showExpectedAudio();
   if (!shared) savePlan();
   else $('saveState').textContent = '';
+  if (!shared && !firstVisit && show) checkShowUpdate(show);
+  new ResizeObserver(() => { dirtyWave = true; }).observe($('waveWrap'));
+  requestAnimationFrame(frame);
   const stored = await idbGet();
   if (stored?.blob) await loadAudio(stored.blob, stored.name, { persist: false });
   else await loadShowAudio();
-  new ResizeObserver(() => { dirtyWave = true; }).observe($('waveWrap'));
-  requestAnimationFrame(frame);
 }
 
 boot();

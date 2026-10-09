@@ -604,6 +604,25 @@ export function cueSheet({ title, audio, cues, tempo, sections = [] }) {
   return out.join('\n') + '\n';
 }
 
+/* ── plan signature ───────────────────────────────────────────────────── */
+
+// A short fingerprint of what a plan says: title, tempo, sections, cues.
+// Leaves out edit stamps and the loaded audio's metadata, which change
+// without anyone editing anything. Used to tell whether a browser's plan
+// is still exactly the show plan it last took on.
+export function planSignature(plan) {
+  const strip = ({ updatedAt, ...rest }) => rest;
+  const p = serializePlan(plan);
+  const text = JSON.stringify({
+    title: p.title, tempo: p.tempo,
+    sections: p.sections.map(strip),
+    cues: p.cues.map(strip),
+  });
+  let h = 5381;
+  for (let i = 0; i < text.length; i++) h = ((h * 33) ^ text.charCodeAt(i)) >>> 0;
+  return `${h.toString(36)}-${text.length.toString(36)}`;
+}
+
 /* ── share links ──────────────────────────────────────────────────────── */
 
 function toB64Url(bytes) {

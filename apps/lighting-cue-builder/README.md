@@ -52,9 +52,11 @@ found the real change by ear.
 
 `starter-plan.json` is the plan worked out so far for this show. A browser
 that has never saved a plan loads it on first visit, so a partner opening
-the link starts from it. **Load show plan** brings it into an existing
-plan through the merge review. To update it, export JSON from the app and
-replace the file.
+the link starts from it. When a newer one ships, a browser that hasn't
+edited its plan since takes it on automatically; one that has gets a
+"Review & merge" offer instead (tracked under `lighting-cue-builder:show-plan`).
+**Load show plan** does the same on demand. To update it, export JSON from
+the app and replace the file.
 
 `show-audio.mp3` is the show's track. It loads automatically unless the
 browser already has a file someone picked (Change to use another).
