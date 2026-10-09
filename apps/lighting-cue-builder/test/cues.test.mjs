@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ALL_LIGHTS, formatTime, parseTime, normalizePlan, serializePlan, stateAt,
-  cueSheet, lightsLabel, encodeShare, decodeShare, nearestPreset,
+  cueSheet, lightsLabel, encodeShare, decodeShare, nearestPreset, normalizeCue,
 } from '../cues.js';
 
 const cue = (o) => ({ id: o.id || Math.random().toString(36), time: 0, end: null, lights: [], action: 'on',
@@ -246,4 +246,82 @@ test('sections survive export/import and head their cues on the sheet', () => {
   assert.ok(text.indexOf('0:25.0') > b);
   // Old exports with no sections still load.
   assert.deepEqual(normalizePlan({ cues: [] }).sections, []);
+});
+
+import { diffPlans, applyMerge } from '../cues.js';
+
+function twoCopies() {
+  const base = normalizePlan({
+    title: 'Showcase', tempo: { bpm: 120, beatsPerBar: 4 },
+    sections: [{ id: 's1', name: 'Raven solo', bar: 19.68 }],
+    cues: [
+      { id: 'a', time: 1, lights: [3], updatedAt: 100 },
+      { id: 'b', time: 5, lights: [7], updatedAt: 100 },
+      { id: 'c', time: 9, lights: [10], updatedAt: 100 },
+    ],
+  });
+  const mine = structuredClone(base);
+  const theirs = structuredClone(base);
+  return { mine, theirs };
+}
+
+test('merge: untouched, added on each side, and edited cues', () => {
+  const { mine, theirs } = twoCopies();
+  mine.cues.find((c) => c.id === 'b').color = '#ff0000';           // I edited b, earlier
+  mine.cues.find((c) => c.id === 'b').updatedAt = 200;
+  theirs.cues.find((c) => c.id === 'b').level = 50;                 // they edited b, later
+  theirs.cues.find((c) => c.id === 'b').updatedAt = 300;
+  mine.cues.push(normalizeCue({ id: 'm', time: 2, lights: [1] }));   // mine only
+  theirs.cues.push(normalizeCue({ id: 't', time: 3, lights: [2] })); // theirs only
+  theirs.cues = theirs.cues.filter((c) => c.id !== 'c');             // they deleted c
+
+  const d = diffPlans(mine, theirs);
+  const by = Object.fromEntries(d.items.filter((i) => i.kind === 'cue').map((i) => [i.id, i]));
+  assert.equal(by.a.status, 'same');
+  assert.equal(by.b.status, 'differ');
+  assert.equal(by.b.pick, 'theirs', 'newer edit is the default');
+  assert.equal(by.c.status, 'mine-only');
+  assert.equal(by.m.status, 'mine-only');
+  assert.equal(by.t.status, 'theirs-only');
+
+  const merged = applyMerge(mine, theirs, d);
+  assert.deepEqual(merged.cues.map((c) => c.id), ['a', 'm', 't', 'b', 'c']);
+  assert.equal(merged.cues.find((c) => c.id === 'b').level, 50);
+
+  // Accept their deletion of c, keep my version of b.
+  const merged2 = applyMerge(mine, theirs, d, { c: 'drop', b: 'mine' });
+  assert.deepEqual(merged2.cues.map((c) => c.id), ['a', 'm', 't', 'b']);
+  assert.equal(merged2.cues.find((c) => c.id === 'b').color, '#ff0000');
+});
+
+test('merge: sections, title and tempo', () => {
+  const { mine, theirs } = twoCopies();
+  theirs.sections[0].bar = 19.75;
+  theirs.sections[0].updatedAt = 500;
+  theirs.tempo = { bpm: 100, beatsPerBar: 4 };
+  theirs.title = 'Showcase v2';
+  const d = diffPlans(mine, theirs);
+  const sec = d.items.find((i) => i.kind === 'section');
+  assert.equal(sec.status, 'differ');
+  assert.equal(sec.pick, 'theirs');
+  assert.deepEqual(d.settings.map((s) => [s.key, s.pick]), [['title', 'mine'], ['tempo', 'mine']]);
+  const merged = applyMerge(mine, theirs, d, { tempo: 'theirs' });
+  assert.equal(merged.sections[0].bar, 19.75);
+  assert.equal(merged.tempo.bpm, 100);
+  assert.equal(merged.title, 'Showcase');
+});
+
+test('merge: identical copies change nothing', () => {
+  const { mine, theirs } = twoCopies();
+  const d = diffPlans(mine, theirs);
+  assert.deepEqual(d.counts, { same: 4, differ: 0, 'mine-only': 0, 'theirs-only': 0 });
+  assert.deepEqual(d.settings, []);
+  assert.deepEqual(applyMerge(mine, theirs, d).cues, mine.cues);
+});
+
+test('edit stamps survive export/import; old files load as 0', () => {
+  const p = normalizePlan({ cues: [{ id: 'x', time: 1, lights: [1], updatedAt: 1234 }, { time: 2, lights: [2] }] });
+  assert.deepEqual(p.cues.map((c) => c.updatedAt), [1234, 0]);
+  const back = normalizePlan(JSON.parse(JSON.stringify(serializePlan(p))));
+  assert.equal(back.cues[0].updatedAt, 1234);
 });

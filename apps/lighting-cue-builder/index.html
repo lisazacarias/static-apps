@@ -305,6 +305,21 @@
     </div>
 </dialog>
 
+<!-- ── Merge review ────────────────────────────────────────────────── -->
+<dialog id="mergeDialog" class="editor sheet-dialog merge-dialog" aria-labelledby="mergeTitle">
+    <div class="editor-head">
+        <h3 id="mergeTitle">Bring in a copy</h3>
+    </div>
+    <p id="mergeSummary" class="tiny"></p>
+    <div id="mergeBody" class="merge-body"></div>
+    <div class="editor-actions">
+        <button type="button" class="btn danger" id="mergeReplace" title="Throw away your version and take theirs">Replace mine with theirs</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn" id="mergeCancel">Cancel</button>
+        <button type="button" class="btn primary-btn" id="mergeApply">Merge</button>
+    </div>
+</dialog>
+
 <!-- ── Paste sections ──────────────────────────────────────────────── -->
 <dialog id="pasteDialog" class="editor sheet-dialog paste-dialog" aria-labelledby="pasteTitle">
     <div class="editor-head">

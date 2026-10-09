@@ -375,3 +375,13 @@ body.presenting .title-input { pointer-events: none; border-bottom-color: transp
 .paste-dialog { width: min(640px, calc(100vw - 24px)); }
 .paste-text { height: 40vh; }
 #fSection { color: var(--gold); margin-right: 8px; }
+
+/* ── merge review ── */
+.merge-dialog { width: min(760px, calc(100vw - 24px)); }
+.merge-body { max-height: 58vh; overflow: auto; display: grid; gap: 14px; margin: 12px 0; padding-right: 4px; }
+.merge-group h4 { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 2px; }
+.merge-group > p { margin-bottom: 6px; }
+.merge-item { border: 1px solid var(--border); border-radius: 4px; padding: 8px 10px; display: grid; gap: 4px; margin-bottom: 6px; }
+.merge-kind { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-label); }
+.merge-choice { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; cursor: pointer; }
+.merge-choice input { margin-top: 3px; accent-color: var(--hot); flex-shrink: 0; }

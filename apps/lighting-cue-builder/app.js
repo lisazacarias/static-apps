@@ -4,6 +4,7 @@ import {
   transitionLabel, encodeShare, decodeShare, DEFAULT_FADE,
   DEFAULT_TEMPO, normalizeTempo, parseStart, formatStart, normalizeSection,
   sectionStart, sortSections, sectionAt, parseSectionLines, timeToBar,
+  diffPlans, applyMerge,
 } from './cues.js';
 
 // localStorage is shared by every app on the Pages origin — keep the prefix.
@@ -782,6 +783,7 @@ form.addEventListener('submit', (e) => {
   }
   const d = editing.draft;
   snapshot('edit');
+  d.updatedAt = Date.now();
   plan.cues = [...plan.cues.filter((c) => c.id !== d.id), structuredClone(d)];
   const wasNew = editing.isNew;
   closeEditor();
@@ -891,14 +893,14 @@ function renderSections() {
     const name = row.querySelector('.sec-name');
     name.value = sec.name;
     // Typing a name only saves — re-rendering would steal focus mid-word.
-    name.addEventListener('input', () => { sec.name = name.value.trim(); savePlan(); dirtyWave = true; });
+    name.addEventListener('input', () => { sec.name = name.value.trim(); sec.updatedAt = Date.now(); savePlan(); dirtyWave = true; });
     name.addEventListener('change', () => commit());
     const start = row.querySelector('.sec-start');
     start.value = formatStart(sec);
     start.addEventListener('change', () => {
       const parsed = parseStart(start.value);
       if (!parsed) { start.classList.add('is-bad'); return; }
-      Object.assign(sec, normalizeSection({ ...sec, ...parsed }));
+      Object.assign(sec, normalizeSection({ ...sec, ...parsed }), { updatedAt: Date.now() });
       commit();
     });
     const at = row.querySelector('.sec-at');
@@ -909,7 +911,7 @@ function renderSections() {
       const t = now();
       Object.assign(sec, sec.bar !== null
         ? { bar: Math.round(timeToBar(t, plan.tempo) * 100) / 100, time: null }
-        : { time: Math.round(t * 100) / 100 });
+        : { time: Math.round(t * 100) / 100 }, { updatedAt: Date.now() });
       commit();
     };
     row.querySelector('.sec-del').onclick = () => {
@@ -924,7 +926,7 @@ function renderSections() {
 }
 
 $('addSection').onclick = () => {
-  plan.sections.push(normalizeSection({ name: '', time: Math.round(now() * 100) / 100 }));
+  plan.sections.push(normalizeSection({ name: '', time: Math.round(now() * 100) / 100, updatedAt: Date.now() }));
   commit();
   const rows = [...document.querySelectorAll('.sec-row')];
   const fresh = rows.find((r) => r.querySelector('.sec-name').value === '');
@@ -945,6 +947,8 @@ function pasteApply(replace) {
   }
   if (!sections.length) { $('pasteDialog').close(); return; }
   snapshot('sections');
+  const stamp = Date.now();
+  sections.forEach((x) => { x.updatedAt = stamp; });
   plan.sections = replace ? sections : [...plan.sections, ...sections];
   $('pasteDialog').close();
   $('pasteText').value = '';
@@ -997,9 +1001,17 @@ $('importJson').addEventListener('change', async (e) => {
     notify(`Couldn't read that file: ${err.message}`, { error: true });
     return;
   }
-  if (plan.cues.length && !confirm(`Replace your ${plan.cues.length} cue${plan.cues.length === 1 ? '' : 's'} with the ${incoming.cues.length} in “${f.name}”?\n\nYou can undo right after.`)) return;
-  adopt(incoming, `Imported ${incoming.cues.length} cue${incoming.cues.length === 1 ? '' : 's'} from ${f.name}.`);
+  bringIn(incoming, `“${f.name}”`);
 });
+
+// Nothing of mine to lose → just take theirs. Otherwise review a merge.
+function bringIn(incoming, source) {
+  if (!plan.cues.length && !plan.sections.length) {
+    adopt(incoming, `Imported ${incoming.cues.length} cue${incoming.cues.length === 1 ? '' : 's'} from ${source}.`);
+    return;
+  }
+  openMerge(incoming, source);
+}
 
 function adopt(incoming, msg) {
   snapshot('import');
@@ -1013,6 +1025,122 @@ function adopt(incoming, msg) {
   if (incoming.audio.name && audioName && incoming.audio.name !== audioName) extra += ` It was made with “${incoming.audio.name}”, not the track you have loaded.`;
   notify(msg + extra, { withUndo: true });
 }
+
+/* ── merge review ────────────────────────────────────────────────────── */
+
+let merging = null; // { incoming, diff, source }
+
+function itemSummary(kind, x) {
+  if (kind === 'section') {
+    return `${x.name || 'Untitled section'} — starts ${formatStart(x)}${x.bar !== null ? ` (${formatTime(sectionStart(x, plan.tempo), 1)})` : ''}`;
+  }
+  const { what, how } = describe(x);
+  const extra = [how, x.othersOff ? 'all others off' : '', x.note ? `“${x.note}”` : ''].filter(Boolean).join(' · ');
+  return `${x.end !== null ? `${formatTime(x.time)}–${formatTime(x.end)}` : formatTime(x.time)} · ${what}${extra ? ' · ' + extra : ''}`;
+}
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+function choiceRow(name, value, label, checked, type = 'radio') {
+  const l = el('label', 'merge-choice');
+  const i = document.createElement('input');
+  i.type = type; i.name = name; i.value = value; i.checked = checked;
+  l.append(i, el('span', '', label));
+  return l;
+}
+
+function openMerge(incoming, source) {
+  const diff = diffPlans(plan, incoming);
+  merging = { incoming, diff, source };
+  const { counts } = diff;
+  const body = $('mergeBody');
+  body.replaceChildren();
+  $('mergeTitle').textContent = `Bring in ${source}`;
+  const what = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+  $('mergeSummary').textContent = counts.differ + counts['mine-only'] + counts['theirs-only'] + diff.settings.length === 0
+    ? 'Both copies are identical — nothing to merge.'
+    : `${what(counts.same, 'item')} ${counts.same === 1 ? 'matches' : 'match'}. Review the rest below — the defaults keep everything and prefer the more recent edit.`;
+
+  const group = (title, hint, items, build) => {
+    if (!items.length) return;
+    const g = el('div', 'merge-group');
+    g.append(el('h4', '', `${title} · ${items.length}`));
+    if (hint) g.append(el('p', 'muted tiny', hint));
+    items.forEach((it) => g.append(build(it)));
+    body.append(g);
+  };
+  const label = (it) => (it.kind === 'section' ? 'Section' : 'Cue');
+
+  group('Different in the two copies', 'Pick which version to keep. The newer edit is pre-selected.',
+    diff.items.filter((i) => i.status === 'differ'), (it) => {
+      const row = el('div', 'merge-item');
+      row.append(el('div', 'merge-kind', label(it)));
+      const newer = (it.theirs.updatedAt || 0) > (it.mine.updatedAt || 0) ? 'theirs' : (it.mine.updatedAt || 0) > (it.theirs.updatedAt || 0) ? 'mine' : null;
+      row.append(choiceRow(`pick-${it.id}`, 'mine', `Yours${newer === 'mine' ? ' (newer)' : ''}: ${itemSummary(it.kind, it.mine)}`, it.pick === 'mine'));
+      row.append(choiceRow(`pick-${it.id}`, 'theirs', `Theirs${newer === 'theirs' ? ' (newer)' : ''}: ${itemSummary(it.kind, it.theirs)}`, it.pick === 'theirs'));
+      return row;
+    });
+  group('Only in their copy', 'New from them, most likely. Untick any you don’t want.',
+    diff.items.filter((i) => i.status === 'theirs-only'), (it) => {
+      const row = el('div', 'merge-item');
+      row.append(choiceRow(`pick-${it.id}`, 'theirs', `${label(it)}: ${itemSummary(it.kind, it.theirs)}`, true, 'checkbox'));
+      return row;
+    });
+  group('Only in your copy', 'Either you added these, or they deleted them. Untick any they removed on purpose.',
+    diff.items.filter((i) => i.status === 'mine-only'), (it) => {
+      const row = el('div', 'merge-item');
+      row.append(choiceRow(`pick-${it.id}`, 'mine', `${label(it)}: ${itemSummary(it.kind, it.mine)}`, true, 'checkbox'));
+      return row;
+    });
+  group('Settings', 'Bar-based sections move with the tempo.', diff.settings, (st) => {
+    const row = el('div', 'merge-item');
+    const show = (v) => (st.key === 'tempo' ? `${v.bpm} BPM, ${v.beatsPerBar}/bar` : `“${v}”`);
+    row.append(el('div', 'merge-kind', st.key === 'tempo' ? 'Tempo' : 'Title'));
+    row.append(choiceRow(`pick-${st.key}`, 'mine', `Yours: ${show(st.mine)}`, st.pick === 'mine'));
+    row.append(choiceRow(`pick-${st.key}`, 'theirs', `Theirs: ${show(st.theirs)}`, st.pick === 'theirs'));
+    return row;
+  });
+
+  $('mergeApply').textContent = 'Merge';
+  $('mergeDialog').showModal();
+}
+
+function readPicks() {
+  const picks = {};
+  for (const it of merging.diff.items) {
+    if (it.status === 'same') continue;
+    const inputs = [...$('mergeBody').querySelectorAll(`input[name="pick-${CSS.escape(it.id)}"]`)];
+    if (it.status === 'differ') picks[it.id] = inputs.find((i) => i.checked)?.value ?? it.pick;
+    else picks[it.id] = inputs[0]?.checked ? it.pick : 'drop';
+  }
+  for (const st of merging.diff.settings) {
+    const sel = $('mergeBody').querySelector(`input[name="pick-${st.key}"]:checked`);
+    if (sel) picks[st.key] = sel.value;
+  }
+  return picks;
+}
+
+$('mergeCancel').onclick = () => { merging = null; $('mergeDialog').close(); };
+$('mergeReplace').onclick = () => {
+  const { incoming, source } = merging;
+  merging = null;
+  $('mergeDialog').close();
+  adopt(incoming, `Replaced your plan with ${source}.`);
+};
+$('mergeApply').onclick = () => {
+  const { incoming, diff, source } = merging;
+  const merged = applyMerge(plan, incoming, diff, readPicks());
+  merging = null;
+  $('mergeDialog').close();
+  const before = plan.cues.length;
+  adopt({ ...merged, audio: plan.audio, skipped: incoming.skipped || 0 },
+    `Merged ${source}: ${merged.cues.length} cue${merged.cues.length === 1 ? '' : 's'} now (was ${before}).`);
+};
 
 $('exportSheet').onclick = () => {
   if (!plan.cues.length) { notify('Add some cues first — the sheet would be empty.'); return; }
@@ -1102,10 +1230,8 @@ function leaveShared() {
 $('leaveShared').onclick = leaveShared;
 $('adoptShared').onclick = () => {
   const shared = plan;
-  const mine = ownPlan || loadPlan();
-  if (mine.cues.length && !confirm(`Replace your own ${mine.cues.length} cue${mine.cues.length === 1 ? '' : 's'} with the ${shared.cues.length} from this link?\n\nYou can undo right after.`)) return;
   leaveShared();
-  adopt({ ...shared, skipped: 0 }, `Imported ${shared.cues.length} cues from the shared link.`);
+  bringIn({ ...structuredClone(shared), skipped: 0 }, 'the shared link');
 };
 window.addEventListener('hashchange', () => { if (location.hash.includes('plan=')) location.reload(); });
 

@@ -119,6 +119,13 @@ export function blankCue(time = 0) {
   };
 }
 
+// When a cue or section was last edited (ms). Only the merge reads it.
+// Anything saved before edits were stamped counts as 0, i.e. oldest.
+function stampOf(v) {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : 0;
+}
+
 function round2(n) {
   return Math.round(n * 100) / 100;
 }
@@ -159,6 +166,7 @@ export function normalizeCue(raw) {
     level: Number.isFinite(level) && level >= 1 ? Math.min(level, 100) : 100,
     othersOff: Boolean(raw.othersOff),
     note: typeof raw.note === 'string' ? raw.note.slice(0, 200) : '',
+    updatedAt: stampOf(raw.updatedAt),
   };
 }
 
@@ -200,9 +208,9 @@ export function serializePlan({ title, audio, cues, tempo, sections }) {
     exportedAt: new Date().toISOString(),
     lights: GROUPS.map((g) => ({ group: g.id, lights: g.lights })),
     tempo: normalizeTempo(tempo),
-    sections: sortSections(sections || [], tempo).map(({ id, name, bar, time }) => ({ id, name, bar, time })),
-    cues: sortCues(cues).map(({ id, time, end, lights, action, color, colorName, level, transition, fade, othersOff, note }) =>
-      ({ id, time, end, lights, action, color, colorName, level, transition, fade, othersOff, note })),
+    sections: sortSections(sections || [], tempo).map(({ id, name, bar, time, updatedAt }) => ({ id, name, bar, time, updatedAt })),
+    cues: sortCues(cues).map(({ id, time, end, lights, action, color, colorName, level, transition, fade, othersOff, note, updatedAt }) =>
+      ({ id, time, end, lights, action, color, colorName, level, transition, fade, othersOff, note, updatedAt })),
   };
 }
 
@@ -327,6 +335,7 @@ export function normalizeSection(raw) {
     name: typeof raw.name === 'string' ? raw.name.slice(0, 60) : '',
     bar: hasBar ? Math.round(bar * 100) / 100 : null,
     time: hasBar ? null : round2(time),
+    updatedAt: stampOf(raw.updatedAt),
   };
 }
 
@@ -466,4 +475,84 @@ export async function encodeShare(plan) {
 export async function decodeShare(token) {
   const bytes = await pipe(fromB64Url(token), new DecompressionStream('deflate-raw'));
   return normalizePlan(JSON.parse(new TextDecoder().decode(bytes)));
+}
+
+/* ── merging two copies of a plan ─────────────────────────────────────── */
+
+// Two people edit their own copies and trade JSON files. Cues and sections
+// keep their ids through export and import, so items are matched by id.
+// With only the two copies (no common ancestor) the merge can't tell a
+// deletion on one side from an addition on the other, or which side made an
+// edit — so it reports every difference and pre-picks a default, and the
+// person decides. The newer edit is the default where both copies have an item.
+
+const CUE_FIELDS = ['time', 'end', 'lights', 'action', 'color', 'colorName', 'level', 'transition', 'fade', 'othersOff', 'note'];
+const SECTION_FIELDS = ['name', 'bar', 'time'];
+
+function sameItem(a, b, fields) {
+  return fields.every((f) => JSON.stringify(a[f] ?? null) === JSON.stringify(b[f] ?? null));
+}
+
+function diffList(kind, mine, theirs, fields) {
+  const out = [];
+  const theirById = new Map(theirs.map((x) => [x.id, x]));
+  const mineIds = new Set(mine.map((x) => x.id));
+  for (const m of mine) {
+    const t = theirById.get(m.id);
+    if (!t) out.push({ kind, id: m.id, status: 'mine-only', mine: m, theirs: null, pick: 'mine' });
+    else if (sameItem(m, t, fields)) out.push({ kind, id: m.id, status: 'same', mine: m, theirs: t, pick: 'mine' });
+    else out.push({ kind, id: m.id, status: 'differ', mine: m, theirs: t, pick: (t.updatedAt || 0) > (m.updatedAt || 0) ? 'theirs' : 'mine' });
+  }
+  for (const t of theirs) {
+    if (!mineIds.has(t.id)) out.push({ kind, id: t.id, status: 'theirs-only', mine: null, theirs: t, pick: 'theirs' });
+  }
+  return out;
+}
+
+// → { items, settings, counts }. Each item's `pick` is the default:
+// 'mine' | 'theirs' to keep that version, 'drop' to leave it out.
+export function diffPlans(mine, theirs) {
+  const items = [
+    ...diffList('cue', mine.cues, theirs.cues, CUE_FIELDS),
+    ...diffList('section', mine.sections || [], theirs.sections || [], SECTION_FIELDS),
+  ];
+  const settings = [];
+  if ((mine.title || '') !== (theirs.title || '') && theirs.title) {
+    settings.push({ key: 'title', mine: mine.title || '', theirs: theirs.title, pick: mine.title ? 'mine' : 'theirs' });
+  }
+  const mt = normalizeTempo(mine.tempo);
+  const tt = normalizeTempo(theirs.tempo);
+  if (mt.bpm !== tt.bpm || mt.beatsPerBar !== tt.beatsPerBar) {
+    settings.push({ key: 'tempo', mine: mt, theirs: tt, pick: 'mine' });
+  }
+  const counts = { same: 0, differ: 0, 'mine-only': 0, 'theirs-only': 0 };
+  for (const it of items) counts[it.status] += 1;
+  return { items, settings, counts };
+}
+
+// picks: { [itemId or settingKey]: 'mine' | 'theirs' | 'drop' }, overriding defaults.
+export function applyMerge(mine, theirs, diff, picks = {}) {
+  const choose = (it) => picks[it.id] ?? it.pick;
+  const keep = (kind) => diff.items
+    .filter((it) => it.kind === kind)
+    .map((it) => {
+      const p = choose(it);
+      if (p === 'drop') return null;
+      return p === 'theirs' ? (it.theirs ?? it.mine) : (it.mine ?? it.theirs);
+    })
+    .filter(Boolean)
+    .map((x) => structuredClone(x));
+  const setting = (key, fallback) => {
+    const s = diff.settings.find((x) => x.key === key);
+    if (!s) return fallback;
+    return (picks[key] ?? s.pick) === 'theirs' ? s.theirs : s.mine;
+  };
+  const tempo = normalizeTempo(setting('tempo', mine.tempo));
+  return {
+    title: setting('title', mine.title || ''),
+    audio: mine.audio,
+    tempo,
+    cues: sortCues(keep('cue')),
+    sections: sortSections(keep('section'), tempo),
+  };
 }

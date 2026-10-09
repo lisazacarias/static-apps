@@ -43,8 +43,11 @@ found the real change by ear.
 ## Sharing
 
 - **Export JSON / Import JSON** — the full plan, for backups or for a partner
-  to edit in their own copy and send back. Import replaces the list (Undo is
-  offered right after).
+  to edit in their own copy and send back. Importing into an empty plan just
+  loads it. Otherwise a review opens: cues and sections are matched by id,
+  and every difference is listed — changed in both (newer edit pre-picked),
+  only in theirs, only in yours (untick what they deleted). **Replace mine
+  with theirs** skips the merge. Undo is offered right after either.
 - **Readable cue sheet** — fixed-width text columns (time / lights / level /
   colour / transition / notes) to paste into a submission or download as `.txt`.
 - **Copy preview link** — the plan compressed into the URL hash. It opens in
