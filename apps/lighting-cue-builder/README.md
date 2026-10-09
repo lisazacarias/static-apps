@@ -56,6 +56,9 @@ the link starts from it. **Load show plan** brings it into an existing
 plan through the merge review. To update it, export JSON from the app and
 replace the file.
 
+`show-audio.mp3` is the show's track. It loads automatically unless the
+browser already has a file someone picked (Change to use another).
+
 ## Sharing
 
 - **Export JSON / Import JSON** — the full plan, for backups or for a partner

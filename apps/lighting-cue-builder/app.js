@@ -1403,6 +1403,20 @@ $('loadShowPlan').onclick = async () => {
   }
 };
 
+// The show's track ships next to the app, so nobody has to find the file.
+// A file someone picked themselves (kept in IndexedDB) still wins.
+const SHOW_AUDIO = { url: 'show-audio.mp3', name: 'showcase deleted empty ending.mp3' };
+async function loadShowAudio() {
+  $('expectedAudio').textContent = 'Loading the show audio…';
+  try {
+    const res = await fetch(SHOW_AUDIO.url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    await loadAudio(await res.blob(), SHOW_AUDIO.name, { persist: false });
+  } catch {
+    showExpectedAudio(); // offline or missing: fall back to picking the file
+  }
+}
+
 async function boot() {
   buildStage();
   buildEditor();
@@ -1423,6 +1437,7 @@ async function boot() {
   else $('saveState').textContent = '';
   const stored = await idbGet();
   if (stored?.blob) await loadAudio(stored.blob, stored.name, { persist: false });
+  else await loadShowAudio();
   new ResizeObserver(() => { dirtyWave = true; }).observe($('waveWrap'));
   requestAnimationFrame(frame);
 }
