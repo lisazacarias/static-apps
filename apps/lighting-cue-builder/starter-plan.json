@@ -1633,6 +1633,45 @@
       "updatedAt": 1791598200000
     },
     {
+      "id": "victory-piano",
+      "time": 179.25,
+      "end": null,
+      "outFade": 1,
+      "lights": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#ffffff",
+      "colorName": "",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Victory: piano on the 1 of the first four bars — snap up, ring down to 50%; brightness only",
+      "repeat": {
+        "bpm": 105.88,
+        "beats": 4,
+        "count": 4,
+        "onFrac": 0.25,
+        "altColor": null,
+        "dimTo": 50,
+        "keepColor": true
+      },
+      "option": null,
+      "updatedAt": 1791600600000
+    },
+    {
       "id": "victory-pulse-1",
       "time": 186.05,
       "end": null,
