@@ -1382,7 +1382,7 @@
     },
     {
       "id": "stingers-prep",
-      "time": 174.95,
+      "time": 176.76,
       "end": null,
       "outFade": null,
       "lights": [
@@ -1400,79 +1400,7 @@
       "note": "Before the post-battle hits: only the apparatus (7, 10) stay lit — first hit brings in all five",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791598800000
-    },
-    {
-      "id": "stinger-1",
-      "time": 175.2,
-      "end": 175.26,
-      "outFade": 0.22,
-      "lights": [
-        1,
-        4,
-        7,
-        10,
-        11
-      ],
-      "action": "on",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "Post-battle hits (8): snap on, quick fade out; pairs held as one flash",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791598200000
-    },
-    {
-      "id": "stinger-2",
-      "time": 175.82,
-      "end": 175.88,
-      "outFade": 0.22,
-      "lights": [
-        1,
-        4,
-        7,
-        10,
-        11
-      ],
-      "action": "on",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791598200000
-    },
-    {
-      "id": "stinger-3",
-      "time": 176.29,
-      "end": 176.35,
-      "outFade": 0.22,
-      "lights": [
-        1,
-        4,
-        7,
-        10,
-        11
-      ],
-      "action": "on",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791598200000
+      "updatedAt": 1791599400000
     },
     {
       "id": "stinger-4",
@@ -1493,10 +1421,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "",
+      "note": "Post-battle hits (5): snap on, quick fade out; pairs held as one flash",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791598200000
+      "updatedAt": 1791599400000
     },
     {
       "id": "stinger-5",
