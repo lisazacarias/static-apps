@@ -114,7 +114,7 @@
   "cues": [
     {
       "id": "intro-red",
-      "time": 2.15,
+      "time": 0,
       "end": null,
       "outFade": null,
       "lights": [
@@ -127,15 +127,15 @@
       "colorName": "Titans red",
       "level": 100,
       "transition": "fade",
-      "fade": 2,
+      "fade": 4.15,
       "othersOff": false,
-      "note": "Intro: fade up in logo colours, full as the vocals come in (0:04.15)",
+      "note": "Intro: fade up from the very start in logo colours, full as the vocals come in (0:04.15)",
       "repeat": null,
-      "updatedAt": 1791584942909
+      "updatedAt": 1791589200000
     },
     {
       "id": "intro-orange",
-      "time": 2.15,
+      "time": 0,
       "end": null,
       "outFade": null,
       "lights": [
@@ -147,15 +147,15 @@
       "colorName": "Titans orange",
       "level": 100,
       "transition": "fade",
-      "fade": 2,
+      "fade": 4.15,
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791584942909
+      "updatedAt": 1791589200000
     },
     {
       "id": "intro-lime",
-      "time": 2.15,
+      "time": 0,
       "end": null,
       "outFade": null,
       "lights": [
@@ -168,15 +168,15 @@
       "colorName": "Titans lime",
       "level": 100,
       "transition": "fade",
-      "fade": 2,
+      "fade": 4.15,
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791584942909
+      "updatedAt": 1791589200000
     },
     {
       "id": "intro-lavender",
-      "time": 2.15,
+      "time": 0,
       "end": null,
       "outFade": null,
       "lights": [
@@ -188,15 +188,15 @@
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "fade",
-      "fade": 2,
+      "fade": 4.15,
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791584942909
+      "updatedAt": 1791589200000
     },
     {
       "id": "intro-blue",
-      "time": 2.15,
+      "time": 0,
       "end": null,
       "outFade": null,
       "lights": [
@@ -208,11 +208,11 @@
       "colorName": "Titans blue",
       "level": 100,
       "transition": "fade",
-      "fade": 2,
+      "fade": 4.15,
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791584942909
+      "updatedAt": 1791589200000
     },
     {
       "id": "rustage-hit1-lime",
