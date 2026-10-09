@@ -37,6 +37,9 @@ const DRAW_ORDER = [11, 1, 2, 4, 5, 6, 8, 9, 12, 3, 7, 10];
 
 /* ── state ───────────────────────────────────────────────────────────── */
 
+// Checked before anything saves: a browser that has never saved a plan
+// starts from the show plan rather than an empty list.
+const firstVisit = (() => { try { return localStorage.getItem(STORE_KEY) === null; } catch { return false; } })();
 let plan = loadPlan();          // { title, audio:{name,duration}, cues, tempo, sections }
 let ownPlan = null;             // stashed while viewing a shared link
 let viewingShared = false;
@@ -1384,10 +1387,32 @@ function showExpectedAudio() {
     : 'Drop an audio file here, or';
 }
 
+// The plan worked out so far for this show, shipped with the app so a
+// partner opening the link starts from it instead of importing files.
+async function fetchShowPlan() {
+  const res = await fetch('starter-plan.json', { cache: 'no-cache' });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return normalizePlan(await res.json());
+}
+
+$('loadShowPlan').onclick = async () => {
+  try {
+    bringIn(await fetchShowPlan(), 'the show plan');
+  } catch {
+    notify('Couldn’t load the show plan right now — check your connection and try again.', { error: true });
+  }
+};
+
 async function boot() {
   buildStage();
   buildEditor();
   document.body.classList.add('edit-mode');
+  if (firstVisit && !location.hash.includes('plan=')) {
+    try {
+      plan = planFrom(await fetchShowPlan());
+      notify('Loaded the show plan to start from. Your edits save in this browser; use Export JSON to send them back.');
+    } catch { /* offline or missing: start empty, as before */ }
+  }
   $('title').value = plan.title;
   const shared = await openSharedFromHash();
   syncTempoInputs();

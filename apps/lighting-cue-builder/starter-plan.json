@@ -1,0 +1,890 @@
+{
+  "app": "lighting-cue-builder",
+  "version": 1,
+  "title": "Teen Titans showcase",
+  "audio": {
+    "name": "showcase deleted empty ending.mp3",
+    "duration": null
+  },
+  "lights": [
+    {
+      "group": "apparatus",
+      "lights": [
+        3,
+        7,
+        10
+      ]
+    },
+    {
+      "group": "floor",
+      "lights": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8,
+        9,
+        12
+      ]
+    },
+    {
+      "group": "backdrop",
+      "lights": [
+        11
+      ]
+    }
+  ],
+  "tempo": {
+    "bpm": 120,
+    "beatsPerBar": 4
+  },
+  "sections": [
+    {
+      "id": "sec-1",
+      "name": "Theme song intro",
+      "bar": null,
+      "time": 0,
+      "updatedAt": 1791585600000
+    },
+    {
+      "id": "sec-2",
+      "name": "Rustage intro",
+      "bar": null,
+      "time": 27.54,
+      "updatedAt": 1791585600000
+    },
+    {
+      "id": "sec-3",
+      "name": "Raven solo",
+      "bar": null,
+      "time": 37.52,
+      "updatedAt": 1791585600000
+    },
+    {
+      "id": "sec-4",
+      "name": "Starfire solo",
+      "bar": null,
+      "time": 77.07,
+      "updatedAt": 1791585600000
+    },
+    {
+      "id": "sec-5",
+      "name": "Thunder",
+      "bar": null,
+      "time": 117.17,
+      "updatedAt": 1791585600000
+    },
+    {
+      "id": "sec-6",
+      "name": "Slade",
+      "bar": null,
+      "time": 119.41,
+      "updatedAt": 1791585600000
+    },
+    {
+      "id": "sec-7",
+      "name": "Battle",
+      "bar": null,
+      "time": 146.31,
+      "updatedAt": 1791585600000
+    },
+    {
+      "id": "sec-8",
+      "name": "Victory intro (Teen Titans Go remix)",
+      "bar": null,
+      "time": 178.67,
+      "updatedAt": 1791585600000
+    },
+    {
+      "id": "sec-9",
+      "name": "Starfire solo 2",
+      "bar": null,
+      "time": 200.25,
+      "updatedAt": 1791585600000
+    },
+    {
+      "id": "sec-10",
+      "name": "Raven solo 2",
+      "bar": null,
+      "time": 210.73,
+      "updatedAt": 1791585600000
+    }
+  ],
+  "cues": [
+    {
+      "id": "intro-red",
+      "time": 2.15,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        3,
+        8,
+        11
+      ],
+      "action": "on",
+      "color": "#ec1b24",
+      "colorName": "Titans red",
+      "level": 100,
+      "transition": "fade",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Intro: fade up in logo colours, full as the vocals come in (0:04.15)",
+      "repeat": null,
+      "updatedAt": 1791584942909
+    },
+    {
+      "id": "intro-orange",
+      "time": 2.15,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        6,
+        10
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "fade",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "updatedAt": 1791584942909
+    },
+    {
+      "id": "intro-lime",
+      "time": 2.15,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        4,
+        9
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "fade",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "updatedAt": 1791584942909
+    },
+    {
+      "id": "intro-lavender",
+      "time": 2.15,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        5
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "fade",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "updatedAt": 1791584942909
+    },
+    {
+      "id": "intro-blue",
+      "time": 2.15,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7,
+        12
+      ],
+      "action": "on",
+      "color": "#00acee",
+      "colorName": "Titans blue",
+      "level": 100,
+      "transition": "fade",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "updatedAt": 1791584942909
+    },
+    {
+      "id": "rustage-hit1-lime",
+      "time": 27.54,
+      "end": 27.62,
+      "outFade": 0.59,
+      "lights": [
+        1,
+        6,
+        7,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Rustage hit 1/14",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit1-lav",
+      "time": 27.54,
+      "end": 27.62,
+      "outFade": 0.59,
+      "lights": [
+        2,
+        3,
+        4,
+        5,
+        9,
+        10
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit2-lime",
+      "time": 28.46,
+      "end": 28.54,
+      "outFade": 0.6,
+      "lights": [
+        3,
+        5,
+        7,
+        9,
+        10
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Rustage hit 2/14",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit2-lav",
+      "time": 28.46,
+      "end": 28.54,
+      "outFade": 0.6,
+      "lights": [
+        1,
+        2,
+        4,
+        6,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit3-lime",
+      "time": 30.01,
+      "end": 30.09,
+      "outFade": 0.59,
+      "lights": [
+        1,
+        6,
+        7,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Rustage hit 3/14",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit3-lav",
+      "time": 30.01,
+      "end": 30.09,
+      "outFade": 0.59,
+      "lights": [
+        2,
+        3,
+        4,
+        5,
+        9,
+        10
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit4-lime",
+      "time": 30.97,
+      "end": 31.05,
+      "outFade": 0.59,
+      "lights": [
+        3,
+        5,
+        7,
+        9,
+        10
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Rustage hit 4/14",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit4-lav",
+      "time": 30.97,
+      "end": 31.05,
+      "outFade": 0.59,
+      "lights": [
+        1,
+        2,
+        4,
+        6,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit5-lime",
+      "time": 31.87,
+      "end": 31.95,
+      "outFade": 0.31,
+      "lights": [
+        1,
+        6,
+        7,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Rustage hit 5/14",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit5-lav",
+      "time": 31.87,
+      "end": 31.95,
+      "outFade": 0.31,
+      "lights": [
+        2,
+        3,
+        4,
+        5,
+        9,
+        10
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit6-lime",
+      "time": 32.52,
+      "end": 32.6,
+      "outFade": 0.59,
+      "lights": [
+        3,
+        5,
+        7,
+        9,
+        10
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Rustage hit 6/14",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit6-lav",
+      "time": 32.52,
+      "end": 32.6,
+      "outFade": 0.59,
+      "lights": [
+        1,
+        2,
+        4,
+        6,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit7-lime",
+      "time": 33.45,
+      "end": 33.53,
+      "outFade": 0.61,
+      "lights": [
+        1,
+        6,
+        7,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Rustage hit 7/14",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit7-lav",
+      "time": 33.45,
+      "end": 33.53,
+      "outFade": 0.61,
+      "lights": [
+        2,
+        3,
+        4,
+        5,
+        9,
+        10
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit8-lime",
+      "time": 35.02,
+      "end": 35.1,
+      "outFade": 0.62,
+      "lights": [
+        3,
+        5,
+        7,
+        9,
+        10
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Rustage hit 8/14",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit8-lav",
+      "time": 35.02,
+      "end": 35.1,
+      "outFade": 0.62,
+      "lights": [
+        1,
+        2,
+        4,
+        6,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit9-lime",
+      "time": 35.95,
+      "end": 36.03,
+      "outFade": 0.59,
+      "lights": [
+        1,
+        6,
+        7,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Rustage hit 9/14",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit9-lav",
+      "time": 35.95,
+      "end": 36.03,
+      "outFade": 0.59,
+      "lights": [
+        2,
+        3,
+        4,
+        5,
+        9,
+        10
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit10-lime",
+      "time": 36.75,
+      "end": 36.79,
+      "outFade": 0.1,
+      "lights": [
+        3,
+        5,
+        7,
+        9,
+        10
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Rustage hit 10/14 (run into solo)",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit10-lav",
+      "time": 36.75,
+      "end": 36.79,
+      "outFade": 0.1,
+      "lights": [
+        1,
+        2,
+        4,
+        6,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit11-lime",
+      "time": 36.91,
+      "end": 36.95,
+      "outFade": 0.11,
+      "lights": [
+        1,
+        6,
+        7,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Rustage hit 11/14 (run into solo)",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit11-lav",
+      "time": 36.91,
+      "end": 36.95,
+      "outFade": 0.11,
+      "lights": [
+        2,
+        3,
+        4,
+        5,
+        9,
+        10
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit12-lime",
+      "time": 37.08,
+      "end": 37.12,
+      "outFade": 0.06,
+      "lights": [
+        3,
+        5,
+        7,
+        9,
+        10
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Rustage hit 12/14 (run into solo)",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit12-lav",
+      "time": 37.08,
+      "end": 37.12,
+      "outFade": 0.06,
+      "lights": [
+        1,
+        2,
+        4,
+        6,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit13-lime",
+      "time": 37.2,
+      "end": 37.24,
+      "outFade": 0.26,
+      "lights": [
+        1,
+        6,
+        7,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Rustage hit 13/14 (run into solo)",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit13-lav",
+      "time": 37.2,
+      "end": 37.24,
+      "outFade": 0.26,
+      "lights": [
+        2,
+        3,
+        4,
+        5,
+        9,
+        10
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit14-lime",
+      "time": 37.52,
+      "end": 37.56,
+      "outFade": 0.54,
+      "lights": [
+        3,
+        5,
+        7,
+        9,
+        10
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Rustage hit 14/14 — solo starts",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    },
+    {
+      "id": "rustage-hit14-lav",
+      "time": 37.52,
+      "end": 37.56,
+      "outFade": 0.54,
+      "lights": [
+        1,
+        2,
+        4,
+        6,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "updatedAt": 1791585175100
+    }
+  ]
+}

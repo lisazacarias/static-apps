@@ -458,3 +458,21 @@ test('a hit snaps on and fades out over its own time', () => {
   const back = normalizePlan(JSON.parse(JSON.stringify(serializePlan({ cues: [c] }))));
   assert.equal(back.cues[0].outFade, 0.5);
 });
+
+import { readFileSync } from 'node:fs';
+
+test('the shipped show plan loads cleanly', () => {
+  const raw = JSON.parse(readFileSync(new URL('../starter-plan.json', import.meta.url), 'utf8'));
+  const p = normalizePlan(raw);
+  assert.equal(p.skipped, 0);
+  assert.ok(p.cues.length >= 33);
+  assert.equal(new Set(p.cues.map((c) => c.id)).size, p.cues.length);
+  assert.equal(p.sections[0].name, 'Theme song intro');
+  // pole 7 is lime on every Rustage hit
+  const hits = p.cues.filter((c) => c.id.startsWith('rustage-hit'));
+  for (const n of new Set(hits.map((c) => c.id.split('-')[1]))) {
+    const withSeven = hits.filter((c) => c.id.includes(`-${n}-`) && c.lights.includes(7));
+    assert.equal(withSeven.length, 1);
+    assert.equal(withSeven[0].color, '#c0d62d');
+  }
+});

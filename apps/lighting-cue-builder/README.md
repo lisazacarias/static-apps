@@ -48,6 +48,14 @@ found the real change by ear.
   **Between flashes** can dim to 20–70% instead of going dark; with the
   Fade transition that's a gentle pulse (**Soft pulse** sets it up).
 
+## The show plan
+
+`starter-plan.json` is the plan worked out so far for this show. A browser
+that has never saved a plan loads it on first visit, so a partner opening
+the link starts from it. **Load show plan** brings it into an existing
+plan through the merge review. To update it, export JSON from the app and
+replace the file.
+
 ## Sharing
 
 - **Export JSON / Import JSON** — the full plan, for backups or for a partner
