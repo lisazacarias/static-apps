@@ -1162,7 +1162,9 @@
         1,
         4,
         5,
+        7,
         9,
+        10,
         11
       ],
       "action": "on",
@@ -1172,10 +1174,10 @@
       "transition": "fade",
       "fade": 3.42,
       "othersOff": false,
-      "note": "Slade: slow fade up to orange right after the lightning, full as he starts talking (2:02.15); sparse — the rest stays black",
+      "note": "Slade: slow fade up to orange right after the lightning, full as he starts talking (2:02.15); sparse, with the pole (7) and loops (10) lit",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791594000000
+      "updatedAt": 1791595800000
     },
     {
       "id": "battle-pulse",
@@ -1216,7 +1218,7 @@
       "updatedAt": 1791595200000
     },
     {
-      "id": "battle-hits",
+      "id": "battle-hits-1",
       "time": 164.32,
       "end": null,
       "outFade": null,
@@ -1227,10 +1229,8 @@
         4,
         5,
         6,
-        7,
         8,
         9,
-        10,
         11,
         12
       ],
@@ -1241,17 +1241,113 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle: 16 full flashes on the big hits, off between; dark after",
+      "note": "Battle hits 1–8: everything but the apparatus flashes; pole 7 lit steady",
       "repeat": {
         "bpm": 96.37,
         "beats": 1,
-        "count": 16,
+        "count": 8,
         "onFrac": 0.5,
         "altColor": null,
         "dimTo": 0
       },
       "option": null,
-      "updatedAt": 1791595200000
+      "updatedAt": 1791595800000
+    },
+    {
+      "id": "battle-pole",
+      "time": 164.32,
+      "end": 169.3,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Pole 7 lit through hits 1–8",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791595800000
+    },
+    {
+      "id": "battle-loops-off",
+      "time": 164.32,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        10
+      ],
+      "action": "off",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Loops dark for hits 1–8",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791595800000
+    },
+    {
+      "id": "battle-hits-2",
+      "time": 169.3,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        8,
+        9,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Battle hits 9–16: everything but the apparatus flashes; loops 10 lit steady",
+      "repeat": {
+        "bpm": 96.37,
+        "beats": 1,
+        "count": 8,
+        "onFrac": 0.5,
+        "altColor": null,
+        "dimTo": 0
+      },
+      "option": null,
+      "updatedAt": 1791595800000
+    },
+    {
+      "id": "battle-loops",
+      "time": 169.3,
+      "end": 173.97,
+      "outFade": null,
+      "lights": [
+        10
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Loops 10 lit through hits 9–16",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791595800000
     },
     {
       "id": "victory-red",
