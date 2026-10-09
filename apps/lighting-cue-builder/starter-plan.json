@@ -94,8 +94,8 @@
       "id": "sec-8",
       "name": "Victory intro (Teen Titans Go remix)",
       "bar": null,
-      "time": 178.63,
-      "updatedAt": 1791594000000
+      "time": 179.25,
+      "updatedAt": 1791598200000
     },
     {
       "id": "sec-9",
@@ -1178,10 +1178,34 @@
       "updatedAt": 1791596400000
     },
     {
+      "id": "battle-pulse-prep",
+      "time": 153.96,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        4,
+        7,
+        10,
+        11
+      ],
+      "action": "off",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Black half a beat before the pulse, so the first one reads",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791598200000
+    },
+    {
       "id": "battle-pulse",
       "time": 154.27,
       "end": null,
-      "outFade": null,
+      "outFade": 0.4,
       "lights": [
         1,
         4,
@@ -1193,20 +1217,20 @@
       "color": "#fbb612",
       "colorName": "Titans orange",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle: soft pulse on the beat on the same five pools, easing to 35% between",
+      "note": "Battle: soft pulse — snaps up on each beat and eases down to 35%",
       "repeat": {
         "bpm": 96.37,
         "beats": 1,
         "count": 8,
-        "onFrac": 0.5,
+        "onFrac": 0.25,
         "altColor": null,
         "dimTo": 35
       },
       "option": null,
-      "updatedAt": 1791596400000
+      "updatedAt": 1791598200000
     },
     {
       "id": "battle-full",
@@ -1231,6 +1255,30 @@
       "repeat": null,
       "option": null,
       "updatedAt": 1791597000000
+    },
+    {
+      "id": "battle-hits-prep",
+      "time": 164.01,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        4,
+        7,
+        10,
+        11
+      ],
+      "action": "off",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Black half a beat before the big hits, so the first one reads",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791598200000
     },
     {
       "id": "battle-hits-1",
@@ -1337,8 +1385,224 @@
       "updatedAt": 1791597600000
     },
     {
-      "id": "victory-red",
+      "id": "stingers-prep",
+      "time": 174.95,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        4,
+        7,
+        10,
+        11
+      ],
+      "action": "off",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Black just before the post-battle hits",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791598200000
+    },
+    {
+      "id": "stinger-1",
+      "time": 175.2,
+      "end": 175.26,
+      "outFade": 0.22,
+      "lights": [
+        1,
+        4,
+        7,
+        10,
+        11
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Post-battle hits (8): snap on, quick fade out; pairs held as one flash",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791598200000
+    },
+    {
+      "id": "stinger-2",
+      "time": 175.82,
+      "end": 175.88,
+      "outFade": 0.22,
+      "lights": [
+        1,
+        4,
+        7,
+        10,
+        11
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791598200000
+    },
+    {
+      "id": "stinger-3",
+      "time": 176.29,
+      "end": 176.35,
+      "outFade": 0.22,
+      "lights": [
+        1,
+        4,
+        7,
+        10,
+        11
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791598200000
+    },
+    {
+      "id": "stinger-4",
+      "time": 177.07,
+      "end": 177.27,
+      "outFade": 0.22,
+      "lights": [
+        1,
+        4,
+        7,
+        10,
+        11
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791598200000
+    },
+    {
+      "id": "stinger-5",
+      "time": 177.7,
+      "end": 177.88,
+      "outFade": 0.22,
+      "lights": [
+        1,
+        4,
+        7,
+        10,
+        11
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791598200000
+    },
+    {
+      "id": "stinger-6",
+      "time": 178.01,
+      "end": 178.19,
+      "outFade": 0.22,
+      "lights": [
+        1,
+        4,
+        7,
+        10,
+        11
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791598200000
+    },
+    {
+      "id": "stinger-7",
       "time": 178.63,
+      "end": 178.69,
+      "outFade": 0.22,
+      "lights": [
+        1,
+        4,
+        7,
+        10,
+        11
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791598200000
+    },
+    {
+      "id": "stinger-8",
+      "time": 178.94,
+      "end": 179,
+      "outFade": 0.22,
+      "lights": [
+        1,
+        4,
+        7,
+        10,
+        11
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791598200000
+    },
+    {
+      "id": "victory-red",
+      "time": 179.25,
       "end": null,
       "outFade": null,
       "lights": [
@@ -1355,11 +1619,11 @@
       "note": "Victory: fade up to the intro colours",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791594000000
+      "updatedAt": 1791598200000
     },
     {
       "id": "victory-orange",
-      "time": 178.63,
+      "time": 179.25,
       "end": null,
       "outFade": null,
       "lights": [
@@ -1376,11 +1640,11 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791594000000
+      "updatedAt": 1791598200000
     },
     {
       "id": "victory-lime",
-      "time": 178.63,
+      "time": 179.25,
       "end": null,
       "outFade": null,
       "lights": [
@@ -1398,11 +1662,11 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791594000000
+      "updatedAt": 1791598200000
     },
     {
       "id": "victory-lavender",
-      "time": 178.63,
+      "time": 179.25,
       "end": null,
       "outFade": null,
       "lights": [
@@ -1420,11 +1684,11 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791594000000
+      "updatedAt": 1791598200000
     },
     {
       "id": "victory-blue",
-      "time": 178.63,
+      "time": 179.25,
       "end": null,
       "outFade": null,
       "lights": [
@@ -1441,7 +1705,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791594000000
+      "updatedAt": 1791598200000
     }
   ]
 }
