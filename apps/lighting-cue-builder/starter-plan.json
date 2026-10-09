@@ -220,11 +220,12 @@
       "end": 27.62,
       "outFade": 0.59,
       "lights": [
+        1,
         3,
-        5,
+        6,
         7,
-        9,
-        10
+        8,
+        12
       ],
       "action": "on",
       "color": "#c0d62d",
@@ -233,9 +234,9 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Rustage hit 1/14 — same look on every hit: lime 3, 5, 7, 9, 10 / lavender the rest",
+      "note": "Rustage hit 1/14 — same look on every hit: lime 1, 3, 6, 7, 8, 12 / lavender the rest",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit1-lav",
@@ -243,13 +244,12 @@
       "end": 27.62,
       "outFade": 0.59,
       "lights": [
-        1,
         2,
         4,
-        6,
-        8,
-        11,
-        12
+        5,
+        9,
+        10,
+        11
       ],
       "action": "on",
       "color": "#858ac2",
@@ -260,7 +260,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit2-lime",
@@ -268,11 +268,12 @@
       "end": 28.54,
       "outFade": 0.6,
       "lights": [
+        1,
         3,
-        5,
+        6,
         7,
-        9,
-        10
+        8,
+        12
       ],
       "action": "on",
       "color": "#c0d62d",
@@ -283,7 +284,7 @@
       "othersOff": false,
       "note": "Rustage hit 2/14",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit2-lav",
@@ -291,13 +292,12 @@
       "end": 28.54,
       "outFade": 0.6,
       "lights": [
-        1,
         2,
         4,
-        6,
-        8,
-        11,
-        12
+        5,
+        9,
+        10,
+        11
       ],
       "action": "on",
       "color": "#858ac2",
@@ -308,7 +308,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit3-lime",
@@ -316,11 +316,12 @@
       "end": 30.09,
       "outFade": 0.59,
       "lights": [
+        1,
         3,
-        5,
+        6,
         7,
-        9,
-        10
+        8,
+        12
       ],
       "action": "on",
       "color": "#c0d62d",
@@ -331,7 +332,7 @@
       "othersOff": false,
       "note": "Rustage hit 3/14",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit3-lav",
@@ -339,13 +340,12 @@
       "end": 30.09,
       "outFade": 0.59,
       "lights": [
-        1,
         2,
         4,
-        6,
-        8,
-        11,
-        12
+        5,
+        9,
+        10,
+        11
       ],
       "action": "on",
       "color": "#858ac2",
@@ -356,7 +356,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit4-lime",
@@ -364,11 +364,12 @@
       "end": 31.05,
       "outFade": 0.59,
       "lights": [
+        1,
         3,
-        5,
+        6,
         7,
-        9,
-        10
+        8,
+        12
       ],
       "action": "on",
       "color": "#c0d62d",
@@ -379,7 +380,7 @@
       "othersOff": false,
       "note": "Rustage hit 4/14",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit4-lav",
@@ -387,13 +388,12 @@
       "end": 31.05,
       "outFade": 0.59,
       "lights": [
-        1,
         2,
         4,
-        6,
-        8,
-        11,
-        12
+        5,
+        9,
+        10,
+        11
       ],
       "action": "on",
       "color": "#858ac2",
@@ -404,7 +404,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit5-lime",
@@ -412,11 +412,12 @@
       "end": 31.95,
       "outFade": 0.31,
       "lights": [
+        1,
         3,
-        5,
+        6,
         7,
-        9,
-        10
+        8,
+        12
       ],
       "action": "on",
       "color": "#c0d62d",
@@ -427,7 +428,7 @@
       "othersOff": false,
       "note": "Rustage hit 5/14",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit5-lav",
@@ -435,13 +436,12 @@
       "end": 31.95,
       "outFade": 0.31,
       "lights": [
-        1,
         2,
         4,
-        6,
-        8,
-        11,
-        12
+        5,
+        9,
+        10,
+        11
       ],
       "action": "on",
       "color": "#858ac2",
@@ -452,7 +452,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit6-lime",
@@ -460,11 +460,12 @@
       "end": 32.6,
       "outFade": 0.59,
       "lights": [
+        1,
         3,
-        5,
+        6,
         7,
-        9,
-        10
+        8,
+        12
       ],
       "action": "on",
       "color": "#c0d62d",
@@ -475,7 +476,7 @@
       "othersOff": false,
       "note": "Rustage hit 6/14",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit6-lav",
@@ -483,13 +484,12 @@
       "end": 32.6,
       "outFade": 0.59,
       "lights": [
-        1,
         2,
         4,
-        6,
-        8,
-        11,
-        12
+        5,
+        9,
+        10,
+        11
       ],
       "action": "on",
       "color": "#858ac2",
@@ -500,7 +500,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit7-lime",
@@ -508,11 +508,12 @@
       "end": 33.53,
       "outFade": 0.61,
       "lights": [
+        1,
         3,
-        5,
+        6,
         7,
-        9,
-        10
+        8,
+        12
       ],
       "action": "on",
       "color": "#c0d62d",
@@ -523,7 +524,7 @@
       "othersOff": false,
       "note": "Rustage hit 7/14",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit7-lav",
@@ -531,13 +532,12 @@
       "end": 33.53,
       "outFade": 0.61,
       "lights": [
-        1,
         2,
         4,
-        6,
-        8,
-        11,
-        12
+        5,
+        9,
+        10,
+        11
       ],
       "action": "on",
       "color": "#858ac2",
@@ -548,7 +548,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit8-lime",
@@ -556,11 +556,12 @@
       "end": 35.1,
       "outFade": 0.62,
       "lights": [
+        1,
         3,
-        5,
+        6,
         7,
-        9,
-        10
+        8,
+        12
       ],
       "action": "on",
       "color": "#c0d62d",
@@ -571,7 +572,7 @@
       "othersOff": false,
       "note": "Rustage hit 8/14",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit8-lav",
@@ -579,13 +580,12 @@
       "end": 35.1,
       "outFade": 0.62,
       "lights": [
-        1,
         2,
         4,
-        6,
-        8,
-        11,
-        12
+        5,
+        9,
+        10,
+        11
       ],
       "action": "on",
       "color": "#858ac2",
@@ -596,7 +596,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit9-lime",
@@ -604,11 +604,12 @@
       "end": 36.03,
       "outFade": 0.59,
       "lights": [
+        1,
         3,
-        5,
+        6,
         7,
-        9,
-        10
+        8,
+        12
       ],
       "action": "on",
       "color": "#c0d62d",
@@ -619,7 +620,7 @@
       "othersOff": false,
       "note": "Rustage hit 9/14",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit9-lav",
@@ -627,13 +628,12 @@
       "end": 36.03,
       "outFade": 0.59,
       "lights": [
-        1,
         2,
         4,
-        6,
-        8,
-        11,
-        12
+        5,
+        9,
+        10,
+        11
       ],
       "action": "on",
       "color": "#858ac2",
@@ -644,7 +644,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit10-lime",
@@ -652,11 +652,12 @@
       "end": 36.79,
       "outFade": 0.1,
       "lights": [
+        1,
         3,
-        5,
+        6,
         7,
-        9,
-        10
+        8,
+        12
       ],
       "action": "on",
       "color": "#c0d62d",
@@ -667,7 +668,7 @@
       "othersOff": false,
       "note": "Rustage hit 10/14 (run into solo)",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit10-lav",
@@ -675,13 +676,12 @@
       "end": 36.79,
       "outFade": 0.1,
       "lights": [
-        1,
         2,
         4,
-        6,
-        8,
-        11,
-        12
+        5,
+        9,
+        10,
+        11
       ],
       "action": "on",
       "color": "#858ac2",
@@ -692,7 +692,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit11-lime",
@@ -700,11 +700,12 @@
       "end": 36.95,
       "outFade": 0.11,
       "lights": [
+        1,
         3,
-        5,
+        6,
         7,
-        9,
-        10
+        8,
+        12
       ],
       "action": "on",
       "color": "#c0d62d",
@@ -715,7 +716,7 @@
       "othersOff": false,
       "note": "Rustage hit 11/14 (run into solo)",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit11-lav",
@@ -723,13 +724,12 @@
       "end": 36.95,
       "outFade": 0.11,
       "lights": [
-        1,
         2,
         4,
-        6,
-        8,
-        11,
-        12
+        5,
+        9,
+        10,
+        11
       ],
       "action": "on",
       "color": "#858ac2",
@@ -740,7 +740,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit12-lime",
@@ -748,11 +748,12 @@
       "end": 37.12,
       "outFade": 0.06,
       "lights": [
+        1,
         3,
-        5,
+        6,
         7,
-        9,
-        10
+        8,
+        12
       ],
       "action": "on",
       "color": "#c0d62d",
@@ -763,7 +764,7 @@
       "othersOff": false,
       "note": "Rustage hit 12/14 (run into solo)",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit12-lav",
@@ -771,13 +772,12 @@
       "end": 37.12,
       "outFade": 0.06,
       "lights": [
-        1,
         2,
         4,
-        6,
-        8,
-        11,
-        12
+        5,
+        9,
+        10,
+        11
       ],
       "action": "on",
       "color": "#858ac2",
@@ -788,7 +788,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit13-lime",
@@ -796,11 +796,12 @@
       "end": 37.24,
       "outFade": 0.26,
       "lights": [
+        1,
         3,
-        5,
+        6,
         7,
-        9,
-        10
+        8,
+        12
       ],
       "action": "on",
       "color": "#c0d62d",
@@ -811,7 +812,7 @@
       "othersOff": false,
       "note": "Rustage hit 13/14 (run into solo)",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit13-lav",
@@ -819,13 +820,12 @@
       "end": 37.24,
       "outFade": 0.26,
       "lights": [
-        1,
         2,
         4,
-        6,
-        8,
-        11,
-        12
+        5,
+        9,
+        10,
+        11
       ],
       "action": "on",
       "color": "#858ac2",
@@ -836,7 +836,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791588600000
+      "updatedAt": 1791591600000
     },
     {
       "id": "rustage-hit14-lime",
@@ -847,15 +847,15 @@
         10
       ],
       "action": "on",
-      "color": "#c0d62d",
-      "colorName": "Titans lime",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
       "note": "Rustage hit 14/14 — loops flash out; solo look holds",
       "repeat": null,
-      "updatedAt": 1791586800000
+      "updatedAt": 1791591600000
     },
     {
       "id": "raven-solo-lime",
@@ -863,10 +863,12 @@
       "end": null,
       "outFade": null,
       "lights": [
+        1,
         3,
-        5,
+        6,
         7,
-        9
+        8,
+        12
       ],
       "action": "on",
       "color": "#c0d62d",
@@ -877,7 +879,7 @@
       "othersOff": false,
       "note": "Raven solo: all on but the loops (10); pole 7 lime",
       "repeat": null,
-      "updatedAt": 1791586800000
+      "updatedAt": 1791591600000
     },
     {
       "id": "raven-solo-lav",
@@ -885,13 +887,11 @@
       "end": null,
       "outFade": null,
       "lights": [
-        1,
         2,
         4,
-        6,
-        8,
-        11,
-        12
+        5,
+        9,
+        11
       ],
       "action": "on",
       "color": "#858ac2",
@@ -902,7 +902,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791586800000
+      "updatedAt": 1791591600000
     },
     {
       "id": "raven-out",
