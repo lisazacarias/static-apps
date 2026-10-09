@@ -478,7 +478,7 @@ test('the shipped show plan loads cleanly', () => {
   }
   // the solo handoff: pole lit through the solo, loops dark until she comes in,
   // pole faded out by then, black on the thunderclap
-  const at = (t) => stateAt(p.cues, t).lights;
+  const at = (t) => stateAt(activeCues(p.cues, p.optionPicks), t).lights;
   assert.equal(at(60)[7].level, 1);
   assert.equal(at(60)[10].level, 0);
   assert.equal(at(100)[7].level, 0);
@@ -500,4 +500,31 @@ test('plan signature ignores edit stamps and audio, but not edits', () => {
   assert.equal(planSignature(a), planSignature(b));
   b.cues[0].level = 50;
   assert.notEqual(planSignature(a), planSignature(b));
+});
+
+import { activeCues, optionGroups, pickedChoice } from '../cues.js';
+
+test('option groups: the primary plays, a pick swaps it, the sheet lists the backup', () => {
+  const g = { group: 'run', label: 'Run in' };
+  const cues = [
+    normalizeCue({ id: 'always', time: 1, lights: [1] }),
+    normalizeCue({ id: 'h1', time: 5, lights: [2], option: { ...g, choice: 'Hits', primary: true } }),
+    normalizeCue({ id: 'h2', time: 6, lights: [2], option: { ...g, choice: 'Hits', primary: true } }),
+    normalizeCue({ id: 'f1', time: 5, lights: [2], transition: 'fade', fade: 1, option: { ...g, choice: 'Fade' } }),
+  ];
+  assert.deepEqual(optionGroups(cues), [{ group: 'run', label: 'Run in', choices: ['Hits', 'Fade'], primary: 'Hits' }]);
+  assert.deepEqual(activeCues(cues).map((c) => c.id), ['always', 'h1', 'h2']);
+  assert.deepEqual(activeCues(cues, { run: 'Fade' }).map((c) => c.id), ['always', 'f1']);
+  assert.equal(pickedChoice(cues, { run: 'Nope' }, 'run'), 'Hits', 'unknown pick falls back to the primary');
+  const sheet = cueSheet({ cues });
+  assert.match(sheet, /3 cues, plus backup option marked B/);
+  assert.match(sheet, /BACKUP for “Run in” — if “Hits” is too much, skip cues 2–3 and run these instead \(“Fade”\)/);
+  assert.match(sheet, /^B1 /m);
+  const flipped = cueSheet({ cues, optionPicks: { run: 'Fade' } });
+  assert.match(flipped, /if “Fade” is too much, skip cue 2 and run these instead \(“Hits”\)/);
+  // round-trips with the pick, and old plans have no options
+  const back = normalizePlan(JSON.parse(JSON.stringify(serializePlan({ cues, optionPicks: { run: 'Fade' } }))));
+  assert.deepEqual(back.optionPicks, { run: 'Fade' });
+  assert.equal(back.cues.find((c) => c.id === 'f1').option.choice, 'Fade');
+  assert.equal(normalizeCue({ time: 1, lights: [1] }).option, null);
 });

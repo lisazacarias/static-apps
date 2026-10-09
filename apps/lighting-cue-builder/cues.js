@@ -262,6 +262,7 @@ export function normalizeCue(raw) {
     note: typeof raw.note === 'string' ? raw.note.slice(0, 200) : '',
     updatedAt: stampOf(raw.updatedAt),
     ...flashFields(raw, end),
+    option: normalizeOption(raw.option),
   };
 }
 
@@ -274,6 +275,62 @@ function flashFields(raw, end) {
   const out = Number(raw.outFade);
   const hasOut = end !== null && raw.outFade !== null && raw.outFade !== undefined && raw.outFade !== '' && Number.isFinite(out) && out >= 0;
   return { repeat: null, end: end === null ? null : round2(end), outFade: hasOut ? Math.min(round2(out), 30) : null };
+}
+
+/* ── options: alternative versions of a passage ───────────────────────── */
+
+// Cues can belong to an option group with named choices, e.g. "Hits" (the
+// plan) and "Fade" (a backup in case the tech says no). Only the picked
+// choice plays; the cue sheet lists the rest as a backup block.
+//   option = { group, label, choice, primary }
+function cleanText(v, n) {
+  return typeof v === 'string' ? v.trim().slice(0, n) : '';
+}
+
+export function normalizeOption(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const group = cleanText(raw.group, 40);
+  const choice = cleanText(raw.choice, 30);
+  if (!group || !choice) return null;
+  return { group, label: cleanText(raw.label, 60) || group, choice, primary: Boolean(raw.primary) };
+}
+
+// → [{ group, label, choices: [choice…] (primary first), primary }]
+export function optionGroups(cues) {
+  const groups = new Map();
+  for (const c of sortCues(cues)) {
+    if (!c.option) continue;
+    const g = groups.get(c.option.group) || { group: c.option.group, label: c.option.label, choices: [], primary: null };
+    if (!g.choices.includes(c.option.choice)) g.choices.push(c.option.choice);
+    if (c.option.primary && !g.primary) g.primary = c.option.choice;
+    groups.set(c.option.group, g);
+  }
+  for (const g of groups.values()) {
+    g.primary = g.primary || g.choices[0];
+    g.choices = [g.primary, ...g.choices.filter((ch) => ch !== g.primary)];
+  }
+  return [...groups.values()];
+}
+
+export function pickedChoice(cues, picks, group) {
+  const g = optionGroups(cues).find((x) => x.group === group);
+  if (!g) return null;
+  return g.choices.includes(picks?.[group]) ? picks[group] : g.primary;
+}
+
+// The cues that actually run: everything outside option groups, plus the
+// picked choice in each group.
+export function activeCues(cues, picks = {}) {
+  const picked = Object.fromEntries(optionGroups(cues).map((g) => [g.group, g.choices.includes(picks?.[g.group]) ? picks[g.group] : g.primary]));
+  return cues.filter((c) => !c.option || picked[c.option.group] === c.option.choice);
+}
+
+function normalizePicks(raw) {
+  const out = {};
+  if (raw && typeof raw === 'object') {
+    for (const [k, v] of Object.entries(raw)) if (cleanText(k, 40) && cleanText(v, 30)) out[cleanText(k, 40)] = cleanText(v, 30);
+  }
+  return out;
 }
 
 export function normalizePlan(raw) {
@@ -306,11 +363,12 @@ export function normalizePlan(raw) {
     cues: sortCues(cues),
     tempo,
     sections: sortSections(sections, tempo),
+    optionPicks: normalizePicks(raw.optionPicks),
     skipped: list.length - cues.length,
   };
 }
 
-export function serializePlan({ title, audio, cues, tempo, sections }) {
+export function serializePlan({ title, audio, cues, tempo, sections, optionPicks }) {
   return {
     app: 'lighting-cue-builder',
     version: 1,
@@ -319,9 +377,10 @@ export function serializePlan({ title, audio, cues, tempo, sections }) {
     exportedAt: new Date().toISOString(),
     lights: GROUPS.map((g) => ({ group: g.id, lights: g.lights })),
     tempo: normalizeTempo(tempo),
+    optionPicks: normalizePicks(optionPicks),
     sections: sortSections(sections || [], tempo).map(({ id, name, bar, time, updatedAt }) => ({ id, name, bar, time, updatedAt })),
-    cues: sortCues(cues).map(({ id, time, end, outFade, lights, action, color, colorName, level, transition, fade, othersOff, note, repeat, updatedAt }) =>
-      ({ id, time, end, outFade: outFade ?? null, lights, action, color, colorName, level, transition, fade, othersOff, note, repeat: repeat ?? null, updatedAt })),
+    cues: sortCues(cues).map(({ id, time, end, outFade, lights, action, color, colorName, level, transition, fade, othersOff, note, repeat, option, updatedAt }) =>
+      ({ id, time, end, outFade: outFade ?? null, lights, action, color, colorName, level, transition, fade, othersOff, note, repeat: repeat ?? null, option: option ?? null, updatedAt })),
   };
 }
 
@@ -537,39 +596,60 @@ function pad(s, n) {
   return s.length >= n ? s + ' ' : s + ' '.repeat(n - s.length);
 }
 
-export function cueSheet({ title, audio, cues, tempo, sections = [] }) {
-  const sorted = sortCues(cues);
+export function cueSheet({ title, audio, cues, tempo, sections = [], optionPicks = {} }) {
+  const sorted = sortCues(activeCues(cues, optionPicks));
   const secs = sortSections(sections, tempo);
-  const rows = sorted.map((c, i) => {
-    if (c.repeat) {
-      const r = c.repeat;
-      const color = `${colorLabel(c)} ${c.color.toUpperCase()}` + (r.altColor ? ` / ${colorLabel({ color: r.altColor, colorName: '' })} ${r.altColor.toUpperCase()} alternating` : '');
-      const extras = [c.othersOff ? 'ALL OTHERS OFF at first flash' : '', c.note].filter(Boolean);
-      return [String(i + 1), `${formatTime(c.time, 1)}–${formatTime(flashEnd(c), 1)}`, lightsLabel(c.lights), `${c.level ?? 100}%`, color, flashLabel(c), extras.join(' · ')];
-    }
-    // A hit: on for a blink, then straight into its fade-out. A range would
-    // read "0:28.5–0:28.5" at this resolution, so give the exact start instead.
-    if (c.end !== null && c.outFade !== null && c.outFade !== undefined && c.end - c.time < 0.2 && c.action === 'on') {
-      const color = `${colorLabel(c)} ${c.color.toUpperCase()}`;
-      const extras = [c.othersOff ? 'ALL OTHERS OFF' : '', c.note].filter(Boolean);
-      const total = Math.round((c.end - c.time + c.outFade) * 100) / 100;
-      return [String(i + 1), formatTime(c.time, 2), lightsLabel(c.lights), `${c.level ?? 100}%`, color, `${transitionLabel(c)}, fade straight out over ${total}s`, extras.join(' · ')];
-    }
-    const time = c.end !== null ? `${formatTime(c.time, 1)}–${formatTime(c.end, 1)}` : formatTime(c.time, 1);
-    const color = c.action === 'off' ? '—' : `${colorLabel(c)} ${c.color.toUpperCase()}`;
-    let transition = transitionLabel(c);
-    if (c.end !== null && c.action === 'on') {
-      const outFor = c.outFade ?? (c.transition === 'fade' ? c.fade : 0);
-      transition += outFor > 0 ? `, fade out ${outFor}s at end` : ', snap out at end';
-    }
-    const extras = [];
-    if (c.othersOff) extras.push('ALL OTHERS OFF');
-    if (c.note) extras.push(c.note);
-    const level = c.action === 'off' ? '0%' : `${c.level ?? 100}%`;
-    return [String(i + 1), time, lightsLabel(c.lights), level, color, transition, extras.join(' · ')];
+  const groups = optionGroups(cues);
+  const rows = sorted.map((c, i) => cueRow(c, String(i + 1)));
+  // Each option group's backup choices, printed after the group's last cue.
+  const backups = groups.map((g) => {
+    const picked = g.choices.includes(optionPicks[g.group]) ? optionPicks[g.group] : g.primary;
+    const inGroup = sorted.map((c, i) => [c, i]).filter(([c]) => c.option?.group === g.group);
+    const after = inGroup.length ? inGroup[inGroup.length - 1][1] : -1;
+    const first = inGroup.length ? inGroup[0][1] + 1 : 0;
+    const replaces = !inGroup.length ? 'nothing' : first === after + 1 ? `cue ${first}` : `cues ${first}–${after + 1}`;
+    const alts = g.choices.filter((ch) => ch !== picked).map((ch) => ({
+      choice: ch,
+      rows: sortCues(cues.filter((c) => c.option?.group === g.group && c.option.choice === ch)).map((c, j) => cueRow(c, `B${j + 1}`)),
+    }));
+    return { g, picked, after, replaces, alts };
   });
+  const allRows = [...rows, ...backups.flatMap((b) => b.alts.flatMap((a) => a.rows))];
+  return renderSheet({ title, audio, sorted, secs, tempo, rows, allRows, backups, groups });
+}
+
+function cueRow(c, label) {
+  if (c.repeat) {
+    const r = c.repeat;
+    const color = `${colorLabel(c)} ${c.color.toUpperCase()}` + (r.altColor ? ` / ${colorLabel({ color: r.altColor, colorName: '' })} ${r.altColor.toUpperCase()} alternating` : '');
+    const extras = [c.othersOff ? 'ALL OTHERS OFF at first flash' : '', c.note].filter(Boolean);
+    return [label, `${formatTime(c.time, 1)}–${formatTime(flashEnd(c), 1)}`, lightsLabel(c.lights), `${c.level ?? 100}%`, color, flashLabel(c), extras.join(' · ')];
+  }
+  // A hit: on for a blink, then straight into its fade-out. A range would
+  // read "0:28.5–0:28.5" at this resolution, so give the exact start instead.
+  if (c.end !== null && c.outFade !== null && c.outFade !== undefined && c.end - c.time < 0.2 && c.action === 'on') {
+    const color = `${colorLabel(c)} ${c.color.toUpperCase()}`;
+    const extras = [c.othersOff ? 'ALL OTHERS OFF' : '', c.note].filter(Boolean);
+    const total = Math.round((c.end - c.time + c.outFade) * 100) / 100;
+    return [label, formatTime(c.time, 2), lightsLabel(c.lights), `${c.level ?? 100}%`, color, `${transitionLabel(c)}, fade straight out over ${total}s`, extras.join(' · ')];
+  }
+  const time = c.end !== null ? `${formatTime(c.time, 1)}–${formatTime(c.end, 1)}` : formatTime(c.time, 1);
+  const color = c.action === 'off' ? '—' : `${colorLabel(c)} ${c.color.toUpperCase()}`;
+  let transition = transitionLabel(c);
+  if (c.end !== null && c.action === 'on') {
+    const outFor = c.outFade ?? (c.transition === 'fade' ? c.fade : 0);
+    transition += outFor > 0 ? `, fade out ${outFor}s at end` : ', snap out at end';
+  }
+  const extras = [];
+  if (c.othersOff) extras.push('ALL OTHERS OFF');
+  if (c.note) extras.push(c.note);
+  const level = c.action === 'off' ? '0%' : `${c.level ?? 100}%`;
+  return [label, time, lightsLabel(c.lights), level, color, transition, extras.join(' · ')];
+}
+
+function renderSheet({ title, audio, sorted, secs, tempo, rows, allRows, backups, groups }) {
   const head = ['CUE', 'TIME', 'LIGHT(S)', 'LEVEL', 'COLOR', 'TRANSITION', 'NOTES'];
-  const widths = head.map((h, col) => Math.max(h.length, ...rows.map((r) => r[col].length)) + 2);
+  const widths = head.map((h, col) => Math.max(h.length, ...allRows.map((r) => r[col].length)) + 2);
   widths[widths.length - 1] = 0;
   const line = (r) => r.map((cell, col) => (col === r.length - 1 ? cell : pad(cell, widths[col]))).join('').trimEnd();
 
@@ -577,7 +657,7 @@ export function cueSheet({ title, audio, cues, tempo, sections = [] }) {
   out.push(`LIGHTING CUE SHEET${title ? ' — ' + title : ''}`);
   if (audio?.name) out.push(`Audio: ${audio.name}${audio.duration ? ` (${formatTime(audio.duration, 1)})` : ''}`);
   out.push(`Rig: Apparatus ${Object.entries(APPARATUS).map(([n, what]) => `${n} (${what})`).join(', ')} · Floor 1, 2, 4, 5, 6, 8, 9, 12 · Backdrop 11`);
-  out.push(`Times are from the start of the track (m:ss.s). ${sorted.length} cue${sorted.length === 1 ? '' : 's'}.`);
+  out.push(`Times are from the start of the track (m:ss.s). ${sorted.length} cue${sorted.length === 1 ? '' : 's'}${groups.length ? `, plus backup option${groups.length === 1 ? '' : 's'} marked B` : ''}.`);
   out.push('');
   out.push(line(head));
   out.push(line(head.map((h, i) => '-'.repeat(Math.max(h.length, (widths[i] || 12) - 2)))));
@@ -594,6 +674,16 @@ export function cueSheet({ title, audio, cues, tempo, sections = [] }) {
     if (sorted[i].repeat) {
       const ts = flashTimes(sorted[i]).map((t) => formatTime(t, 2));
       for (let j = 0; j < ts.length; j += 8) out.push(`${' '.repeat(widths[0])}${j === 0 ? 'flashes at ' : '           '}${ts.slice(j, j + 8).join('  ')}`);
+    }
+    for (const b of backups) {
+      if (b.after !== i) continue;
+      for (const a of b.alts) {
+        out.push('');
+        out.push(`  ┌ BACKUP for “${b.g.label}” — if “${b.picked}” is too much, skip ${b.replaces} and run these instead (“${a.choice}”):`);
+        a.rows.forEach((br) => out.push(line(br)));
+        out.push('  └ end of backup');
+        out.push('');
+      }
     }
   });
   if (secs.length) {
@@ -614,7 +704,7 @@ export function planSignature(plan) {
   const strip = ({ updatedAt, ...rest }) => rest;
   const p = serializePlan(plan);
   const text = JSON.stringify({
-    title: p.title, tempo: p.tempo,
+    title: p.title, tempo: p.tempo, optionPicks: p.optionPicks,
     sections: p.sections.map(strip),
     cues: p.cues.map(strip),
   });
@@ -661,7 +751,7 @@ export async function decodeShare(token) {
 // edit — so it reports every difference and pre-picks a default, and the
 // person decides. The newer edit is the default where both copies have an item.
 
-const CUE_FIELDS = ['time', 'end', 'outFade', 'lights', 'action', 'color', 'colorName', 'level', 'transition', 'fade', 'othersOff', 'note', 'repeat'];
+const CUE_FIELDS = ['time', 'end', 'outFade', 'lights', 'action', 'color', 'colorName', 'level', 'transition', 'fade', 'othersOff', 'note', 'repeat', 'option'];
 const SECTION_FIELDS = ['name', 'bar', 'time'];
 
 function sameItem(a, b, fields) {
@@ -726,6 +816,7 @@ export function applyMerge(mine, theirs, diff, picks = {}) {
   return {
     title: setting('title', mine.title || ''),
     audio: mine.audio,
+    optionPicks: mine.optionPicks || {},
     tempo,
     cues: sortCues(keep('cue')),
     sections: sortSections(keep('section'), tempo),

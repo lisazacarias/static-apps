@@ -458,3 +458,12 @@ input:disabled { opacity: 0.45; }
 .swatch-label { display: block; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin: 10px 0 6px; }
 .out-fade { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; margin-top: 4px; }
 .out-fade input { width: 70px; padding: 3px 6px; font-family: var(--font-mono); font-size: 12px; }
+
+/* ── option groups ── */
+.option-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin: 10px 0 2px; padding: 8px 12px; border: 1px dashed var(--border-bright); border-radius: 4px; }
+.option-head .label { color: var(--gold); }
+.option-choices { display: flex; gap: 6px; }
+.cue.in-option { border-left-color: var(--border-bright); }
+.cue.is-alt { opacity: 0.42; border-style: dashed; }
+.cue.is-alt.is-active { border-left-color: var(--border-bright); }
+.option-pill { color: var(--gold); border-color: rgba(212,169,106,0.4); }

@@ -5,7 +5,7 @@ import {
   APPARATUS, LOGO_COLORS, normalizeRepeat, flashGap, flashTimes, flashEnd, flashesPerSecond, fitTaps,
   DEFAULT_TEMPO, normalizeTempo, parseStart, formatStart, normalizeSection,
   sectionStart, sortSections, sectionAt, parseSectionLines, timeToBar,
-  diffPlans, applyMerge, planSignature,
+  diffPlans, applyMerge, planSignature, activeCues, optionGroups,
 } from './cues.js';
 
 // localStorage is shared by every app on the Pages origin — keep the prefix.
@@ -68,11 +68,11 @@ function loadPlan() {
 }
 
 function emptyPlan() {
-  return { title: '', audio: { name: '', duration: null }, cues: [], tempo: { ...DEFAULT_TEMPO }, sections: [] };
+  return { title: '', audio: { name: '', duration: null }, cues: [], tempo: { ...DEFAULT_TEMPO }, sections: [], optionPicks: {} };
 }
 
 function planFrom(p) {
-  return { title: p.title, audio: p.audio, cues: p.cues, tempo: normalizeTempo(p.tempo), sections: p.sections || [] };
+  return { title: p.title, audio: p.audio, cues: p.cues, tempo: normalizeTempo(p.tempo), sections: p.sections || [], optionPicks: p.optionPicks || {} };
 }
 
 function savePlan() {
@@ -364,7 +364,7 @@ function drawWave(cv, t0, t1, { ticks = false, labels = false } = {}) {
     }
   });
 
-  for (const [i, c] of sortCues(plan.cues).entries()) {
+  for (const [i, c] of sortCues(runningCues()).entries()) {
     const marks = [[c.time, true]];
     if (c.repeat) flashTimes(c).slice(1).forEach((t) => marks.push([t, false]));
     else if (c.end !== null) marks.push([c.end, false]);
@@ -517,9 +517,14 @@ function previewTime() {
   return d.time + (d.transition === 'fade' ? d.fade : 0) + 0.001;
 }
 
+// What plays: only the picked version of each option group.
+function runningCues() {
+  return activeCues(plan.cues, plan.optionPicks);
+}
+
 function previewCues() {
-  if (!editing) return plan.cues;
-  const others = plan.cues.filter((c) => c.id !== editing.draft.id);
+  if (!editing) return runningCues();
+  const others = runningCues().filter((c) => c.id !== editing.draft.id);
   return [...others, editing.draft];
 }
 
@@ -546,7 +551,7 @@ function drawFrame() {
       document.querySelectorAll('.sec-row').forEach((r) => r.classList.toggle('is-current', r.dataset.id === sec?.id));
     }
     $('addCueTime').textContent = formatTime(t);
-    const live = editing ? stateAt(plan.cues, t) : st;
+    const live = editing ? stateAt(runningCues(), t) : st;
     if (live.activeCue !== lastActive) {
       lastActive = live.activeCue;
       markActive(live.activeCue);
@@ -597,6 +602,35 @@ function describe(c) {
   return { what, how: bits.join(' · ') };
 }
 
+// The switch above an option group: which version plays, and goes on the
+// cue sheet as the main cues. The rest are listed there as backups.
+function optionHeader(g) {
+  const picked = g.choices.includes(plan.optionPicks?.[g.group]) ? plan.optionPicks[g.group] : g.primary;
+  const h = document.createElement('div');
+  h.className = 'option-head';
+  const label = document.createElement('span');
+  label.className = 'label';
+  label.textContent = `Option · ${g.label}`;
+  h.append(label);
+  const seg = document.createElement('span');
+  seg.className = 'option-choices';
+  for (const ch of g.choices) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'btn small';
+    b.textContent = ch === g.primary ? ch : `${ch} (backup)`;
+    b.setAttribute('aria-pressed', String(ch === picked));
+    b.onclick = () => {
+      plan.optionPicks = { ...plan.optionPicks, [g.group]: ch };
+      // A shared preview never saves; anywhere else the pick is part of the plan.
+      if (viewingShared) { renderCueList(); dirtyStage = dirtyWave = true; } else commit();
+    };
+    seg.append(b);
+  }
+  h.append(seg);
+  return h;
+}
+
 function renderCueList() {
   const sorted = sortCues(plan.cues);
   $('cueCount').textContent = sorted.length ? `· ${sorted.length}` : '';
@@ -612,6 +646,9 @@ function renderCueList() {
       continue;
     }
     let shownSec = null;
+    const groups = optionGroups(plan.cues);
+    const running = new Set(runningCues().map((c) => c.id));
+    const shownGroups = new Set();
     sorted.forEach((c, i) => {
       const sec = sectionAt(plan.sections, plan.tempo, c.time);
       if (sec && sec !== shownSec) {
@@ -626,8 +663,14 @@ function renderCueList() {
         h.append(n, at);
         list.append(h);
       }
+      if (c.option && !shownGroups.has(c.option.group)) {
+        shownGroups.add(c.option.group);
+        list.append(optionHeader(groups.find((g) => g.group === c.option.group)));
+      }
       const row = document.createElement('div');
       row.className = 'cue';
+      if (c.option) row.classList.add('in-option');
+      if (c.option && !running.has(c.id)) row.classList.add('is-alt');
       const { what, how } = describe(c);
       row.innerHTML = `
         <span class="cue-n">Q${i + 1}</span>
@@ -652,11 +695,17 @@ function renderCueList() {
         p.className = 'pill'; p.textContent = 'all others off';
         howEl.append(p);
       }
+      if (c.option) {
+        const p = document.createElement('span');
+        p.className = 'pill option-pill';
+        p.textContent = running.has(c.id) ? c.option.choice : `${c.option.choice} · not in use`;
+        howEl.append(p);
+      }
       row.querySelector('.note').textContent = c.note;
       if (!readOnly) {
         row.querySelector('[data-act="edit"]').onclick = () => openEditor(c);
         row.querySelector('[data-act="dup"]').onclick = () => {
-          const copy = { ...structuredClone(c), id: undefined };
+          const copy = { ...structuredClone(c), id: undefined, option: null };
           const len = c.end !== null ? c.end - c.time : null;
           copy.time = Math.round(now() * 100) / 100;
           copy.end = len !== null ? copy.time + len : null;

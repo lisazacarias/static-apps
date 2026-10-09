@@ -14,6 +14,16 @@ scrub anywhere and check the plan.
    previews the cue as you edit; click lights on the stage to toggle them.
 4. Cues autosave to `localStorage` under `lighting-cue-builder:plan`.
 
+## Options (a plan and a backup)
+
+Cues can belong to an option group with named choices, e.g. "Hits" (the
+plan) and "Fade" (in case the tech says no). A switch above the group in
+the cue list picks which one plays; the pick is saved with the plan. The
+cue sheet prints the picked choice as the main cues and the others in a
+boxed BACKUP block (cues B1, B2, …) saying which cues they replace.
+Options are set in the plan file (`option: { group, label, choice,
+primary }` on each cue); the editor keeps a cue's option when you edit it.
+
 ## Sections
 
 Sections mark where each song in the mix starts. They show on both waveforms,
