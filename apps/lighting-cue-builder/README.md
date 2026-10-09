@@ -18,6 +18,8 @@ scrub anywhere and check the plan.
 
 - **Start** is the GO. **End** is optional: the cue's lights go out there with
   the same transition (snap, or fade over the same time).
+- **Intensity** (1–100%) is the level an On cue brings its lights to. To dim
+  a light that's already lit, cue it again at a lower level.
 - **Fade** ramps level over the fade time. A light that's already lit
   cross-fades colour. A dark light takes the new colour instantly.
 - **Off** takes the selected lights dark and keeps their colour while fading.
@@ -30,8 +32,8 @@ scrub anywhere and check the plan.
 - **Export JSON / Import JSON** — the full plan, for backups or for a partner
   to edit in their own copy and send back. Import replaces the list (Undo is
   offered right after).
-- **Readable cue sheet** — fixed-width text columns (time / lights / colour /
-  transition / notes) to paste into a submission or download as `.txt`.
+- **Readable cue sheet** — fixed-width text columns (time / lights / level /
+  colour / transition / notes) to paste into a submission or download as `.txt`.
 - **Copy preview link** — the plan compressed into the URL hash. It opens in
   presentation mode as a read-only view; the viewer loads their own copy of
   the audio. It's a snapshot, so re-copy after changes. Opening one never

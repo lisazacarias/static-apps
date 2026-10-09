@@ -111,6 +111,7 @@ export function blankCue(time = 0) {
     action: 'on',
     color: '#ffffff',
     colorName: '',
+    level: 100,
     transition: 'sharp',
     fade: DEFAULT_FADE,
     othersOff: false,
@@ -143,6 +144,8 @@ export function normalizeCue(raw) {
     ? [...new Set(raw.lights.map(Number).filter((n) => ALL_LIGHTS.includes(n)))].sort((a, b) => a - b)
     : [];
   const fade = Number(raw.fade);
+  // Plans saved before intensity existed have no level — they meant full.
+  const level = Math.round(Number(raw.level));
   return {
     id: typeof raw.id === 'string' && raw.id ? raw.id : newId(),
     time: round2(time),
@@ -153,6 +156,7 @@ export function normalizeCue(raw) {
     colorName: typeof raw.colorName === 'string' ? raw.colorName.slice(0, 40) : '',
     transition: raw.transition === 'fade' ? 'fade' : 'sharp',
     fade: Number.isFinite(fade) && fade > 0 ? Math.min(round2(fade), 60) : DEFAULT_FADE,
+    level: Number.isFinite(level) && level >= 1 ? Math.min(level, 100) : 100,
     othersOff: Boolean(raw.othersOff),
     note: typeof raw.note === 'string' ? raw.note.slice(0, 200) : '',
   };
@@ -191,8 +195,8 @@ export function serializePlan({ title, audio, cues }) {
     audio: { name: audio?.name || '', duration: audio?.duration ?? null },
     exportedAt: new Date().toISOString(),
     lights: GROUPS.map((g) => ({ group: g.id, lights: g.lights })),
-    cues: sortCues(cues).map(({ id, time, end, lights, action, color, colorName, transition, fade, othersOff, note }) =>
-      ({ id, time, end, lights, action, color, colorName, transition, fade, othersOff, note })),
+    cues: sortCues(cues).map(({ id, time, end, lights, action, color, colorName, level, transition, fade, othersOff, note }) =>
+      ({ id, time, end, lights, action, color, colorName, level, transition, fade, othersOff, note })),
   };
 }
 
@@ -205,7 +209,7 @@ function eventsFor(cues) {
   const events = [];
   sortCues(cues).forEach((c, order) => {
     const dur = c.transition === 'fade' ? c.fade : 0;
-    const level = c.action === 'on' ? 1 : 0;
+    const level = c.action === 'on' ? (c.level ?? 100) / 100 : 0;
     // An Off cue keeps whatever colour each light already had.
     const targets = c.lights.map((l) => ({ light: l, level, color: c.action === 'on' ? c.color : null }));
     if (c.othersOff) {
@@ -232,7 +236,7 @@ function sample(seg, t) {
   if (!seg) return { level: 0, color: '#ffffff' };
   const k = seg.dur > 0 ? Math.min(1, Math.max(0, (t - seg.start) / seg.dur)) : 1;
   return {
-    level: seg.from.level + (seg.to.level - seg.from.level) * k,
+    level: k >= 1 ? seg.to.level : seg.from.level + (seg.to.level - seg.from.level) * k,
     color: k >= 1 ? seg.to.color : mix(seg.from.color, seg.to.color, k),
   };
 }
@@ -302,9 +306,10 @@ export function cueSheet({ title, audio, cues }) {
     const extras = [];
     if (c.othersOff) extras.push('ALL OTHERS OFF');
     if (c.note) extras.push(c.note);
-    return [String(i + 1), time, lightsLabel(c.lights), color, transition, extras.join(' · ')];
+    const level = c.action === 'off' ? '0%' : `${c.level ?? 100}%`;
+    return [String(i + 1), time, lightsLabel(c.lights), level, color, transition, extras.join(' · ')];
   });
-  const head = ['CUE', 'TIME', 'LIGHT(S)', 'COLOR', 'TRANSITION', 'NOTES'];
+  const head = ['CUE', 'TIME', 'LIGHT(S)', 'LEVEL', 'COLOR', 'TRANSITION', 'NOTES'];
   const widths = head.map((h, col) => Math.max(h.length, ...rows.map((r) => r[col].length)) + 2);
   widths[widths.length - 1] = 0;
   const line = (r) => r.map((cell, col) => (col === r.length - 1 ? cell : pad(cell, widths[col]))).join('').trimEnd();

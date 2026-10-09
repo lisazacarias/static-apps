@@ -6,7 +6,7 @@ import {
 } from '../cues.js';
 
 const cue = (o) => ({ id: o.id || Math.random().toString(36), time: 0, end: null, lights: [], action: 'on',
-  color: '#ff0000', colorName: '', transition: 'sharp', fade: 2, othersOff: false, note: '', ...o });
+  color: '#ff0000', colorName: '', level: 100, transition: 'sharp', fade: 2, othersOff: false, note: '', ...o });
 
 test('time formats to hundredths and parses back', () => {
   assert.equal(formatTime(0), '0:00.00');
@@ -133,7 +133,7 @@ test('cue sheet has aligned columns a tech can read', () => {
     title: 'Showcase',
     audio: { name: 'track.mp3', duration: 125 },
     cues: [
-      cue({ time: 12.34, lights: [3, 7, 10], color: '#2a4bff', transition: 'fade', fade: 3, note: 'beat drop' }),
+      cue({ time: 12.34, lights: [3, 7, 10], color: '#2a4bff', level: 40, transition: 'fade', fade: 3, note: 'beat drop' }),
       cue({ time: 1, end: 4, lights: [11], color: '#ffffff', othersOff: true }),
       cue({ time: 20, lights: ALL_LIGHTS, action: 'off' }),
     ],
@@ -144,9 +144,9 @@ test('cue sheet has aligned columns a tech can read', () => {
   const header = lines.find((l) => l.startsWith('CUE'));
   const rows = lines.slice(lines.indexOf(header) + 2).filter(Boolean);
   assert.equal(rows.length, 3);
-  assert.match(rows[0], /^1\s+0:01\.0–0:04\.0\s+11\s+Open white #FFFFFF\s+Snap ON, snap out at end\s+ALL OTHERS OFF/);
-  assert.match(rows[1], /^2\s+0:12\.3\s+All apparatus \(3,7,10\)\s+Deep blue #2A4BFF\s+Fade ON 3s\s+beat drop/);
-  assert.match(rows[2], /^3\s+0:20\.0\s+ALL \(1–12\)\s+—\s+Snap OFF/);
+  assert.match(rows[0], /^1\s+0:01\.0–0:04\.0\s+11\s+100%\s+Open white #FFFFFF\s+Snap ON, snap out at end\s+ALL OTHERS OFF/);
+  assert.match(rows[1], /^2\s+0:12\.3\s+All apparatus \(3,7,10\)\s+40%\s+Deep blue #2A4BFF\s+Fade ON 3s\s+beat drop/);
+  assert.match(rows[2], /^3\s+0:20\.0\s+ALL \(1–12\)\s+0%\s+—\s+Snap OFF/);
   const col = header.indexOf('COLOR');
   for (const r of rows) assert.notEqual(r[col - 1], undefined);
   assert.equal(rows[0].indexOf('Open white'), col);
@@ -165,4 +165,24 @@ test('share token round-trips', async () => {
   assert.equal(back.title, 'T');
   assert.deepEqual(back.cues[0].lights, [2, 9]);
   assert.equal(back.cues[0].note, 'hi');
+});
+
+test('intensity sets the level a cue brings lights to', () => {
+  const s = stateAt([cue({ time: 0, lights: [7], level: 40 })], 1);
+  assert.equal(s.lights[7].level, 0.4);
+});
+
+test('a fade between two intensities ramps from one to the other', () => {
+  const cues = [
+    cue({ time: 0, lights: [2], level: 100 }),
+    cue({ time: 10, lights: [2], level: 20, transition: 'fade', fade: 4 }),
+  ];
+  assert.ok(Math.abs(stateAt(cues, 12).lights[2].level - 0.6) < 1e-9);
+  assert.equal(stateAt(cues, 14).lights[2].level, 0.2);
+});
+
+test('plans saved before intensity existed load at full', () => {
+  const p = normalizePlan({ cues: [{ time: 1, lights: [3] }, { time: 2, lights: [4], level: 250 }, { time: 3, lights: [5], level: 0 }] });
+  assert.deepEqual(p.cues.map((c) => c.level), [100, 100, 100]);
+  assert.equal(normalizePlan({ cues: [{ time: 1, lights: [3], level: 33.4 }] }).cues[0].level, 33);
 });

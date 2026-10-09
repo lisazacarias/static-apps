@@ -344,3 +344,9 @@ body.presenting .title-input { pointer-events: none; border-bottom-color: transp
     z-index: 20;
 }
 .time-field .btn { white-space: nowrap; flex-shrink: 0; }
+.level-row { display: flex; gap: 12px; align-items: center; }
+.level-row input[type="range"] { flex: 1; accent-color: var(--gold); }
+.level-num { font-size: 13px; color: var(--text-muted); white-space: nowrap; }
+.level-num input { width: 68px; font-family: var(--font-mono); }
+#levelField.is-disabled { opacity: 0.4; }
+#levelField .quick { margin: 8px 0 0; }

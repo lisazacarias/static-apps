@@ -516,7 +516,7 @@ function markActive(id) {
 function describe(c) {
   const what = `${transitionLabel(c)} · ${c.lights.length ? lightsLabel(c.lights) : 'no lights'}`;
   const bits = [];
-  if (c.action === 'on') bits.push(`${colorLabel(c)} ${c.color.toUpperCase()}`);
+  if (c.action === 'on') bits.push(`${c.level}% · ${colorLabel(c)} ${c.color.toUpperCase()}`);
   if (c.end !== null) bits.push(`out at ${formatTime(c.end)}`);
   return { what, how: bits.join(' · ') };
 }
@@ -639,6 +639,8 @@ function openEditor(cue, preset = {}) {
   $('fColor').value = draft.color;
   $('fColorName').value = draft.colorName;
   $('fOthersOff').checked = draft.othersOff;
+  $('fLevel').value = draft.level;
+  $('fLevelRange').value = draft.level;
   $('fNote').value = draft.note;
   $('formError').hidden = true;
   if (!audio.paused) audio.pause();
@@ -661,8 +663,10 @@ function closeEditor() {
 function syncFormUi() {
   const d = editing.draft;
   $('fadeLenWrap').hidden = d.transition !== 'fade';
-  $('colorField').classList.toggle('is-disabled', d.action === 'off');
-  $('colorField').disabled = d.action === 'off';
+  for (const id of ['colorField', 'levelField']) {
+    $(id).classList.toggle('is-disabled', d.action === 'off');
+    $(id).disabled = d.action === 'off';
+  }
   document.querySelectorAll('#swatches .swatch').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.hex === d.color)));
 }
 
@@ -682,6 +686,8 @@ function readForm() {
   d.fade = Number.isFinite(f) && f > 0 ? Math.min(60, Math.round(f * 100) / 100) : DEFAULT_FADE;
   d.color = $('fColor').value.toLowerCase();
   d.colorName = $('fColorName').value.trim();
+  const lv = Math.round(Number($('fLevel').value));
+  d.level = Number.isFinite(lv) && lv >= 1 ? Math.min(lv, 100) : 100;
   d.othersOff = $('fOthersOff').checked;
   d.note = $('fNote').value.trim();
   syncFormUi();
@@ -705,6 +711,12 @@ function validate() {
   return errs;
 }
 
+// The slider and the number box mirror each other; whichever moved wins.
+$('fLevelRange').addEventListener('input', () => { $('fLevel').value = $('fLevelRange').value; });
+$('fLevel').addEventListener('input', () => { $('fLevelRange').value = $('fLevel').value; });
+document.querySelectorAll('[data-level]').forEach((b) => {
+  b.onclick = () => { $('fLevel').value = $('fLevelRange').value = b.dataset.level; readForm(); };
+});
 form.addEventListener('input', readForm);
 form.addEventListener('change', readForm);
 form.addEventListener('submit', (e) => {

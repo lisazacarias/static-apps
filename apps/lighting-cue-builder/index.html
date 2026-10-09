@@ -226,6 +226,20 @@
             </fieldset>
         </div>
 
+        <fieldset class="field" id="levelField">
+            <legend class="label">Intensity</legend>
+            <div class="level-row">
+                <input id="fLevelRange" type="range" min="1" max="100" step="1" value="100" aria-label="Intensity">
+                <span class="level-num"><input id="fLevel" type="number" min="1" max="100" step="1" value="100" aria-label="Intensity percent"> %</span>
+            </div>
+            <div class="quick">
+                <button type="button" class="btn small" data-level="25">25%</button>
+                <button type="button" class="btn small" data-level="50">50%</button>
+                <button type="button" class="btn small" data-level="75">75%</button>
+                <button type="button" class="btn small" data-level="100">Full</button>
+            </div>
+        </fieldset>
+
         <fieldset class="field" id="colorField">
             <legend class="label">Color</legend>
             <div class="swatches" id="swatches"></div>
