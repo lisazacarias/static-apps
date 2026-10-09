@@ -94,8 +94,8 @@
       "id": "sec-8",
       "name": "Victory intro (Teen Titans Go remix)",
       "bar": null,
-      "time": 178.67,
-      "updatedAt": 1791585600000
+      "time": 178.63,
+      "updatedAt": 1791594000000
     },
     {
       "id": "sec-9",
@@ -1173,7 +1173,31 @@
     },
     {
       "id": "slade-orange",
-      "time": 122.15,
+      "time": 118.73,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        4,
+        5,
+        9,
+        11
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "fade",
+      "fade": 3.42,
+      "othersOff": false,
+      "note": "Slade: slow fade up to orange right after the lightning, full as he starts talking (2:02.15); sparse — the rest stays black",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791594000000
+    },
+    {
+      "id": "battle-pulse",
+      "time": 154.27,
       "end": null,
       "outFade": null,
       "lights": [
@@ -1191,16 +1215,168 @@
         12
       ],
       "action": "on",
+      "color": "#ec1b24",
+      "colorName": "Titans red",
+      "level": 100,
+      "transition": "fade",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Battle: soft pulse on the beat, easing to 35% between",
+      "repeat": {
+        "bpm": 96.37,
+        "beats": 1,
+        "count": 8,
+        "onFrac": 0.5,
+        "altColor": null,
+        "dimTo": 35
+      },
+      "option": null,
+      "updatedAt": 1791594000000
+    },
+    {
+      "id": "battle-hits",
+      "time": 164.32,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#ec1b24",
+      "colorName": "Titans red",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Battle: 16 full flashes on the big hits, off between; dark after",
+      "repeat": {
+        "bpm": 96.37,
+        "beats": 1,
+        "count": 16,
+        "onFrac": 0.5,
+        "altColor": null,
+        "dimTo": 0
+      },
+      "option": null,
+      "updatedAt": 1791594000000
+    },
+    {
+      "id": "victory-red",
+      "time": 178.63,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        5
+      ],
+      "action": "on",
+      "color": "#ec1b24",
+      "colorName": "Titans red",
+      "level": 100,
+      "transition": "fade",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Victory: fade up to the intro colours",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791594000000
+    },
+    {
+      "id": "victory-orange",
+      "time": 178.63,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        4,
+        9
+      ],
+      "action": "on",
       "color": "#fbb612",
       "colorName": "Titans orange",
       "level": 100,
       "transition": "fade",
-      "fade": 3,
+      "fade": 2,
       "othersOff": false,
-      "note": "Slade monologue: fade up to orange as he starts talking",
+      "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791587400000
+      "updatedAt": 1791594000000
+    },
+    {
+      "id": "victory-lime",
+      "time": 178.63,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        3,
+        7,
+        12
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "fade",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791594000000
+    },
+    {
+      "id": "victory-lavender",
+      "time": 178.63,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        6,
+        10
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "fade",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791594000000
+    },
+    {
+      "id": "victory-blue",
+      "time": 178.63,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        8,
+        11
+      ],
+      "action": "on",
+      "color": "#00acee",
+      "colorName": "Titans blue",
+      "level": 100,
+      "transition": "fade",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791594000000
     }
   ]
 }
