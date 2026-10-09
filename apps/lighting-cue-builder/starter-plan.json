@@ -1658,96 +1658,312 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Victory: piano on the 1 of the first four bars — snap up, ring down to 50%; brightness only",
+      "note": "Victory: piano on the 1 of bars 1–3 — snap up, ring down to 50%; the 4th lands on the drums switch",
       "repeat": {
         "bpm": 105.88,
         "beats": 4,
-        "count": 4,
+        "count": 3,
         "onFrac": 0.25,
         "altColor": null,
         "dimTo": 50,
         "keepColor": true
       },
       "option": null,
-      "updatedAt": 1791600600000
+      "updatedAt": 1791601200000
     },
     {
-      "id": "victory-pulse-1",
+      "id": "drums-a-red",
       "time": 186.05,
       "end": null,
-      "outFade": 0.5,
+      "outFade": null,
       "lights": [
-        1,
         2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
+        5
       ],
       "action": "on",
-      "color": "#ffffff",
-      "colorName": "",
+      "color": "#ec1b24",
+      "colorName": "Titans red",
       "level": 100,
-      "transition": "fade",
-      "fade": 0.12,
+      "transition": "sharp",
+      "fade": 2,
       "othersOff": false,
-      "note": "Victory: gentle swell on the 1 of each bar (guitar), brightness only, resting at 70%",
+      "note": "Drums: two looks swapping on the 1 and the 2& — A on the 1 (the victory colours)",
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
         "count": 6,
-        "onFrac": 0.25,
+        "onFrac": 1,
         "altColor": null,
-        "dimTo": 70,
-        "keepColor": true
+        "dimTo": 0,
+        "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791600000000
+      "updatedAt": 1791601200000
     },
     {
-      "id": "victory-pulse-2and",
-      "time": 186.91,
+      "id": "drums-a-orange",
+      "time": 186.05,
       "end": null,
-      "outFade": 0.5,
+      "outFade": null,
       "lights": [
-        1,
-        2,
-        3,
         4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
+        9
       ],
       "action": "on",
-      "color": "#ffffff",
-      "colorName": "",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
       "level": 100,
-      "transition": "fade",
-      "fade": 0.12,
+      "transition": "sharp",
+      "fade": 2,
       "othersOff": false,
-      "note": "Victory: gentle swell on the \"and a\" of 2 (guitar), brightness only",
+      "note": "",
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
         "count": 6,
-        "onFrac": 0.25,
+        "onFrac": 1,
         "altColor": null,
-        "dimTo": 70,
-        "keepColor": true
+        "dimTo": 0,
+        "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791600000000
+      "updatedAt": 1791601200000
+    },
+    {
+      "id": "drums-a-lime",
+      "time": 186.05,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        3,
+        7,
+        12
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 4,
+        "count": 6,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791601200000
+    },
+    {
+      "id": "drums-a-lavender",
+      "time": 186.05,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        6,
+        10
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 4,
+        "count": 6,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791601200000
+    },
+    {
+      "id": "drums-a-blue",
+      "time": 186.05,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        8,
+        11
+      ],
+      "action": "on",
+      "color": "#00acee",
+      "colorName": "Titans blue",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 4,
+        "count": 6,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791601200000
+    },
+    {
+      "id": "drums-b-red",
+      "time": 186.91,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        5
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Drums: B on the 2& — each colour shifted one along (lime→lavender→red→orange→blue→lime)",
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 4,
+        "count": 6,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791601200000
+    },
+    {
+      "id": "drums-b-orange",
+      "time": 186.91,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        4,
+        9
+      ],
+      "action": "on",
+      "color": "#00acee",
+      "colorName": "Titans blue",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 4,
+        "count": 6,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791601200000
+    },
+    {
+      "id": "drums-b-lime",
+      "time": 186.91,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        3,
+        7,
+        12
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 4,
+        "count": 6,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791601200000
+    },
+    {
+      "id": "drums-b-lavender",
+      "time": 186.91,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        6,
+        10
+      ],
+      "action": "on",
+      "color": "#ec1b24",
+      "colorName": "Titans red",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 4,
+        "count": 6,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791601200000
+    },
+    {
+      "id": "drums-b-blue",
+      "time": 186.91,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        8,
+        11
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 4,
+        "count": 6,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791601200000
     }
   ]
 }
