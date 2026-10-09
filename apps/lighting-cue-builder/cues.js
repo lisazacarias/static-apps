@@ -189,7 +189,8 @@ export function flashLabel(cue) {
   const r = cue.repeat;
   const on = r.onFrac >= 1 ? 'held until the next' : `on for ${Math.round(r.onFrac * 100)}% of the gap`;
   const dim = r.onFrac < 1 && r.dimTo ? `, dimming to ${r.dimTo}% between` : '';
-  return `Flash ×${r.count}, every ${beatsLabel(r.beats)} at ${r.bpm} BPM (${flashGap(r).toFixed(3)}s apart), ${on}${dim}`;
+  const shape = cue.outFade ? `, ${cue.transition === 'fade' ? 'fading up' : 'snapping up'} and easing out over ${cue.outFade}s` : '';
+  return `Flash ×${r.count}, every ${beatsLabel(r.beats)} at ${r.bpm} BPM (${flashGap(r).toFixed(3)}s apart), ${on}${dim}${shape}`;
 }
 
 // More than three flashes a second is the common photosensitivity limit.
@@ -269,9 +270,15 @@ export function normalizeCue(raw) {
 // A flash run owns its own timing, so it drops End; Off cues can't flash.
 // outFade: how long the lights take to go out at End, independent of how
 // the cue came on (a hit that snaps on and fades away). null = same as on.
+function outFadeOf(raw) {
+  const out = Number(raw.outFade);
+  return raw.outFade !== null && raw.outFade !== undefined && raw.outFade !== '' && Number.isFinite(out) && out >= 0 ? Math.min(round2(out), 30) : null;
+}
+
 function flashFields(raw, end) {
   const repeat = raw.action === 'off' ? null : normalizeRepeat(raw.repeat);
-  if (repeat) return { repeat, end: null, outFade: null };
+  // A run keeps outFade as how each flash eases out (snap up, ease down).
+  if (repeat) return { repeat, end: null, outFade: outFadeOf(raw) };
   const out = Number(raw.outFade);
   const hasOut = end !== null && raw.outFade !== null && raw.outFade !== undefined && raw.outFade !== '' && Number.isFinite(out) && out >= 0;
   return { repeat: null, end: end === null ? null : round2(end), outFade: hasOut ? Math.min(round2(out), 30) : null };
@@ -430,7 +437,7 @@ function pushFlashes(events, c, order, dur, level) {
     }
     events.push({ at, dur: d, targets, cue: c.id, order, kind: 'go' });
     if (c.repeat.onFrac < 1) {
-      events.push({ at: at + onFor, dur: d, cue: c.id, order, kind: 'out', targets: c.lights.map((l) => ({ light: l, level: low, color: null })) });
+      events.push({ at: at + onFor, dur: c.outFade ?? d, cue: c.id, order, kind: 'out', targets: c.lights.map((l) => ({ light: l, level: low, color: null })) });
     }
   });
 }

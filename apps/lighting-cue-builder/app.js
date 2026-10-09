@@ -857,7 +857,7 @@ function readForm() {
     : null;
   if (d.repeat) d.end = null;
   const of = $('fOutFade').value.trim();
-  d.outFade = d.end !== null && of !== '' && Number(of) >= 0 ? Math.min(30, Math.round(Number(of) * 100) / 100) : null;
+  d.outFade = (d.end !== null || d.repeat) && of !== '' && Number(of) >= 0 ? Math.min(30, Math.round(Number(of) * 100) / 100) : null;
   syncFormUi();
   dirtyStage = true;
 }
@@ -871,7 +871,7 @@ function syncFlashUi() {
   $('fEnd').disabled = on;
   $('fEndNow').disabled = on;
   // Fade-out only means something once there's an End to fade out at.
-  $('outFadeWrap').hidden = on || d.end === null;
+  $('outFadeWrap').hidden = !on && d.end === null;
   $('fAltColor').disabled = !$('fAlt').checked;
   if (!on || !d.repeat) { $('flashWarn').hidden = true; $('flashSummary').textContent = ''; return; }
   const r = d.repeat;

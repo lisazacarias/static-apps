@@ -528,3 +528,17 @@ test('option groups: the primary plays, a pick swaps it, the sheet lists the bac
   assert.equal(back.cues.find((c) => c.id === 'f1').option.choice, 'Fade');
   assert.equal(normalizeCue({ time: 1, lights: [1] }).option, null);
 });
+
+test('a flash run can snap up and ease out at its own speed', () => {
+  const c = normalizeCue({ time: 10, lights: [1], transition: 'sharp', outFade: 0.4,
+    repeat: { bpm: 120, beats: 1, count: 3, onFrac: 0.25, dimTo: 35 } });
+  // gap 0.5s: snap to full on the beat, bright 0.125s, then ease to 35% over 0.4s
+  const lv = (t) => stateAt([c], t).lights[1].level;
+  assert.equal(lv(10), 1, 'full exactly on the beat');
+  assert.equal(lv(10.12), 1);
+  assert.ok(Math.abs(lv(10.325) - 0.675) < 1e-9, 'halfway down');
+  assert.ok(Math.abs(lv(10.499) - (1 - 0.65 * (0.374 / 0.4))) < 1e-6);
+  assert.equal(lv(10.5), 1, 'next beat snaps back up');
+  assert.match(cueSheet({ cues: [c] }), /snapping up and easing out over 0\.4s/);
+  assert.equal(normalizePlan(JSON.parse(JSON.stringify(serializePlan({ cues: [c] })))).cues[0].outFade, 0.4);
+});
