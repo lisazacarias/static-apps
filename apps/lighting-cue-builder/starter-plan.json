@@ -1224,7 +1224,8 @@
         "count": 8,
         "onFrac": 0.25,
         "altColor": null,
-        "dimTo": 35
+        "dimTo": 35,
+        "keepColor": false
       },
       "option": null,
       "updatedAt": 1791598200000
@@ -1301,7 +1302,8 @@
         "count": 8,
         "onFrac": 0.5,
         "altColor": null,
-        "dimTo": 0
+        "dimTo": 0,
+        "keepColor": false
       },
       "option": null,
       "updatedAt": 1791596400000
@@ -1351,7 +1353,8 @@
         "count": 8,
         "onFrac": 0.5,
         "altColor": null,
-        "dimTo": 0
+        "dimTo": 0,
+        "keepColor": false
       },
       "option": null,
       "updatedAt": 1791596400000
@@ -1628,6 +1631,84 @@
       "repeat": null,
       "option": null,
       "updatedAt": 1791598200000
+    },
+    {
+      "id": "victory-pulse-1",
+      "time": 186.05,
+      "end": null,
+      "outFade": 0.5,
+      "lights": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#ffffff",
+      "colorName": "",
+      "level": 100,
+      "transition": "fade",
+      "fade": 0.12,
+      "othersOff": false,
+      "note": "Victory: gentle swell on the 1 of each bar (guitar), brightness only, resting at 70%",
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 4,
+        "count": 6,
+        "onFrac": 0.25,
+        "altColor": null,
+        "dimTo": 70,
+        "keepColor": true
+      },
+      "option": null,
+      "updatedAt": 1791600000000
+    },
+    {
+      "id": "victory-pulse-2and",
+      "time": 186.91,
+      "end": null,
+      "outFade": 0.5,
+      "lights": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#ffffff",
+      "colorName": "",
+      "level": 100,
+      "transition": "fade",
+      "fade": 0.12,
+      "othersOff": false,
+      "note": "Victory: gentle swell on the \"and a\" of 2 (guitar), brightness only",
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 4,
+        "count": 6,
+        "onFrac": 0.25,
+        "altColor": null,
+        "dimTo": 70,
+        "keepColor": true
+      },
+      "option": null,
+      "updatedAt": 1791600000000
     }
   ]
 }
