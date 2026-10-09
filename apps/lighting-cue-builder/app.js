@@ -2,6 +2,8 @@ import {
   GROUPS, ALL_LIGHTS, PRESETS, groupOf, formatTime, parseTime, blankCue, sortCues,
   normalizePlan, serializePlan, stateAt, cueSheet, lightsLabel, colorLabel,
   transitionLabel, encodeShare, decodeShare, DEFAULT_FADE,
+  DEFAULT_TEMPO, normalizeTempo, parseStart, formatStart, normalizeSection,
+  sectionStart, sortSections, sectionAt, parseSectionLines, timeToBar,
 } from './cues.js';
 
 // localStorage is shared by every app on the Pages origin — keep the prefix.
@@ -33,7 +35,7 @@ const DRAW_ORDER = [11, 1, 2, 4, 5, 6, 8, 9, 12, 3, 7, 10];
 
 /* ── state ───────────────────────────────────────────────────────────── */
 
-let plan = loadPlan();          // { title, audio:{name,duration}, cues }
+let plan = loadPlan();          // { title, audio:{name,duration}, cues, tempo, sections }
 let ownPlan = null;             // stashed while viewing a shared link
 let viewingShared = false;
 let presenting = false;
@@ -57,7 +59,15 @@ function loadPlan() {
     const raw = localStorage.getItem(STORE_KEY);
     if (raw) return normalizePlan(JSON.parse(raw));
   } catch { /* fall through to an empty plan */ }
-  return { title: '', audio: { name: '', duration: null }, cues: [] };
+  return emptyPlan();
+}
+
+function emptyPlan() {
+  return { title: '', audio: { name: '', duration: null }, cues: [], tempo: { ...DEFAULT_TEMPO }, sections: [] };
+}
+
+function planFrom(p) {
+  return { title: p.title, audio: p.audio, cues: p.cues, tempo: normalizeTempo(p.tempo), sections: p.sections || [] };
 }
 
 function savePlan() {
@@ -72,7 +82,9 @@ function savePlan() {
 
 function commit() {
   plan.cues = sortCues(plan.cues);
+  plan.sections = sortSections(plan.sections, plan.tempo);
   savePlan();
+  renderSections();
   renderCueList();
   dirtyStage = dirtyWave = true;
 }
@@ -126,6 +138,7 @@ function notify(msg, { error = false, withUndo = false, sticky = false } = {}) {
     b.onclick = () => {
       plan = undo.plan; undo = null;
       $('title').value = plan.title;
+      syncTempoInputs();
       commit();
       notify('Undone.');
     };
@@ -316,6 +329,19 @@ function drawWave(cv, t0, t1, { ticks = false, labels = false } = {}) {
     g.fillRect(px, mid - hh, step, hh * 2);
   }
 
+  sortSections(plan.sections, plan.tempo).forEach((sec, i) => {
+    const st = sectionStart(sec, plan.tempo);
+    if (st < t0 || st > t1) return;
+    const sx = Math.round(x(st));
+    g.fillStyle = sectionColor(i);
+    g.fillRect(sx, 0, Math.max(1, dpr), h);
+    g.fillRect(sx, 0, 6 * dpr, 3 * dpr);
+    if (labels) {
+      g.font = `${10 * dpr}px "Mulish", sans-serif`;
+      g.fillText(sec.name || 'Section', sx + 4 * dpr, 22 * dpr);
+    }
+  });
+
   for (const [i, c] of sortCues(plan.cues).entries()) {
     const marks = [[c.time, true]];
     if (c.end !== null) marks.push([c.end, false]);
@@ -477,6 +503,12 @@ function frame() {
     const st = stateAt(previewCues(), pt);
     renderStage(st, editing ? new Set(editing.draft.lights) : null);
     $('timeNow').textContent = formatTime(t);
+    const sec = sectionAt(plan.sections, plan.tempo, t);
+    const secLabel = sec ? `▸ ${sec.name || 'Untitled section'}` : '';
+    if ($('sectionNow').textContent !== secLabel) {
+      $('sectionNow').textContent = secLabel;
+      document.querySelectorAll('.sec-row').forEach((r) => r.classList.toggle('is-current', r.dataset.id === sec?.id));
+    }
     $('addCueTime').textContent = formatTime(t);
     const live = editing ? stateAt(plan.cues, t) : st;
     if (live.activeCue !== lastActive) {
@@ -535,7 +567,21 @@ function renderCueList() {
       list.append(e);
       continue;
     }
+    let shownSec = null;
     sorted.forEach((c, i) => {
+      const sec = sectionAt(plan.sections, plan.tempo, c.time);
+      if (sec && sec !== shownSec) {
+        shownSec = sec;
+        const h = document.createElement('div');
+        h.className = 'cue-section-head';
+        const n = document.createElement('span');
+        n.textContent = sec.name || 'Untitled section';
+        const at = document.createElement('span');
+        at.className = 'at';
+        at.textContent = `from ${formatTime(sectionStart(sec, plan.tempo))}`;
+        h.append(n, at);
+        list.append(h);
+      }
       const row = document.createElement('div');
       row.className = 'cue';
       const { what, how } = describe(c);
@@ -662,6 +708,7 @@ function closeEditor() {
 
 function syncFormUi() {
   const d = editing.draft;
+  syncEditorSection();
   $('fadeLenWrap').hidden = d.transition !== 'fade';
   for (const id of ['colorField', 'levelField']) {
     $(id).classList.toggle('is-disabled', d.action === 'off');
@@ -692,6 +739,11 @@ function readForm() {
   d.note = $('fNote').value.trim();
   syncFormUi();
   dirtyStage = true;
+}
+
+function syncEditorSection() {
+  const sec = editing && sectionAt(plan.sections, plan.tempo, editing.draft.time);
+  $('fSection').textContent = sec ? `In ${sec.name || 'untitled section'}.` : '';
 }
 
 function validate() {
@@ -796,6 +848,112 @@ document.addEventListener('keydown', (e) => {
   else if (k === ']') jumpCue(1);
 });
 
+/* ── sections ────────────────────────────────────────────────────────── */
+
+const SECTION_COLORS = ['#d4a96a', '#7dbfa0', '#8fb4d4', '#c2747a', '#b79cff', '#e8b4b6'];
+function sectionColor(i) { return SECTION_COLORS[i % SECTION_COLORS.length]; }
+
+function syncTempoInputs() {
+  $('tempoBpm').value = plan.tempo.bpm;
+  $('tempoBpb').value = plan.tempo.beatsPerBar;
+}
+
+function onTempoChange() {
+  if (viewingShared) return;
+  plan.tempo = normalizeTempo({ bpm: $('tempoBpm').value, beatsPerBar: $('tempoBpb').value });
+  commit();
+}
+$('tempoBpm').addEventListener('change', onTempoChange);
+$('tempoBpb').addEventListener('change', onTempoChange);
+
+function renderSections() {
+  const list = $('sectionList');
+  list.replaceChildren();
+  const secs = sortSections(plan.sections, plan.tempo);
+  if (!secs.length) {
+    const e = document.createElement('div');
+    e.className = 'section-empty';
+    e.textContent = 'No sections yet. Add one at the playhead, or paste a list.';
+    list.append(e);
+  }
+  secs.forEach((sec, i) => {
+    const row = document.createElement('div');
+    row.className = 'sec-row';
+    row.dataset.id = sec.id;
+    row.innerHTML = `
+      <span class="sec-dot"></span>
+      <input class="sec-name" type="text" maxlength="60" placeholder="Song name" aria-label="Section name">
+      <input class="sec-start" type="text" aria-label="Section start (time or bar)" title="A time like 1:23.4, or a bar like b15">
+      <button class="sec-at" type="button" title="Jump here"></button>
+      <button class="btn small sec-now" type="button" title="Move this section to the playhead">⌖</button>
+      <button class="btn small danger sec-del" type="button" aria-label="Delete section">✕</button>`;
+    row.querySelector('.sec-dot').style.background = sectionColor(i);
+    const name = row.querySelector('.sec-name');
+    name.value = sec.name;
+    // Typing a name only saves — re-rendering would steal focus mid-word.
+    name.addEventListener('input', () => { sec.name = name.value.trim(); savePlan(); dirtyWave = true; });
+    name.addEventListener('change', () => commit());
+    const start = row.querySelector('.sec-start');
+    start.value = formatStart(sec);
+    start.addEventListener('change', () => {
+      const parsed = parseStart(start.value);
+      if (!parsed) { start.classList.add('is-bad'); return; }
+      Object.assign(sec, normalizeSection({ ...sec, ...parsed }));
+      commit();
+    });
+    const at = row.querySelector('.sec-at');
+    at.textContent = formatTime(sectionStart(sec, plan.tempo), 1);
+    at.onclick = () => seek(sectionStart(sec, plan.tempo));
+    row.querySelector('.sec-now').onclick = () => {
+      // Keep the section in bars if it was in bars, so tempo edits still move it.
+      const t = now();
+      Object.assign(sec, sec.bar !== null
+        ? { bar: Math.round(timeToBar(t, plan.tempo) * 100) / 100, time: null }
+        : { time: Math.round(t * 100) / 100 });
+      commit();
+    };
+    row.querySelector('.sec-del').onclick = () => {
+      snapshot('delete section');
+      plan.sections = plan.sections.filter((x) => x.id !== sec.id);
+      commit();
+      notify(`Deleted section “${sec.name || 'untitled'}”.`, { withUndo: true });
+    };
+    list.append(row);
+  });
+  dirtyWave = true;
+}
+
+$('addSection').onclick = () => {
+  plan.sections.push(normalizeSection({ name: '', time: Math.round(now() * 100) / 100 }));
+  commit();
+  const rows = [...document.querySelectorAll('.sec-row')];
+  const fresh = rows.find((r) => r.querySelector('.sec-name').value === '');
+  fresh?.querySelector('.sec-name').focus();
+};
+
+$('pasteSections').onclick = () => {
+  $('pasteError').hidden = true;
+  $('pasteDialog').showModal();
+};
+$('pasteCancel').onclick = () => $('pasteDialog').close();
+function pasteApply(replace) {
+  const { sections, bad } = parseSectionLines($('pasteText').value);
+  if (bad.length) {
+    $('pasteError').textContent = `Couldn't read line${bad.length === 1 ? '' : 's'} ${bad.join(', ')}. Each line needs a start (1:23.4 or b15), then a name.`;
+    $('pasteError').hidden = false;
+    return;
+  }
+  if (!sections.length) { $('pasteDialog').close(); return; }
+  snapshot('sections');
+  plan.sections = replace ? sections : [...plan.sections, ...sections];
+  $('pasteDialog').close();
+  $('pasteText').value = '';
+  commit();
+  notify(`${replace ? 'Set' : 'Added'} ${sections.length} section${sections.length === 1 ? '' : 's'}.`, { withUndo: true });
+}
+$('pasteAdd').onclick = () => pasteApply(false);
+$('pasteReplace').onclick = () => pasteApply(true);
+
 /* ── title ───────────────────────────────────────────────────────────── */
 
 $('title').addEventListener('input', () => {
@@ -845,7 +1003,8 @@ $('importJson').addEventListener('change', async (e) => {
 
 function adopt(incoming, msg) {
   snapshot('import');
-  plan = { title: incoming.title, audio: incoming.audio, cues: incoming.cues };
+  plan = planFrom(incoming);
+  syncTempoInputs();
   if (audioName) plan.audio = { name: audioName, duration: Math.round(duration() * 100) / 100 };
   $('title').value = plan.title;
   commit();
@@ -911,7 +1070,7 @@ async function openSharedFromHash() {
   try {
     const shared = await decodeShare(token);
     ownPlan = plan;
-    plan = { title: shared.title, audio: shared.audio, cues: shared.cues };
+    plan = planFrom(shared);
     viewingShared = true;
     $('sharedBanner').hidden = false;
     $('title').value = plan.title;
@@ -933,7 +1092,9 @@ function leaveShared() {
   $('sharedBanner').hidden = true;
   $('title').readOnly = false;
   $('title').value = plan.title;
+  syncTempoInputs();
   setPresenting(false);
+  renderSections();
   renderCueList();
   dirtyStage = dirtyWave = true;
 }
@@ -963,6 +1124,8 @@ async function boot() {
   document.body.classList.add('edit-mode');
   $('title').value = plan.title;
   const shared = await openSharedFromHash();
+  syncTempoInputs();
+  renderSections();
   renderCueList();
   showExpectedAudio();
   if (!shared) savePlan();

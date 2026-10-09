@@ -186,3 +186,64 @@ test('plans saved before intensity existed load at full', () => {
   assert.deepEqual(p.cues.map((c) => c.level), [100, 100, 100]);
   assert.equal(normalizePlan({ cues: [{ time: 1, lights: [3], level: 33.4 }] }).cues[0].level, 33);
 });
+
+import { barToTime, timeToBar, parseStart, parseSectionLines, sectionAt, normalizeTempo } from '../cues.js';
+
+test('bars convert to time at the project tempo', () => {
+  const t120 = { bpm: 120, beatsPerBar: 4 };
+  assert.equal(barToTime(1, t120), 0);
+  assert.equal(barToTime(9, t120), 16);
+  assert.equal(barToTime(9, { bpm: 96, beatsPerBar: 4 }), 20);
+  assert.equal(barToTime(4, { bpm: 90, beatsPerBar: 3 }), 6);
+  assert.ok(Math.abs(timeToBar(barToTime(14.85, t120), t120) - 14.85) < 1e-9);
+  assert.deepEqual(normalizeTempo({ bpm: 'x', beatsPerBar: 99 }), { bpm: 120, beatsPerBar: 4 });
+});
+
+test('a section start is a bar or a time', () => {
+  assert.deepEqual(parseStart('b15'), { bar: 15, time: null });
+  assert.deepEqual(parseStart('bar 14.85'), { bar: 14.85, time: null });
+  assert.deepEqual(parseStart('20b'), { bar: 20, time: null });
+  assert.deepEqual(parseStart('1:17.6'), { bar: null, time: 77.6 });
+  assert.equal(parseStart('b0'), null);
+  assert.equal(parseStart('soon'), null);
+});
+
+test('a pasted list becomes sections, flagging lines it cannot read', () => {
+  const { sections, bad } = parseSectionLines('# from GarageBand\nb1 Theme\n\nb14.85 - Rustage intro\n0:37.4: Raven solo\nwhenever Slade');
+  assert.deepEqual(sections.map((s) => [s.name, s.bar, s.time]), [
+    ['Theme', 1, null], ['Rustage intro', 14.85, null], ['Raven solo', null, 37.4],
+  ]);
+  assert.deepEqual(bad, [6]);
+  // A name starting with "b" after a time isn't a bar marker.
+  assert.deepEqual(parseSectionLines('120 Battle').sections.map((x) => [x.name, x.time]), [['Battle', 120]]);
+});
+
+test('sectionAt finds the song playing, and bar sections follow tempo', () => {
+  const secs = parseSectionLines('b1 A\nb11 B\n0:30 C').sections;
+  const t = { bpm: 120, beatsPerBar: 4 };
+  assert.equal(sectionAt(secs, t, 19.9).name, 'A');
+  assert.equal(sectionAt(secs, t, 20).name, 'B');
+  assert.equal(sectionAt(secs, t, 31).name, 'C');
+  // Slower tempo pushes bar 11 past the 0:30 section.
+  assert.equal(sectionAt(secs, { bpm: 60, beatsPerBar: 4 }, 31).name, 'C');
+  assert.equal(sectionAt(secs, { bpm: 60, beatsPerBar: 4 }, 41).name, 'B');
+  assert.equal(sectionAt([], t, 5), null);
+});
+
+test('sections survive export/import and head their cues on the sheet', () => {
+  const plan = {
+    title: '', audio: {}, tempo: { bpm: 120, beatsPerBar: 4 },
+    sections: parseSectionLines('b1 Theme intro\nb11 Raven solo').sections,
+    cues: [cue({ time: 2, lights: [3] }), cue({ time: 25, lights: [7] })],
+  };
+  const back = normalizePlan(JSON.parse(JSON.stringify(serializePlan(plan))));
+  assert.deepEqual(back.sections.map((s) => s.name), ['Theme intro', 'Raven solo']);
+  assert.equal(back.sections[1].bar, 11);
+  const text = cueSheet(back);
+  const a = text.indexOf('— Theme intro (from 0:00.0) —');
+  const b = text.indexOf('— Raven solo (from 0:20.0) —');
+  assert.ok(a > 0 && b > a, text);
+  assert.ok(text.indexOf('0:25.0') > b);
+  // Old exports with no sections still load.
+  assert.deepEqual(normalizePlan({ cues: [] }).sections, []);
+});

@@ -14,6 +14,19 @@ scrub anywhere and check the plan.
    previews the cue as you edit; click lights on the stage to toggle them.
 4. Cues autosave to `localStorage` under `lighting-cue-builder:plan`.
 
+## Sections
+
+Sections mark where each song in the mix starts. They show on both waveforms,
+under the clock while you play, as headings in the cue list, and on the cue
+sheet. A start can be a time (`1:23.4`) or a GarageBand bar (`b15`). Bar
+starts are converted using the tempo field, so set it to the project's tempo
+(GarageBand's display shows it). **Paste a list…** takes one section per line,
+e.g. `b14.85 Rustage intro`.
+
+Converting bars assumes the export starts at bar 1 and the project keeps one
+tempo throughout. Use ⌖ on a row to move a section to the playhead once you've
+found the real change by ear.
+
 ## What a cue means
 
 - **Start** is the GO. **End** is optional: the cue's lights go out there with

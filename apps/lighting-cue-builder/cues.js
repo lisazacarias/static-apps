@@ -176,6 +176,8 @@ export function normalizePlan(raw) {
     cues.push(c);
   }
   const audio = raw.audio && typeof raw.audio === 'object' ? raw.audio : {};
+  const tempo = normalizeTempo(raw.tempo);
+  const sections = (Array.isArray(raw.sections) ? raw.sections : []).map(normalizeSection).filter(Boolean);
   return {
     title: typeof raw.title === 'string' ? raw.title.slice(0, 120) : '',
     audio: {
@@ -183,11 +185,13 @@ export function normalizePlan(raw) {
       duration: Number.isFinite(audio.duration) ? audio.duration : null,
     },
     cues: sortCues(cues),
+    tempo,
+    sections: sortSections(sections, tempo),
     skipped: list.length - cues.length,
   };
 }
 
-export function serializePlan({ title, audio, cues }) {
+export function serializePlan({ title, audio, cues, tempo, sections }) {
   return {
     app: 'lighting-cue-builder',
     version: 1,
@@ -195,6 +199,8 @@ export function serializePlan({ title, audio, cues }) {
     audio: { name: audio?.name || '', duration: audio?.duration ?? null },
     exportedAt: new Date().toISOString(),
     lights: GROUPS.map((g) => ({ group: g.id, lights: g.lights })),
+    tempo: normalizeTempo(tempo),
+    sections: sortSections(sections || [], tempo).map(({ id, name, bar, time }) => ({ id, name, bar, time })),
     cues: sortCues(cues).map(({ id, time, end, lights, action, color, colorName, level, transition, fade, othersOff, note }) =>
       ({ id, time, end, lights, action, color, colorName, level, transition, fade, othersOff, note })),
   };
@@ -265,6 +271,98 @@ export function stateAt(cues, t) {
   return { lights, activeCue };
 }
 
+/* ── sections ─────────────────────────────────────────────────────────── */
+
+// Sections mark where each song in the mix starts. A section is placed
+// either by time or by bar — bars because that's what GarageBand's ruler
+// shows. A bar-placed section moves with the tempo setting.
+// CHECK: assumes the exported audio starts at bar 1 with no lead-in, and
+// that the project uses one tempo and time signature throughout.
+
+export const DEFAULT_TEMPO = { bpm: 120, beatsPerBar: 4 };
+
+export function normalizeTempo(raw) {
+  const bpm = Number(raw?.bpm);
+  const bpb = Math.round(Number(raw?.beatsPerBar));
+  return {
+    bpm: Number.isFinite(bpm) && bpm >= 20 && bpm <= 400 ? Math.round(bpm * 100) / 100 : DEFAULT_TEMPO.bpm,
+    beatsPerBar: Number.isFinite(bpb) && bpb >= 1 && bpb <= 16 ? bpb : DEFAULT_TEMPO.beatsPerBar,
+  };
+}
+
+export function barToTime(bar, tempo) {
+  const { bpm, beatsPerBar } = normalizeTempo(tempo);
+  return ((bar - 1) * beatsPerBar * 60) / bpm;
+}
+
+export function timeToBar(time, tempo) {
+  const { bpm, beatsPerBar } = normalizeTempo(tempo);
+  return 1 + (time * bpm) / (60 * beatsPerBar);
+}
+
+// "b15", "bar 15.5", "15.5b" → { bar }. "1:23.4", "83.4" → { time }.
+export function parseStart(text) {
+  const t = String(text ?? '').trim();
+  const m = t.match(/^(?:b(?:ar)?\s*(\d+(?:\.\d+)?)|(\d+(?:\.\d+)?)\s*b(?:ar)?)$/i);
+  if (m) {
+    const bar = Number(m[1] ?? m[2]);
+    return bar >= 1 ? { bar, time: null } : null;
+  }
+  const time = parseTime(t);
+  return time === null ? null : { bar: null, time };
+}
+
+export function formatStart(sec) {
+  return sec.bar !== null && sec.bar !== undefined ? `b${Math.round(sec.bar * 100) / 100}` : formatTime(sec.time);
+}
+
+export function normalizeSection(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const bar = Number(raw.bar);
+  const hasBar = raw.bar !== null && raw.bar !== undefined && Number.isFinite(bar) && bar >= 1;
+  const time = hasBar ? null : parseTime(raw.time);
+  if (!hasBar && time === null) return null;
+  return {
+    id: typeof raw.id === 'string' && raw.id ? raw.id : newId(),
+    name: typeof raw.name === 'string' ? raw.name.slice(0, 60) : '',
+    bar: hasBar ? Math.round(bar * 100) / 100 : null,
+    time: hasBar ? null : round2(time),
+  };
+}
+
+export function sectionStart(sec, tempo) {
+  return sec.bar !== null ? barToTime(sec.bar, tempo) : sec.time;
+}
+
+export function sortSections(sections, tempo) {
+  return [...sections].sort((a, b) => sectionStart(a, tempo) - sectionStart(b, tempo));
+}
+
+// The section playing at time t, or null before the first one.
+export function sectionAt(sections, tempo, t) {
+  let hit = null;
+  for (const s of sortSections(sections, tempo)) {
+    if (sectionStart(s, tempo) <= t + 1e-6) hit = s; else break;
+  }
+  return hit;
+}
+
+// One section per line: a start, then a name. "b14.85 Rustage intro",
+// "0:37.4 - Raven solo". Blank lines and lines starting with # are skipped.
+export function parseSectionLines(text) {
+  const sections = [];
+  const bad = [];
+  String(text ?? '').split(/\r?\n/).forEach((line, i) => {
+    const l = line.trim();
+    if (!l || l.startsWith('#')) return;
+    const m = l.match(/^(b(?:ar)?\s*\d+(?:\.\d+)?|\d+(?:\.\d+)?\s*b(?:ar)?(?![a-z])|(?:\d+:)?\d+(?:\.\d+)?)\s*[-–—:|]?\s*(.*)$/i);
+    const start = m && parseStart(m[1]);
+    if (!start) { bad.push(i + 1); return; }
+    sections.push(normalizeSection({ ...start, name: m[2].trim() }));
+  });
+  return { sections, bad };
+}
+
 /* ── readable cue sheet ───────────────────────────────────────────────── */
 
 export function lightsLabel(lights) {
@@ -294,8 +392,9 @@ function pad(s, n) {
   return s.length >= n ? s + ' ' : s + ' '.repeat(n - s.length);
 }
 
-export function cueSheet({ title, audio, cues }) {
+export function cueSheet({ title, audio, cues, tempo, sections = [] }) {
   const sorted = sortCues(cues);
+  const secs = sortSections(sections, tempo);
   const rows = sorted.map((c, i) => {
     const time = c.end !== null ? `${formatTime(c.time, 1)}–${formatTime(c.end, 1)}` : formatTime(c.time, 1);
     const color = c.action === 'off' ? '—' : `${colorLabel(c)} ${c.color.toUpperCase()}`;
@@ -322,7 +421,21 @@ export function cueSheet({ title, audio, cues }) {
   out.push('');
   out.push(line(head));
   out.push(line(head.map((h, i) => '-'.repeat(Math.max(h.length, (widths[i] || 12) - 2)))));
-  rows.forEach((r) => out.push(line(r)));
+  let shown = null;
+  rows.forEach((r, i) => {
+    const sec = sectionAt(secs, tempo, sorted[i].time);
+    if (sec && sec !== shown) {
+      out.push('');
+      out.push(`— ${sec.name || 'Untitled section'} (from ${formatTime(sectionStart(sec, tempo), 1)}) —`);
+      shown = sec;
+    }
+    out.push(line(r));
+  });
+  if (secs.length) {
+    out.push('');
+    out.push('SECTIONS');
+    for (const s of secs) out.push(`  ${formatTime(sectionStart(s, tempo), 1)}  ${s.name || 'Untitled section'}`);
+  }
   return out.join('\n') + '\n';
 }
 

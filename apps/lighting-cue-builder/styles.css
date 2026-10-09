@@ -350,3 +350,28 @@ body.presenting .title-input { pointer-events: none; border-bottom-color: transp
 .level-num input { width: 68px; font-family: var(--font-mono); }
 #levelField.is-disabled { opacity: 0.4; }
 #levelField .quick { margin: 8px 0 0; }
+
+/* ── sections ── */
+.side { display: grid; gap: 16px; min-width: 0; }
+.section-now { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em; color: var(--gold); min-height: 18px; margin: -4px 0 8px; }
+.sections-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.tempo { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+.tempo input { width: 64px; padding: 3px 6px; font-family: var(--font-mono); font-size: 12px; }
+.tempo #tempoBpb { width: 44px; }
+.sections-panel code { font-family: var(--font-mono); font-size: 11px; color: var(--text-label); }
+.section-list { display: grid; gap: 4px; margin: 10px 0; }
+.sec-row { display: grid; grid-template-columns: 14px minmax(0, 1fr) 76px 58px auto auto; gap: 6px; align-items: center; }
+.sec-row.is-current .sec-name { border-color: var(--gold); }
+.sec-dot { width: 10px; height: 10px; border-radius: 2px; }
+.sec-row input { padding: 4px 6px; font-size: 12px; min-width: 0; }
+.sec-start { font-family: var(--font-mono); }
+.sec-start.is-bad { border-color: var(--hot); }
+.sec-at { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); background: none; border: 0; padding: 0; text-align: left; cursor: pointer; }
+.sec-at:hover { color: var(--blue); text-decoration: underline; }
+.section-empty { font-size: 12px; color: var(--text-muted); padding: 8px 0; }
+.section-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.cue-section-head { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); padding: 10px 2px 2px; display: flex; gap: 10px; }
+.cue-section-head .at { color: var(--text-muted); }
+.paste-dialog { width: min(640px, calc(100vw - 24px)); }
+.paste-text { height: 40vh; }
+#fSection { color: var(--gold); margin-right: 8px; }

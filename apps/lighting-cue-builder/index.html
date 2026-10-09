@@ -81,6 +81,7 @@
             </div>
         </section>
 
+        <div class="side">
         <!-- ── Player ──────────────────────────────────────────────── -->
         <section class="panel player-panel" aria-label="Audio">
             <div id="audioEmpty" class="drop">
@@ -100,6 +101,7 @@
                     <span id="timeNow" class="time-now">0:00.00</span>
                     <span class="time-total">/ <span id="timeTotal">0:00.00</span></span>
                 </div>
+                <div id="sectionNow" class="section-now"></div>
 
                 <div class="wave-wrap" id="waveWrap" title="Click or drag to scrub">
                     <canvas id="wave" class="wave"></canvas>
@@ -146,6 +148,24 @@
                 <p class="keys muted tiny edit-only">Keys: <kbd>Space</kbd> play · <kbd>←</kbd><kbd>→</kbd> 0.1s · <kbd>Shift</kbd>+arrows 1s · <kbd>L</kbd> loop · <kbd>C</kbd> add cue · <kbd>[</kbd><kbd>]</kbd> prev/next cue</p>
             </div>
         </section>
+
+        <!-- ── Sections ────────────────────────────────────────────── -->
+        <section class="panel sections-panel edit-only" aria-label="Sections">
+            <div class="sections-head">
+                <span class="label">Sections · where each song starts</span>
+                <span class="tempo">
+                    <label>Tempo <input id="tempoBpm" type="number" min="20" max="400" step="0.01" value="120" aria-label="Tempo in BPM"></label> BPM ·
+                    <input id="tempoBpb" type="number" min="1" max="16" step="1" value="4" aria-label="Beats per bar"> / bar
+                </span>
+            </div>
+            <p class="muted tiny">Type a time (<code>1:23.4</code>) or a GarageBand bar (<code>b15</code>). Bar positions follow the tempo, so set it to your project's tempo.</p>
+            <div id="sectionList" class="section-list"></div>
+            <div class="section-actions">
+                <button id="addSection" class="btn small" type="button">+ Section at playhead</button>
+                <button id="pasteSections" class="btn small" type="button">Paste a list…</button>
+            </div>
+        </section>
+        </div>
     </div>
 
     <!-- ── Cue list ────────────────────────────────────────────────── -->
@@ -176,7 +196,7 @@
     <form id="cueForm" method="dialog">
         <div class="editor-head">
             <h3 id="editorTitle">New cue</h3>
-            <span class="muted tiny">Stage shows this cue live while you edit.</span>
+            <span class="muted tiny"><span id="fSection"></span>Stage shows this cue live while you edit.</span>
         </div>
 
         <div class="row two">
@@ -282,6 +302,24 @@
         <button type="button" class="btn" id="sheetClose">Close</button>
         <button type="button" class="btn" id="sheetDownload">Download .txt</button>
         <button type="button" class="btn primary-btn" id="sheetCopy">Copy to clipboard</button>
+    </div>
+</dialog>
+
+<!-- ── Paste sections ──────────────────────────────────────────────── -->
+<dialog id="pasteDialog" class="editor sheet-dialog paste-dialog" aria-labelledby="pasteTitle">
+    <div class="editor-head">
+        <h3 id="pasteTitle">Paste sections</h3>
+        <span class="muted tiny">One per line: a start, then a name. Lines starting with # are ignored.</span>
+    </div>
+    <textarea id="pasteText" class="sheet-text paste-text" spellcheck="false" placeholder="b1 Theme song intro
+b14.85 Rustage intro
+1:17.6 Starfire solo"></textarea>
+    <p id="pasteError" class="error" hidden></p>
+    <div class="editor-actions">
+        <span class="spacer"></span>
+        <button type="button" class="btn" id="pasteCancel">Cancel</button>
+        <button type="button" class="btn" id="pasteAdd">Add to sections</button>
+        <button type="button" class="btn primary-btn" id="pasteReplace">Replace sections</button>
     </div>
 </dialog>
 
