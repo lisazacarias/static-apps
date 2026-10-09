@@ -484,4 +484,8 @@ test('the shipped show plan loads cleanly', () => {
   assert.equal(at(100)[7].level, 0);
   assert.equal(at(100)[10].level, 1);
   assert.ok(ALL_LIGHTS.every((l) => at(117.75)[l].level === 0));
+  // everyone else is lit through each solo; only the other dancer is dark
+  assert.ok(ALL_LIGHTS.filter((l) => l !== 10).every((l) => at(60)[l].level === 1));
+  assert.ok(ALL_LIGHTS.filter((l) => l !== 7).every((l) => at(100)[l].level === 1));
+  assert.equal(at(100)[10].color, '#858ac2', 'her loops in lavender');
 });

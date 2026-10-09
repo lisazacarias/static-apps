@@ -844,9 +844,6 @@
       "end": 37.56,
       "outFade": 0.54,
       "lights": [
-        3,
-        5,
-        9,
         10
       ],
       "action": "on",
@@ -856,15 +853,37 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Rustage hit 14/14 — solo starts",
+      "note": "Rustage hit 14/14 — loops flash out; solo look holds",
       "repeat": null,
-      "updatedAt": 1791586200000
+      "updatedAt": 1791586800000
     },
     {
-      "id": "rustage-hit14-lav",
+      "id": "raven-solo-lime",
       "time": 37.52,
-      "end": 37.56,
-      "outFade": 0.54,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        3,
+        5,
+        7,
+        9
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Raven solo: all on but the loops (10); pole 7 lime",
+      "repeat": null,
+      "updatedAt": 1791586800000
+    },
+    {
+      "id": "raven-solo-lav",
+      "time": 37.52,
+      "end": null,
+      "outFade": null,
       "lights": [
         1,
         2,
@@ -883,45 +902,7 @@
       "othersOff": false,
       "note": "",
       "repeat": null,
-      "updatedAt": 1791585175100
-    },
-    {
-      "id": "raven-solo-pole",
-      "time": 37.52,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        7
-      ],
-      "action": "on",
-      "color": "#c0d62d",
-      "colorName": "Titans lime",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "Raven solo: pole 7 holds in lime; everything else fades with the last Rustage hit",
-      "repeat": null,
-      "updatedAt": 1791586200000
-    },
-    {
-      "id": "starfire-solo-loops",
-      "time": 77.54,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        10
-      ],
-      "action": "on",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "Starfire solo: loops snap on with her first hit",
-      "repeat": null,
-      "updatedAt": 1791586200000
+      "updatedAt": 1791586800000
     },
     {
       "id": "raven-out",
@@ -940,7 +921,54 @@
       "othersOff": false,
       "note": "Pole 7 fades to dark as she comes in",
       "repeat": null,
-      "updatedAt": 1791586200000
+      "updatedAt": 1791586800000
+    },
+    {
+      "id": "starfire-solo-lav",
+      "time": 77.54,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        3,
+        4,
+        5,
+        9,
+        10
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Starfire solo: all on but the pole (7); loops lavender",
+      "repeat": null,
+      "updatedAt": 1791586800000
+    },
+    {
+      "id": "starfire-solo-lime",
+      "time": 77.54,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        6,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "updatedAt": 1791586800000
     },
     {
       "id": "thunder-blackout",
