@@ -272,6 +272,48 @@
             </div>
         </fieldset>
 
+        <fieldset class="field flash-field" id="flashField">
+            <label class="toggle">
+                <input id="fFlash" type="checkbox">
+                <span>Flash on the beat <em class="muted">— repeat this cue on a beat grid</em></span>
+            </label>
+            <div id="flashBody" class="flash-body" hidden>
+                <div class="flash-grid">
+                    <label>Tempo <span class="unit"><input id="fBpm" type="number" min="20" max="400" step="0.1" value="120"> BPM</span></label>
+                    <label>Flash every
+                        <select id="fBeats">
+                            <option value="0.25">¼ beat</option>
+                            <option value="0.5">½ beat</option>
+                            <option value="1" selected>beat</option>
+                            <option value="2">2 beats</option>
+                            <option value="4">4 beats</option>
+                        </select>
+                    </label>
+                    <label>Flashes <input id="fCount" type="number" min="2" max="500" step="1" value="16"></label>
+                    <label>Each stays on for
+                        <select id="fOnFrac">
+                            <option value="0.25">¼ of the gap</option>
+                            <option value="0.5" selected>½ of the gap</option>
+                            <option value="0.75">¾ of the gap</option>
+                            <option value="1">the whole gap</option>
+                        </select>
+                    </label>
+                </div>
+                <p id="flashSummary" class="flash-summary"></p>
+                <div class="tap-row">
+                    <button type="button" class="btn small" id="fListen">▶ Listen from start</button>
+                    <button type="button" class="btn tap-btn" id="fTap" title="Tap on each hit while it plays (or press T)">Tap</button>
+                    <span id="tapInfo" class="muted tiny">Listen, then tap on each hit (or press T). Four or more taps set the tempo and the start.</span>
+                </div>
+                <label class="toggle alt-toggle">
+                    <input id="fAlt" type="checkbox">
+                    <span>Alternate with a second colour</span>
+                    <input id="fAltColor" type="color" value="#2a4bff" aria-label="Second colour">
+                </label>
+                <p id="flashWarn" class="flash-warn" hidden></p>
+            </div>
+        </fieldset>
+
         <label class="toggle">
             <input id="fOthersOff" type="checkbox">
             <span>All others off <em class="muted">— every light not selected goes dark</em></span>

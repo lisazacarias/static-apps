@@ -116,7 +116,84 @@ export function blankCue(time = 0) {
     fade: DEFAULT_FADE,
     othersOff: false,
     note: '',
+    repeat: null,
   };
+}
+
+/* ── flash runs ───────────────────────────────────────────────────────── */
+
+// A cue with `repeat` fires again and again on a beat grid: one row in the
+// list, one item in a merge, shifted as a block by editing its start.
+//   bpm      the song's tempo
+//   beats    beats between flashes (0.25 … 4)
+//   count    how many flashes
+//   onFrac   how much of the gap each flash stays lit (1 = hold to the next)
+//   altColor every other flash uses this colour, or null for one colour
+export const FLASH_BEATS = [0.25, 0.5, 1, 2, 4];
+export const FLASH_ON = [0.25, 0.5, 0.75, 1];
+
+export function normalizeRepeat(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const bpm = Number(raw.bpm);
+  const count = Math.round(Number(raw.count));
+  if (!Number.isFinite(bpm) || bpm < 20 || bpm > 400 || !Number.isFinite(count) || count < 2) return null;
+  const beats = FLASH_BEATS.includes(Number(raw.beats)) ? Number(raw.beats) : 1;
+  const onFrac = FLASH_ON.includes(Number(raw.onFrac)) ? Number(raw.onFrac) : 0.5;
+  return {
+    bpm: Math.round(bpm * 100) / 100,
+    beats,
+    count: Math.min(count, 500),
+    onFrac,
+    altColor: isHex(raw.altColor) ? raw.altColor.toLowerCase() : null,
+  };
+}
+
+export function flashGap(rep) {
+  return (60 / rep.bpm) * rep.beats;
+}
+
+export function flashTimes(cue) {
+  if (!cue.repeat) return [cue.time];
+  const gap = flashGap(cue.repeat);
+  return Array.from({ length: cue.repeat.count }, (_, k) => cue.time + k * gap);
+}
+
+// When the run is over: the last flash going out, or (held) the last flash.
+export function flashEnd(cue) {
+  const times = flashTimes(cue);
+  const last = times[times.length - 1];
+  return cue.repeat.onFrac < 1 ? last + flashGap(cue.repeat) * cue.repeat.onFrac : last;
+}
+
+function beatsLabel(b) {
+  return { 0.25: '¼ beat', 0.5: '½ beat', 1: 'beat', 2: '2 beats', 4: '4 beats' }[b] || `${b} beats`;
+}
+
+export function flashLabel(cue) {
+  const r = cue.repeat;
+  const on = r.onFrac >= 1 ? 'held until the next' : `on for ${Math.round(r.onFrac * 100)}% of the gap`;
+  return `Flash ×${r.count}, every ${beatsLabel(r.beats)} at ${r.bpm} BPM (${flashGap(r).toFixed(3)}s apart), ${on}`;
+}
+
+// More than three flashes a second is the common photosensitivity limit.
+// CHECK: confirm the venue's own rule on strobing and warnings.
+export function flashesPerSecond(rep) {
+  return 1 / flashGap(rep);
+}
+
+// Tap-along tempo: fit tap times to evenly spaced beats.
+// → { bpm, first, taps } or null with fewer than 4 taps.
+export function fitTaps(times) {
+  if (times.length < 4) return null;
+  const n = times.length;
+  const mk = (n - 1) / 2;
+  const mt = times.reduce((a, b) => a + b, 0) / n;
+  let num = 0;
+  let den = 0;
+  times.forEach((t, k) => { num += (k - mk) * (t - mt); den += (k - mk) ** 2; });
+  const gap = num / den;
+  if (!(gap > 0)) return null;
+  return { bpm: Math.round((60 / gap) * 10) / 10, first: Math.round((mt - gap * mk) * 100) / 100, taps: n };
 }
 
 // When a cue or section was last edited (ms). Only the merge reads it.
@@ -167,7 +244,14 @@ export function normalizeCue(raw) {
     othersOff: Boolean(raw.othersOff),
     note: typeof raw.note === 'string' ? raw.note.slice(0, 200) : '',
     updatedAt: stampOf(raw.updatedAt),
+    ...flashFields(raw, end),
   };
+}
+
+// A flash run owns its own timing, so it drops End; Off cues can't flash.
+function flashFields(raw, end) {
+  const repeat = raw.action === 'off' ? null : normalizeRepeat(raw.repeat);
+  return repeat ? { repeat, end: null } : { repeat: null, end: end === null ? null : round2(end) };
 }
 
 export function normalizePlan(raw) {
@@ -214,8 +298,8 @@ export function serializePlan({ title, audio, cues, tempo, sections }) {
     lights: GROUPS.map((g) => ({ group: g.id, lights: g.lights })),
     tempo: normalizeTempo(tempo),
     sections: sortSections(sections || [], tempo).map(({ id, name, bar, time, updatedAt }) => ({ id, name, bar, time, updatedAt })),
-    cues: sortCues(cues).map(({ id, time, end, lights, action, color, colorName, level, transition, fade, othersOff, note, updatedAt }) =>
-      ({ id, time, end, lights, action, color, colorName, level, transition, fade, othersOff, note, updatedAt })),
+    cues: sortCues(cues).map(({ id, time, end, lights, action, color, colorName, level, transition, fade, othersOff, note, repeat, updatedAt }) =>
+      ({ id, time, end, lights, action, color, colorName, level, transition, fade, othersOff, note, repeat: repeat ?? null, updatedAt })),
   };
 }
 
@@ -234,6 +318,10 @@ function eventsFor(cues) {
     if (c.othersOff) {
       for (const l of ALL_LIGHTS) if (!c.lights.includes(l)) targets.push({ light: l, level: 0, color: null });
     }
+    if (c.repeat && c.action === 'on') {
+      pushFlashes(events, c, order, dur, level);
+      return;
+    }
     events.push({ at: c.time, dur, targets, cue: c.id, order, kind: 'go' });
     if (c.end !== null && c.action === 'on' && c.lights.length) {
       events.push({
@@ -243,6 +331,25 @@ function eventsFor(cues) {
     }
   });
   return events.sort((a, b) => a.at - b.at || a.order - b.order);
+}
+
+function pushFlashes(events, c, order, dur, level) {
+  const gap = flashGap(c.repeat);
+  const onFor = gap * c.repeat.onFrac;
+  // A fade longer than the flash would never arrive; cap it inside the flash.
+  const d = Math.min(dur, onFor * 0.9);
+  flashTimes(c).forEach((at, k) => {
+    const color = k % 2 === 1 && c.repeat.altColor ? c.repeat.altColor : c.color;
+    const targets = c.lights.map((l) => ({ light: l, level, color }));
+    // "All others off" is a one-time clear at the start of the run.
+    if (c.othersOff && k === 0) {
+      for (const l of ALL_LIGHTS) if (!c.lights.includes(l)) targets.push({ light: l, level: 0, color: null });
+    }
+    events.push({ at, dur: d, targets, cue: c.id, order, kind: 'go' });
+    if (c.repeat.onFrac < 1) {
+      events.push({ at: at + onFor, dur: d, cue: c.id, order, kind: 'out', targets: c.lights.map((l) => ({ light: l, level: 0, color: null })) });
+    }
+  });
 }
 
 function mix(a, b, k) {
@@ -410,6 +517,12 @@ export function cueSheet({ title, audio, cues, tempo, sections = [] }) {
   const sorted = sortCues(cues);
   const secs = sortSections(sections, tempo);
   const rows = sorted.map((c, i) => {
+    if (c.repeat) {
+      const r = c.repeat;
+      const color = `${colorLabel(c)} ${c.color.toUpperCase()}` + (r.altColor ? ` / ${colorLabel({ color: r.altColor, colorName: '' })} ${r.altColor.toUpperCase()} alternating` : '');
+      const extras = [c.othersOff ? 'ALL OTHERS OFF at first flash' : '', c.note].filter(Boolean);
+      return [String(i + 1), `${formatTime(c.time, 1)}–${formatTime(flashEnd(c), 1)}`, lightsLabel(c.lights), `${c.level ?? 100}%`, color, flashLabel(c), extras.join(' · ')];
+    }
     const time = c.end !== null ? `${formatTime(c.time, 1)}–${formatTime(c.end, 1)}` : formatTime(c.time, 1);
     const color = c.action === 'off' ? '—' : `${colorLabel(c)} ${c.color.toUpperCase()}`;
     let transition = transitionLabel(c);
@@ -444,6 +557,11 @@ export function cueSheet({ title, audio, cues, tempo, sections = [] }) {
       shown = sec;
     }
     out.push(line(r));
+    // Spell out every flash so the tech can program or check them one by one.
+    if (sorted[i].repeat) {
+      const ts = flashTimes(sorted[i]).map((t) => formatTime(t, 2));
+      for (let j = 0; j < ts.length; j += 8) out.push(`${' '.repeat(widths[0])}${j === 0 ? 'flashes at ' : '           '}${ts.slice(j, j + 8).join('  ')}`);
+    }
   });
   if (secs.length) {
     out.push('');
@@ -491,7 +609,7 @@ export async function decodeShare(token) {
 // edit — so it reports every difference and pre-picks a default, and the
 // person decides. The newer edit is the default where both copies have an item.
 
-const CUE_FIELDS = ['time', 'end', 'lights', 'action', 'color', 'colorName', 'level', 'transition', 'fade', 'othersOff', 'note'];
+const CUE_FIELDS = ['time', 'end', 'lights', 'action', 'color', 'colorName', 'level', 'transition', 'fade', 'othersOff', 'note', 'repeat'];
 const SECTION_FIELDS = ['name', 'bar', 'time'];
 
 function sameItem(a, b, fields) {

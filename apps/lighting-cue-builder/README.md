@@ -39,6 +39,12 @@ found the real change by ear.
 - **All others off** takes every light the cue doesn't name dark, using the
   cue's transition. "All others off" with no lights is a blackout.
 - Two cues at the same time: the one entered later wins.
+- **Flash on the beat** turns a cue into a run: it fires `count` times at
+  the song's BPM (every ¼–4 beats), each flash lit for part of the gap or
+  held to the next, optionally alternating two colours. It's one row, so
+  moving its start shifts every flash. **Tap** while it plays (or press T)
+  to set the tempo and first flash from the music. "All others off" clears
+  once, at the first flash. A warning shows above 3 flashes a second.
 
 ## Sharing
 

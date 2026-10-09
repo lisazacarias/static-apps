@@ -341,3 +341,79 @@ test('duplicate section ids (or ones clashing with a cue) are renumbered', () =>
   assert.equal(p.cues[0].id, 'x');
   assert.deepEqual(p.sections.map((s) => s.name), ['A', 'B', 'C']);
 });
+
+import { flashTimes, flashEnd, fitTaps, normalizeRepeat, flashesPerSecond } from '../cues.js';
+
+const battle = () => normalizeCue({
+  id: 'run', time: '2:44.81', lights: [3, 7, 10], color: '#ff2a2a',
+  repeat: { bpm: 96.4, beats: 1, count: 16, onFrac: 0.5, altColor: '#2a4bff' },
+});
+
+test('a flash run fires on the beat grid', () => {
+  const c = battle();
+  const ts = flashTimes(c);
+  assert.equal(ts.length, 16);
+  assert.equal(ts[0], 164.81);
+  assert.ok(Math.abs(ts[1] - ts[0] - 60 / 96.4) < 1e-9);
+  assert.ok(Math.abs(ts[15] - (164.81 + 15 * 60 / 96.4)) < 1e-9);
+  assert.ok(Math.abs(flashEnd(c) - (ts[15] + 0.5 * 60 / 96.4)) < 1e-9);
+});
+
+test('flashes go on, off between, and alternate colour', () => {
+  const c = battle();
+  const gap = 60 / 96.4;
+  const at = (t) => stateAt([c], t).lights[3];
+  assert.equal(at(164.80).level, 0, 'dark before the run');
+  assert.equal(at(164.82).level, 1);
+  assert.equal(at(164.82).color, '#ff2a2a');
+  assert.equal(at(164.81 + gap * 0.6).level, 0, 'off in the second half of the gap');
+  assert.equal(at(164.81 + gap + 0.01).color, '#2a4bff', 'second flash uses the alternate');
+  assert.equal(at(164.81 + 2 * gap + 0.01).color, '#ff2a2a');
+  assert.equal(at(flashEnd(c) + 0.01).level, 0, 'dark after the last flash');
+});
+
+test('held flashes stay lit; others-off only clears at the start', () => {
+  const c = normalizeCue({ time: 10, lights: [2], othersOff: true, repeat: { bpm: 120, beats: 1, count: 4, onFrac: 1 } });
+  const before = normalizeCue({ time: 0, lights: [11] });
+  const after = normalizeCue({ time: 10.75, lights: [11] });
+  const s = (t) => stateAt([before, c, after], t).lights;
+  assert.equal(s(10.4)[2].level, 1, 'held through the gap');
+  assert.equal(s(10.1)[11].level, 0, 'others off at the first flash');
+  assert.equal(s(11.2)[11].level, 1, 'a later cue is not undone by later flashes');
+});
+
+test('repeat normalises, drops End, and Off cues cannot flash', () => {
+  assert.equal(normalizeRepeat({ bpm: 10, count: 4 }), null);
+  assert.equal(normalizeRepeat({ bpm: 120, count: 1 }), null);
+  assert.deepEqual(normalizeRepeat({ bpm: '96.4', count: '16', beats: 3, onFrac: 2, altColor: 'nope' }),
+    { bpm: 96.4, beats: 1, count: 16, onFrac: 0.5, altColor: null });
+  const c = normalizeCue({ time: 1, end: 5, lights: [1], repeat: { bpm: 120, count: 4 } });
+  assert.equal(c.end, null);
+  assert.equal(normalizeCue({ time: 1, lights: [1], action: 'off', repeat: { bpm: 120, count: 4 } }).repeat, null);
+  assert.equal(normalizeCue({ time: 1, end: 5, lights: [1] }).end, 5);
+  assert.equal(normalizeCue({ time: 1, lights: [1] }).repeat, null, 'old cues have no repeat');
+  assert.ok(flashesPerSecond({ bpm: 165, beats: 0.5 }) > 3);
+});
+
+test('a flash run round-trips, merges as one item, and spells out on the sheet', () => {
+  const plan = { title: '', audio: {}, cues: [battle()] };
+  const back = normalizePlan(JSON.parse(JSON.stringify(serializePlan(plan))));
+  assert.deepEqual(back.cues[0].repeat, battle().repeat);
+  const theirs = structuredClone(back);
+  theirs.cues[0].repeat.count = 8;
+  const d = diffPlans(back, theirs);
+  assert.equal(d.items.find((i) => i.id === 'run').status, 'differ');
+  const text = cueSheet(back);
+  assert.match(text, /Flash ×16, every beat at 96\.4 BPM \(0\.622s apart\), on for 50% of the gap/);
+  assert.match(text, /Red #FF2A2A \/ Deep blue #2A4BFF alternating/);
+  assert.match(text, /flashes at 2:44\.81  2:45\.43/);
+  assert.equal((text.match(/\d:\d\d\.\d\d/g) || []).length, 16);
+});
+
+test('tap tempo fits evenly spaced taps', () => {
+  const taps = [10.02, 10.63, 11.27, 11.88, 12.49, 13.12];
+  const f = fitTaps(taps);
+  assert.ok(Math.abs(f.bpm - 96.4) < 1, f.bpm);
+  assert.ok(Math.abs(f.first - 10.02) < 0.03, f.first);
+  assert.equal(fitTaps([1, 2, 3]), null);
+});

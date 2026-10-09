@@ -2,6 +2,7 @@ import {
   GROUPS, ALL_LIGHTS, PRESETS, groupOf, formatTime, parseTime, blankCue, sortCues,
   normalizePlan, serializePlan, stateAt, cueSheet, lightsLabel, colorLabel,
   transitionLabel, encodeShare, decodeShare, DEFAULT_FADE,
+  normalizeRepeat, flashGap, flashTimes, flashEnd, flashesPerSecond, fitTaps,
   DEFAULT_TEMPO, normalizeTempo, parseStart, formatStart, normalizeSection,
   sectionStart, sortSections, sectionAt, parseSectionLines, timeToBar,
   diffPlans, applyMerge,
@@ -349,7 +350,8 @@ function drawWave(cv, t0, t1, { ticks = false, labels = false } = {}) {
 
   for (const [i, c] of sortCues(plan.cues).entries()) {
     const marks = [[c.time, true]];
-    if (c.end !== null) marks.push([c.end, false]);
+    if (c.repeat) flashTimes(c).slice(1).forEach((t) => marks.push([t, false]));
+    else if (c.end !== null) marks.push([c.end, false]);
     for (const [t, isStart] of marks) {
       if (t < t0 || t > t1) continue;
       const cx = Math.round(x(t));
@@ -487,7 +489,9 @@ function onStageLightClick(n) {
 
 function previewTime() {
   // While editing, show the cue's own look: just after its transition lands.
-  if (!editing) return now();
+  // While listening inside the editor, play the draft live so a flash run
+  // can be watched against the music.
+  if (!editing || !audio.paused) return now();
   const d = editing.draft;
   return d.time + (d.transition === 'fade' ? d.fade : 0) + 0.001;
 }
@@ -551,6 +555,15 @@ function markActive(id) {
 /* ── cue list ────────────────────────────────────────────────────────── */
 
 function describe(c) {
+  if (c.repeat) {
+    const r = c.repeat;
+    const colors = `${colorLabel(c)}${r.altColor ? ` / ${colorLabel({ color: r.altColor, colorName: '' })}` : ''}`;
+    const on = r.onFrac >= 1 ? 'held' : `${Math.round(r.onFrac * 100)}% on`;
+    return {
+      what: `Flash ×${r.count} · ${c.lights.length ? lightsLabel(c.lights) : 'no lights'}`,
+      how: `${r.bpm} BPM, ${flashGap(r).toFixed(3)}s apart · ${on} · ${c.level}% · ${colors}`,
+    };
+  }
   const what = `${transitionLabel(c)} · ${c.lights.length ? lightsLabel(c.lights) : 'no lights'}`;
   const bits = [];
   if (c.action === 'on') bits.push(`${c.level}% · ${colorLabel(c)} ${c.color.toUpperCase()}`);
@@ -600,7 +613,8 @@ function renderCueList() {
           <button class="btn small" data-act="dup" type="button" title="Copy this cue to the current playback time">Copy to now</button>
           <button class="btn small danger" data-act="del" type="button" aria-label="Delete cue ${i + 1}">✕</button>
         </div>`}`;
-      row.querySelector('.cue-time').textContent = c.end !== null ? `${formatTime(c.time)}–${formatTime(c.end)}` : formatTime(c.time);
+      const until = c.repeat ? flashEnd(c) : c.end;
+      row.querySelector('.cue-time').textContent = until !== null ? `${formatTime(c.time)}–${formatTime(until)}` : formatTime(c.time);
       row.querySelector('.cue-time').onclick = () => seek(c.time);
       const sw = row.querySelector('.cue-swatch');
       if (c.action === 'off') sw.classList.add('off'); else sw.style.background = c.color;
@@ -690,6 +704,18 @@ function openEditor(cue, preset = {}) {
   $('fColor').value = draft.color;
   $('fColorName').value = draft.colorName;
   $('fOthersOff').checked = draft.othersOff;
+  // A new run starts from the last run's tempo — runs in one song share it.
+  const lastRun = sortCues(plan.cues).filter((c) => c.repeat && c.id !== draft.id).pop()?.repeat;
+  const r = draft.repeat || { bpm: lastRun?.bpm ?? 120, beats: lastRun?.beats ?? 1, count: 16, onFrac: 0.5, altColor: null };
+  $('fFlash').checked = Boolean(draft.repeat);
+  $('fBpm').value = r.bpm;
+  $('fBeats').value = String(r.beats);
+  $('fCount').value = r.count;
+  $('fOnFrac').value = String(r.onFrac);
+  $('fAlt').checked = Boolean(r.altColor);
+  if (r.altColor) $('fAltColor').value = r.altColor;
+  taps = [];
+  $('tapInfo').textContent = 'Listen, then tap on each hit (or press T). Four or more taps set the tempo and the start.';
   $('fLevel').value = draft.level;
   $('fLevelRange').value = draft.level;
   $('fNote').value = draft.note;
@@ -715,10 +741,11 @@ function syncFormUi() {
   const d = editing.draft;
   syncEditorSection();
   $('fadeLenWrap').hidden = d.transition !== 'fade';
-  for (const id of ['colorField', 'levelField']) {
+  for (const id of ['colorField', 'levelField', 'flashField']) {
     $(id).classList.toggle('is-disabled', d.action === 'off');
     $(id).disabled = d.action === 'off';
   }
+  syncFlashUi();
   document.querySelectorAll('#swatches .swatch').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.hex === d.color)));
 }
 
@@ -742,9 +769,71 @@ function readForm() {
   d.level = Number.isFinite(lv) && lv >= 1 ? Math.min(lv, 100) : 100;
   d.othersOff = $('fOthersOff').checked;
   d.note = $('fNote').value.trim();
+  d.repeat = $('fFlash').checked && d.action === 'on'
+    ? normalizeRepeat({
+      bpm: $('fBpm').value, beats: $('fBeats').value, count: $('fCount').value,
+      onFrac: $('fOnFrac').value, altColor: $('fAlt').checked ? $('fAltColor').value : null,
+    })
+    : null;
+  if (d.repeat) d.end = null;
   syncFormUi();
   dirtyStage = true;
 }
+
+let taps = [];
+
+function syncFlashUi() {
+  const d = editing.draft;
+  const on = $('fFlash').checked && d.action === 'on';
+  $('flashBody').hidden = !on;
+  $('fEnd').disabled = on;
+  $('fEndNow').disabled = on;
+  $('fAltColor').disabled = !$('fAlt').checked;
+  if (!on || !d.repeat) { $('flashWarn').hidden = true; $('flashSummary').textContent = ''; return; }
+  const r = d.repeat;
+  $('flashSummary').textContent = `${r.count} flashes, ${flashGap(r).toFixed(3)}s apart: ${formatTime(d.time)} to ${formatTime(flashTimes(d).at(-1))}`
+    + (r.onFrac < 1 ? `, each lit ${(flashGap(r) * r.onFrac).toFixed(2)}s.` : ', each held until the next.');
+  const fps = flashesPerSecond(r);
+  const strobing = r.onFrac < 1 || r.altColor;
+  $('flashWarn').hidden = !(strobing && fps > 3);
+  $('flashWarn').textContent = `That's ${fps.toFixed(1)} flashes a second — above the usual 3-per-second photosensitivity guideline. Consider flashing every 2 beats, and check the venue's strobe-warning rules.`;
+}
+
+// Tap along while it plays: each tap is one flash. A pause of over 2.5s
+// starts a fresh set of taps.
+function tap() {
+  if (!editing) return;
+  if (audio.paused) { $('tapInfo').textContent = 'Press Listen first, then tap along on each hit.'; return; }
+  const t = now();
+  if (taps.length && t - taps[taps.length - 1] > 2.5) taps = [];
+  if (taps.length && t <= taps[taps.length - 1]) taps = [];
+  taps.push(t);
+  const fit = fitTaps(taps);
+  if (!fit) { $('tapInfo').textContent = `${taps.length} tap${taps.length === 1 ? '' : 's'} — keep going…`; return; }
+  // Taps mark flashes; the song's tempo is flashes per minute × beats per flash.
+  const beats = Number($('fBeats').value);
+  $('fBpm').value = Math.round(fit.bpm * beats * 10) / 10;
+  $('fTime').value = formatTime(fit.first);
+  $('tapInfo').textContent = `${fit.taps} taps → ${$('fBpm').value} BPM, first flash at ${formatTime(fit.first)}. Keep tapping to refine.`;
+  readForm();
+}
+
+$('fTap').onclick = tap;
+$('fListen').onclick = () => {
+  if (!audio.src) return;
+  if (!audio.paused) { audio.pause(); $('fListen').textContent = '▶ Listen from start'; return; }
+  taps = [];
+  audio.currentTime = Math.max(0, editing.draft.time - 2);
+  audio.play().catch(() => {});
+};
+audio.addEventListener('play', () => { $('fListen').textContent = '❚❚ Stop'; });
+audio.addEventListener('pause', () => { $('fListen').textContent = '▶ Listen from start'; dirtyStage = true; });
+$('fFlash').addEventListener('change', () => {
+  // Flashing needs something to flash.
+  if ($('fFlash').checked && form.querySelector('input[name="action"][value="off"]').checked) {
+    form.querySelector('input[name="action"][value="on"]').checked = true;
+  }
+});
 
 function syncEditorSection() {
   const sec = editing && sectionAt(plan.sections, plan.tempo, editing.draft.time);
@@ -756,7 +845,8 @@ function validate() {
   const t = parseTime($('fTime').value);
   if (t === null) errs.push('Start time should look like 1:23.45 or 83.45.');
   else if (duration() && t > duration()) errs.push(`Start is past the end of the track (${formatTime(duration())}).`);
-  const endRaw = $('fEnd').value.trim();
+  // A flash run times itself, so End is switched off and not checked.
+  const endRaw = $('fFlash').checked ? '' : $('fEnd').value.trim();
   if (endRaw) {
     const e = parseTime(endRaw);
     if (e === null) errs.push('End time should look like 1:23.45, or be left blank.');
@@ -765,6 +855,7 @@ function validate() {
   const d = editing.draft;
   if (!d.lights.length && !d.othersOff) errs.push('Pick at least one light — or tick “All others off” for a blackout.');
   if (d.action === 'off' && endRaw) errs.push('An “Off” cue can’t have an end time — leave End blank.');
+  if ($('fFlash').checked && d.action === 'on' && !d.repeat) errs.push('For a flash run, set a tempo between 20 and 400 BPM and at least 2 flashes.');
   return errs;
 }
 
@@ -809,6 +900,11 @@ $('fEndNow').onclick = () => { $('fEnd').value = formatTime(now()); readForm(); 
 $('fClose').onclick = closeEditor;
 // Listen on the document, not the editor: the editor isn't modal, so focus
 // is often on the stage or the page when someone reaches for Esc.
+document.addEventListener('keydown', (e) => {
+  if (!editing || e.metaKey || e.ctrlKey || e.altKey) return;
+  const typing = ['TEXTAREA', 'SELECT'].includes(e.target.tagName) || (e.target.tagName === 'INPUT' && !['checkbox', 'radio', 'range', 'color'].includes(e.target.type));
+  if ((e.key === 't' || e.key === 'T') && !typing && $('fFlash').checked) { e.preventDefault(); tap(); }
+});
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape' || !editing) return;
   if ($('sheetDialog').open || $('pasteDialog').open || $('mergeDialog').open) return;
