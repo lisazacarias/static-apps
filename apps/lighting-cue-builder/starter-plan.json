@@ -1197,8 +1197,8 @@
         12
       ],
       "action": "on",
-      "color": "#ec1b24",
-      "colorName": "Titans red",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
       "level": 100,
       "transition": "fade",
       "fade": 2,
@@ -1213,7 +1213,7 @@
         "dimTo": 35
       },
       "option": null,
-      "updatedAt": 1791594000000
+      "updatedAt": 1791595200000
     },
     {
       "id": "battle-hits",
@@ -1235,8 +1235,8 @@
         12
       ],
       "action": "on",
-      "color": "#ec1b24",
-      "colorName": "Titans red",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
@@ -1251,7 +1251,7 @@
         "dimTo": 0
       },
       "option": null,
-      "updatedAt": 1791594000000
+      "updatedAt": 1791595200000
     },
     {
       "id": "victory-red",
