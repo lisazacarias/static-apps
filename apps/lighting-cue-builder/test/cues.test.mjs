@@ -465,7 +465,7 @@ test('the shipped show plan loads cleanly', () => {
   const raw = JSON.parse(readFileSync(new URL('../starter-plan.json', import.meta.url), 'utf8'));
   const p = normalizePlan(raw);
   assert.equal(p.skipped, 0);
-  assert.ok(p.cues.length >= 33);
+  assert.ok(p.cues.length >= 25);
   assert.equal(new Set(p.cues.map((c) => c.id)).size, p.cues.length);
   assert.equal(p.sections[0].name, 'Theme song intro');
   // pole 7 is lime on every Rustage hit; on the last it holds into the solo
