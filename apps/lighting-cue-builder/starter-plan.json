@@ -1499,6 +1499,8 @@
       "lights": [
         1,
         4,
+        7,
+        10,
         11
       ],
       "action": "off",
@@ -1508,10 +1510,36 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Before the post-battle hits: only the apparatus (7, 10) stay lit — first hit brings in all five",
+      "note": "Before the post-battle hits: the five pools hand over to the other seven…",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791599400000
+      "updatedAt": 1791604800000
+    },
+    {
+      "id": "stingers-others-on",
+      "time": 176.76,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        3,
+        5,
+        6,
+        8,
+        9,
+        12
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "…the other seven on, in orange",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791604800000
     },
     {
       "id": "stinger-4",
@@ -1536,6 +1564,32 @@
       "repeat": null,
       "option": null,
       "updatedAt": 1791599400000
+    },
+    {
+      "id": "stingers-others-off",
+      "time": 177.07,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        3,
+        5,
+        6,
+        8,
+        9,
+        12
+      ],
+      "action": "off",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "First post-battle hit: the seven go dark as the five flash",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791604800000
     },
     {
       "id": "stinger-5",
