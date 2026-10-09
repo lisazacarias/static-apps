@@ -558,7 +558,7 @@ function describe(c) {
   if (c.repeat) {
     const r = c.repeat;
     const colors = `${colorLabel(c)}${r.altColor ? ` / ${colorLabel({ color: r.altColor, colorName: '' })}` : ''}`;
-    const on = r.onFrac >= 1 ? 'held' : `${Math.round(r.onFrac * 100)}% on`;
+    const on = r.onFrac >= 1 ? 'held' : `${Math.round(r.onFrac * 100)}% on${r.dimTo ? `, dims to ${r.dimTo}%` : ''}${c.transition === 'fade' ? ', fading' : ''}`;
     return {
       what: `Flash ×${r.count} · ${c.lights.length ? lightsLabel(c.lights) : 'no lights'}`,
       how: `${r.bpm} BPM, ${flashGap(r).toFixed(3)}s apart · ${on} · ${c.level}% · ${colors}`,
@@ -712,6 +712,7 @@ function openEditor(cue, preset = {}) {
   $('fBeats').value = String(r.beats);
   $('fCount').value = r.count;
   $('fOnFrac').value = String(r.onFrac);
+  $('fDimTo').value = String(r.dimTo ?? 0);
   $('fAlt').checked = Boolean(r.altColor);
   if (r.altColor) $('fAltColor').value = r.altColor;
   taps = [];
@@ -773,6 +774,7 @@ function readForm() {
     ? normalizeRepeat({
       bpm: $('fBpm').value, beats: $('fBeats').value, count: $('fCount').value,
       onFrac: $('fOnFrac').value, altColor: $('fAlt').checked ? $('fAltColor').value : null,
+      dimTo: $('fDimTo').value,
     })
     : null;
   if (d.repeat) d.end = null;
@@ -791,10 +793,14 @@ function syncFlashUi() {
   $('fAltColor').disabled = !$('fAlt').checked;
   if (!on || !d.repeat) { $('flashWarn').hidden = true; $('flashSummary').textContent = ''; return; }
   const r = d.repeat;
+  const fadeFor = d.transition === 'fade' ? Math.min(d.fade, flashGap(r) * r.onFrac * 0.9) : 0;
   $('flashSummary').textContent = `${r.count} flashes, ${flashGap(r).toFixed(3)}s apart: ${formatTime(d.time)} to ${formatTime(flashTimes(d).at(-1))}`
-    + (r.onFrac < 1 ? `, each lit ${(flashGap(r) * r.onFrac).toFixed(2)}s.` : ', each held until the next.');
+    + (r.onFrac < 1 ? `, each bright ${(flashGap(r) * r.onFrac).toFixed(2)}s` : ', each held until the next')
+    + (r.onFrac < 1 && r.dimTo ? `, ${r.dimTo}% between` : '')
+    + (fadeFor ? `, ${fadeFor.toFixed(2)}s fades.` : '.');
   const fps = flashesPerSecond(r);
-  const strobing = r.onFrac < 1 || r.altColor;
+  // A dim-to-half pulse is a much gentler change than full on/off.
+  const strobing = (r.onFrac < 1 && r.dimTo < 50) || r.altColor;
   $('flashWarn').hidden = !(strobing && fps > 3);
   $('flashWarn').textContent = `That's ${fps.toFixed(1)} flashes a second — above the usual 3-per-second photosensitivity guideline. Consider flashing every 2 beats, and check the venue's strobe-warning rules.`;
 }
@@ -819,6 +825,14 @@ function tap() {
 }
 
 $('fTap').onclick = tap;
+// A gentle beat: fade up, ease down to 35%, never fully dark.
+$('fSoftPulse').onclick = () => {
+  form.querySelector('input[name="transition"][value="fade"]').checked = true;
+  $('fFade').value = 2; // capped to fit inside each flash
+  $('fOnFrac').value = '0.5';
+  $('fDimTo').value = '35';
+  readForm();
+};
 $('fListen').onclick = () => {
   if (!audio.src) return;
   if (!audio.paused) { audio.pause(); $('fListen').textContent = '▶ Listen from start'; return; }

@@ -386,7 +386,7 @@ test('repeat normalises, drops End, and Off cues cannot flash', () => {
   assert.equal(normalizeRepeat({ bpm: 10, count: 4 }), null);
   assert.equal(normalizeRepeat({ bpm: 120, count: 1 }), null);
   assert.deepEqual(normalizeRepeat({ bpm: '96.4', count: '16', beats: 3, onFrac: 2, altColor: 'nope' }),
-    { bpm: 96.4, beats: 1, count: 16, onFrac: 0.5, altColor: null });
+    { bpm: 96.4, beats: 1, count: 16, onFrac: 0.5, altColor: null, dimTo: 0 });
   const c = normalizeCue({ time: 1, end: 5, lights: [1], repeat: { bpm: 120, count: 4 } });
   assert.equal(c.end, null);
   assert.equal(normalizeCue({ time: 1, lights: [1], action: 'off', repeat: { bpm: 120, count: 4 } }).repeat, null);
@@ -416,4 +416,18 @@ test('tap tempo fits evenly spaced taps', () => {
   assert.ok(Math.abs(f.bpm - 96.4) < 1, f.bpm);
   assert.ok(Math.abs(f.first - 10.02) < 0.03, f.first);
   assert.equal(fitTaps([1, 2, 3]), null);
+});
+
+test('a pulse dims between flashes instead of going dark, and fades', () => {
+  const c = normalizeCue({ time: 10, lights: [5], transition: 'fade', fade: 2,
+    repeat: { bpm: 120, beats: 1, count: 4, onFrac: 0.5, dimTo: 35 } });
+  // gap 0.5s, bright for 0.25s, fades capped to 0.225s
+  const lv = (t) => stateAt([c], t).lights[5].level;
+  assert.ok(Math.abs(lv(10.225) - 1) < 1e-9, 'fully up after the fade');
+  assert.ok(lv(10.1) > 0 && lv(10.1) < 1, 'fading up');
+  assert.ok(Math.abs(lv(10.49) - 0.35) < 1e-9, 'dimmed, not dark');
+  assert.ok(Math.abs(lv(12.5) - 0.35) < 1e-9, 'rests dimmed after the run');
+  assert.match(cueSheet({ cues: [c] }), /dimming to 35% between/);
+  assert.equal(normalizeRepeat({ bpm: 120, count: 4 }).dimTo, 0, 'old runs still go fully off');
+  assert.equal(normalizeRepeat({ bpm: 120, count: 4, dimTo: 33 }).dimTo, 0);
 });

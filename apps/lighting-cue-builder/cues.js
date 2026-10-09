@@ -129,8 +129,10 @@ export function blankCue(time = 0) {
 //   count    how many flashes
 //   onFrac   how much of the gap each flash stays lit (1 = hold to the next)
 //   altColor every other flash uses this colour, or null for one colour
+//   dimTo    level (%) lights drop to between flashes; 0 = fully off
 export const FLASH_BEATS = [0.25, 0.5, 1, 2, 4];
 export const FLASH_ON = [0.25, 0.5, 0.75, 1];
+export const FLASH_DIM = [0, 20, 35, 50, 70];
 
 export function normalizeRepeat(raw) {
   if (!raw || typeof raw !== 'object') return null;
@@ -145,6 +147,8 @@ export function normalizeRepeat(raw) {
     count: Math.min(count, 500),
     onFrac,
     altColor: isHex(raw.altColor) ? raw.altColor.toLowerCase() : null,
+    // Runs saved before dimming existed went fully off between flashes.
+    dimTo: FLASH_DIM.includes(Number(raw.dimTo)) ? Number(raw.dimTo) : 0,
   };
 }
 
@@ -172,7 +176,8 @@ function beatsLabel(b) {
 export function flashLabel(cue) {
   const r = cue.repeat;
   const on = r.onFrac >= 1 ? 'held until the next' : `on for ${Math.round(r.onFrac * 100)}% of the gap`;
-  return `Flash ×${r.count}, every ${beatsLabel(r.beats)} at ${r.bpm} BPM (${flashGap(r).toFixed(3)}s apart), ${on}`;
+  const dim = r.onFrac < 1 && r.dimTo ? `, dimming to ${r.dimTo}% between` : '';
+  return `Flash ×${r.count}, every ${beatsLabel(r.beats)} at ${r.bpm} BPM (${flashGap(r).toFixed(3)}s apart), ${on}${dim}`;
 }
 
 // More than three flashes a second is the common photosensitivity limit.
@@ -336,6 +341,8 @@ function eventsFor(cues) {
 function pushFlashes(events, c, order, dur, level) {
   const gap = flashGap(c.repeat);
   const onFor = gap * c.repeat.onFrac;
+  // Never "dim" above the flash itself.
+  const low = Math.min(c.repeat.dimTo || 0, c.level ?? 100) / 100;
   // A fade longer than the flash would never arrive; cap it inside the flash.
   const d = Math.min(dur, onFor * 0.9);
   flashTimes(c).forEach((at, k) => {
@@ -347,7 +354,7 @@ function pushFlashes(events, c, order, dur, level) {
     }
     events.push({ at, dur: d, targets, cue: c.id, order, kind: 'go' });
     if (c.repeat.onFrac < 1) {
-      events.push({ at: at + onFor, dur: d, cue: c.id, order, kind: 'out', targets: c.lights.map((l) => ({ light: l, level: 0, color: null })) });
+      events.push({ at: at + onFor, dur: d, cue: c.id, order, kind: 'out', targets: c.lights.map((l) => ({ light: l, level: low, color: null })) });
     }
   });
 }

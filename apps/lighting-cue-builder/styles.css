@@ -449,3 +449,4 @@ label:has(> .file-input:focus-visible) { outline: 2px solid var(--blue); outline
 .flash-warn { font-size: 12px; color: #fca5a5; border-left: 3px solid var(--hot); padding-left: 8px; }
 input:disabled { opacity: 0.45; }
 @media (max-width: 560px) { .flash-grid { grid-template-columns: 1fr; } }
+.flash-grid label > .btn { justify-self: start; }

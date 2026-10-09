@@ -290,13 +290,25 @@
                         </select>
                     </label>
                     <label>Flashes <input id="fCount" type="number" min="2" max="500" step="1" value="16"></label>
-                    <label>Each stays on for
+                    <label>Each stays bright for
                         <select id="fOnFrac">
                             <option value="0.25">¼ of the gap</option>
                             <option value="0.5" selected>½ of the gap</option>
                             <option value="0.75">¾ of the gap</option>
                             <option value="1">the whole gap</option>
                         </select>
+                    </label>
+                    <label>Between flashes
+                        <select id="fDimTo">
+                            <option value="0" selected>go fully off</option>
+                            <option value="20">dim to 20%</option>
+                            <option value="35">dim to 35%</option>
+                            <option value="50">dim to 50%</option>
+                            <option value="70">dim to 70%</option>
+                        </select>
+                    </label>
+                    <label>Style
+                        <button type="button" class="btn small" id="fSoftPulse" title="Fade up and down, dimming to 35% between beats">Soft pulse</button>
                     </label>
                 </div>
                 <p id="flashSummary" class="flash-summary"></p>

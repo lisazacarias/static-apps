@@ -45,6 +45,8 @@ found the real change by ear.
   moving its start shifts every flash. **Tap** while it plays (or press T)
   to set the tempo and first flash from the music. "All others off" clears
   once, at the first flash. A warning shows above 3 flashes a second.
+  **Between flashes** can dim to 20–70% instead of going dark; with the
+  Fade transition that's a gentle pulse (**Soft pulse** sets it up).
 
 ## Sharing
 
