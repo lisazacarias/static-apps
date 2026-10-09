@@ -475,6 +475,7 @@ test('the shipped show plan loads cleanly', () => {
   // pole faded out by then, black on the thunderclap
   const at = (t) => stateAt(activeCues(p.cues, p.optionPicks), t).lights;
   for (const t of [27.6, 28.3, 29.5, 33, 36.5]) {
+    assert.equal(at(t)[10].level, 0, `loops dark at ${t}`);
     assert.equal(at(t)[7].level, 1, `pole lit at ${t}`);
     assert.equal(at(t)[7].color, '#c0d62d');
   }
