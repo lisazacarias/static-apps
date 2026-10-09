@@ -266,9 +266,14 @@ export function normalizeCue(raw) {
 }
 
 // A flash run owns its own timing, so it drops End; Off cues can't flash.
+// outFade: how long the lights take to go out at End, independent of how
+// the cue came on (a hit that snaps on and fades away). null = same as on.
 function flashFields(raw, end) {
   const repeat = raw.action === 'off' ? null : normalizeRepeat(raw.repeat);
-  return repeat ? { repeat, end: null } : { repeat: null, end: end === null ? null : round2(end) };
+  if (repeat) return { repeat, end: null, outFade: null };
+  const out = Number(raw.outFade);
+  const hasOut = end !== null && raw.outFade !== null && raw.outFade !== undefined && raw.outFade !== '' && Number.isFinite(out) && out >= 0;
+  return { repeat: null, end: end === null ? null : round2(end), outFade: hasOut ? Math.min(round2(out), 30) : null };
 }
 
 export function normalizePlan(raw) {
@@ -315,8 +320,8 @@ export function serializePlan({ title, audio, cues, tempo, sections }) {
     lights: GROUPS.map((g) => ({ group: g.id, lights: g.lights })),
     tempo: normalizeTempo(tempo),
     sections: sortSections(sections || [], tempo).map(({ id, name, bar, time, updatedAt }) => ({ id, name, bar, time, updatedAt })),
-    cues: sortCues(cues).map(({ id, time, end, lights, action, color, colorName, level, transition, fade, othersOff, note, repeat, updatedAt }) =>
-      ({ id, time, end, lights, action, color, colorName, level, transition, fade, othersOff, note, repeat: repeat ?? null, updatedAt })),
+    cues: sortCues(cues).map(({ id, time, end, outFade, lights, action, color, colorName, level, transition, fade, othersOff, note, repeat, updatedAt }) =>
+      ({ id, time, end, outFade: outFade ?? null, lights, action, color, colorName, level, transition, fade, othersOff, note, repeat: repeat ?? null, updatedAt })),
   };
 }
 
@@ -342,7 +347,7 @@ function eventsFor(cues) {
     events.push({ at: c.time, dur, targets, cue: c.id, order, kind: 'go' });
     if (c.end !== null && c.action === 'on' && c.lights.length) {
       events.push({
-        at: c.end, dur, cue: c.id, order, kind: 'out',
+        at: c.end, dur: c.outFade ?? dur, cue: c.id, order, kind: 'out',
         targets: c.lights.map((l) => ({ light: l, level: 0, color: null })),
       });
     }
@@ -542,11 +547,20 @@ export function cueSheet({ title, audio, cues, tempo, sections = [] }) {
       const extras = [c.othersOff ? 'ALL OTHERS OFF at first flash' : '', c.note].filter(Boolean);
       return [String(i + 1), `${formatTime(c.time, 1)}–${formatTime(flashEnd(c), 1)}`, lightsLabel(c.lights), `${c.level ?? 100}%`, color, flashLabel(c), extras.join(' · ')];
     }
+    // A hit: on for a blink, then straight into its fade-out. A range would
+    // read "0:28.5–0:28.5" at this resolution, so give the exact start instead.
+    if (c.end !== null && c.outFade !== null && c.outFade !== undefined && c.end - c.time < 0.2 && c.action === 'on') {
+      const color = `${colorLabel(c)} ${c.color.toUpperCase()}`;
+      const extras = [c.othersOff ? 'ALL OTHERS OFF' : '', c.note].filter(Boolean);
+      const total = Math.round((c.end - c.time + c.outFade) * 100) / 100;
+      return [String(i + 1), formatTime(c.time, 2), lightsLabel(c.lights), `${c.level ?? 100}%`, color, `${transitionLabel(c)}, fade straight out over ${total}s`, extras.join(' · ')];
+    }
     const time = c.end !== null ? `${formatTime(c.time, 1)}–${formatTime(c.end, 1)}` : formatTime(c.time, 1);
     const color = c.action === 'off' ? '—' : `${colorLabel(c)} ${c.color.toUpperCase()}`;
     let transition = transitionLabel(c);
     if (c.end !== null && c.action === 'on') {
-      transition += c.transition === 'fade' ? `, fade out ${c.fade}s at end` : ', snap out at end';
+      const outFor = c.outFade ?? (c.transition === 'fade' ? c.fade : 0);
+      transition += outFor > 0 ? `, fade out ${outFor}s at end` : ', snap out at end';
     }
     const extras = [];
     if (c.othersOff) extras.push('ALL OTHERS OFF');
@@ -628,7 +642,7 @@ export async function decodeShare(token) {
 // edit — so it reports every difference and pre-picks a default, and the
 // person decides. The newer edit is the default where both copies have an item.
 
-const CUE_FIELDS = ['time', 'end', 'lights', 'action', 'color', 'colorName', 'level', 'transition', 'fade', 'othersOff', 'note', 'repeat'];
+const CUE_FIELDS = ['time', 'end', 'outFade', 'lights', 'action', 'color', 'colorName', 'level', 'transition', 'fade', 'othersOff', 'note', 'repeat'];
 const SECTION_FIELDS = ['name', 'bar', 'time'];
 
 function sameItem(a, b, fields) {

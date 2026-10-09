@@ -572,7 +572,7 @@ function describe(c) {
   const what = `${transitionLabel(c)} · ${c.lights.length ? lightsLabel(c.lights) : 'no lights'}`;
   const bits = [];
   if (c.action === 'on') bits.push(`${c.level}% · ${colorLabel(c)} ${c.color.toUpperCase()}`);
-  if (c.end !== null) bits.push(`out at ${formatTime(c.end)}`);
+  if (c.end !== null) bits.push(`out at ${formatTime(c.end)}${c.outFade ? `, fading ${c.outFade}s` : ''}`);
   return { what, how: bits.join(' · ') };
 }
 
@@ -704,6 +704,7 @@ function openEditor(cue, preset = {}) {
   $('fDelete').hidden = isNew;
   $('fTime').value = formatTime(draft.time);
   $('fEnd').value = draft.end !== null ? formatTime(draft.end) : '';
+  $('fOutFade').value = draft.outFade ?? '';
   form.querySelectorAll('input[name="light"]').forEach((b) => { b.checked = draft.lights.includes(Number(b.value)); });
   form.querySelector(`input[name="action"][value="${draft.action}"]`).checked = true;
   form.querySelector(`input[name="transition"][value="${draft.transition}"]`).checked = true;
@@ -785,6 +786,8 @@ function readForm() {
     })
     : null;
   if (d.repeat) d.end = null;
+  const of = $('fOutFade').value.trim();
+  d.outFade = d.end !== null && of !== '' && Number(of) >= 0 ? Math.min(30, Math.round(Number(of) * 100) / 100) : null;
   syncFormUi();
   dirtyStage = true;
 }
@@ -797,6 +800,8 @@ function syncFlashUi() {
   $('flashBody').hidden = !on;
   $('fEnd').disabled = on;
   $('fEndNow').disabled = on;
+  // Fade-out only means something once there's an End to fade out at.
+  $('outFadeWrap').hidden = on || d.end === null;
   $('fAltColor').disabled = !$('fAlt').checked;
   if (!on || !d.repeat) { $('flashWarn').hidden = true; $('flashSummary').textContent = ''; return; }
   const r = d.repeat;

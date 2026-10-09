@@ -441,3 +441,20 @@ test('logo colours are named on the sheet, and the rig names the apparatus', () 
   assert.deepEqual(APPARATUS, { 3: 'pole', 7: 'pole', 10: 'loops' });
   assert.match(cueSheet({ cues: [c] }), /Rig: Apparatus 3 \(pole\), 7 \(pole\), 10 \(loops\)/);
 });
+
+test('a hit snaps on and fades out over its own time', () => {
+  const c = normalizeCue({ time: 10, end: 10.1, outFade: 0.5, lights: [7], color: '#c0d62d' });
+  const lv = (t) => stateAt([c], t).lights[7].level;
+  assert.equal(lv(10), 1, 'snaps on');
+  assert.equal(lv(10.1), 1);
+  assert.ok(Math.abs(lv(10.35) - 0.5) < 1e-9, 'halfway through the fade-out');
+  assert.equal(lv(10.6), 0);
+  assert.match(cueSheet({ cues: [c] }), /0:10\.00 .*Snap ON, fade straight out over 0\.6s/);
+  const slow = normalizeCue({ time: 10, end: 14, outFade: 1, lights: [7] });
+  assert.match(cueSheet({ cues: [slow] }), /0:10\.0–0:14\.0 .*Snap ON, fade out 1s at end/);
+  // only kept with an End; round-trips; old cues have none
+  assert.equal(normalizeCue({ time: 1, lights: [1], outFade: 2 }).outFade, null);
+  assert.equal(normalizeCue({ time: 1, end: 2, lights: [1] }).outFade, null);
+  const back = normalizePlan(JSON.parse(JSON.stringify(serializePlan({ cues: [c] }))));
+  assert.equal(back.cues[0].outFade, 0.5);
+});
