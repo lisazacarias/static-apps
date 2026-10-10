@@ -2309,10 +2309,18 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Victory: hold the victory colours still from 3:17.50 to about 3:22 — no switching, no fades",
-      "repeat": null,
+      "note": "Victory: flip between look A and look B on every 8th note from 3:17.50 to 3:22, like the finale",
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 0.5,
+        "count": 16,
+        "onFrac": 1,
+        "altColor": "#fbb612",
+        "dimTo": 0,
+        "keepColor": false
+      },
       "option": null,
-      "updatedAt": 1791602400000
+      "updatedAt": 1791702000000
     },
     {
       "id": "victory-hold-orange",
@@ -2331,9 +2339,17 @@
       "fade": 2,
       "othersOff": false,
       "note": "",
-      "repeat": null,
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 0.5,
+        "count": 16,
+        "onFrac": 1,
+        "altColor": "#00acee",
+        "dimTo": 0,
+        "keepColor": false
+      },
       "option": null,
-      "updatedAt": 1791602400000
+      "updatedAt": 1791702000000
     },
     {
       "id": "victory-hold-lime",
@@ -2353,9 +2369,17 @@
       "fade": 2,
       "othersOff": false,
       "note": "",
-      "repeat": null,
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 0.5,
+        "count": 16,
+        "onFrac": 1,
+        "altColor": "#858ac2",
+        "dimTo": 0,
+        "keepColor": false
+      },
       "option": null,
-      "updatedAt": 1791602400000
+      "updatedAt": 1791702000000
     },
     {
       "id": "victory-hold-lavender",
@@ -2375,9 +2399,17 @@
       "fade": 2,
       "othersOff": false,
       "note": "",
-      "repeat": null,
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 0.5,
+        "count": 16,
+        "onFrac": 1,
+        "altColor": "#ec1b24",
+        "dimTo": 0,
+        "keepColor": false
+      },
       "option": null,
-      "updatedAt": 1791602400000
+      "updatedAt": 1791702000000
     },
     {
       "id": "victory-hold-blue",
@@ -2396,9 +2428,17 @@
       "fade": 2,
       "othersOff": false,
       "note": "",
-      "repeat": null,
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 0.5,
+        "count": 16,
+        "onFrac": 1,
+        "altColor": "#c0d62d",
+        "dimTo": 0,
+        "keepColor": false
+      },
       "option": null,
-      "updatedAt": 1791602400000
+      "updatedAt": 1791702000000
     },
     {
       "id": "victory-b-red",
