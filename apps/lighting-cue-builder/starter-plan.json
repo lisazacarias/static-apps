@@ -1291,11 +1291,15 @@
       "end": null,
       "outFade": null,
       "lights": [
-        1,
-        4,
+        2,
+        3,
+        5,
+        6,
         7,
+        8,
+        9,
         10,
-        11
+        12
       ],
       "action": "on",
       "color": "#fbb612",
@@ -1304,10 +1308,32 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle: the five pools snap to full on the beat after the pulse, holding until the big hits",
+      "note": "Battle (2:39.25): full on the other seven plus both apparatus, so hit 1 lands as a switch",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791597000000
+      "updatedAt": 1791701000000
+    },
+    {
+      "id": "battle-full-off",
+      "time": 159.25,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        4,
+        11
+      ],
+      "action": "off",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "…1, 4 and 11 out, held for the hits",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791701000000
     },
     {
       "id": "battle-hits-1",
@@ -1361,6 +1387,32 @@
       "updatedAt": 1791596400000
     },
     {
+      "id": "battle-hits-seven-off",
+      "time": 164.32,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        3,
+        5,
+        6,
+        8,
+        9,
+        12
+      ],
+      "action": "off",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Hit 1: the seven snap off as 1, 4, 11 and the pole start strobing",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791701000000
+    },
+    {
       "id": "battle-hits-2",
       "time": 169.3,
       "end": null,
@@ -1397,11 +1449,15 @@
       "end": null,
       "outFade": null,
       "lights": [
-        1,
-        4,
+        2,
+        3,
+        5,
+        6,
         7,
+        8,
+        9,
         10,
-        11
+        12
       ],
       "action": "on",
       "color": "#fbb612",
@@ -1410,10 +1466,32 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle: the five pools back to full on the beat after the last hit, holding into the victory fade",
+      "note": "Battle (2:54.28): back to the other seven plus both apparatus, so the first post-battle hit lands as a switch",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791597600000
+      "updatedAt": 1791701000000
+    },
+    {
+      "id": "battle-full-2-off",
+      "time": 174.28,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        4,
+        11
+      ],
+      "action": "off",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "…1, 4 and 11 out, held for the hits",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791701000000
     },
     {
       "id": "stinger-4",
@@ -1438,6 +1516,32 @@
       "repeat": null,
       "option": null,
       "updatedAt": 1791599400000
+    },
+    {
+      "id": "stingers-seven-off",
+      "time": 177.07,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        3,
+        5,
+        6,
+        8,
+        9,
+        12
+      ],
+      "action": "off",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "First post-battle hit: the seven snap off as the five flash",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791701000000
     },
     {
       "id": "stinger-5",
