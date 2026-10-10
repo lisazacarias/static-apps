@@ -1697,16 +1697,8 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Drums: two looks swapping on the 1 and the 2& — A on the 1 (the victory colours)",
-      "repeat": {
-        "bpm": 104.79,
-        "beats": 4,
-        "count": 5,
-        "onFrac": 1,
-        "altColor": null,
-        "dimTo": 0,
-        "keepColor": false
-      },
+      "note": "Drums: hold look A (the victory colours) through the first bar",
+      "repeat": null,
       "option": null,
       "updatedAt": 1791601800000
     },
@@ -1727,15 +1719,7 @@
       "fade": 2,
       "othersOff": false,
       "note": "",
-      "repeat": {
-        "bpm": 104.79,
-        "beats": 4,
-        "count": 5,
-        "onFrac": 1,
-        "altColor": null,
-        "dimTo": 0,
-        "keepColor": false
-      },
+      "repeat": null,
       "option": null,
       "updatedAt": 1791601800000
     },
@@ -1757,15 +1741,7 @@
       "fade": 2,
       "othersOff": false,
       "note": "",
-      "repeat": {
-        "bpm": 104.79,
-        "beats": 4,
-        "count": 5,
-        "onFrac": 1,
-        "altColor": null,
-        "dimTo": 0,
-        "keepColor": false
-      },
+      "repeat": null,
       "option": null,
       "updatedAt": 1791601800000
     },
@@ -1787,15 +1763,7 @@
       "fade": 2,
       "othersOff": false,
       "note": "",
-      "repeat": {
-        "bpm": 104.79,
-        "beats": 4,
-        "count": 5,
-        "onFrac": 1,
-        "altColor": null,
-        "dimTo": 0,
-        "keepColor": false
-      },
+      "repeat": null,
       "option": null,
       "updatedAt": 1791601800000
     },
@@ -1816,17 +1784,116 @@
       "fade": 2,
       "othersOff": false,
       "note": "",
-      "repeat": {
-        "bpm": 104.79,
-        "beats": 4,
-        "count": 5,
-        "onFrac": 1,
-        "altColor": null,
-        "dimTo": 0,
-        "keepColor": false
-      },
+      "repeat": null,
       "option": null,
       "updatedAt": 1791601800000
+    },
+    {
+      "id": "drums-switch-red",
+      "time": 188.34,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        5
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Drums: switch to look B on the 1 of bar 2 (3:08.34)",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791700000000
+    },
+    {
+      "id": "drums-switch-orange",
+      "time": 188.34,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        4,
+        9
+      ],
+      "action": "on",
+      "color": "#00acee",
+      "colorName": "Titans blue",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791700000000
+    },
+    {
+      "id": "drums-switch-lime",
+      "time": 188.34,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        3,
+        7,
+        12
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791700000000
+    },
+    {
+      "id": "drums-switch-lavender",
+      "time": 188.34,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        6,
+        10
+      ],
+      "action": "on",
+      "color": "#ec1b24",
+      "colorName": "Titans red",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791700000000
+    },
+    {
+      "id": "drums-switch-blue",
+      "time": 188.34,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        8,
+        11
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791700000000
     },
     {
       "id": "drums-b-red",
@@ -1974,6 +2041,153 @@
       },
       "option": null,
       "updatedAt": 1791605400000
+    },
+    {
+      "id": "drums-a2-red",
+      "time": 190.63,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        5
+      ],
+      "action": "on",
+      "color": "#ec1b24",
+      "colorName": "Titans red",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Drums: A back on the 1 from bar 3, swapping with B on the 2&",
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 4,
+        "count": 3,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791700000000
+    },
+    {
+      "id": "drums-a2-orange",
+      "time": 190.63,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        4,
+        9
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 4,
+        "count": 3,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791700000000
+    },
+    {
+      "id": "drums-a2-lime",
+      "time": 190.63,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        3,
+        7,
+        12
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 4,
+        "count": 3,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791700000000
+    },
+    {
+      "id": "drums-a2-lavender",
+      "time": 190.63,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        6,
+        10
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 4,
+        "count": 3,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791700000000
+    },
+    {
+      "id": "drums-a2-blue",
+      "time": 190.63,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        8,
+        11
+      ],
+      "action": "on",
+      "color": "#00acee",
+      "colorName": "Titans blue",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 4,
+        "count": 3,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791700000000
     },
     {
       "id": "victory-hold-red",
