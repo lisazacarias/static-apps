@@ -229,8 +229,23 @@ function duration() {
   return Number.isFinite(audio.duration) ? audio.duration : 0;
 }
 
+// CHECK: Safari seems to advance currentTime only a few times a second while
+// playing; on stage that showed up as cues landing late and fast flips
+// stuttering. So while playing, run our own clock forward from the last
+// value the element reported, re-anchoring whenever it moves. While playing
+// it never steps backwards, so a late re-anchor can't flicker a cue.
+let clock = { media: 0, at: 0, last: 0 };
 function now() {
-  return audio.currentTime || 0;
+  const ct = audio.currentTime || 0;
+  const p = performance.now();
+  if (audio.paused || audio.seeking) {
+    clock = { media: ct, at: p, last: ct };
+    return ct;
+  }
+  if (ct !== clock.media) clock = { ...clock, media: ct, at: p };
+  const t = ct + (Math.min(p - clock.at, 500) / 1000) * audio.playbackRate;
+  clock.last = Math.abs(t - clock.last) > 1 ? t : Math.max(t, clock.last);
+  return clock.last;
 }
 
 function seek(t) {
