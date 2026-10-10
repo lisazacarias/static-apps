@@ -2323,31 +2323,31 @@
       "end": null,
       "outFade": null,
       "lights": [
-        1,
-        3,
-        6,
-        8,
-        12
+        2,
+        4,
+        5,
+        9,
+        11
       ],
       "action": "on",
-      "color": "#858ac2",
-      "colorName": "Titans lavender",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Raven solo: background vocal pair 1/8 (on the beat and the next), lime and lavender swap each time",
+      "note": "Raven solo: background vocal pair 1/8; lime and lavender swap; pole (7) lime, loops (10) dark",
       "repeat": {
         "bpm": 95.77,
         "beats": 1,
         "count": 2,
         "onFrac": 1,
-        "altColor": "#c0d62d",
+        "altColor": "#858ac2",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791721000000
+      "updatedAt": 1791722000000
     },
     {
       "id": "raven-vocal1-y",
@@ -2355,15 +2355,15 @@
       "end": null,
       "outFade": null,
       "lights": [
-        2,
-        4,
-        5,
-        9,
-        11
+        1,
+        3,
+        6,
+        8,
+        12
       ],
       "action": "on",
-      "color": "#c0d62d",
-      "colorName": "Titans lime",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
@@ -2374,12 +2374,12 @@
         "beats": 1,
         "count": 2,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#c0d62d",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791721000000
+      "updatedAt": 1791722000000
     },
     {
       "id": "raven-vocal2-x",
@@ -2387,31 +2387,31 @@
       "end": null,
       "outFade": null,
       "lights": [
-        1,
-        3,
-        6,
-        8,
-        12
+        2,
+        4,
+        5,
+        9,
+        11
       ],
       "action": "on",
-      "color": "#858ac2",
-      "colorName": "Titans lavender",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Raven solo: background vocal pair 2/8 (on the beat and the next), lime and lavender swap each time",
+      "note": "Raven solo: background vocal pair 2/8; lime and lavender swap; pole (7) lime, loops (10) dark",
       "repeat": {
         "bpm": 95.77,
         "beats": 1,
         "count": 2,
         "onFrac": 1,
-        "altColor": "#c0d62d",
+        "altColor": "#858ac2",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791721000000
+      "updatedAt": 1791722000000
     },
     {
       "id": "raven-vocal2-y",
@@ -2419,15 +2419,15 @@
       "end": null,
       "outFade": null,
       "lights": [
-        2,
-        4,
-        5,
-        9,
-        11
+        1,
+        3,
+        6,
+        8,
+        12
       ],
       "action": "on",
-      "color": "#c0d62d",
-      "colorName": "Titans lime",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
@@ -2438,12 +2438,12 @@
         "beats": 1,
         "count": 2,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#c0d62d",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791721000000
+      "updatedAt": 1791722000000
     },
     {
       "id": "raven-rap-x",
@@ -2451,23 +2451,23 @@
       "end": null,
       "outFade": null,
       "lights": [
-        1,
-        3,
-        6,
-        8,
-        12
+        2,
+        4,
+        5,
+        9,
+        11
       ],
       "action": "on",
-      "color": "#858ac2",
-      "colorName": "Titans lavender",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Raven starts rapping (0:47.57): lime and lavender swap pools; pole (7) stays lime, loops (10) dark",
+      "note": "Raven starts rapping (0:47.57): lime and lavender swap",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791721000000
+      "updatedAt": 1791722000000
     },
     {
       "id": "raven-rap-y",
@@ -2475,11 +2475,251 @@
       "end": null,
       "outFade": null,
       "lights": [
+        1,
+        3,
+        6,
+        8,
+        12
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "raven-vocal3-x",
+      "time": 49.45,
+      "end": null,
+      "outFade": null,
+      "lights": [
         2,
         4,
         5,
         9,
         11
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Raven solo: background vocal pair 3/8; lime and lavender swap; pole (7) lime, loops (10) dark",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#c0d62d",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "raven-vocal3-y",
+      "time": 49.45,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        3,
+        6,
+        8,
+        12
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#858ac2",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "raven-vocal4-x",
+      "time": 54.47,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        4,
+        5,
+        9,
+        11
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Raven solo: background vocal pair 4/8; lime and lavender swap; pole (7) lime, loops (10) dark",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#c0d62d",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "raven-vocal4-y",
+      "time": 54.47,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        3,
+        6,
+        8,
+        12
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#858ac2",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "raven-vocal5-x",
+      "time": 59.48,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        4,
+        5,
+        9,
+        11
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Raven solo: background vocal pair 5/8; lime and lavender swap; pole (7) lime, loops (10) dark",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#c0d62d",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "raven-vocal5-y",
+      "time": 59.48,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        3,
+        6,
+        8,
+        12
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#858ac2",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "raven-vocal6-x",
+      "time": 64.49,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        4,
+        5,
+        9,
+        11
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Raven solo: background vocal (one beat only — none at 1:05) 6/8; lime and lavender swap; pole (7) lime, loops (10) dark",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "raven-vocal6-y",
+      "time": 64.49,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        3,
+        6,
+        8,
+        12
       ],
       "action": "on",
       "color": "#c0d62d",
@@ -2491,263 +2731,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791721000000
-    },
-    {
-      "id": "raven-vocal3-x",
-      "time": 49.45,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        1,
-        3,
-        6,
-        8,
-        12
-      ],
-      "action": "on",
-      "color": "#c0d62d",
-      "colorName": "Titans lime",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "Raven solo: background vocal pair 3/8 (on the beat and the next), lime and lavender swap each time",
-      "repeat": {
-        "bpm": 95.77,
-        "beats": 1,
-        "count": 2,
-        "onFrac": 1,
-        "altColor": "#858ac2",
-        "dimTo": 0,
-        "keepColor": false
-      },
-      "option": null,
-      "updatedAt": 1791721000000
-    },
-    {
-      "id": "raven-vocal3-y",
-      "time": 49.45,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        2,
-        4,
-        5,
-        9,
-        11
-      ],
-      "action": "on",
-      "color": "#858ac2",
-      "colorName": "Titans lavender",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": {
-        "bpm": 95.77,
-        "beats": 1,
-        "count": 2,
-        "onFrac": 1,
-        "altColor": "#c0d62d",
-        "dimTo": 0,
-        "keepColor": false
-      },
-      "option": null,
-      "updatedAt": 1791721000000
-    },
-    {
-      "id": "raven-vocal4-x",
-      "time": 54.47,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        1,
-        3,
-        6,
-        8,
-        12
-      ],
-      "action": "on",
-      "color": "#c0d62d",
-      "colorName": "Titans lime",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "Raven solo: background vocal pair 4/8 (on the beat and the next), lime and lavender swap each time",
-      "repeat": {
-        "bpm": 95.77,
-        "beats": 1,
-        "count": 2,
-        "onFrac": 1,
-        "altColor": "#858ac2",
-        "dimTo": 0,
-        "keepColor": false
-      },
-      "option": null,
-      "updatedAt": 1791721000000
-    },
-    {
-      "id": "raven-vocal4-y",
-      "time": 54.47,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        2,
-        4,
-        5,
-        9,
-        11
-      ],
-      "action": "on",
-      "color": "#858ac2",
-      "colorName": "Titans lavender",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": {
-        "bpm": 95.77,
-        "beats": 1,
-        "count": 2,
-        "onFrac": 1,
-        "altColor": "#c0d62d",
-        "dimTo": 0,
-        "keepColor": false
-      },
-      "option": null,
-      "updatedAt": 1791721000000
-    },
-    {
-      "id": "raven-vocal5-x",
-      "time": 59.48,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        1,
-        3,
-        6,
-        8,
-        12
-      ],
-      "action": "on",
-      "color": "#c0d62d",
-      "colorName": "Titans lime",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "Raven solo: background vocal pair 5/8 (on the beat and the next), lime and lavender swap each time",
-      "repeat": {
-        "bpm": 95.77,
-        "beats": 1,
-        "count": 2,
-        "onFrac": 1,
-        "altColor": "#858ac2",
-        "dimTo": 0,
-        "keepColor": false
-      },
-      "option": null,
-      "updatedAt": 1791721000000
-    },
-    {
-      "id": "raven-vocal5-y",
-      "time": 59.48,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        2,
-        4,
-        5,
-        9,
-        11
-      ],
-      "action": "on",
-      "color": "#858ac2",
-      "colorName": "Titans lavender",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": {
-        "bpm": 95.77,
-        "beats": 1,
-        "count": 2,
-        "onFrac": 1,
-        "altColor": "#c0d62d",
-        "dimTo": 0,
-        "keepColor": false
-      },
-      "option": null,
-      "updatedAt": 1791721000000
-    },
-    {
-      "id": "raven-vocal6-x",
-      "time": 64.49,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        1,
-        3,
-        6,
-        8,
-        12
-      ],
-      "action": "on",
-      "color": "#c0d62d",
-      "colorName": "Titans lime",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "Raven solo: background vocal pair 6/8 (on the beat and the next), lime and lavender swap each time",
-      "repeat": {
-        "bpm": 95.77,
-        "beats": 1,
-        "count": 2,
-        "onFrac": 1,
-        "altColor": "#858ac2",
-        "dimTo": 0,
-        "keepColor": false
-      },
-      "option": null,
-      "updatedAt": 1791721000000
-    },
-    {
-      "id": "raven-vocal6-y",
-      "time": 64.49,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        2,
-        4,
-        5,
-        9,
-        11
-      ],
-      "action": "on",
-      "color": "#858ac2",
-      "colorName": "Titans lavender",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": {
-        "bpm": 95.77,
-        "beats": 1,
-        "count": 2,
-        "onFrac": 1,
-        "altColor": "#c0d62d",
-        "dimTo": 0,
-        "keepColor": false
-      },
-      "option": null,
-      "updatedAt": 1791721000000
+      "updatedAt": 1791722000000
     },
     {
       "id": "raven-vocal7-x",
@@ -2755,11 +2739,11 @@
       "end": null,
       "outFade": null,
       "lights": [
-        1,
-        3,
-        6,
-        8,
-        12
+        2,
+        4,
+        5,
+        9,
+        11
       ],
       "action": "on",
       "color": "#c0d62d",
@@ -2768,7 +2752,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Raven solo: background vocal pair 7/8 (on the beat and the next), lime and lavender swap each time",
+      "note": "Raven solo: background vocal pair 7/8; lime and lavender swap; pole (7) lime, loops (10) dark",
       "repeat": {
         "bpm": 95.77,
         "beats": 1,
@@ -2779,7 +2763,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791721000000
+      "updatedAt": 1791722000000
     },
     {
       "id": "raven-vocal7-y",
@@ -2787,11 +2771,11 @@
       "end": null,
       "outFade": null,
       "lights": [
-        2,
-        4,
-        5,
-        9,
-        11
+        1,
+        3,
+        6,
+        8,
+        12
       ],
       "action": "on",
       "color": "#858ac2",
@@ -2811,10 +2795,42 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791721000000
+      "updatedAt": 1791722000000
     },
     {
       "id": "raven-vocal8-x",
+      "time": 74.51,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        4,
+        5,
+        9,
+        11
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Raven solo: background vocal pair 8/8; lime and lavender swap; pole (7) lime, loops (10) dark",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#858ac2",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "raven-vocal8-y",
       "time": 74.51,
       "end": null,
       "outFade": null,
@@ -2826,38 +2842,6 @@
         12
       ],
       "action": "on",
-      "color": "#c0d62d",
-      "colorName": "Titans lime",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "Raven solo: background vocal pair 8/8 (on the beat and the next), lime and lavender swap each time",
-      "repeat": {
-        "bpm": 95.77,
-        "beats": 1,
-        "count": 2,
-        "onFrac": 1,
-        "altColor": "#858ac2",
-        "dimTo": 0,
-        "keepColor": false
-      },
-      "option": null,
-      "updatedAt": 1791721000000
-    },
-    {
-      "id": "raven-vocal8-y",
-      "time": 74.51,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        2,
-        4,
-        5,
-        9,
-        11
-      ],
-      "action": "on",
       "color": "#858ac2",
       "colorName": "Titans lavender",
       "level": 100,
@@ -2875,7 +2859,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791721000000
+      "updatedAt": 1791722000000
     },
     {
       "id": "raven-out",
@@ -2945,6 +2929,518 @@
       "repeat": null,
       "option": null,
       "updatedAt": 1791586800000
+    },
+    {
+      "id": "starfire-vocal1-x",
+      "time": 79.53,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        3,
+        4,
+        5,
+        9
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Starfire solo: background vocal pair 1/8; lime and lavender swap; her loops (10) stay lavender, pole (7) dark",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#858ac2",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "starfire-vocal1-y",
+      "time": 79.53,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        6,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#c0d62d",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "starfire-vocal2-x",
+      "time": 84.54,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        3,
+        4,
+        5,
+        9
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Starfire solo: background vocal pair 2/8; lime and lavender swap; her loops (10) stay lavender, pole (7) dark",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#858ac2",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "starfire-vocal2-y",
+      "time": 84.54,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        6,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#c0d62d",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "starfire-vocal3-x",
+      "time": 89.55,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        3,
+        4,
+        5,
+        9
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Starfire solo: background vocal pair 3/8; lime and lavender swap; her loops (10) stay lavender, pole (7) dark",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#858ac2",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "starfire-vocal3-y",
+      "time": 89.55,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        6,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#c0d62d",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "starfire-vocal4-x",
+      "time": 94.56,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        3,
+        4,
+        5,
+        9
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Starfire solo: background vocal pair 4/8; lime and lavender swap; her loops (10) stay lavender, pole (7) dark",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#858ac2",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "starfire-vocal4-y",
+      "time": 94.56,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        6,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#c0d62d",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "starfire-vocal5-x",
+      "time": 99.57,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        3,
+        4,
+        5,
+        9
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Starfire solo: background vocal pair 5/8; lime and lavender swap; her loops (10) stay lavender, pole (7) dark",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#858ac2",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "starfire-vocal5-y",
+      "time": 99.57,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        6,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#c0d62d",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "starfire-vocal6-x",
+      "time": 104.59,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        3,
+        4,
+        5,
+        9
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Starfire solo: background vocal pair 6/8; lime and lavender swap; her loops (10) stay lavender, pole (7) dark",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#858ac2",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "starfire-vocal6-y",
+      "time": 104.59,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        6,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#c0d62d",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "starfire-vocal7-x",
+      "time": 109.6,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        3,
+        4,
+        5,
+        9
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Starfire solo: background vocal pair 7/8; lime and lavender swap; her loops (10) stay lavender, pole (7) dark",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#858ac2",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "starfire-vocal7-y",
+      "time": 109.6,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        6,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#c0d62d",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "starfire-vocal8-x",
+      "time": 114.61,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        3,
+        4,
+        5,
+        9
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Starfire solo: background vocal pair 8/8; lime and lavender swap; her loops (10) stay lavender, pole (7) dark",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#858ac2",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
+    },
+    {
+      "id": "starfire-vocal8-y",
+      "time": 114.61,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        6,
+        8,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#c0d62d",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791722000000
     },
     {
       "id": "thunder-blackout",
