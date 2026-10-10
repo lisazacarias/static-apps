@@ -1310,56 +1310,6 @@
       "updatedAt": 1791597000000
     },
     {
-      "id": "battle-hits-prep",
-      "time": 164.01,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        1,
-        4,
-        7,
-        10,
-        11
-      ],
-      "action": "off",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "Before the big hits: the five pools hand over to the other seven…",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791604200000
-    },
-    {
-      "id": "battle-hits-others-on",
-      "time": 164.01,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        2,
-        3,
-        5,
-        6,
-        8,
-        9,
-        12
-      ],
-      "action": "on",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "…the other seven on, in orange",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791604200000
-    },
-    {
       "id": "battle-hits-1",
       "time": 164.32,
       "end": null,
@@ -1409,32 +1359,6 @@
       "repeat": null,
       "option": null,
       "updatedAt": 1791596400000
-    },
-    {
-      "id": "battle-hits-others-off",
-      "time": 164.32,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        2,
-        3,
-        5,
-        6,
-        8,
-        9,
-        12
-      ],
-      "action": "off",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "Hit 1: the seven go dark as the strobing starts on the five",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791604200000
     },
     {
       "id": "battle-hits-2",
@@ -1492,56 +1416,6 @@
       "updatedAt": 1791597600000
     },
     {
-      "id": "stingers-prep",
-      "time": 176.76,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        1,
-        4,
-        7,
-        10,
-        11
-      ],
-      "action": "off",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "Before the post-battle hits: the five pools hand over to the other seven…",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791604800000
-    },
-    {
-      "id": "stingers-others-on",
-      "time": 176.76,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        2,
-        3,
-        5,
-        6,
-        8,
-        9,
-        12
-      ],
-      "action": "on",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "…the other seven on, in orange",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791604800000
-    },
-    {
       "id": "stinger-4",
       "time": 177.07,
       "end": 177.27,
@@ -1564,32 +1438,6 @@
       "repeat": null,
       "option": null,
       "updatedAt": 1791599400000
-    },
-    {
-      "id": "stingers-others-off",
-      "time": 177.07,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        2,
-        3,
-        5,
-        6,
-        8,
-        9,
-        12
-      ],
-      "action": "off",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "First post-battle hit: the seven go dark as the five flash",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791604800000
     },
     {
       "id": "stinger-5",
