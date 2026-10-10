@@ -1344,7 +1344,6 @@
         1,
         4,
         7,
-        10,
         11
       ],
       "action": "on",
@@ -1354,7 +1353,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle hits 1–8: all five battle pools strobe",
+      "note": "Battle hits 1–8: 1, 4, 11 and the pole (7) strobe; loops (10) dark",
       "repeat": {
         "bpm": 96.37,
         "beats": 1,
@@ -1365,7 +1364,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791703000000
+      "updatedAt": 1791704000000
     },
     {
       "id": "battle-hits-seven-off",
@@ -1405,6 +1404,7 @@
         6,
         8,
         9,
+        10,
         12
       ],
       "action": "on",
@@ -1414,7 +1414,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle hits 9–16: the strobe flips to the other seven",
+      "note": "Battle hits 9–16: the strobe flips to the other seven plus the loops (10); pole (7) dark",
       "repeat": {
         "bpm": 96.37,
         "beats": 1,
@@ -1425,7 +1425,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791703000000
+      "updatedAt": 1791704000000
     },
     {
       "id": "battle-full-2",
