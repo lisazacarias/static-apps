@@ -1489,6 +1489,7 @@
         3,
         5,
         6,
+        7,
         9,
         10
       ],
@@ -1499,10 +1500,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Post-battle hits (5): the seven snap on and fade quickly; pairs held as one flash",
+      "note": "Post-battle hits (5): 2, 3, 5, 6, 9, 10 and the pole (7) snap on and fade quickly; pairs held as one flash",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791705000000
+      "updatedAt": 1791708000000
     },
     {
       "id": "stingers-five-off",
@@ -1512,7 +1513,6 @@
       "lights": [
         1,
         4,
-        7,
         8,
         11,
         12
@@ -1524,10 +1524,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "First post-battle hit: the other six snap off as these flash",
+      "note": "First post-battle hit: 1, 4, 8, 11, 12 snap off as the flashes start; the pole (7) flashes with them",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791705000000
+      "updatedAt": 1791708000000
     },
     {
       "id": "stinger-5",
@@ -1539,6 +1539,7 @@
         3,
         5,
         6,
+        7,
         9,
         10
       ],
@@ -1552,7 +1553,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791705000000
+      "updatedAt": 1791708000000
     },
     {
       "id": "stinger-6",
@@ -1564,6 +1565,7 @@
         3,
         5,
         6,
+        7,
         9,
         10
       ],
@@ -1577,7 +1579,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791705000000
+      "updatedAt": 1791708000000
     },
     {
       "id": "stinger-7",
@@ -1589,6 +1591,7 @@
         3,
         5,
         6,
+        7,
         9,
         10
       ],
@@ -1602,7 +1605,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791705000000
+      "updatedAt": 1791708000000
     },
     {
       "id": "stinger-8",
@@ -1614,6 +1617,7 @@
         3,
         5,
         6,
+        7,
         9,
         10
       ],
@@ -1627,7 +1631,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791705000000
+      "updatedAt": 1791708000000
     },
     {
       "id": "victory-red",
