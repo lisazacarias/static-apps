@@ -1295,10 +1295,8 @@
         3,
         5,
         6,
-        7,
         8,
         9,
-        10,
         12
       ],
       "action": "on",
@@ -1308,10 +1306,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle (2:39.25): full on the other seven plus both apparatus, so hit 1 lands as a switch",
+      "note": "Battle (2:39.25): the other seven to full, the five out — so hit 1 lands as a flip",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791701000000
+      "updatedAt": 1791703000000
     },
     {
       "id": "battle-full-off",
@@ -1321,6 +1319,8 @@
       "lights": [
         1,
         4,
+        7,
+        10,
         11
       ],
       "action": "off",
@@ -1330,10 +1330,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "…1, 4 and 11 out, held for the hits",
+      "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791701000000
+      "updatedAt": 1791703000000
     },
     {
       "id": "battle-hits-1",
@@ -1344,6 +1344,7 @@
         1,
         4,
         7,
+        10,
         11
       ],
       "action": "on",
@@ -1353,7 +1354,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle hits 1–8: 1, 4, 11 and the pole (7) strobe; loops dark",
+      "note": "Battle hits 1–8: all five battle pools strobe",
       "repeat": {
         "bpm": 96.37,
         "beats": 1,
@@ -1364,27 +1365,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791596400000
-    },
-    {
-      "id": "battle-loops-off",
-      "time": 164.32,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        10
-      ],
-      "action": "off",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "Loops dark for hits 1–8 (they were resting at 35% from the pulse)",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791596400000
+      "updatedAt": 1791703000000
     },
     {
       "id": "battle-hits-seven-off",
@@ -1407,10 +1388,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Hit 1: the seven snap off as 1, 4, 11 and the pole start strobing",
+      "note": "Hit 1: the seven snap off as the five start strobing",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791701000000
+      "updatedAt": 1791703000000
     },
     {
       "id": "battle-hits-2",
@@ -1418,10 +1399,13 @@
       "end": null,
       "outFade": null,
       "lights": [
-        1,
-        4,
-        10,
-        11
+        2,
+        3,
+        5,
+        6,
+        8,
+        9,
+        12
       ],
       "action": "on",
       "color": "#fbb612",
@@ -1430,7 +1414,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle hits 9–16: 1, 4, 11 and the loops (10) strobe; pole dark",
+      "note": "Battle hits 9–16: the strobe flips to the other seven",
       "repeat": {
         "bpm": 96.37,
         "beats": 1,
@@ -1441,7 +1425,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791596400000
+      "updatedAt": 1791703000000
     },
     {
       "id": "battle-full-2",
@@ -1449,15 +1433,11 @@
       "end": null,
       "outFade": null,
       "lights": [
-        2,
-        3,
-        5,
-        6,
+        1,
+        4,
         7,
-        8,
-        9,
         10,
-        12
+        11
       ],
       "action": "on",
       "color": "#fbb612",
@@ -1466,10 +1446,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle (2:54.28): back to the other seven plus both apparatus, so the first post-battle hit lands as a switch",
+      "note": "Battle (2:54.28): the five back to full, the seven out — so the first post-battle hit lands as a flip",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791701000000
+      "updatedAt": 1791703000000
     },
     {
       "id": "battle-full-2-off",
@@ -1477,52 +1457,6 @@
       "end": null,
       "outFade": null,
       "lights": [
-        1,
-        4,
-        11
-      ],
-      "action": "off",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "…1, 4 and 11 out, held for the hits",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791701000000
-    },
-    {
-      "id": "stinger-4",
-      "time": 177.07,
-      "end": 177.27,
-      "outFade": 0.22,
-      "lights": [
-        1,
-        4,
-        7,
-        10,
-        11
-      ],
-      "action": "on",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "Post-battle hits (5): snap on, quick fade out; pairs held as one flash",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791599400000
-    },
-    {
-      "id": "stingers-seven-off",
-      "time": 177.07,
-      "end": null,
-      "outFade": null,
-      "lights": [
         2,
         3,
         5,
@@ -1538,10 +1472,60 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "First post-battle hit: the seven snap off as the five flash",
+      "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791701000000
+      "updatedAt": 1791703000000
+    },
+    {
+      "id": "stinger-4",
+      "time": 177.07,
+      "end": 177.27,
+      "outFade": 0.22,
+      "lights": [
+        2,
+        3,
+        5,
+        6,
+        8,
+        9,
+        12
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Post-battle hits (5): the seven snap on and fade quickly; pairs held as one flash",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791703000000
+    },
+    {
+      "id": "stingers-five-off",
+      "time": 177.07,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        4,
+        7,
+        10,
+        11
+      ],
+      "action": "off",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "First post-battle hit: the five snap off as the seven flash",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791703000000
     },
     {
       "id": "stinger-5",
@@ -1549,11 +1533,13 @@
       "end": 177.88,
       "outFade": 0.22,
       "lights": [
-        1,
-        4,
-        7,
-        10,
-        11
+        2,
+        3,
+        5,
+        6,
+        8,
+        9,
+        12
       ],
       "action": "on",
       "color": "#fbb612",
@@ -1565,7 +1551,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791598200000
+      "updatedAt": 1791703000000
     },
     {
       "id": "stinger-6",
@@ -1573,11 +1559,13 @@
       "end": 178.19,
       "outFade": 0.22,
       "lights": [
-        1,
-        4,
-        7,
-        10,
-        11
+        2,
+        3,
+        5,
+        6,
+        8,
+        9,
+        12
       ],
       "action": "on",
       "color": "#fbb612",
@@ -1589,7 +1577,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791598200000
+      "updatedAt": 1791703000000
     },
     {
       "id": "stinger-7",
@@ -1597,11 +1585,13 @@
       "end": 178.69,
       "outFade": 0.22,
       "lights": [
-        1,
-        4,
-        7,
-        10,
-        11
+        2,
+        3,
+        5,
+        6,
+        8,
+        9,
+        12
       ],
       "action": "on",
       "color": "#fbb612",
@@ -1613,7 +1603,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791598200000
+      "updatedAt": 1791703000000
     },
     {
       "id": "stinger-8",
@@ -1621,11 +1611,13 @@
       "end": 179,
       "outFade": 0.22,
       "lights": [
-        1,
-        4,
-        7,
-        10,
-        11
+        2,
+        3,
+        5,
+        6,
+        8,
+        9,
+        12
       ],
       "action": "on",
       "color": "#fbb612",
@@ -1637,7 +1629,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791598200000
+      "updatedAt": 1791703000000
     },
     {
       "id": "victory-red",
