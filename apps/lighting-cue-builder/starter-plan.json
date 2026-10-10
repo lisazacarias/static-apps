@@ -1000,7 +1000,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Intro guitar (0:15.96–0:21.77): every 1 and 5; ends on the second look, held until Rustage",
+      "note": "Intro guitar (0:15.96–0:21.77): every 1 and 5",
       "repeat": {
         "bpm": 165,
         "beats": 4,
@@ -1239,6 +1239,261 @@
       },
       "option": null,
       "updatedAt": 1791718000000
+    },
+    {
+      "id": "intro-gtr5-blue-lavender",
+      "time": 26.13,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1
+      ],
+      "action": "on",
+      "color": "#00acee",
+      "colorName": "Titans blue",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Intro guitar: 26.13, back to the intro look until Rustage",
+      "repeat": {
+        "bpm": 165,
+        "beats": 4,
+        "count": 1,
+        "onFrac": 1,
+        "altColor": "#858ac2",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791719000000
+    },
+    {
+      "id": "intro-gtr5-red-blue",
+      "time": 26.13,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        6
+      ],
+      "action": "on",
+      "color": "#ec1b24",
+      "colorName": "Titans red",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 165,
+        "beats": 4,
+        "count": 1,
+        "onFrac": 1,
+        "altColor": "#00acee",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791719000000
+    },
+    {
+      "id": "intro-gtr5-orange-lime",
+      "time": 26.13,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        3
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 165,
+        "beats": 4,
+        "count": 1,
+        "onFrac": 1,
+        "altColor": "#c0d62d",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791719000000
+    },
+    {
+      "id": "intro-gtr5-lime-orange",
+      "time": 26.13,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        4,
+        9
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 165,
+        "beats": 4,
+        "count": 1,
+        "onFrac": 1,
+        "altColor": "#fbb612",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791719000000
+    },
+    {
+      "id": "intro-gtr5-blue-lime",
+      "time": 26.13,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        5,
+        10
+      ],
+      "action": "on",
+      "color": "#00acee",
+      "colorName": "Titans blue",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 165,
+        "beats": 4,
+        "count": 1,
+        "onFrac": 1,
+        "altColor": "#c0d62d",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791719000000
+    },
+    {
+      "id": "intro-gtr5-lavender-red",
+      "time": 26.13,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 165,
+        "beats": 4,
+        "count": 1,
+        "onFrac": 1,
+        "altColor": "#ec1b24",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791719000000
+    },
+    {
+      "id": "intro-gtr5-orange-lavender",
+      "time": 26.13,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        8
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 165,
+        "beats": 4,
+        "count": 1,
+        "onFrac": 1,
+        "altColor": "#858ac2",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791719000000
+    },
+    {
+      "id": "intro-gtr5-lavender-blue",
+      "time": 26.13,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        11
+      ],
+      "action": "on",
+      "color": "#858ac2",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 165,
+        "beats": 4,
+        "count": 1,
+        "onFrac": 1,
+        "altColor": "#00acee",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791719000000
+    },
+    {
+      "id": "intro-gtr5-orange-red",
+      "time": 26.13,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        12
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 165,
+        "beats": 4,
+        "count": 1,
+        "onFrac": 1,
+        "altColor": "#ec1b24",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791719000000
     },
     {
       "id": "rustage-hit1-lime",
