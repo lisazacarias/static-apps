@@ -3638,8 +3638,9 @@
         1,
         4,
         7,
-        10,
-        11
+        8,
+        11,
+        12
       ],
       "action": "on",
       "color": "#fbb612",
@@ -3648,7 +3649,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle (2:34.27): switches instead of a pulse — 1, 4, 7, 10, 11 and the other seven trade places on every beat",
+      "note": "Battle (2:34.27): switches on every beat between two even halves — 1, 4, 7, 8, 11, 12 and 2, 3, 5, 6, 9, 10",
       "repeat": {
         "bpm": 96.77,
         "beats": 2,
@@ -3659,7 +3660,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791723000000
+      "updatedAt": 1791725000000
     },
     {
       "id": "battle-others-off",
@@ -3671,9 +3672,8 @@
         3,
         5,
         6,
-        8,
         9,
-        12
+        10
       ],
       "action": "off",
       "color": "#fbb612",
@@ -3682,48 +3682,14 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "First beat: the seven go dark as the five take it",
+      "note": "First beat: everything but the first half goes dark",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791723000000
+      "updatedAt": 1791725000000
     },
     {
       "id": "battle-switch-seven",
       "time": 154.89,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        2,
-        3,
-        5,
-        6,
-        8,
-        9,
-        12
-      ],
-      "action": "on",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "…the other seven on the off beats",
-      "repeat": {
-        "bpm": 96.77,
-        "beats": 2,
-        "count": 4,
-        "onFrac": 0.5,
-        "altColor": null,
-        "dimTo": 0,
-        "keepColor": false
-      },
-      "option": null,
-      "updatedAt": 1791723000000
-    },
-    {
-      "id": "battle-full",
-      "time": 159.24,
       "end": null,
       "outFade": null,
       "lights": [
@@ -3741,35 +3707,49 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle (2:39.25): 2, 3, 5, 6, 9, 10 to full, the rest out — so hit 1 lands as a flip",
-      "repeat": null,
+      "note": "…the other half on the off beats",
+      "repeat": {
+        "bpm": 96.77,
+        "beats": 2,
+        "count": 4,
+        "onFrac": 0.5,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
       "option": null,
-      "updatedAt": 1791705000000
+      "updatedAt": 1791725000000
     },
     {
-      "id": "battle-full-off",
+      "id": "battle-full",
       "time": 159.24,
       "end": null,
       "outFade": null,
       "lights": [
         1,
+        2,
+        3,
         4,
+        5,
+        6,
         7,
         8,
+        9,
+        10,
         11,
         12
       ],
-      "action": "off",
+      "action": "on",
       "color": "#fbb612",
       "colorName": "Titans orange",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "",
+      "note": "Battle (2:39.24): the whole stage to full after the half-and-half switching",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791705000000
+      "updatedAt": 1791725000000
     },
     {
       "id": "battle-hits-1",
