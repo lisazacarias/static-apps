@@ -4770,7 +4770,7 @@
     },
     {
       "id": "victory-hold-red",
-      "time": 197.5,
+      "time": 197.44,
       "end": null,
       "outFade": null,
       "lights": [
@@ -4795,11 +4795,11 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791705000000
+      "updatedAt": 1791726000000
     },
     {
       "id": "victory-hold-orange",
-      "time": 197.5,
+      "time": 197.44,
       "end": null,
       "outFade": null,
       "lights": [
@@ -4824,11 +4824,11 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791705000000
+      "updatedAt": 1791726000000
     },
     {
       "id": "victory-hold-lime",
-      "time": 197.5,
+      "time": 197.44,
       "end": null,
       "outFade": null,
       "lights": [
@@ -4854,11 +4854,11 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791705000000
+      "updatedAt": 1791726000000
     },
     {
       "id": "victory-hold-lavender",
-      "time": 197.5,
+      "time": 197.44,
       "end": null,
       "outFade": null,
       "lights": [
@@ -4884,11 +4884,11 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791705000000
+      "updatedAt": 1791726000000
     },
     {
       "id": "victory-hold-blue",
-      "time": 197.5,
+      "time": 197.44,
       "end": null,
       "outFade": null,
       "lights": [
@@ -4913,7 +4913,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791705000000
+      "updatedAt": 1791726000000
     },
     {
       "id": "victory-b-red",
@@ -5505,7 +5505,7 @@
     },
     {
       "id": "finale-flip-red",
-      "time": 220.33,
+      "time": 220.27,
       "end": null,
       "outFade": null,
       "lights": [
@@ -5530,11 +5530,11 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791603000000
+      "updatedAt": 1791726000000
     },
     {
       "id": "finale-flip-orange",
-      "time": 220.33,
+      "time": 220.27,
       "end": null,
       "outFade": null,
       "lights": [
@@ -5559,11 +5559,11 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791603000000
+      "updatedAt": 1791726000000
     },
     {
       "id": "finale-flip-lime",
-      "time": 220.33,
+      "time": 220.27,
       "end": null,
       "outFade": null,
       "lights": [
@@ -5589,11 +5589,11 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791603000000
+      "updatedAt": 1791726000000
     },
     {
       "id": "finale-flip-lavender",
-      "time": 220.33,
+      "time": 220.27,
       "end": null,
       "outFade": null,
       "lights": [
@@ -5619,11 +5619,11 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791603000000
+      "updatedAt": 1791726000000
     },
     {
       "id": "finale-flip-blue",
-      "time": 220.33,
+      "time": 220.27,
       "end": null,
       "outFade": null,
       "lights": [
@@ -5648,7 +5648,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791603000000
+      "updatedAt": 1791726000000
     },
     {
       "id": "finale-last-red",
