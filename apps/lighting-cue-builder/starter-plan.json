@@ -987,7 +987,7 @@
     },
     {
       "id": "intro-gtr4-blue-lavender",
-      "time": 17.41,
+      "time": 15.96,
       "end": null,
       "outFade": null,
       "lights": [
@@ -1000,22 +1000,22 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Intro guitar (0:17.41–0:21.77): every 1 and 5; ends back on the intro look, held until Rustage",
+      "note": "Intro guitar (0:15.96–0:21.77): every 1 and 5; ends on the second look, held until Rustage",
       "repeat": {
         "bpm": 165,
         "beats": 4,
-        "count": 4,
+        "count": 5,
         "onFrac": 1,
         "altColor": "#00acee",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791717000000
+      "updatedAt": 1791718000000
     },
     {
       "id": "intro-gtr4-red-blue",
-      "time": 17.41,
+      "time": 15.96,
       "end": null,
       "outFade": null,
       "lights": [
@@ -1033,18 +1033,18 @@
       "repeat": {
         "bpm": 165,
         "beats": 4,
-        "count": 4,
+        "count": 5,
         "onFrac": 1,
         "altColor": "#ec1b24",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791717000000
+      "updatedAt": 1791718000000
     },
     {
       "id": "intro-gtr4-orange-lime",
-      "time": 17.41,
+      "time": 15.96,
       "end": null,
       "outFade": null,
       "lights": [
@@ -1061,18 +1061,18 @@
       "repeat": {
         "bpm": 165,
         "beats": 4,
-        "count": 4,
+        "count": 5,
         "onFrac": 1,
         "altColor": "#fbb612",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791717000000
+      "updatedAt": 1791718000000
     },
     {
       "id": "intro-gtr4-lime-orange",
-      "time": 17.41,
+      "time": 15.96,
       "end": null,
       "outFade": null,
       "lights": [
@@ -1090,18 +1090,18 @@
       "repeat": {
         "bpm": 165,
         "beats": 4,
-        "count": 4,
+        "count": 5,
         "onFrac": 1,
         "altColor": "#c0d62d",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791717000000
+      "updatedAt": 1791718000000
     },
     {
       "id": "intro-gtr4-blue-lime",
-      "time": 17.41,
+      "time": 15.96,
       "end": null,
       "outFade": null,
       "lights": [
@@ -1119,18 +1119,18 @@
       "repeat": {
         "bpm": 165,
         "beats": 4,
-        "count": 4,
+        "count": 5,
         "onFrac": 1,
         "altColor": "#00acee",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791717000000
+      "updatedAt": 1791718000000
     },
     {
       "id": "intro-gtr4-lavender-red",
-      "time": 17.41,
+      "time": 15.96,
       "end": null,
       "outFade": null,
       "lights": [
@@ -1147,18 +1147,18 @@
       "repeat": {
         "bpm": 165,
         "beats": 4,
-        "count": 4,
+        "count": 5,
         "onFrac": 1,
         "altColor": "#858ac2",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791717000000
+      "updatedAt": 1791718000000
     },
     {
       "id": "intro-gtr4-orange-lavender",
-      "time": 17.41,
+      "time": 15.96,
       "end": null,
       "outFade": null,
       "lights": [
@@ -1175,18 +1175,18 @@
       "repeat": {
         "bpm": 165,
         "beats": 4,
-        "count": 4,
+        "count": 5,
         "onFrac": 1,
         "altColor": "#fbb612",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791717000000
+      "updatedAt": 1791718000000
     },
     {
       "id": "intro-gtr4-lavender-blue",
-      "time": 17.41,
+      "time": 15.96,
       "end": null,
       "outFade": null,
       "lights": [
@@ -1203,18 +1203,18 @@
       "repeat": {
         "bpm": 165,
         "beats": 4,
-        "count": 4,
+        "count": 5,
         "onFrac": 1,
         "altColor": "#858ac2",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791717000000
+      "updatedAt": 1791718000000
     },
     {
       "id": "intro-gtr4-orange-red",
-      "time": 17.41,
+      "time": 15.96,
       "end": null,
       "outFade": null,
       "lights": [
@@ -1231,14 +1231,14 @@
       "repeat": {
         "bpm": 165,
         "beats": 4,
-        "count": 4,
+        "count": 5,
         "onFrac": 1,
         "altColor": "#fbb612",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791717000000
+      "updatedAt": 1791718000000
     },
     {
       "id": "rustage-hit1-lime",
