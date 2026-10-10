@@ -1093,7 +1093,7 @@
     },
     {
       "id": "thunder-blackout",
-      "time": 117.74,
+      "time": 117.76,
       "end": null,
       "outFade": null,
       "lights": [
@@ -1117,14 +1117,14 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Thunderclap: hard cut to black",
+      "note": "Thunderclap: everything else cut, so the flash fades to black",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791586200000
+      "updatedAt": 1791706000000
     },
     {
       "id": "lightning-1",
-      "time": 117.83,
+      "time": 117.76,
       "end": 117.93,
       "outFade": 0.8,
       "lights": [
@@ -1148,20 +1148,23 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Thunderclap: one big white flash, fading out",
+      "note": "Thunderclap: one big white flash, a hair before the clap (1:57.84), fading out",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791588000000
+      "updatedAt": 1791706000000
     },
     {
       "id": "slade-orange",
-      "time": 118.73,
+      "time": 120,
       "end": null,
       "outFade": null,
       "lights": [
         1,
+        3,
         4,
+        5,
         7,
+        8,
         10,
         11
       ],
@@ -1172,10 +1175,10 @@
       "transition": "fade",
       "fade": 3.42,
       "othersOff": false,
-      "note": "Slade: slow fade up to orange right after the lightning, full as he starts talking (2:02.15); only 1, 4, 7, 10, 11 — the rest black",
+      "note": "Slade: slow fade up to orange as the monologue starts (2:00); 8 of 12 lit, 2, 6, 9 and 12 stay black",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791596400000
+      "updatedAt": 1791705000000
     },
     {
       "id": "battle-in-off",
@@ -1196,10 +1199,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle starts (2:26.79): Slade’s five pools out…",
+      "note": "Battle starts (2:26.79): 1, 4, 7, 10, 11 out…",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791603600000
+      "updatedAt": 1791705000000
     },
     {
       "id": "battle-in-on",
@@ -1295,9 +1298,8 @@
         3,
         5,
         6,
-        8,
         9,
-        12
+        10
       ],
       "action": "on",
       "color": "#fbb612",
@@ -1306,10 +1308,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle (2:39.25): the other seven to full, the five out — so hit 1 lands as a flip",
+      "note": "Battle (2:39.25): 2, 3, 5, 6, 9, 10 to full, the rest out — so hit 1 lands as a flip",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791703000000
+      "updatedAt": 1791705000000
     },
     {
       "id": "battle-full-off",
@@ -1320,8 +1322,9 @@
         1,
         4,
         7,
-        10,
-        11
+        8,
+        11,
+        12
       ],
       "action": "off",
       "color": "#fbb612",
@@ -1333,7 +1336,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791703000000
+      "updatedAt": 1791705000000
     },
     {
       "id": "battle-hits-1",
@@ -1344,7 +1347,9 @@
         1,
         4,
         7,
-        11
+        8,
+        11,
+        12
       ],
       "action": "on",
       "color": "#fbb612",
@@ -1353,7 +1358,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle hits 1–8: 1, 4, 11 and the pole (7) strobe; loops (10) dark",
+      "note": "Battle hits 1–8: 1, 4, 7 (pole), 8, 11, 12 strobe",
       "repeat": {
         "bpm": 96.37,
         "beats": 1,
@@ -1364,7 +1369,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791704000000
+      "updatedAt": 1791705000000
     },
     {
       "id": "battle-hits-seven-off",
@@ -1376,9 +1381,8 @@
         3,
         5,
         6,
-        8,
         9,
-        12
+        10
       ],
       "action": "off",
       "color": "#fbb612",
@@ -1387,10 +1391,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Hit 1: the seven snap off as the five start strobing",
+      "note": "Hit 1: the other six snap off as the strobing starts",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791703000000
+      "updatedAt": 1791705000000
     },
     {
       "id": "battle-hits-2",
@@ -1402,10 +1406,8 @@
         3,
         5,
         6,
-        8,
         9,
-        10,
-        12
+        10
       ],
       "action": "on",
       "color": "#fbb612",
@@ -1414,7 +1416,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle hits 9–16: the strobe flips to the other seven plus the loops (10); pole (7) dark",
+      "note": "Battle hits 9–16: the strobe flips to 2, 3, 5, 6, 9, 10 (loops)",
       "repeat": {
         "bpm": 96.37,
         "beats": 1,
@@ -1425,7 +1427,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791704000000
+      "updatedAt": 1791705000000
     },
     {
       "id": "battle-full-2",
@@ -1436,8 +1438,9 @@
         1,
         4,
         7,
-        10,
-        11
+        8,
+        11,
+        12
       ],
       "action": "on",
       "color": "#fbb612",
@@ -1446,10 +1449,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle (2:54.28): the five back to full, the seven out — so the first post-battle hit lands as a flip",
+      "note": "Battle (2:54.28): 1, 4, 7, 8, 11, 12 to full, the rest out — so the first post-battle hit lands as a flip",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791703000000
+      "updatedAt": 1791705000000
     },
     {
       "id": "battle-full-2-off",
@@ -1461,9 +1464,8 @@
         3,
         5,
         6,
-        8,
         9,
-        12
+        10
       ],
       "action": "off",
       "color": "#fbb612",
@@ -1475,7 +1477,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791703000000
+      "updatedAt": 1791705000000
     },
     {
       "id": "stinger-4",
@@ -1487,9 +1489,8 @@
         3,
         5,
         6,
-        8,
         9,
-        12
+        10
       ],
       "action": "on",
       "color": "#fbb612",
@@ -1501,7 +1502,7 @@
       "note": "Post-battle hits (5): the seven snap on and fade quickly; pairs held as one flash",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791703000000
+      "updatedAt": 1791705000000
     },
     {
       "id": "stingers-five-off",
@@ -1512,8 +1513,9 @@
         1,
         4,
         7,
-        10,
-        11
+        8,
+        11,
+        12
       ],
       "action": "off",
       "color": "#fbb612",
@@ -1522,10 +1524,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "First post-battle hit: the five snap off as the seven flash",
+      "note": "First post-battle hit: the other six snap off as these flash",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791703000000
+      "updatedAt": 1791705000000
     },
     {
       "id": "stinger-5",
@@ -1537,9 +1539,8 @@
         3,
         5,
         6,
-        8,
         9,
-        12
+        10
       ],
       "action": "on",
       "color": "#fbb612",
@@ -1551,7 +1552,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791703000000
+      "updatedAt": 1791705000000
     },
     {
       "id": "stinger-6",
@@ -1563,9 +1564,8 @@
         3,
         5,
         6,
-        8,
         9,
-        12
+        10
       ],
       "action": "on",
       "color": "#fbb612",
@@ -1577,7 +1577,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791703000000
+      "updatedAt": 1791705000000
     },
     {
       "id": "stinger-7",
@@ -1589,9 +1589,8 @@
         3,
         5,
         6,
-        8,
         9,
-        12
+        10
       ],
       "action": "on",
       "color": "#fbb612",
@@ -1603,7 +1602,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791703000000
+      "updatedAt": 1791705000000
     },
     {
       "id": "stinger-8",
@@ -1615,9 +1614,8 @@
         3,
         5,
         6,
-        8,
         9,
-        12
+        10
       ],
       "action": "on",
       "color": "#fbb612",
@@ -1629,7 +1627,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791703000000
+      "updatedAt": 1791705000000
     },
     {
       "id": "victory-red",
@@ -1900,10 +1898,18 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Drums: switch to look B on the 1 of bar 2 (3:08.34)",
-      "repeat": null,
+      "note": "Drums: from bar 2 (3:08.34), look B on the 1…",
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 4,
+        "count": 4,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
       "option": null,
-      "updatedAt": 1791700000000
+      "updatedAt": 1791705000000
     },
     {
       "id": "drums-switch-orange",
@@ -1922,9 +1928,17 @@
       "fade": 2,
       "othersOff": false,
       "note": "",
-      "repeat": null,
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 4,
+        "count": 4,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
       "option": null,
-      "updatedAt": 1791700000000
+      "updatedAt": 1791705000000
     },
     {
       "id": "drums-switch-lime",
@@ -1944,9 +1958,17 @@
       "fade": 2,
       "othersOff": false,
       "note": "",
-      "repeat": null,
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 4,
+        "count": 4,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
       "option": null,
-      "updatedAt": 1791700000000
+      "updatedAt": 1791705000000
     },
     {
       "id": "drums-switch-lavender",
@@ -1966,9 +1988,17 @@
       "fade": 2,
       "othersOff": false,
       "note": "",
-      "repeat": null,
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 4,
+        "count": 4,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
       "option": null,
-      "updatedAt": 1791700000000
+      "updatedAt": 1791705000000
     },
     {
       "id": "drums-switch-blue",
@@ -1987,9 +2017,17 @@
       "fade": 2,
       "othersOff": false,
       "note": "",
-      "repeat": null,
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 4,
+        "count": 4,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
       "option": null,
-      "updatedAt": 1791700000000
+      "updatedAt": 1791705000000
     },
     {
       "id": "drums-b-red",
@@ -2001,13 +2039,13 @@
         5
       ],
       "action": "on",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
+      "color": "#ec1b24",
+      "colorName": "Titans red",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Drums: B on the 2& — each colour shifted one along (lime→lavender→red→orange→blue→lime)",
+      "note": "…and look A (the victory colours) on the 2&",
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
@@ -2018,7 +2056,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791605400000
+      "updatedAt": 1791705000000
     },
     {
       "id": "drums-b-orange",
@@ -2030,8 +2068,8 @@
         9
       ],
       "action": "on",
-      "color": "#00acee",
-      "colorName": "Titans blue",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
@@ -2047,7 +2085,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791605400000
+      "updatedAt": 1791705000000
     },
     {
       "id": "drums-b-lime",
@@ -2060,8 +2098,8 @@
         12
       ],
       "action": "on",
-      "color": "#858ac2",
-      "colorName": "Titans lavender",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
@@ -2077,7 +2115,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791605400000
+      "updatedAt": 1791705000000
     },
     {
       "id": "drums-b-lavender",
@@ -2090,153 +2128,6 @@
         10
       ],
       "action": "on",
-      "color": "#ec1b24",
-      "colorName": "Titans red",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": {
-        "bpm": 104.79,
-        "beats": 4,
-        "count": 4,
-        "onFrac": 1,
-        "altColor": null,
-        "dimTo": 0,
-        "keepColor": false
-      },
-      "option": null,
-      "updatedAt": 1791605400000
-    },
-    {
-      "id": "drums-b-blue",
-      "time": 189.2,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        8,
-        11
-      ],
-      "action": "on",
-      "color": "#c0d62d",
-      "colorName": "Titans lime",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": {
-        "bpm": 104.79,
-        "beats": 4,
-        "count": 4,
-        "onFrac": 1,
-        "altColor": null,
-        "dimTo": 0,
-        "keepColor": false
-      },
-      "option": null,
-      "updatedAt": 1791605400000
-    },
-    {
-      "id": "drums-a2-red",
-      "time": 190.63,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        2,
-        5
-      ],
-      "action": "on",
-      "color": "#ec1b24",
-      "colorName": "Titans red",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "Drums: A back on the 1 from bar 3, swapping with B on the 2&",
-      "repeat": {
-        "bpm": 104.79,
-        "beats": 4,
-        "count": 3,
-        "onFrac": 1,
-        "altColor": null,
-        "dimTo": 0,
-        "keepColor": false
-      },
-      "option": null,
-      "updatedAt": 1791700000000
-    },
-    {
-      "id": "drums-a2-orange",
-      "time": 190.63,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        4,
-        9
-      ],
-      "action": "on",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": {
-        "bpm": 104.79,
-        "beats": 4,
-        "count": 3,
-        "onFrac": 1,
-        "altColor": null,
-        "dimTo": 0,
-        "keepColor": false
-      },
-      "option": null,
-      "updatedAt": 1791700000000
-    },
-    {
-      "id": "drums-a2-lime",
-      "time": 190.63,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        3,
-        7,
-        12
-      ],
-      "action": "on",
-      "color": "#c0d62d",
-      "colorName": "Titans lime",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": {
-        "bpm": 104.79,
-        "beats": 4,
-        "count": 3,
-        "onFrac": 1,
-        "altColor": null,
-        "dimTo": 0,
-        "keepColor": false
-      },
-      "option": null,
-      "updatedAt": 1791700000000
-    },
-    {
-      "id": "drums-a2-lavender",
-      "time": 190.63,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        1,
-        6,
-        10
-      ],
-      "action": "on",
       "color": "#858ac2",
       "colorName": "Titans lavender",
       "level": 100,
@@ -2247,18 +2138,18 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
-        "count": 3,
+        "count": 4,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791700000000
+      "updatedAt": 1791705000000
     },
     {
-      "id": "drums-a2-blue",
-      "time": 190.63,
+      "id": "drums-b-blue",
+      "time": 189.2,
       "end": null,
       "outFade": null,
       "lights": [
@@ -2276,14 +2167,14 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 4,
-        "count": 3,
+        "count": 4,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791700000000
+      "updatedAt": 1791705000000
     },
     {
       "id": "victory-hold-red",
@@ -2295,8 +2186,8 @@
         5
       ],
       "action": "on",
-      "color": "#ec1b24",
-      "colorName": "Titans red",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
@@ -2307,12 +2198,12 @@
         "beats": 0.5,
         "count": 16,
         "onFrac": 1,
-        "altColor": "#fbb612",
+        "altColor": "#ec1b24",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791702000000
+      "updatedAt": 1791705000000
     },
     {
       "id": "victory-hold-orange",
@@ -2324,8 +2215,8 @@
         9
       ],
       "action": "on",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
+      "color": "#00acee",
+      "colorName": "Titans blue",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
@@ -2336,12 +2227,12 @@
         "beats": 0.5,
         "count": 16,
         "onFrac": 1,
-        "altColor": "#00acee",
+        "altColor": "#fbb612",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791702000000
+      "updatedAt": 1791705000000
     },
     {
       "id": "victory-hold-lime",
@@ -2354,67 +2245,8 @@
         12
       ],
       "action": "on",
-      "color": "#c0d62d",
-      "colorName": "Titans lime",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": {
-        "bpm": 104.79,
-        "beats": 0.5,
-        "count": 16,
-        "onFrac": 1,
-        "altColor": "#858ac2",
-        "dimTo": 0,
-        "keepColor": false
-      },
-      "option": null,
-      "updatedAt": 1791702000000
-    },
-    {
-      "id": "victory-hold-lavender",
-      "time": 197.5,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        1,
-        6,
-        10
-      ],
-      "action": "on",
       "color": "#858ac2",
       "colorName": "Titans lavender",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": {
-        "bpm": 104.79,
-        "beats": 0.5,
-        "count": 16,
-        "onFrac": 1,
-        "altColor": "#ec1b24",
-        "dimTo": 0,
-        "keepColor": false
-      },
-      "option": null,
-      "updatedAt": 1791702000000
-    },
-    {
-      "id": "victory-hold-blue",
-      "time": 197.5,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        8,
-        11
-      ],
-      "action": "on",
-      "color": "#00acee",
-      "colorName": "Titans blue",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
@@ -2430,7 +2262,66 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791702000000
+      "updatedAt": 1791705000000
+    },
+    {
+      "id": "victory-hold-lavender",
+      "time": 197.5,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        6,
+        10
+      ],
+      "action": "on",
+      "color": "#ec1b24",
+      "colorName": "Titans red",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 0.5,
+        "count": 16,
+        "onFrac": 1,
+        "altColor": "#858ac2",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791705000000
+    },
+    {
+      "id": "victory-hold-blue",
+      "time": 197.5,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        8,
+        11
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 104.79,
+        "beats": 0.5,
+        "count": 16,
+        "onFrac": 1,
+        "altColor": "#00acee",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791705000000
     },
     {
       "id": "victory-b-red",
