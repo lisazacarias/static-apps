@@ -705,6 +705,77 @@ function renderSheet({ title, audio, sorted, secs, tempo, rows, allRows, backups
   return out.join('\n') + '\n';
 }
 
+/* ── cue grid: one row per moment, one column per light ───────────────── */
+
+// Short names for a grid cell: "lime", "white", or the nearest preset.
+export function shortColorName(hex) {
+  const h = String(hex).toLowerCase();
+  const exact = [...LOGO_COLORS, ...PRESETS].find((p) => p.hex.toLowerCase() === h);
+  return (exact ? exact.name : `~${nearestPreset(h).name}`).replace(/^(Titans|Open) /, '').toLowerCase();
+}
+
+const BEAT_WORDS = { 0.25: 'sixteenth', 0.5: 'eighth note', 1: 'beat', 2: '2 beats', 4: '4 beats' };
+
+// Runs that share their timing are described once ("all lights: switch
+// colours 8× every beat") rather than once per colour group.
+function runEffects(runs) {
+  const byTiming = new Map();
+  for (const c of runs) {
+    const r = c.repeat;
+    const k = [r.count, r.beats, r.bpm, r.onFrac, r.dimTo, Boolean(r.altColor)].join('|');
+    byTiming.set(k, [...(byTiming.get(k) || []), c]);
+  }
+  return [...byTiming.values()].map((g) => {
+    const r = g[0].repeat;
+    const lights = [...new Set(g.flatMap((c) => c.lights))].sort((a, b) => a - b);
+    const who = lights.length === ALL_LIGHTS.length ? 'all lights' : `lights ${lights.join(', ')}`;
+    const every = `every ${BEAT_WORDS[r.beats] || `${r.beats} beats`} (${flashGap(r).toFixed(2)}s)`;
+    if (r.altColor && r.onFrac >= 1) return `${who}: switch colours ${r.count}× ${every}, each light swapping between its two colours`;
+    if (r.onFrac < 1) return `${who}: flash ${r.count}× ${every}, on for ${Math.round(r.onFrac * 100)}% of each then ${r.dimTo ? `down to ${r.dimTo}%` : 'dark'}`;
+    return `${who}: this look lands ${r.count} times, ${every}, taking turns with the next row`;
+  }).join('; ');
+}
+
+// → [{ time, section, how, effect, notes, lights: [{ hex, name, level } | null] × 12 }]
+// Each light shows what it looks like once the row's cues have landed: after
+// the longest fade starting there, but never past the next row.
+export function cueGrid({ cues, tempo, sections = [], optionPicks = {} }, { from = 0, to = Infinity } = {}) {
+  const live = activeCues(cues, optionPicks);
+  const times = [...new Set(live.map((c) => c.time))].sort((a, b) => a - b);
+  return times.map((t, i) => ({ t, next: times[i + 1] })).filter(({ t }) => t >= from && t < to).map(({ t, next }) => {
+    const here = sortCues(live.filter((c) => c.time === t));
+    const settle = Math.max(0.02, ...here.filter((c) => c.transition === 'fade').map((c) => c.fade));
+    const at = next === undefined ? t + settle : Math.min(t + settle, next - 0.01);
+    const st = stateAt(live, at).lights;
+    const fades = here.filter((c) => c.transition === 'fade' && !c.repeat).map((c) => c.fade);
+    const outs = here.filter((c) => c.outFade && !c.repeat).map((c) => c.outFade);
+    const how = [fades.length ? `fade ${Math.max(...fades)}s` : 'snap', outs.length ? `then fade out over ${Math.max(...outs)}s` : ''].filter(Boolean).join(', ');
+    const sec = sectionAt(sections, tempo, t);
+    return {
+      time: formatTime(t),
+      section: sec ? sec.name || 'Untitled section' : '',
+      how,
+      effect: runEffects(here.filter((c) => c.repeat)),
+      notes: here.map((c) => c.note).filter(Boolean).join(' '),
+      lights: ALL_LIGHTS.map((l) => {
+        const s = st[l];
+        return s && s.level > 0.02 ? { hex: s.color, name: shortColorName(s.color), level: Math.round(s.level * 100) } : null;
+      }),
+    };
+  });
+}
+
+// The backup choice of each option group, as its own short stretch of grid.
+export function backupGrids(plan) {
+  return optionGroups(plan.cues).map((g) => {
+    const alt = g.choices.find((ch) => ch !== pickedChoice(plan.cues, plan.optionPicks, g.group));
+    if (!alt) return null;
+    const ts = plan.cues.filter((c) => c.option?.group === g.group).map((c) => c.time);
+    const rows = cueGrid({ ...plan, optionPicks: { ...plan.optionPicks, [g.group]: alt } }, { from: Math.min(...ts), to: Math.max(...ts) + 0.01 });
+    return { label: g.label, choice: alt, rows };
+  }).filter(Boolean);
+}
+
 /* ── plan signature ───────────────────────────────────────────────────── */
 
 // A short fingerprint of what a plan says: title, tempo, sections, cues.

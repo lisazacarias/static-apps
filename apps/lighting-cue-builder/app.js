@@ -7,6 +7,7 @@ import {
   sectionStart, sortSections, sectionAt, parseSectionLines, timeToBar,
   diffPlans, applyMerge, planSignature, activeCues, optionGroups,
 } from './cues.js';
+import { cueWorkbook } from './xlsx.js';
 
 // localStorage is shared by every app on the Pages origin — keep the prefix.
 const STORE_KEY = 'lighting-cue-builder:plan';
@@ -1374,6 +1375,11 @@ $('exportSheet').onclick = () => {
   $('sheetDialog').showModal();
 };
 $('sheetClose').onclick = () => $('sheetDialog').close();
+
+$('exportGrid').onclick = () => {
+  if (!plan.cues.length) { notify('Add some cues first — the spreadsheet would be empty.'); return; }
+  download(`${slug(plan.title)}-cue-grid.xlsx`, cueWorkbook(plan), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+};
 $('sheetDownload').onclick = () => download(`${slug(plan.title)}-cue-sheet.txt`, $('sheetText').value, 'text/plain');
 $('sheetCopy').onclick = async () => {
   try {
