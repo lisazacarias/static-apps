@@ -30,12 +30,21 @@ browser never needs a build — not that Node is banned from the workflow.
     ├── algae-tracker/       # Paddleboard algae advisory tracker (CA FHAB data)
     │   ├── index.html
     │   └── app.js
-    └── piano-practice/      # Sight-reading trainer (installable, works offline)
-        ├── index.html       # The entire app, self-contained
-        ├── manifest.json    # Add-to-Home-Screen metadata
-        ├── sw.js            # Offline cache (network-first)
+    ├── piano-practice/      # Sight-reading trainer (installable, works offline)
+    │   ├── index.html       # The entire app, self-contained
+    │   ├── manifest.json    # Add-to-Home-Screen metadata
+    │   ├── sw.js            # Offline cache (network-first)
+    │   ├── package.json     # Dev-only: test runner scripts
+    │   └── test/            # Node tests against a stub browser
+    └── lighting-cue-builder/ # Build a dance piece's lighting cues against its audio
+        ├── index.html       # Stage plot (inline SVG), player, cue editor
+        ├── app.js           # DOM, audio, waveform, storage, share links
+        ├── cues.js          # Pure cue logic: state-at-time, import/export, cue sheet, cue grid
+        ├── xlsx.js          # Tiny .xlsx writer for the spreadsheet export (no DOM)
+        ├── video.js         # Video export: canvas stage + MediaRecorder, real time
+        ├── styles.css
         ├── package.json     # Dev-only: test runner scripts
-        └── test/            # Node tests against a stub browser
+        └── test/            # Node tests for cues.js and xlsx.js
 ```
 
 Not every app follows the same shape. The trackers are split into
@@ -60,16 +69,19 @@ Then open:
 - `http://localhost:8000/apps/election-tracker/`
 - `http://localhost:8000/apps/algae-tracker/`
 - `http://localhost:8000/apps/piano-practice/`
+- `http://localhost:8000/apps/lighting-cue-builder/`
 
 ## Tests
 
-Only piano practice has a suite. From `apps/piano-practice/`:
+Piano practice and the lighting cue builder have suites. From either app's
+folder:
 
 ```
 npm test
 ```
 
-It loads the real script out of `index.html` and runs it against a stub
+The lighting cue builder's tests cover `cues.js` directly — it has no DOM, so
+the tests import the shipped module as-is. Piano practice loads the real script out of `index.html` and runs it against a stub
 browser, so it exercises the shipped code rather than a copy. No install step —
 it uses Node's built-in test runner, so there are no dependencies to fetch.
 

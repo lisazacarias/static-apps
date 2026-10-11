@@ -1,0 +1,10 @@
+{
+  "name": "lighting-cue-builder",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Plan a dance piece's lighting by listening to the track and dropping cues as you go.",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "serve": "cd ../.. && python3 -m http.server 8000"
+  }
+}
