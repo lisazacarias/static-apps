@@ -39,10 +39,12 @@ browser never needs a build — not that Node is banned from the workflow.
     └── lighting-cue-builder/ # Build a dance piece's lighting cues against its audio
         ├── index.html       # Stage plot (inline SVG), player, cue editor
         ├── app.js           # DOM, audio, waveform, storage, share links
-        ├── cues.js          # Pure cue logic: state-at-time, import/export, cue sheet
+        ├── cues.js          # Pure cue logic: state-at-time, import/export, cue sheet, cue grid
+        ├── xlsx.js          # Tiny .xlsx writer for the spreadsheet export (no DOM)
+        ├── video.js         # Video export: canvas stage + MediaRecorder, real time
         ├── styles.css
         ├── package.json     # Dev-only: test runner scripts
-        └── test/            # Node tests for cues.js
+        └── test/            # Node tests for cues.js and xlsx.js
 ```
 
 Not every app follows the same shape. The trackers are split into

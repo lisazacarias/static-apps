@@ -178,6 +178,7 @@
                 <label class="btn">Import JSON<input id="importJson" class="file-input" type="file" accept="application/json,.json"></label>
                 <button id="exportSheet" class="btn" type="button">Readable cue sheet</button>
                 <button id="exportGrid" class="btn" type="button" title="One row per moment, one colour-coded column per light — opens in Excel, Numbers or Google Sheets">Export spreadsheet</button>
+                <button id="exportVideo" class="btn" type="button" title="Record the stage with the song to a video file">Export video</button>
                 <button id="shareLink" class="btn" type="button">Copy preview link</button>
                 <button id="loadShowPlan" class="btn" type="button" title="Bring in the show's starting plan; you review any differences first">Load show plan</button>
             </div>
@@ -368,6 +369,21 @@
         <button type="button" class="btn" id="sheetClose">Close</button>
         <button type="button" class="btn" id="sheetDownload">Download .txt</button>
         <button type="button" class="btn primary-btn" id="sheetCopy">Copy to clipboard</button>
+    </div>
+</dialog>
+
+<dialog id="videoDialog" class="editor sheet-dialog" aria-labelledby="videoTitle">
+    <div class="editor-head">
+        <h3 id="videoTitle">Export video</h3>
+        <span class="muted tiny" id="videoHint">Records the stage with the song in real time, so the whole show takes as long as the song. Keep this tab open and in front while it records.</span>
+    </div>
+    <canvas id="videoCanvas" class="video-canvas" width="1600" height="900"></canvas>
+    <p class="muted tiny" id="videoStatus"></p>
+    <div class="editor-actions">
+        <span class="spacer"></span>
+        <button type="button" class="btn" id="videoClose">Close</button>
+        <button type="button" class="btn" id="videoStop" hidden>Stop &amp; save</button>
+        <button type="button" class="btn primary-btn" id="videoStart">Start recording</button>
     </div>
 </dialog>
 

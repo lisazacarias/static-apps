@@ -8,6 +8,7 @@ import {
   diffPlans, applyMerge, planSignature, activeCues, optionGroups,
 } from './cues.js';
 import { cueWorkbook } from './xlsx.js';
+import { videoSupported, recorderType, videoExtension, stageBackground, drawFrame as drawVideoStage, recorder } from './video.js';
 
 // localStorage is shared by every app on the Pages origin — keep the prefix.
 const STORE_KEY = 'lighting-cue-builder:plan';
@@ -1375,6 +1376,79 @@ $('exportSheet').onclick = () => {
   $('sheetDialog').showModal();
 };
 $('sheetClose').onclick = () => $('sheetDialog').close();
+
+/* ── video export ────────────────────────────────────────────────────── */
+
+let videoRec = null; // the recording in progress
+
+function drawVideoFrame(ctx, bg) {
+  const t = now();
+  const sec = sectionAt(plan.sections, plan.tempo, t);
+  drawVideoStage(ctx, bg, stateAt(runningCues(), t), {
+    shapes: SHAPES, order: DRAW_ORDER, groupOf, apparatus: { ...APPARATUS },
+    title: plan.title, time: formatTime(t), section: sec ? sec.name || 'Untitled section' : '',
+  });
+}
+
+$('exportVideo').onclick = async () => {
+  if (!videoSupported()) { notify('This browser can’t record video. Try Chrome, Edge, Firefox or Safari.', { error: true }); return; }
+  if (!duration()) { notify('Load the song first — the video records the stage with it.'); return; }
+  const type = recorderType();
+  $('videoStatus').textContent = `Saves as .${videoExtension(type)}, ${formatTime(duration(), 0)} long.${type.includes('mp4') ? '' : ' (This browser only records .webm, which plays in Chrome and VLC; Safari can save .mp4.)'}`;
+  $('videoStart').hidden = false; $('videoStop').hidden = true; $('videoClose').disabled = false;
+  $('videoDialog').showModal();
+  try {
+    const bg = await stageBackground($('stage'));
+    $('videoDialog').bg = bg;
+    drawVideoFrame($('videoCanvas').getContext('2d'), bg);
+  } catch {
+    $('videoStatus').textContent = 'Couldn’t draw the stage for the video in this browser.';
+    $('videoStart').hidden = true;
+  }
+};
+
+$('videoStart').onclick = async () => {
+  const bg = $('videoDialog').bg;
+  if (!bg) return;
+  const canvas = $('videoCanvas');
+  const ctx = canvas.getContext('2d');
+  const wasAt = audio.currentTime;
+  setLoop(false);
+  audio.pause();
+  audio.currentTime = 0;
+  await new Promise((r) => (audio.seeking ? audio.addEventListener('seeked', r, { once: true }) : r()));
+  videoRec = recorder({
+    audio, canvas,
+    draw: () => {
+      drawVideoFrame(ctx, bg);
+      $('videoStatus').textContent = `Recording… ${formatTime(now(), 0)} / ${formatTime(duration(), 0)}. Keep this tab in front.`;
+    },
+  });
+  $('videoStart').hidden = true; $('videoStop').hidden = false; $('videoClose').disabled = true;
+  const finished = videoRec.done.then((blob) => {
+    const name = `${slug(plan.title)}-lighting.${videoExtension(blob.type || videoRec.type)}`;
+    download(name, blob, blob.type);
+    $('videoStatus').textContent = `Saved ${name} (${(blob.size / 1e6).toFixed(1)} MB).`;
+    $('videoStart').hidden = false; $('videoStart').textContent = 'Record again';
+    $('videoStop').hidden = true; $('videoClose').disabled = false;
+    videoRec = null;
+    audio.currentTime = wasAt;
+  });
+  try {
+    await videoRec.start();
+  } catch {
+    videoRec.stop();
+    $('videoStatus').textContent = 'The browser wouldn’t start playing. Press Start recording again.';
+  }
+  return finished;
+};
+
+$('videoStop').onclick = () => videoRec?.stop();
+$('videoClose').onclick = () => $('videoDialog').close();
+$('videoDialog').addEventListener('cancel', (e) => { if (videoRec) e.preventDefault(); });
+document.addEventListener('visibilitychange', () => {
+  if (videoRec && document.hidden) notify('The video only records while this tab is in front — switch back to keep it going.', { sticky: true });
+});
 
 $('exportGrid').onclick = () => {
   if (!plan.cues.length) { notify('Add some cues first — the spreadsheet would be empty.'); return; }
