@@ -1000,7 +1000,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Intro guitar (0:15.96–0:21.77): every 1 and 5",
+      "note": "Intro guitar (0:15.96–0:21.77): every 1 and 5; the poles hold steady — 3 orange, 7 lavender — while the rest switch",
       "repeat": {
         "bpm": 165,
         "beats": 4,
@@ -1011,7 +1011,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791718000000
+      "updatedAt": 1791732000000
     },
     {
       "id": "intro-gtr4-red-blue",
@@ -1040,35 +1040,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791718000000
-    },
-    {
-      "id": "intro-gtr4-orange-lime",
-      "time": 15.96,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        3
-      ],
-      "action": "on",
-      "color": "#c0d62d",
-      "colorName": "Titans lime",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": {
-        "bpm": 165,
-        "beats": 4,
-        "count": 5,
-        "onFrac": 1,
-        "altColor": "#fbb612",
-        "dimTo": 0,
-        "keepColor": false
-      },
-      "option": null,
-      "updatedAt": 1791718000000
+      "updatedAt": 1791732000000
     },
     {
       "id": "intro-gtr4-lime-orange",
@@ -1097,7 +1069,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791718000000
+      "updatedAt": 1791732000000
     },
     {
       "id": "intro-gtr4-blue-lime",
@@ -1126,35 +1098,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791718000000
-    },
-    {
-      "id": "intro-gtr4-lavender-red",
-      "time": 15.96,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        7
-      ],
-      "action": "on",
-      "color": "#ec1b24",
-      "colorName": "Titans red",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": {
-        "bpm": 165,
-        "beats": 4,
-        "count": 5,
-        "onFrac": 1,
-        "altColor": "#858ac2",
-        "dimTo": 0,
-        "keepColor": false
-      },
-      "option": null,
-      "updatedAt": 1791718000000
+      "updatedAt": 1791732000000
     },
     {
       "id": "intro-gtr4-orange-lavender",
@@ -1182,7 +1126,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791718000000
+      "updatedAt": 1791732000000
     },
     {
       "id": "intro-gtr4-lavender-blue",
@@ -1210,7 +1154,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791718000000
+      "updatedAt": 1791732000000
     },
     {
       "id": "intro-gtr4-orange-red",
@@ -1238,7 +1182,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791718000000
+      "updatedAt": 1791732000000
     },
     {
       "id": "intro-gtr5-blue-lavender",
@@ -1266,7 +1210,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791719000000
+      "updatedAt": 1791732000000
     },
     {
       "id": "intro-gtr5-red-blue",
@@ -1295,35 +1239,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791719000000
-    },
-    {
-      "id": "intro-gtr5-orange-lime",
-      "time": 26.13,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        3
-      ],
-      "action": "on",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": {
-        "bpm": 165,
-        "beats": 4,
-        "count": 1,
-        "onFrac": 1,
-        "altColor": "#c0d62d",
-        "dimTo": 0,
-        "keepColor": false
-      },
-      "option": null,
-      "updatedAt": 1791719000000
+      "updatedAt": 1791732000000
     },
     {
       "id": "intro-gtr5-lime-orange",
@@ -1352,7 +1268,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791719000000
+      "updatedAt": 1791732000000
     },
     {
       "id": "intro-gtr5-blue-lime",
@@ -1381,35 +1297,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791719000000
-    },
-    {
-      "id": "intro-gtr5-lavender-red",
-      "time": 26.13,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        7
-      ],
-      "action": "on",
-      "color": "#858ac2",
-      "colorName": "Titans lavender",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": {
-        "bpm": 165,
-        "beats": 4,
-        "count": 1,
-        "onFrac": 1,
-        "altColor": "#ec1b24",
-        "dimTo": 0,
-        "keepColor": false
-      },
-      "option": null,
-      "updatedAt": 1791719000000
+      "updatedAt": 1791732000000
     },
     {
       "id": "intro-gtr5-orange-lavender",
@@ -1437,7 +1325,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791719000000
+      "updatedAt": 1791732000000
     },
     {
       "id": "intro-gtr5-lavender-blue",
@@ -1465,7 +1353,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791719000000
+      "updatedAt": 1791732000000
     },
     {
       "id": "intro-gtr5-orange-red",
@@ -1493,7 +1381,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791719000000
+      "updatedAt": 1791732000000
     },
     {
       "id": "rustage-hit1-lime",
