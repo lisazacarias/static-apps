@@ -179,9 +179,25 @@ function notify(msg, { error = false, withUndo = false, sticky = false, action =
 async function loadAudio(blob, name, { persist = true } = {}) {
   if (audioURL) URL.revokeObjectURL(audioURL);
   audioURL = URL.createObjectURL(blob);
+  showTrack(audioURL, name);
+  if (persist) idbPut({ name, blob });
+  if (plan.audio.name && plan.audio.name !== name && plan.cues.length) {
+    notify(`Heads up: this cue list was built against "${plan.audio.name}", and you loaded "${name}". Times may not line up.`, { sticky: false });
+  }
+  drawPeaksFrom(blob.arrayBuffer());
+}
+
+// The viewer streams the shipped track straight from its URL, so Play is
+// there right away on a phone instead of after the whole 5.6 MB arrives.
+function streamAudio(url, name) {
+  showTrack(url, name);
+  drawPeaksFrom(fetch(url).then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.arrayBuffer(); }));
+}
+
+function showTrack(src, name) {
   audioName = name;
   loop = null;
-  audio.src = audioURL;
+  audio.src = src;
   audio.playbackRate = Number($('rate').value);
   $('audioEmpty').hidden = true;
   $('audioLoaded').hidden = false;
@@ -189,15 +205,14 @@ async function loadAudio(blob, name, { persist = true } = {}) {
   $('trackName').title = name;
   peaks = null;
   dirtyWave = true;
-  if (persist) idbPut({ name, blob });
-  if (plan.audio.name && plan.audio.name !== name && plan.cues.length) {
-    notify(`Heads up: this cue list was built against "${plan.audio.name}", and you loaded "${name}". Times may not line up.`, { sticky: false });
-  }
-  // The waveform is a nicety: decode it in the background so playback and
-  // the stage never wait on it (a 5 MB track takes a second or more).
-  const forURL = audioURL;
-  blob.arrayBuffer().then(computePeaks).then((p) => {
-    if (audioURL === forURL) { peaks = p; dirtyWave = true; }
+}
+
+// The waveform is a nicety: decode it in the background so playback and
+// the stage never wait on it (a 5 MB track takes a second or more).
+function drawPeaksFrom(bufPromise) {
+  const forSrc = audio.src;
+  bufPromise.then(computePeaks).then((p) => {
+    if (audio.src === forSrc) { peaks = p; dirtyWave = true; }
   }).catch(() => {
     notify('Playback works, but this browser could not draw the waveform for that file.');
   });
@@ -1939,7 +1954,7 @@ async function bootViewer() {
   renderCueList();
   new ResizeObserver(() => { dirtyWave = true; }).observe($('waveWrap'));
   requestAnimationFrame(frame);
-  await loadShowAudio();
+  streamAudio(SHOW_AUDIO.url, SHOW_AUDIO.name);
 }
 
 async function boot() {
