@@ -6,7 +6,7 @@ import {
   DEFAULT_TEMPO, normalizeTempo, parseStart, formatStart, normalizeSection,
   sectionStart, sortSections, sectionAt, parseSectionLines, timeToBar,
   diffPlans, applyMerge, planSignature, activeCues, optionGroups,
-  runSheet, cueGrid, cellColor, inkOn,
+  runSheet, cueGrid, cellColor, inkOn, shortColorName,
 } from './cues.js';
 import { cueWorkbook } from './xlsx.js';
 import { videoSupported, recorderType, videoExtension, stageBackground, drawFrame as drawVideoStage, recorder } from './video.js';
@@ -708,6 +708,26 @@ function markActive() {
 
 /* ── cue list ────────────────────────────────────────────────────────── */
 
+// A cue in parts, so a moment can say what its cues share once
+// ("Flash ×5 · 165 BPM, every 1.455s · held · 100%") and list only what
+// differs per cue ("2, 6 · lavender ⇄ lime").
+const shortName = (c, hex) => (hex === c.color && c.colorName ? c.colorName : shortColorName(hex)).replace(/^(Titans|Open) /i, '').toLowerCase();
+function cueParts(c) {
+  const lights = c.lights.length ? lightsLabel(c.lights) : 'no lights';
+  if (c.repeat) {
+    const r = c.repeat;
+    const on = r.onFrac >= 1 ? 'held' : `${Math.round(r.onFrac * 100)}% on${r.dimTo ? `, dims to ${r.dimTo}%` : ''}${c.transition === 'fade' ? ', fading' : ''}`;
+    return {
+      shared: `Flash ×${r.count} · ${r.bpm} BPM, every ${flashGap(r).toFixed(3)}s · ${on} · ${c.level}%`,
+      own: `${lights} · ${shortName(c, c.color)}${r.altColor ? ` ⇄ ${shortName(c, r.altColor)}` : ''}`,
+    };
+  }
+  const bits = [transitionLabel(c)];
+  if (c.action === 'on') bits.push(`${c.level}%`);
+  if (c.end !== null) bits.push(`out at ${formatTime(c.end)}${c.outFade ? `, fading ${c.outFade}s` : ''}`);
+  return { shared: bits.join(' · '), own: c.action === 'on' ? `${lights} · ${shortName(c, c.color)}` : lights };
+}
+
 function describe(c) {
   if (c.repeat) {
     const r = c.repeat;
@@ -886,6 +906,15 @@ function renderCueList() {
       if (!m.cues.length) row.classList.add('is-step');
       const cuesBox = document.createElement('div');
       cuesBox.className = 'moment-cues';
+      // what every cue here has in common goes on one line above them
+      const parts = new Map(m.cues.map((c) => [c, cueParts(c)]));
+      const common = m.cues.length > 1 && new Set([...parts.values()].map((p) => p.shared)).size === 1 ? parts.get(m.cues[0]).shared : null;
+      if (common) {
+        const sh = document.createElement('div');
+        sh.className = 'moment-shared';
+        sh.textContent = common;
+        cuesBox.append(sh);
+      }
       for (const c of m.cues) {
         const item = document.createElement('div');
         item.className = 'moment-cue';
@@ -896,13 +925,15 @@ function renderCueList() {
         else sw.style.background = c.repeat?.altColor ? `linear-gradient(90deg, ${c.color} 50%, ${c.repeat.altColor} 50%)` : c.color;
         const desc = document.createElement('span');
         desc.className = 'cue-desc';
-        const { what, how } = describe(c);
+        const p = parts.get(c);
+        // on its own, a cue reads action first: "Snap ON · ALL (1–12) · white"
+        const [kind, ...rest] = p.shared.split(' · ');
         const w = document.createElement('span');
         w.className = 'what';
-        w.textContent = what;
+        w.textContent = common ? p.own : `${kind} · ${p.own}`;
         const h = document.createElement('span');
         h.className = 'how';
-        h.textContent = how;
+        h.textContent = common ? '' : rest.join(' · ');
         if (c.othersOff) { const p = document.createElement('span'); p.className = 'pill'; p.textContent = 'all others off'; h.append(p); }
         if (c.option) {
           const p = document.createElement('span');
