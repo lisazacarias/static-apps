@@ -610,51 +610,67 @@ function setCueView(view, { save = true } = {}) {
 document.querySelectorAll('.view-toggle .btn').forEach((b) => { b.onclick = () => setCueView(b.dataset.view); });
 setCueView(cueView, { save: false }); // boot's renderCueList draws it
 
+// A thumbnail of the stage: each light in its colour, dark outline if off.
+// Cropped to the lit area, so the lights fill it rather than the whole room.
+const MINI_VIEW = { x: 500, y: 380, w: 580, h: 700 };
+function miniStage(lights) {
+  const v = MINI_VIEW;
+  const s = svg('svg', { viewBox: `${v.x} ${v.y} ${v.w} ${v.h}`, class: 'mini-stage', 'aria-hidden': 'true' });
+  s.append(svg('rect', { x: v.x, y: v.y, width: v.w, height: v.h, rx: 40, class: 'mini-floor' }));
+  for (const n of DRAW_ORDER) {
+    const l = lights[n - 1];
+    s.append(shapeEl(SHAPES[n], l
+      ? { fill: l.hex, 'fill-opacity': (0.35 + 0.65 * l.level / 100).toFixed(2), class: 'mini-on' }
+      : { class: 'mini-off' }));
+  }
+  return s;
+}
+
 function renderCueGrid() {
-  const { rows } = runSheet(plan);
+  const { rows, looks } = runSheet(plan);
   const cells = cueGrid(plan);
+  const byName = new Map(looks.map((l) => [l.name, l.lights]));
   for (const box of [$('cueGrid'), $('cueGridRO')]) {
     box.replaceChildren();
     if (!rows.length) { box.textContent = 'No cues yet.'; continue; }
-    const table = document.createElement('table');
-    table.className = 'grid-table';
-    const head = table.createTHead().insertRow();
-    for (const label of ['#', 'Time', 'Look', 'Do this', ...ALL_LIGHTS.map((l) => (APPARATUS[l] ? `${l} ${APPARATUS[l]}` : l === 11 ? '11 back' : String(l)))]) {
-      const th = document.createElement('th');
-      th.textContent = label;
-      head.append(th);
-    }
-    const body = table.createTBody();
     rows.forEach((r, i) => {
       if (r.section) {
-        const tr = body.insertRow();
-        tr.className = 'sec';
-        const td = tr.insertCell();
-        td.colSpan = 4 + ALL_LIGHTS.length;
-        td.textContent = r.section;
+        const h = document.createElement('div');
+        h.className = 'cue-section-head';
+        h.textContent = r.section;
+        box.append(h);
       }
-      const tr = body.insertRow();
-      tr.className = 'cue-row';
-      tr.dataset.t = r.t;
-      tr.title = r.notes ? `${r.notes}\n\nClick to jump here` : 'Click to jump here';
-      for (const [cls, text] of [['n', r.n], ['t', r.time], ['look', r.look], ['act', r.action]]) {
-        const td = tr.insertCell();
-        td.className = cls;
-        td.textContent = text;
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'look-row';
+      row.dataset.t = r.t;
+      row.title = r.notes ? `${r.notes}\n\nClick to jump here` : 'Click to jump here';
+      const time = document.createElement('span');
+      time.className = 'look-time';
+      time.textContent = r.time;
+      const pics = document.createElement('span');
+      pics.className = 'look-pics';
+      const [a, b] = r.look.split(' ⇄ ');
+      pics.append(miniStage(cells[i].lights));
+      if (b && byName.has(b)) {
+        const x = document.createElement('span');
+        x.className = 'look-swap';
+        x.textContent = '⇄';
+        pics.append(x, miniStage(byName.get(b)));
       }
-      for (const l of cells[i].lights) {
-        const td = tr.insertCell();
-        td.className = l ? 'light' : 'light off';
-        if (l) {
-          const fill = cellColor(l.hex, l.level);
-          td.style.background = fill;
-          td.style.color = inkOn(fill);
-          td.textContent = l.level >= 100 ? l.name : `${l.name} ${l.level}%`;
-        } else td.textContent = 'off';
-      }
-      tr.onclick = () => seek(r.t);
+      const text = document.createElement('span');
+      text.className = 'look-text';
+      const name = document.createElement('span');
+      name.className = 'look-name';
+      name.textContent = b ? `${a} ⇄ ${b}` : a;
+      const act = document.createElement('span');
+      act.className = 'look-act';
+      act.textContent = r.action;
+      text.append(name, act);
+      row.append(time, pics, text);
+      row.onclick = () => seek(r.t);
+      box.append(row);
     });
-    box.append(table);
   }
   markGrid();
 }
@@ -664,7 +680,7 @@ function markGrid() {
   if (cueView !== 'grid') return;
   const t = now() + 0.005;
   for (const box of [$('cueGrid'), $('cueGridRO')]) {
-    const rows = [...box.querySelectorAll('tr.cue-row')];
+    const rows = [...box.querySelectorAll('.look-row')];
     let idx = -1;
     rows.forEach((row, i) => { if (Number(row.dataset.t) <= t) idx = i; });
     rows.forEach((row, i) => {
