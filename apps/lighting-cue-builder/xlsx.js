@@ -5,7 +5,7 @@
 // every spreadsheet app reads and keeps this file short; the grid is a few
 // hundred KB at most.
 
-import { cueGrid, backupGrids, ALL_LIGHTS, APPARATUS } from './cues.js';
+import { cueGrid, backupGrids, runSheet, ALL_LIGHTS, APPARATUS } from './cues.js';
 
 /* ── zip (stored, no compression) ─────────────────────────────────────── */
 
@@ -136,7 +136,11 @@ export function buildXlsx(sheets) {
     const cols = sh.widths?.length ? `<cols>${sh.widths.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join('')}</cols>` : '';
     return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
       + '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
-      + `<sheetViews><sheetView workbookViewId="0">${pane}</sheetView></sheetViews>${cols}<sheetData>${rows}</sheetData></worksheet>`;
+      // printed for a tech: landscape, every column on the page
+      + '<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>'
+      + `<sheetViews><sheetView workbookViewId="0">${pane}</sheetView></sheetViews>${cols}<sheetData>${rows}</sheetData>`
+      + '<pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.3" footer="0.3"/>'
+      + '<pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/></worksheet>';
   });
   // Sheet names: 31 chars, none of : \ / ? * [ ]
   const names = sheets.map((sh, i) => (String(sh.name).replace(/[:\\/?*[\]]/g, ' ').slice(0, 31).trim() || `Sheet${i + 1}`));
@@ -198,12 +202,59 @@ function gridSheet(name, title, rows) {
       ...rows.map((r) => [
         { v: r.time, style: { bold: true, font: 'Courier New', align: 'left', border: true } },
         { v: r.section, style: body },
-        ...r.lights.map((l) => {
-          if (!l) return { v: 'off', style: { size: 9, color: '#777777', fill: '#1e1e1e', align: 'center', border: true } };
-          const fill = tint(l.hex, l.level);
-          return { v: l.level >= 100 ? l.name : `${l.name} ${l.level}%`, style: { size: 9, color: inkOn(fill), fill, align: 'center', wrap: true, border: true } };
-        }),
+        ...r.lights.map(lightCell),
         { v: r.how, style: body }, { v: r.effect, style: body }, { v: r.notes, style: body },
+      ]),
+    ],
+  };
+}
+
+const HEAD = { bold: true, color: '#ffffff', fill: '#3a2a2e', align: 'center', wrap: true, border: true };
+const BODY = { wrap: true, border: true };
+
+function lightCell(l) {
+  if (!l) return { v: 'off', style: { size: 9, color: '#777777', fill: '#1e1e1e', align: 'center', border: true } };
+  const fill = tint(l.hex, l.level);
+  return { v: l.level >= 100 ? l.name : `${l.name} ${l.level}%`, style: { size: 9, color: inkOn(fill), fill, align: 'center', wrap: true, border: true } };
+}
+
+// What the tech follows during the show: one plain instruction per cue.
+function runSheetTab(title, rows) {
+  return {
+    name: 'Run sheet',
+    widths: [5, 9, 20, 22, 58, 70],
+    freeze: { cols: 2, rows: 3 },
+    rows: [
+      [{ v: `${title} — run sheet`, style: { bold: true, size: 14 } }],
+      [{ v: 'Follow this during the show: one row per cue. Each look is listed once, with its colours, on the Looks tab. The Cue grid tab has every light at every moment.', style: { italic: true, color: '#555555' } }],
+      ['#', 'Time', 'Section', 'Look', 'Do this', 'What’s happening'].map((v) => ({ v, style: HEAD })),
+      ...rows.map((r) => [
+        { v: String(r.n), style: { ...BODY, align: 'center', color: '#777777' } },
+        { v: r.time, style: { bold: true, font: 'Courier New', align: 'left', border: true } },
+        { v: r.section, style: { ...BODY, bold: true } },
+        { v: r.look, style: { ...BODY, bold: true } },
+        { v: r.action, style: BODY },
+        { v: r.notes, style: { ...BODY, color: '#555555' } },
+      ]),
+    ],
+  };
+}
+
+// What the tech programs once: every look by name, light by light.
+function looksTab(looks) {
+  return {
+    name: 'Looks',
+    widths: [20, 8, 10, ...ALL_LIGHTS.map(() => 9.5)],
+    freeze: { cols: 1, rows: 3 },
+    rows: [
+      [{ v: 'Looks — program each one once', style: { bold: true, size: 14 } }],
+      [{ v: 'Every cue on the run sheet goes to one of these (or chases between two of them).', style: { italic: true, color: '#555555' } }],
+      ['Look', 'Used', 'First at', ...ALL_LIGHTS.map((l) => LIGHT_LABEL[l] || String(l))].map((v) => ({ v, style: HEAD })),
+      ...looks.map((l) => [
+        { v: l.name, style: { ...BODY, bold: true } },
+        { v: `${l.uses}×`, style: { ...BODY, align: 'center' } },
+        { v: l.first, style: { font: 'Courier New', align: 'left', border: true } },
+        ...l.lights.map(lightCell),
       ]),
     ],
   };
@@ -211,7 +262,8 @@ function gridSheet(name, title, rows) {
 
 export function cueWorkbook(plan) {
   const title = plan.title || 'Lighting cues';
-  const sheets = [gridSheet('Cue grid', `${title} — lighting cues`, cueGrid(plan))];
+  const { looks, rows } = runSheet(plan);
+  const sheets = [runSheetTab(title, rows), looksTab(looks), gridSheet('Cue grid', `${title} — every light at every cue`, cueGrid(plan))];
   for (const b of backupGrids(plan)) sheets.push(gridSheet(`Backup ${b.rows[0]?.time.replace(':', '.') || ''}`, `Backup option — ${b.label}: ${b.choice}`, b.rows));
   return buildXlsx(sheets);
 }

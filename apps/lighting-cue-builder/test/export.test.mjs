@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { cueGrid, backupGrids, normalizePlan, shortColorName } from '../cues.js';
+import { cueGrid, backupGrids, normalizePlan, shortColorName, runSheet } from '../cues.js';
 import { buildXlsx, cueWorkbook, crc32, zip } from '../xlsx.js';
 
 const cue = (o) => ({ id: o.id || Math.random().toString(36), time: 0, end: null, lights: [], action: 'on',
@@ -80,4 +80,39 @@ test('the shipped show plan exports a grid and a backup sheet', () => {
   assert.ok(backupGrids(plan).length >= 1);
   const parts = unzip(cueWorkbook(plan));
   assert.ok(parts.some((p) => p.name === 'xl/worksheets/sheet2.xml'), 'backup tab');
+});
+
+test('runSheet names each look once and writes a plain instruction per cue', () => {
+  const all = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const plan = normalizePlan({
+    sections: [{ name: 'Opening song', time: 0 }, { name: 'Fight (remix)', time: 10 }],
+    cues: [
+      cue({ time: 0, lights: [1, 2], color: '#ec1b24', transition: 'fade', fade: 2 }),
+      cue({ time: 2, lights: [1, 2], color: '#00acee', repeat: { bpm: 120, beats: 1, count: 4, onFrac: 1, altColor: '#ec1b24' } }),
+      cue({ time: 10, lights: all, color: '#fbb612' }),
+      cue({ time: 12, lights: all, color: '#fbb612', repeat: { bpm: 120, beats: 1, count: 4, onFrac: 0.25, altColor: null } }),
+      cue({ time: 16, lights: all, action: 'off' }),
+      cue({ time: 18, lights: [1, 2], color: '#ec1b24' }),
+    ],
+  });
+  const { looks, rows } = runSheet(plan);
+  assert.deepEqual(looks.map((l) => l.name), ['Intro A', 'Intro B', 'All orange', 'Blackout']);
+  assert.equal(rows[0].action, 'Fade to Intro A over 2s');
+  assert.equal(rows[0].section, 'Opening song');
+  assert.match(rows[1].action, /^Chase Intro B ⇄ Intro A, every beat \(0\.50s\), 4 steps$/);
+  assert.equal(rows[1].section, '', 'section only on its first row');
+  assert.equal(rows[2].action, 'Snap to All orange');
+  assert.equal(rows[3].action, 'Strobe All orange, every beat (0.50s), 4 flashes, dark between');
+  assert.equal(rows[4].action, 'Cut to black');
+  assert.equal(rows[5].action, 'Snap to Intro A', 'a look that comes back keeps its first name');
+  assert.equal(looks[0].uses, 3);
+});
+
+test('the shipped workbook opens on the run sheet, then looks, grid and backup', () => {
+  const plan = normalizePlan(JSON.parse(readFileSync(new URL('../starter-plan.json', import.meta.url))));
+  const parts = unzip(cueWorkbook(plan));
+  const wb = parts.find((p) => p.name === 'xl/workbook.xml').text;
+  assert.deepEqual([...wb.matchAll(/<sheet name="([^"]+)"/g)].map((m) => m[1]), ['Run sheet', 'Looks', 'Cue grid', 'Backup 0.36.75']);
+  const { looks } = runSheet(plan);
+  assert.ok(looks.length <= 20, `a tech-sized number of looks (${looks.length})`);
 });

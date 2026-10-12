@@ -779,6 +779,98 @@ export function backupGrids(plan) {
   }).filter(Boolean);
 }
 
+/* ── run sheet: named looks, one plain instruction per cue ────────────── */
+
+// Levels round to 5% so a fade that lands a hair short still matches.
+function lightsAt(live, t) {
+  const st = stateAt(live, t).lights;
+  return ALL_LIGHTS.map((l) => {
+    const s = st[l];
+    return s && s.level > 0.02 ? { hex: s.color, name: shortColorName(s.color), level: Math.round(s.level * 20) * 5 } : null;
+  });
+}
+const lookKey = (lights) => lights.map((x) => (x ? `${x.hex}@${x.level}` : '-')).join('|');
+
+// A tech programs each distinct look once and the show becomes "go to
+// Intro A, chase Intro A ⇄ Intro B…". Looks are named after the section they
+// first appear in (Intro A, Intro B…), or "All orange" / "Blackout" when every
+// light matches. A look that comes back later keeps its first name.
+// → { looks: [{ name, lights, uses, first }], rows: [{ n, time, section, look, action, notes }] }
+export function runSheet({ cues, tempo, sections = [], optionPicks = {} }) {
+  const live = activeCues(cues, optionPicks);
+  const times = [...new Set(live.map((c) => c.time))].sort((a, b) => a - b);
+  const raw = times.map((t, i) => {
+    const next = times[i + 1];
+    const here = sortCues(live.filter((c) => c.time === t));
+    const run = here.find((c) => c.repeat);
+    const settle = Math.max(0.02, ...here.filter((c) => c.transition === 'fade').map((c) => c.fade));
+    const at = next === undefined ? t + settle : Math.min(t + settle, next - 0.01);
+    let kind = 'look';
+    let samples = [lightsAt(live, at)];
+    if (run?.repeat.altColor && run.repeat.onFrac >= 1 && run.repeat.count >= 2) {
+      const [a, b] = flashTimes(run);
+      kind = 'chase';
+      samples = [lightsAt(live, a + 0.01), lightsAt(live, b + 0.01)];
+    } else if (run?.repeat.onFrac < 1) {
+      kind = 'strobe';
+      samples = [lightsAt(live, t + 0.01)];
+    } else if (run) {
+      kind = 'repeat';
+    }
+    return { t, at, here, run, kind, samples };
+  });
+
+  // Name every look the first time it appears.
+  const looks = new Map(); // key → { name?, lights, uses, first, short }
+  const bySection = new Map(); // short section name → [keys]
+  for (const r of raw) {
+    for (const lights of r.samples) {
+      const key = lookKey(lights);
+      if (looks.has(key)) { looks.get(key).uses += 1; continue; }
+      const lit = lights.filter(Boolean);
+      const look = { lights, uses: 1, first: formatTime(r.t) };
+      if (!lit.length) look.name = 'Blackout';
+      else if (lit.length === ALL_LIGHTS.length && new Set(lit.map((x) => `${x.hex}@${x.level}`)).size === 1) {
+        look.name = `All ${lit[0].name}${lit[0].level < 100 ? ` ${lit[0].level}%` : ''}`;
+      } else {
+        const sec = sectionAt(sections, tempo, r.at);
+        // The opening song's looks come back at the end, so they get the
+        // plainest name: Intro A, Intro B.
+        const opening = sec && sec === sortSections(sections, tempo)[0];
+        const short = opening ? 'Intro' : (sec?.name || 'Look').replace(/\s*\(.*\)\s*$/, '').replace(/ intro$/i, '');
+        bySection.set(short, [...(bySection.get(short) || []), key]);
+        look.short = short;
+      }
+      looks.set(key, look);
+    }
+  }
+  for (const [short, keys] of bySection) {
+    keys.forEach((k, i) => { looks.get(k).name = keys.length > 1 ? `${short} ${String.fromCharCode(65 + i)}` : short; });
+  }
+
+  const name = (lights) => looks.get(lookKey(lights)).name;
+  const beatText = (r) => `every ${BEAT_WORDS[r.beats] || `${r.beats} beats`} (${flashGap(r).toFixed(2)}s)`;
+  let lastSection = null;
+  const rows = raw.map((r, i) => {
+    const look = name(r.samples[0]);
+    const fades = r.here.filter((c) => c.transition === 'fade' && !c.repeat).map((c) => c.fade);
+    const outs = r.here.filter((c) => c.outFade && !c.repeat).map((c) => c.outFade);
+    let action;
+    if (r.kind === 'chase') action = `Chase ${look} ⇄ ${name(r.samples[1])}, ${beatText(r.run.repeat)}, ${r.run.repeat.count} steps`;
+    else if (r.kind === 'strobe') action = `Strobe ${look}, ${beatText(r.run.repeat)}, ${r.run.repeat.count} flashes, dark between`;
+    else if (r.kind === 'repeat') action = `${look}, and again ${beatText(r.run.repeat)}, ${r.run.repeat.count}× in all, taking turns with the next row`;
+    else if (look === 'Blackout') action = fades.length ? `Fade to black over ${Math.max(...fades)}s` : 'Cut to black';
+    else if (fades.length) action = `Fade to ${look} over ${Math.max(...fades)}s`;
+    else action = `Snap to ${look}${outs.length ? `, then fade out over ${Math.max(...outs)}s` : ''}`;
+    const sec = sectionAt(sections, tempo, r.t);
+    const secName = sec ? sec.name || 'Untitled section' : '';
+    const section = secName !== lastSection ? secName : '';
+    lastSection = secName;
+    return { n: i + 1, time: formatTime(r.t), section, look: r.kind === 'chase' ? `${look} ⇄ ${name(r.samples[1])}` : look, action, notes: r.here.map((c) => c.note).filter(Boolean).join(' ') };
+  });
+  return { looks: [...looks.values()].map(({ name: n, lights, uses, first }) => ({ name: n, lights, uses, first })), rows };
+}
+
 /* ── plan signature ───────────────────────────────────────────────────── */
 
 // A short fingerprint of what a plan says: title, tempo, sections, cues.
