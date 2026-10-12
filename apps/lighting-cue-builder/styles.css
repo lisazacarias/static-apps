@@ -138,6 +138,17 @@ header.top {
 .tbtn { font-family: var(--font-mono); min-width: 56px; }
 .tbtn.play { min-width: 104px; color: var(--text-bright); }
 .transport.secondary { justify-content: space-between; align-items: center; }
+/* jump to a section: one chip per section, the playing one lit */
+.jump-bar { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 12px; }
+.jump-bar:empty { display: none; }
+.jump-chip {
+    font: inherit; font-size: 12px; cursor: pointer;
+    background: var(--bg-elevated); color: var(--text); border: 1px solid var(--border-bright);
+    border-radius: 999px; padding: 5px 11px;
+}
+.jump-chip:hover { border-color: var(--gold); color: var(--text-bright); }
+.jump-chip:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.jump-chip.is-current { background: var(--gold-dim); border-color: var(--gold); color: var(--text-bright); }
 .loop-ctl { display: inline-flex; gap: 6px; align-items: center; }
 .rate { font-size: 12px; color: var(--text-muted); display: inline-flex; gap: 6px; align-items: center; }
 select, input[type="text"], input[type="number"] {

@@ -567,6 +567,7 @@ function drawFrame() {
     if ($('sectionNow').textContent !== secLabel) {
       $('sectionNow').textContent = secLabel;
       document.querySelectorAll('.sec-row').forEach((r) => r.classList.toggle('is-current', r.dataset.id === sec?.id));
+      markJumpBar(sec);
     }
     $('addCueTime').textContent = formatTime(t);
     const live = editing ? stateAt(runningCues(), t) : st;
@@ -1198,7 +1199,32 @@ function onTempoChange() {
 $('tempoBpm').addEventListener('change', onTempoChange);
 $('tempoBpb').addEventListener('change', onTempoChange);
 
+// One chip per section under the transport, so a demo can jump straight to
+// the battle. Names lose any "(remix)"-style tail to stay short.
+function renderJumpBar() {
+  const bar = $('jumpBar');
+  bar.replaceChildren();
+  for (const s of sortSections(plan.sections, plan.tempo)) {
+    const at = sectionStart(s, plan.tempo);
+    if (at === null) continue;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'jump-chip';
+    b.dataset.id = s.id;
+    b.textContent = (s.name || 'Untitled section').replace(/\s*\(.*\)\s*$/, '');
+    b.title = `Jump to ${s.name || 'this section'} (${formatTime(at)})`;
+    b.onclick = () => seek(at);
+    bar.append(b);
+  }
+  markJumpBar(sectionAt(plan.sections, plan.tempo, now()));
+}
+
+function markJumpBar(sec) {
+  $('jumpBar').querySelectorAll('.jump-chip').forEach((b) => b.classList.toggle('is-current', b.dataset.id === sec?.id));
+}
+
 function renderSections() {
+  renderJumpBar();
   const list = $('sectionList');
   list.replaceChildren();
   const secs = sortSections(plan.sections, plan.tempo);
