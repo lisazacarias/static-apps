@@ -5,7 +5,7 @@
 // every spreadsheet app reads and keeps this file short; the grid is a few
 // hundred KB at most.
 
-import { cueGrid, backupGrids, runSheet, ALL_LIGHTS, APPARATUS } from './cues.js';
+import { cueGrid, backupGrids, runSheet, cellColor, inkOn, ALL_LIGHTS, APPARATUS } from './cues.js';
 
 /* ── zip (stored, no compression) ─────────────────────────────────────── */
 
@@ -175,18 +175,6 @@ export function buildXlsx(sheets) {
 
 const LIGHT_LABEL = { ...Object.fromEntries(Object.entries(APPARATUS).map(([l, kind]) => [l, `${l} ${kind}`])), 11: '11 backdrop' };
 
-// Dimmer lights are drawn darker, mixed toward the "off" grey.
-function tint(hex, level) {
-  const k = Math.max(0.25, level / 100);
-  const rgb = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
-  return '#' + rgb.map((c) => Math.round(c * k + 40 * (1 - k)).toString(16).padStart(2, '0')).join('');
-}
-
-function inkOn(hex) {
-  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
-  return 0.299 * r + 0.587 * g + 0.114 * b > 140 ? '#000000' : '#ffffff';
-}
-
 function gridSheet(name, title, rows) {
   const body = { wrap: true, border: true };
   const head = ['Time', 'Section', ...ALL_LIGHTS.map((l) => LIGHT_LABEL[l] || String(l)), 'How it changes', 'Effect (runs)', 'Notes']
@@ -214,7 +202,7 @@ const BODY = { wrap: true, border: true };
 
 function lightCell(l) {
   if (!l) return { v: 'off', style: { size: 9, color: '#777777', fill: '#1e1e1e', align: 'center', border: true } };
-  const fill = tint(l.hex, l.level);
+  const fill = cellColor(l.hex, l.level);
   return { v: l.level >= 100 ? l.name : `${l.name} ${l.level}%`, style: { size: 9, color: inkOn(fill), fill, align: 'center', wrap: true, border: true } };
 }
 

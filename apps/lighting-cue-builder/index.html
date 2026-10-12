@@ -183,14 +183,24 @@
                 <button id="loadShowPlan" class="btn" type="button" title="Bring in the show's starting plan; you review any differences first">Load show plan</button>
             </div>
         </div>
+        <div class="view-toggle" role="group" aria-label="Show cues as">
+            <button type="button" class="btn small" data-view="list" aria-pressed="true">List</button>
+            <button type="button" class="btn small" data-view="grid" aria-pressed="false" title="One row per cue, one colour-coded column per light, like the spreadsheet">Grid</button>
+        </div>
         <div id="cueList" class="cue-list"></div>
+        <div id="cueGrid" class="cue-grid" hidden></div>
         <p class="save-state muted tiny" id="saveState"></p>
     </section>
 
     <!-- presentation mode shows a read-only list so a viewer can follow along -->
     <section class="section present-only" aria-label="Cue list (read only)">
         <div class="section-header"><h2>Cues</h2><div class="section-line"></div></div>
+        <div class="view-toggle" role="group" aria-label="Show cues as">
+            <button type="button" class="btn small" data-view="list" aria-pressed="true">List</button>
+            <button type="button" class="btn small" data-view="grid" aria-pressed="false">Grid</button>
+        </div>
         <div id="cueListRO" class="cue-list"></div>
+        <div id="cueGridRO" class="cue-grid" hidden></div>
     </section>
 </div>
 

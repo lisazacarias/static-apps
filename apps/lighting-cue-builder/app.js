@@ -6,6 +6,7 @@ import {
   DEFAULT_TEMPO, normalizeTempo, parseStart, formatStart, normalizeSection,
   sectionStart, sortSections, sectionAt, parseSectionLines, timeToBar,
   diffPlans, applyMerge, planSignature, activeCues, optionGroups,
+  runSheet, cueGrid, cellColor, inkOn,
 } from './cues.js';
 import { cueWorkbook } from './xlsx.js';
 import { videoSupported, recorderType, videoExtension, stageBackground, drawFrame as drawVideoStage, recorder } from './video.js';
@@ -589,7 +590,92 @@ function activeLabel(id) {
   return `Cue ${i + 1} of ${sorted.length} · ${formatTime(sorted[i].time)}`;
 }
 
+/* ── grid view ───────────────────────────────────────────────────────── */
+
+// Which way the cue list shows, per browser. localStorage is shared by every
+// app on this origin, so the key is prefixed.
+const VIEW_KEY = 'lighting-cue-builder:cue-view';
+let cueView = (() => { try { return localStorage.getItem(VIEW_KEY) === 'grid' ? 'grid' : 'list'; } catch { return 'list'; } })();
+
+function setCueView(view, { save = true } = {}) {
+  cueView = view;
+  if (save) { try { localStorage.setItem(VIEW_KEY, view); } catch { /* best effort */ } }
+  document.querySelectorAll('.view-toggle .btn').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+  for (const [list, grid] of [['cueList', 'cueGrid'], ['cueListRO', 'cueGridRO']]) {
+    $(list).hidden = view === 'grid';
+    $(grid).hidden = view !== 'grid';
+  }
+  if (save) renderCueList();
+}
+document.querySelectorAll('.view-toggle .btn').forEach((b) => { b.onclick = () => setCueView(b.dataset.view); });
+setCueView(cueView, { save: false }); // boot's renderCueList draws it
+
+function renderCueGrid() {
+  const { rows } = runSheet(plan);
+  const cells = cueGrid(plan);
+  for (const box of [$('cueGrid'), $('cueGridRO')]) {
+    box.replaceChildren();
+    if (!rows.length) { box.textContent = 'No cues yet.'; continue; }
+    const table = document.createElement('table');
+    table.className = 'grid-table';
+    const head = table.createTHead().insertRow();
+    for (const label of ['#', 'Time', 'Look', 'Do this', ...ALL_LIGHTS.map((l) => (APPARATUS[l] ? `${l} ${APPARATUS[l]}` : l === 11 ? '11 back' : String(l)))]) {
+      const th = document.createElement('th');
+      th.textContent = label;
+      head.append(th);
+    }
+    const body = table.createTBody();
+    rows.forEach((r, i) => {
+      if (r.section) {
+        const tr = body.insertRow();
+        tr.className = 'sec';
+        const td = tr.insertCell();
+        td.colSpan = 4 + ALL_LIGHTS.length;
+        td.textContent = r.section;
+      }
+      const tr = body.insertRow();
+      tr.className = 'cue-row';
+      tr.dataset.t = r.t;
+      tr.title = r.notes ? `${r.notes}\n\nClick to jump here` : 'Click to jump here';
+      for (const [cls, text] of [['n', r.n], ['t', r.time], ['look', r.look], ['act', r.action]]) {
+        const td = tr.insertCell();
+        td.className = cls;
+        td.textContent = text;
+      }
+      for (const l of cells[i].lights) {
+        const td = tr.insertCell();
+        td.className = l ? 'light' : 'light off';
+        if (l) {
+          const fill = cellColor(l.hex, l.level);
+          td.style.background = fill;
+          td.style.color = inkOn(fill);
+          td.textContent = l.level >= 100 ? l.name : `${l.name} ${l.level}%`;
+        } else td.textContent = 'off';
+      }
+      tr.onclick = () => seek(r.t);
+    });
+    box.append(table);
+  }
+  markGrid();
+}
+
+// Highlight the row that's playing now; earlier rows dim.
+function markGrid() {
+  if (cueView !== 'grid') return;
+  const t = now() + 0.005;
+  for (const box of [$('cueGrid'), $('cueGridRO')]) {
+    const rows = [...box.querySelectorAll('tr.cue-row')];
+    let idx = -1;
+    rows.forEach((row, i) => { if (Number(row.dataset.t) <= t) idx = i; });
+    rows.forEach((row, i) => {
+      row.classList.toggle('is-active', i === idx);
+      row.classList.toggle('is-past', i < idx);
+    });
+  }
+}
+
 function markActive(id) {
+  markGrid();
   const sorted = sortCues(plan.cues);
   const idx = sorted.findIndex((c) => c.id === id);
   for (const list of [$('cueList'), $('cueListRO')]) {
@@ -649,6 +735,7 @@ function optionHeader(g) {
 }
 
 function renderCueList() {
+  if (cueView === 'grid') renderCueGrid();
   const sorted = sortCues(plan.cues);
   $('cueCount').textContent = sorted.length ? `· ${sorted.length}` : '';
   for (const [list, readOnly] of [[$('cueList'), false], [$('cueListRO'), true]]) {

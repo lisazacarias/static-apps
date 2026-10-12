@@ -717,6 +717,20 @@ export function shortColorName(hex) {
   return (exact ? exact.name : `~${nearestPreset(h).name}`).replace(/^(Titans|Open) /, '').toLowerCase();
 }
 
+// A grid cell's fill: the light's colour, darker the dimmer it is, mixed
+// toward the "off" grey. Shared by the spreadsheet and the page's grid view.
+export function cellColor(hex, level) {
+  const k = Math.max(0.25, level / 100);
+  const rgb = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  return '#' + rgb.map((v) => Math.round(v * k + 40 * (1 - k)).toString(16).padStart(2, '0')).join('');
+}
+
+// Black or white text, whichever reads on that fill.
+export function inkOn(hex) {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  return 0.299 * r + 0.587 * g + 0.114 * b > 140 ? '#000000' : '#ffffff';
+}
+
 const BEAT_WORDS = { 0.25: 'sixteenth', 0.5: 'eighth note', 1: 'beat', 2: '2 beats', 4: '4 beats' };
 
 // Runs that share their timing are described once ("all lights: switch
@@ -795,7 +809,7 @@ const lookKey = (lights) => lights.map((x) => (x ? `${x.hex}@${x.level}` : '-'))
 // Intro A, chase Intro A ⇄ Intro B…". Looks are named after the section they
 // first appear in (Intro A, Intro B…), or "All orange" / "Blackout" when every
 // light matches. A look that comes back later keeps its first name.
-// → { looks: [{ name, lights, uses, first }], rows: [{ n, time, section, look, action, notes }] }
+// → { looks: [{ name, lights, uses, first }], rows: [{ n, t, time, section, look, action, notes }] }
 export function runSheet({ cues, tempo, sections = [], optionPicks = {} }) {
   const live = activeCues(cues, optionPicks);
   const times = [...new Set(live.map((c) => c.time))].sort((a, b) => a - b);
@@ -866,7 +880,7 @@ export function runSheet({ cues, tempo, sections = [], optionPicks = {} }) {
     const secName = sec ? sec.name || 'Untitled section' : '';
     const section = secName !== lastSection ? secName : '';
     lastSection = secName;
-    return { n: i + 1, time: formatTime(r.t), section, look: r.kind === 'chase' ? `${look} ⇄ ${name(r.samples[1])}` : look, action, notes: r.here.map((c) => c.note).filter(Boolean).join(' ') };
+    return { n: i + 1, t: r.t, time: formatTime(r.t), section, look: r.kind === 'chase' ? `${look} ⇄ ${name(r.samples[1])}` : look, action, notes: r.here.map((c) => c.note).filter(Boolean).join(' ') };
   });
   return { looks: [...looks.values()].map(({ name: n, lights, uses, first }) => ({ name: n, lights, uses, first })), rows };
 }
