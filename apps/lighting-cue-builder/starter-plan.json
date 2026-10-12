@@ -3522,37 +3522,6 @@
       "updatedAt": 1791731000000
     },
     {
-      "id": "thunder-blackout",
-      "time": 117.76,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      "action": "off",
-      "color": "#ffffff",
-      "colorName": "",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "Thunderclap: everything else cut, so the flash fades to black",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791706000000
-    },
-    {
       "id": "lightning-1",
       "time": 117.76,
       "end": 117.93,
@@ -3578,7 +3547,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Thunderclap: one big white flash, a hair before the clap (1:57.84), fading out",
+      "note": "Thunderclap: one big white flash across the whole stage, a hair before the clap (1:57.84), fading to black",
       "repeat": null,
       "option": null,
       "updatedAt": 1791706000000
