@@ -764,10 +764,12 @@ function stageDots(lights) {
   for (const l of ALL_LIGHTS) {
     const d = document.createElement('span');
     const s = lights[l];
+    d.textContent = l; // the light's number, so a row can be read without counting
     if (s && s.level > 0.02) {
+      const fill = cellColor(s.color, Math.round(s.level * 100));
       d.className = 'dot on';
-      d.style.background = s.color;
-      d.style.opacity = (0.35 + 0.65 * s.level).toFixed(2);
+      d.style.background = fill;
+      d.style.color = inkOn(fill);
     } else d.className = 'dot idle';
     dots.append(d);
   }
@@ -821,20 +823,6 @@ function renderCueList() {
       list.append(e);
       continue;
     }
-    const head = document.createElement('div');
-    head.className = 'moment-head';
-    head.setAttribute('aria-hidden', 'true');
-    const nums = document.createElement('span');
-    nums.className = 'cue-dots';
-    for (const l of ALL_LIGHTS) {
-      const d = document.createElement('span');
-      d.className = `dot g-${groupOf(l)}`;
-      d.textContent = l;
-      d.title = APPARATUS[l] ? `Light ${l} (${APPARATUS[l]})` : `Light ${l}`;
-      nums.append(d);
-    }
-    head.append(document.createElement('span'), document.createElement('span'), nums);
-    list.append(head);
     let shownSec = null;
     const groups = optionGroups(plan.cues);
     const running = new Set(runningCues().map((c) => c.id));
