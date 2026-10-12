@@ -34,52 +34,108 @@
     <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
 
     <div class="layout">
-        <!-- ── Stage ───────────────────────────────────────────────── -->
-        <section class="panel stage-panel" aria-label="Stage preview">
-            <div class="stage-head">
-                <span class="label">Stage · top-down</span>
-                <span id="activeCueLabel" class="label active-cue">No cue yet</span>
+        <div class="main-col">
+            <!-- ── Stage ───────────────────────────────────────────────── -->
+            <section class="panel stage-panel" aria-label="Stage preview">
+                <div class="stage-head">
+                    <span class="label">Stage · top-down</span>
+                    <span id="activeCueLabel" class="label active-cue">No cue yet</span>
+                </div>
+                <svg id="stage" class="stage" viewBox="30 70 1560 1030" role="img" aria-label="Stage plot with 12 lights">
+                    <defs>
+                        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                            <feGaussianBlur stdDeviation="22"/>
+                        </filter>
+                        <pattern id="floorGrain" width="40" height="40" patternUnits="userSpaceOnUse">
+                            <rect width="40" height="40" fill="#1b1412"/>
+                            <path d="M0 10h40M0 27h40" stroke="#221916" stroke-width="2"/>
+                        </pattern>
+                    </defs>
+                    <!-- room -->
+                    <polygon points="10,78 1612,78 1452,186 172,186" class="wall"/>
+                    <text x="790" y="152" class="room-label" text-anchor="middle">MIRROR</text>
+                    <rect x="172" y="186" width="1280" height="844" fill="url(#floorGrain)" class="floor"/>
+                    <polygon points="45,155 175,228 175,465 45,438" class="wall"/>
+                    <text class="room-label small" transform="translate(130 330) rotate(-90)" text-anchor="middle">GARAGE DOOR</text>
+                    <text class="room-label pole" transform="translate(1505 555) rotate(90)" text-anchor="middle">POLE SIDE</text>
+                    <!-- audience -->
+                    <polygon class="audience" points="389,266 900,266 900,455 812,372 684,372 614,442 614,558 389,558"/>
+                    <text class="audience-label" x="535" y="350" text-anchor="middle">AUDIENCE</text>
+                    <polygon class="audience" points="968,269 1374,269 1374,558 1087,558 968,466"/>
+                    <text class="audience-label" x="1208" y="402" text-anchor="middle">AUDIENCE</text>
+                    <polygon class="audience" points="389,650 616,650 583,760 583,901 389,901"/>
+                    <text class="audience-label" x="485" y="745" text-anchor="middle">AUDIENCE</text>
+                    <polygon class="audience" points="1088,650 1376,650 1376,813 971,813"/>
+                    <text class="audience-label" x="1208" y="745" text-anchor="middle">AUDIENCE</text>
+                    <!-- speakers / rig frame -->
+                    <rect class="rig" x="243" y="455" width="718" height="453" rx="2"/>
+                    <rect class="speaker" x="568" y="588" width="77" height="29"/>
+                    <rect class="speaker" x="1088" y="587" width="106" height="29"/>
+                    <rect class="speaker" x="155" y="930" width="60" height="110"/>
+                    <g id="lightsLayer"></g>
+                </svg>
+                <div class="legend">
+                    <span><i class="sw sw-apparatus"></i>Apparatus 3 · 7 (poles) · 10 (loops)</span>
+                    <span><i class="sw sw-floor"></i>Floor 1 · 2 · 4 · 5 · 6 · 8 · 9 · 12</span>
+                    <span><i class="sw sw-backdrop"></i>Backdrop 11</span>
+                    <span class="edit-only legend-hint">Tip: click a light to add it to the cue you're editing.</span>
+                </div>
+            </section>
+
+        <!-- ── Cue list ────────────────────────────────────────────────── -->
+        <section class="section edit-only" aria-label="Cue list">
+            <div class="section-header">
+                <h2>Cues <span id="cueCount" class="count"></span></h2>
+                <div class="section-line"></div>
+                <div class="file-actions">
+                    <div class="view-toggle" role="group" aria-label="Show cues as">
+                        <button type="button" class="btn small" data-view="list" aria-pressed="true">List</button>
+                        <button type="button" class="btn small" data-view="grid" aria-pressed="false" title="Each cue as a little picture of the stage">Looks</button>
+                    </div>
+                    <!-- seven buttons folded into two menus, so the list starts higher -->
+                    <details class="menu">
+                        <summary class="btn small">Share ▾</summary>
+                        <div class="menu-items">
+                            <button id="shareLink" class="btn" type="button">Copy preview link</button>
+                            <button id="exportGrid" class="btn" type="button" title="One row per moment, one colour-coded column per light — opens in Excel, Numbers or Google Sheets">Export spreadsheet</button>
+                            <button id="exportVideo" class="btn" type="button" title="Record the stage with the song to a video file">Export video</button>
+                            <button id="exportSheet" class="btn" type="button">Readable cue sheet</button>
+                        </div>
+                    </details>
+                    <details class="menu">
+                        <summary class="btn small">File ▾</summary>
+                        <div class="menu-items">
+                            <button id="exportJson" class="btn" type="button">Export JSON</button>
+                            <label class="btn">Import JSON<input id="importJson" class="file-input" type="file" accept="application/json,.json"></label>
+                            <button id="loadShowPlan" class="btn" type="button" title="Bring in the show's starting plan; you review any differences first">Load show plan</button>
+                        </div>
+                    </details>
+                </div>
             </div>
-            <svg id="stage" class="stage" viewBox="30 70 1560 1030" role="img" aria-label="Stage plot with 12 lights">
-                <defs>
-                    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur stdDeviation="22"/>
-                    </filter>
-                    <pattern id="floorGrain" width="40" height="40" patternUnits="userSpaceOnUse">
-                        <rect width="40" height="40" fill="#1b1412"/>
-                        <path d="M0 10h40M0 27h40" stroke="#221916" stroke-width="2"/>
-                    </pattern>
-                </defs>
-                <!-- room -->
-                <polygon points="10,78 1612,78 1452,186 172,186" class="wall"/>
-                <text x="790" y="152" class="room-label" text-anchor="middle">MIRROR</text>
-                <rect x="172" y="186" width="1280" height="844" fill="url(#floorGrain)" class="floor"/>
-                <polygon points="45,155 175,228 175,465 45,438" class="wall"/>
-                <text class="room-label small" transform="translate(130 330) rotate(-90)" text-anchor="middle">GARAGE DOOR</text>
-                <text class="room-label pole" transform="translate(1505 555) rotate(90)" text-anchor="middle">POLE SIDE</text>
-                <!-- audience -->
-                <polygon class="audience" points="389,266 900,266 900,455 812,372 684,372 614,442 614,558 389,558"/>
-                <text class="audience-label" x="535" y="350" text-anchor="middle">AUDIENCE</text>
-                <polygon class="audience" points="968,269 1374,269 1374,558 1087,558 968,466"/>
-                <text class="audience-label" x="1208" y="402" text-anchor="middle">AUDIENCE</text>
-                <polygon class="audience" points="389,650 616,650 583,760 583,901 389,901"/>
-                <text class="audience-label" x="485" y="745" text-anchor="middle">AUDIENCE</text>
-                <polygon class="audience" points="1088,650 1376,650 1376,813 971,813"/>
-                <text class="audience-label" x="1208" y="745" text-anchor="middle">AUDIENCE</text>
-                <!-- speakers / rig frame -->
-                <rect class="rig" x="243" y="455" width="718" height="453" rx="2"/>
-                <rect class="speaker" x="568" y="588" width="77" height="29"/>
-                <rect class="speaker" x="1088" y="587" width="106" height="29"/>
-                <rect class="speaker" x="155" y="930" width="60" height="110"/>
-                <g id="lightsLayer"></g>
-            </svg>
-            <div class="legend">
-                <span><i class="sw sw-apparatus"></i>Apparatus 3 · 7 (poles) · 10 (loops)</span>
-                <span><i class="sw sw-floor"></i>Floor 1 · 2 · 4 · 5 · 6 · 8 · 9 · 12</span>
-                <span><i class="sw sw-backdrop"></i>Backdrop 11</span>
-                <span class="edit-only legend-hint">Tip: click a light to add it to the cue you're editing.</span>
-            </div>
+            <div id="cueList" class="cue-list"></div>
+            <div id="cueGrid" class="cue-grid" hidden></div>
+            <p class="save-state muted tiny" id="saveState"></p>
         </section>
+
+        <!-- presentation mode shows a read-only list so a viewer can follow along -->
+        <section class="section present-only" aria-label="Cue list (read only)">
+            <div class="section-header">
+                <h2>Cues</h2>
+                <div class="section-line"></div>
+                <div class="file-actions">
+                    <div class="view-toggle" role="group" aria-label="Show cues as">
+                        <button type="button" class="btn small" data-view="list" aria-pressed="true">List</button>
+                        <button type="button" class="btn small" data-view="grid" aria-pressed="false">Looks</button>
+                    </div>
+                    <!-- same exports as the editor's Share menu, for the tech -->
+                    <button type="button" class="btn small" data-proxy="exportGrid" title="One row per moment, one colour-coded column per light — opens in Excel, Numbers or Google Sheets">Download spreadsheet</button>
+                    <button type="button" class="btn small" data-proxy="exportVideo" title="Record the stage with the song to a video file">Download video</button>
+                </div>
+            </div>
+            <div id="cueListRO" class="cue-list"></div>
+            <div id="cueGridRO" class="cue-grid" hidden></div>
+        </section>
+        </div>
 
         <div class="side">
         <!-- ── Player ──────────────────────────────────────────────── -->
@@ -153,57 +209,27 @@
 
         <!-- ── Sections ────────────────────────────────────────────── -->
         <section class="panel sections-panel edit-only" aria-label="Sections">
-            <div class="sections-head">
-                <span class="label">Sections · where each song starts</span>
-                <span class="tempo">
-                    <label>Tempo <input id="tempoBpm" type="number" min="20" max="400" step="0.01" value="120" aria-label="Tempo in BPM"></label> BPM ·
-                    <input id="tempoBpb" type="number" min="1" max="16" step="1" value="4" aria-label="Beats per bar"> / bar
-                </span>
-            </div>
-            <p class="muted tiny">Type a time (<code>1:23.4</code>) or a GarageBand bar (<code>b15</code>). Bar positions follow the tempo, so set it to your project's tempo.</p>
-            <div id="sectionList" class="section-list"></div>
-            <div class="section-actions">
-                <button id="addSection" class="btn small" type="button">+ Section at playhead</button>
-                <button id="pasteSections" class="btn small" type="button">Paste a list…</button>
-            </div>
+            <!-- folded by default: the jump buttons cover getting around -->
+            <details id="sectionsFold" class="sections-fold">
+                <summary><span class="label">Sections <span id="sectionCount" class="count"></span></span><span class="fold-hint">Edit</span></summary>
+                <div class="sections-head">
+                    <span class="label">Sections · where each song starts</span>
+                    <span class="tempo">
+                        <label>Tempo <input id="tempoBpm" type="number" min="20" max="400" step="0.01" value="120" aria-label="Tempo in BPM"></label> BPM ·
+                        <input id="tempoBpb" type="number" min="1" max="16" step="1" value="4" aria-label="Beats per bar"> / bar
+                    </span>
+                </div>
+                <p class="muted tiny">Type a time (<code>1:23.4</code>) or a GarageBand bar (<code>b15</code>). Bar positions follow the tempo, so set it to your project's tempo.</p>
+                <div id="sectionList" class="section-list"></div>
+                <div class="section-actions">
+                    <button id="addSection" class="btn small" type="button">+ Section at playhead</button>
+                    <button id="pasteSections" class="btn small" type="button">Paste a list…</button>
+                </div>
+            </details>
         </section>
         </div>
     </div>
 
-    <!-- ── Cue list ────────────────────────────────────────────────── -->
-    <section class="section edit-only" aria-label="Cue list">
-        <div class="section-header">
-            <h2>Cues <span id="cueCount" class="count"></span></h2>
-            <div class="section-line"></div>
-            <div class="file-actions">
-                <button id="exportJson" class="btn" type="button">Export JSON</button>
-                <label class="btn">Import JSON<input id="importJson" class="file-input" type="file" accept="application/json,.json"></label>
-                <button id="exportSheet" class="btn" type="button">Readable cue sheet</button>
-                <button id="exportGrid" class="btn" type="button" title="One row per moment, one colour-coded column per light — opens in Excel, Numbers or Google Sheets">Export spreadsheet</button>
-                <button id="exportVideo" class="btn" type="button" title="Record the stage with the song to a video file">Export video</button>
-                <button id="shareLink" class="btn" type="button">Copy preview link</button>
-                <button id="loadShowPlan" class="btn" type="button" title="Bring in the show's starting plan; you review any differences first">Load show plan</button>
-            </div>
-        </div>
-        <div class="view-toggle" role="group" aria-label="Show cues as">
-            <button type="button" class="btn small" data-view="list" aria-pressed="true">List</button>
-            <button type="button" class="btn small" data-view="grid" aria-pressed="false" title="Each cue as a little picture of the stage">Looks</button>
-        </div>
-        <div id="cueList" class="cue-list"></div>
-        <div id="cueGrid" class="cue-grid" hidden></div>
-        <p class="save-state muted tiny" id="saveState"></p>
-    </section>
-
-    <!-- presentation mode shows a read-only list so a viewer can follow along -->
-    <section class="section present-only" aria-label="Cue list (read only)">
-        <div class="section-header"><h2>Cues</h2><div class="section-line"></div></div>
-        <div class="view-toggle" role="group" aria-label="Show cues as">
-            <button type="button" class="btn small" data-view="list" aria-pressed="true">List</button>
-            <button type="button" class="btn small" data-view="grid" aria-pressed="false">Looks</button>
-        </div>
-        <div id="cueListRO" class="cue-list"></div>
-        <div id="cueGridRO" class="cue-grid" hidden></div>
-    </section>
 </div>
 
 <!-- ── Cue editor ──────────────────────────────────────────────────── -->

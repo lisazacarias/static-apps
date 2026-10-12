@@ -384,6 +384,7 @@ body.presenting .title-input { pointer-events: none; border-bottom-color: transp
 /* ── responsive ── */
 @media (max-width: 900px) {
     .layout, body.presenting .layout { grid-template-columns: 1fr; }
+
 }
 @media (max-width: 560px) {
     .container.wide { padding: 16px 16px 40px; }
@@ -464,12 +465,23 @@ body.presenting .title-input { pointer-events: none; border-bottom-color: transp
 #levelField .quick { margin: 8px 0 0; }
 
 /* ── sections ── */
-.side { display: grid; gap: 16px; min-width: 0; }
+.main-col { display: grid; gap: 16px; min-width: 0; align-content: start; }
+.main-col > .section { margin-top: 12px; }
+/* the player stays in reach while the cue list scrolls past it */
+.side { display: grid; gap: 16px; min-width: 0; position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow-y: auto; }
 .section-now { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em; color: var(--gold); min-height: 18px; margin: -4px 0 8px; }
 .sections-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
 .tempo { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
 .tempo input { width: 64px; padding: 3px 6px; font-family: var(--font-mono); font-size: 12px; }
 .tempo #tempoBpb { width: 44px; }
+.sections-fold > summary { display: flex; justify-content: space-between; align-items: center; cursor: pointer; list-style: none; }
+.sections-fold > summary::-webkit-details-marker { display: none; }
+.sections-fold > summary .count { color: var(--text-muted); }
+.sections-fold > summary .fold-hint { font-size: 12px; color: var(--text-muted); }
+.sections-fold > summary .fold-hint::after { content: " ▾"; }
+.sections-fold[open] > summary .fold-hint { color: var(--gold); }
+.sections-fold[open] > summary .fold-hint::after { content: " ▴"; }
+.sections-fold[open] > summary { margin-bottom: 10px; }
 .sections-panel code { font-family: var(--font-mono); font-size: 11px; color: var(--text-label); }
 .section-list { display: grid; gap: 4px; margin: 10px 0; }
 .sec-row { display: grid; grid-template-columns: 14px minmax(0, 1fr) 76px 58px auto auto; gap: 6px; align-items: center; }
@@ -536,3 +548,53 @@ input:disabled { opacity: 0.45; }
 .option-head .label { color: var(--gold); }
 .option-choices { display: flex; gap: 6px; }
 .option-pill { color: var(--gold); border-color: rgba(212,169,106,0.4); }
+
+/* one column on narrow screens: stage, then player, then cues */
+@media (max-width: 900px) {
+    .main-col { display: contents; }
+    .stage-panel { order: 1; }
+    .side { order: 2; position: static; max-height: none; overflow: visible; }
+    .main-col > .section { order: 3; }
+}
+
+/* Share / File menus in the cue list header */
+.menu { position: relative; }
+.menu > summary { list-style: none; cursor: pointer; }
+.menu > summary::-webkit-details-marker { display: none; }
+.menu[open] > summary { border-color: var(--gold); color: var(--text-bright); }
+.menu-items {
+    position: absolute; right: 0; top: calc(100% + 6px); z-index: 20;
+    display: grid; gap: 4px; min-width: 210px; padding: 8px;
+    background: var(--bg-elevated); border: 1px solid var(--border-bright); border-radius: 6px; box-shadow: var(--shadow);
+}
+.menu-items .btn { text-align: left; width: 100%; }
+.file-actions .view-toggle { margin: 0 6px 0 0; }
+
+/* per-cue lines fold away; the dots carry lights and colours */
+.moment-shared { padding-left: 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.moment-fold > summary { cursor: pointer; color: var(--text-muted); font-size: 11px; letter-spacing: 0.04em; list-style: none; width: max-content; }
+.moment-fold > summary::-webkit-details-marker { display: none; }
+.moment-fold > summary::after { content: ' ▸'; }
+.moment-fold[open] > summary::after { content: ' ▾'; }
+.moment-fold[open] { display: grid; gap: 4px; }
+.moment-fold > summary:hover { color: var(--text); }
+
+/* the published viewer: no way into the editor from the page */
+body.viewer #presentToggle,
+body.viewer .player-panel .link-ish { display: none; }
+
+/* Phone viewer: trim to what someone following along needs, so the cue
+   list starts on the first screen instead of two screens down. */
+@media (max-width: 900px) {
+    body.viewer .top h1,
+    body.viewer .stage-panel .legend,
+    body.viewer .track-row,
+    body.viewer .zoom-head,
+    body.viewer #zoomWrap,
+    body.viewer .transport.secondary,
+    body.viewer .transport [data-nudge="-0.1"],
+    body.viewer .transport [data-nudge="0.1"],
+    body.viewer [data-proxy="exportVideo"] { display: none; } /* recording is a laptop job */
+    body.viewer .top { margin-bottom: 12px; padding-bottom: 12px; }
+    body.viewer .time-now { font-size: 32px; }
+}

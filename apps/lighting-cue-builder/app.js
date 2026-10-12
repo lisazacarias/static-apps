@@ -47,6 +47,11 @@ let plan = loadPlan();          // { title, audio:{name,duration}, cues, tempo, 
 let ownPlan = null;             // stashed while viewing a shared link
 let viewingShared = false;
 let presenting = false;
+// The published page is a viewer: it always shows the plan in
+// starter-plan.json, so whatever was last pushed is what people see, and
+// nothing a viewer does can drift from it. `?edit` brings the editor back
+// (with this browser's own saved plan) for anyone who still wants it.
+const viewer = !new URLSearchParams(location.search).has('edit');
 let editing = null;             // { draft, isNew } while the editor is open
 let undo = null;                // { plan, label }
 let peaks = null;               // Float32Array, PEAKS_PER_SEC buckets
@@ -79,7 +84,7 @@ function planFrom(p) {
 }
 
 function savePlan() {
-  if (viewingShared) return;
+  if (viewingShared || viewer) return; // a viewer never touches the saved plan
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify(serializePlan(plan)));
     $('saveState').textContent = `Saved in this browser · ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}. Export JSON to keep a backup or send a copy.`;
@@ -906,16 +911,31 @@ function renderCueList() {
       if (!m.cues.length) row.classList.add('is-step');
       const cuesBox = document.createElement('div');
       cuesBox.className = 'moment-cues';
-      // what every cue here has in common goes on one line above them
-      const parts = new Map(m.cues.map((c) => [c, cueParts(c)]));
-      const common = m.cues.length > 1 && new Set([...parts.values()].map((p) => p.shared)).size === 1 ? parts.get(m.cues[0]).shared : null;
-      if (common) {
+      // The numbered dots already say which light is what colour, so a
+      // moment gets one line for how it happens ("Fade ON 4.15s · 100%").
+      // The per-cue lines only come back where they add something: behind a
+      // fold in the editor (for the Edit buttons), and for an option that
+      // isn't in use, which the dots can't show.
+      const inUse = m.cues.filter((c) => !c.option || running.has(c.id));
+      const how = [...new Set(inUse.map((c) => cueParts(c).shared))];
+      if (how.length) {
         const sh = document.createElement('div');
         sh.className = 'moment-shared';
-        sh.textContent = common;
+        sh.textContent = how.join(' / ');
+        if (inUse.some((c) => c.othersOff)) { const p = document.createElement('span'); p.className = 'pill'; p.textContent = 'all others off'; sh.append(p); }
         cuesBox.append(sh);
       }
+      let itemsBox = cuesBox;
+      if (!readOnly && m.cues.length) {
+        itemsBox = document.createElement('details');
+        itemsBox.className = 'moment-fold';
+        const sum = document.createElement('summary');
+        sum.textContent = m.cues.length === 1 ? 'Edit cue' : `Edit ${m.cues.length} cues`;
+        itemsBox.append(sum);
+        cuesBox.append(itemsBox);
+      }
       for (const c of m.cues) {
+        if (readOnly && !(c.option && !running.has(c.id))) continue;
         const item = document.createElement('div');
         item.className = 'moment-cue';
         if (c.option && !running.has(c.id)) item.classList.add('is-alt');
@@ -925,16 +945,14 @@ function renderCueList() {
         else sw.style.background = c.repeat?.altColor ? `linear-gradient(90deg, ${c.color} 50%, ${c.repeat.altColor} 50%)` : c.color;
         const desc = document.createElement('span');
         desc.className = 'cue-desc';
-        const p = parts.get(c);
-        // on its own, a cue reads action first: "Snap ON · ALL (1–12) · white"
-        const [kind, ...rest] = p.shared.split(' · ');
+        const p = cueParts(c);
         const w = document.createElement('span');
         w.className = 'what';
-        w.textContent = common ? p.own : `${kind} · ${p.own}`;
+        w.textContent = p.own;
         const h = document.createElement('span');
         h.className = 'how';
-        h.textContent = common ? '' : rest.join(' · ');
-        if (c.othersOff) { const p = document.createElement('span'); p.className = 'pill'; p.textContent = 'all others off'; h.append(p); }
+        // the moment line already says how, unless this cue differs from it
+        h.textContent = how.length === 1 && how[0] === p.shared ? '' : p.shared;
         if (c.option) {
           const p = document.createElement('span');
           p.className = 'pill option-pill';
@@ -966,7 +984,7 @@ function renderCueList() {
           };
           item.append(acts);
         }
-        cuesBox.append(item);
+        itemsBox.append(item);
       }
       row.append(cuesBox);
       // A pattern is spelled out the first time it appears in a section;
@@ -1369,8 +1387,17 @@ function markJumpBar(sec) {
   $('jumpBar').querySelectorAll('.jump-chip').forEach((b) => b.classList.toggle('is-current', b.dataset.id === sec?.id));
 }
 
+// The section editor's fold, remembered per browser (prefixed key: the
+// origin's storage is shared by every app).
+const FOLD_KEY = 'lighting-cue-builder:sections-open';
+try { $('sectionsFold').open = localStorage.getItem(FOLD_KEY) === '1'; } catch { /* closed */ }
+$('sectionsFold').addEventListener('toggle', () => {
+  try { localStorage.setItem(FOLD_KEY, $('sectionsFold').open ? '1' : '0'); } catch { /* best effort */ }
+});
+
 function renderSections() {
   renderJumpBar();
+  $('sectionCount').textContent = plan.sections.length ? `· ${plan.sections.length}` : '';
   const list = $('sectionList');
   list.replaceChildren();
   const secs = sortSections(plan.sections, plan.tempo);
@@ -1487,6 +1514,13 @@ function stamp() {
   const p = (n) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`;
 }
+
+// Menus close when you pick something or click elsewhere.
+document.addEventListener('click', (e) => {
+  for (const m of document.querySelectorAll('details.menu[open]')) {
+    if (!m.contains(e.target) || e.target.closest('.menu-items .btn')) m.open = false;
+  }
+});
 
 $('exportJson').onclick = () => {
   download(`${slug(plan.title)}-cues-${stamp()}.json`, JSON.stringify(serializePlan(plan), null, 2), 'application/json');
@@ -1767,6 +1801,7 @@ function setPresenting(on) {
   dirtyStage = dirtyWave = true;
 }
 $('presentToggle').onclick = () => setPresenting(!presenting);
+for (const b of document.querySelectorAll('[data-proxy]')) b.onclick = () => $(b.dataset.proxy).click();
 
 async function openSharedFromHash() {
   const h = location.hash.slice(1);
@@ -1888,7 +1923,27 @@ async function loadShowAudio() {
   }
 }
 
+// Viewer boot: the pushed plan and the shipped track, read-only.
+async function bootViewer() {
+  buildStage();
+  document.body.classList.add('viewer');
+  setPresenting(true);
+  try {
+    plan = planFrom(await fetchShowPlan());
+  } catch {
+    notify('Couldn’t load the cue plan right now — check your connection and reload.', { error: true, sticky: true });
+  }
+  $('title').value = plan.title;
+  syncTempoInputs();
+  renderSections();
+  renderCueList();
+  new ResizeObserver(() => { dirtyWave = true; }).observe($('waveWrap'));
+  requestAnimationFrame(frame);
+  await loadShowAudio();
+}
+
 async function boot() {
+  if (viewer) return bootViewer();
   buildStage();
   buildEditor();
   document.body.classList.add('edit-mode');
