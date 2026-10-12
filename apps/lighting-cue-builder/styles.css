@@ -250,6 +250,7 @@ kbd { font-family: var(--font-mono); font-size: 11px; border: 1px solid var(--bo
 .moment-then { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); text-align: right; padding-right: 4px; }
 .moment-tag { font-family: var(--font-mono); font-size: 11px; color: var(--gold); }
 .moment-cues { display: grid; gap: 4px; padding-left: 148px; }
+.moment-shared { color: var(--text-muted); font-size: 12px; padding-left: 20px; }
 .moment-cue { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
 .moment-cue.is-alt { opacity: 0.6; }
 .moment .note { padding-left: 148px; color: var(--gold); font-size: 12px; font-style: italic; }
