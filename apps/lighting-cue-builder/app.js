@@ -774,42 +774,42 @@ function stageDots(lights) {
   return dots;
 }
 
-// What the stage shows once a moment lands, and (for a colour switch) what
-// it switches to. Backup cues are drawn as if their version were picked.
-function momentLooks(cues, t, next) {
+// The stage just after time t. Backup cues are drawn as if their version
+// were picked, so a not-in-use row still shows what it would do.
+function stageAfter(cues, t, next) {
   const pick = cues.find((c) => c.option);
   const live = pick && !runningCues().some((c) => c.id === pick.id)
     ? activeCues(plan.cues, { ...plan.optionPicks, [pick.option.group]: pick.option.choice })
     : runningCues();
-  const settle = Math.max(0.02, ...cues.filter((c) => c.transition === 'fade').map((c) => c.fade));
-  const at = next === undefined ? t + settle : Math.min(t + settle, next - 0.01);
-  const run = cues.find((c) => c.repeat);
-  const out = { first: stateAt(live, at).lights, then: null, tag: '' };
-  if (run) {
-    const r = run.repeat;
-    if (r.altColor && r.onFrac >= 1 && r.count >= 2) {
-      const [a, b] = flashTimes(run);
-      out.first = stateAt(live, a + 0.01).lights;
-      out.then = stateAt(live, b + 0.01).lights;
-      out.tag = `⇄ ${r.count}× · every ${flashGap(r).toFixed(2)}s`;
-    } else if (r.onFrac < 1) {
-      out.first = stateAt(live, t + 0.01).lights;
-      out.tag = `strobe ${r.count}× · every ${flashGap(r).toFixed(2)}s`;
-    } else out.tag = `again ${r.count}× · every ${flashGap(r).toFixed(2)}s`;
-  }
-  return out;
+  const settle = Math.max(0.01, ...cues.filter((c) => c.transition === 'fade' && !c.repeat).map((c) => c.fade));
+  const at = next === undefined ? t + settle : Math.min(t + settle, next - 0.005);
+  return stateAt(live, at).lights;
+}
+
+// A run in plain words, for the note on the row where it starts.
+function patternText(c) {
+  const r = c.repeat;
+  const kind = r.altColor && r.onFrac >= 1 ? 'switches colours' : r.onFrac < 1 ? 'flashes' : 'repeats';
+  return `Pattern: ${kind} every ${flashGap(r).toFixed(2)}s, ${r.count} times, through ${formatTime(flashTimes(c).at(-1))}`;
 }
 
 function renderCueList() {
   if (cueView === 'grid') renderCueGrid();
   const sorted = sortCues(plan.cues);
   $('cueCount').textContent = sorted.length ? `· ${sorted.length}` : '';
-  const moments = [];
+  // Every time the lights change gets a row: each cue's start, and each step
+  // of a run after its first.
+  const byTime = new Map();
+  const at = (t) => {
+    const k = Math.round(t * 100) / 100;
+    if (!byTime.has(k)) byTime.set(k, { t: k, cues: [], steps: [] });
+    return byTime.get(k);
+  };
   for (const c of sorted) {
-    const last = moments[moments.length - 1];
-    if (last && last.t === c.time) last.cues.push(c);
-    else moments.push({ t: c.time, cues: [c] });
+    at(c.time).cues.push(c);
+    if (c.repeat) flashTimes(c).slice(1).forEach((ft, k) => at(ft).steps.push({ cue: c, n: k + 2 }));
   }
+  const moments = [...byTime.values()].sort((x, y) => x.t - y.t);
   for (const [list, readOnly] of [[$('cueList'), false], [$('cueListRO'), true]]) {
     list.replaceChildren();
     if (!sorted.length) {
@@ -863,8 +863,7 @@ function renderCueList() {
       row.className = 'moment';
       row.dataset.t = m.t;
       if (m.cues.some((c) => c.option)) row.classList.add('in-option');
-      if (m.cues.every((c) => c.option && !running.has(c.id))) row.classList.add('is-alt');
-      const looks = momentLooks(m.cues, m.t, moments[mi + 1]?.t);
+      if (m.cues.length && m.cues.every((c) => c.option && !running.has(c.id))) row.classList.add('is-alt');
       const line = document.createElement('div');
       line.className = 'moment-line';
       const n = document.createElement('span');
@@ -878,21 +877,17 @@ function renderCueList() {
       time.onclick = () => seek(m.t);
       const tag = document.createElement('span');
       tag.className = 'moment-tag';
-      tag.textContent = looks.then ? '' : looks.tag;
-      line.append(n, time, stageDots(looks.first), tag);
+      // one tag per run stepping here: "2/8"
+      const seen = new Set();
+      tag.textContent = m.steps.filter((s) => {
+        const k = `${s.cue.time}|${s.cue.repeat.count}|${s.n}`;
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      }).map((s) => `↻ ${s.n}/${s.cue.repeat.count}`).join('  ');
+      line.append(n, time, stageDots(stageAfter([...m.cues, ...m.steps.map((s) => s.cue)], m.t, moments[mi + 1]?.t)), tag);
       row.append(line);
-      if (looks.then) {
-        const thenLine = document.createElement('div');
-        thenLine.className = 'moment-line then';
-        const lbl = document.createElement('span');
-        lbl.className = 'moment-then';
-        lbl.textContent = 'then';
-        const tag2 = document.createElement('span');
-        tag2.className = 'moment-tag';
-        tag2.textContent = looks.tag;
-        thenLine.append(document.createElement('span'), lbl, stageDots(looks.then), tag2);
-        row.append(thenLine);
-      }
+      if (!m.cues.length) row.classList.add('is-step');
       const cuesBox = document.createElement('div');
       cuesBox.className = 'moment-cues';
       for (const c of m.cues) {
@@ -947,6 +942,13 @@ function renderCueList() {
         cuesBox.append(item);
       }
       row.append(cuesBox);
+      const patterns = [...new Set(m.cues.filter((c) => c.repeat).map(patternText))];
+      for (const text of patterns) {
+        const p = document.createElement('div');
+        p.className = 'note pattern';
+        p.textContent = text;
+        row.append(p);
+      }
       for (const text of m.cues.map((c) => c.note).filter(Boolean)) {
         const note = document.createElement('div');
         note.className = 'note';

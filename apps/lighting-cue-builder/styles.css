@@ -253,6 +253,11 @@ kbd { font-family: var(--font-mono); font-size: 11px; border: 1px solid var(--bo
 .moment-cue { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
 .moment-cue.is-alt { opacity: 0.6; }
 .moment .note { padding-left: 148px; color: var(--gold); font-size: 12px; font-style: italic; }
+.moment .note.pattern { color: var(--blue); font-style: normal; font-family: var(--font-mono); font-size: 11px; }
+/* a step of a pattern started on an earlier row: just the time and the stage */
+.moment.is-step { padding-top: 4px; padding-bottom: 4px; background: transparent; border-color: transparent; border-left-color: transparent; }
+.moment.is-step.is-active { border-left-color: var(--gold); background: #1d1314; }
+.moment.is-step .cue-n { opacity: 0.6; }
 .cue-swatch { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.25); }
 .cue-swatch.off { background: repeating-linear-gradient(45deg, #222 0 3px, #111 3px 6px); }
 /* twelve circles, always in light order, so the rows line up like a grid */
