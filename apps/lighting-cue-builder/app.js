@@ -691,14 +691,17 @@ function markGrid() {
   }
 }
 
-function markActive(id) {
+// The moment playing now is outlined; earlier ones dim.
+function markActive() {
   markGrid();
-  const sorted = sortCues(plan.cues);
-  const idx = sorted.findIndex((c) => c.id === id);
+  const t = now() + 0.005;
   for (const list of [$('cueList'), $('cueListRO')]) {
-    list.querySelectorAll('.cue:not(.cue-head)').forEach((row, i) => {
+    const rows = [...list.querySelectorAll('.moment')];
+    let idx = -1;
+    rows.forEach((row, i) => { if (Number(row.dataset.t) <= t) idx = i; });
+    rows.forEach((row, i) => {
       row.classList.toggle('is-active', i === idx);
-      row.classList.toggle('is-past', idx >= 0 && i < idx);
+      row.classList.toggle('is-past', i < idx);
     });
   }
 }
@@ -751,10 +754,62 @@ function optionHeader(g) {
   return h;
 }
 
+// One row per moment: every cue that starts at that timestamp, with the
+// stage as it looks once they land drawn as twelve circles. A colour
+// switch gets a second line of circles for what it alternates to.
+function stageDots(lights) {
+  const dots = document.createElement('span');
+  dots.className = 'cue-dots';
+  dots.setAttribute('aria-hidden', 'true');
+  for (const l of ALL_LIGHTS) {
+    const d = document.createElement('span');
+    const s = lights[l];
+    if (s && s.level > 0.02) {
+      d.className = 'dot on';
+      d.style.background = s.color;
+      d.style.opacity = (0.35 + 0.65 * s.level).toFixed(2);
+    } else d.className = 'dot idle';
+    dots.append(d);
+  }
+  return dots;
+}
+
+// What the stage shows once a moment lands, and (for a colour switch) what
+// it switches to. Backup cues are drawn as if their version were picked.
+function momentLooks(cues, t, next) {
+  const pick = cues.find((c) => c.option);
+  const live = pick && !runningCues().some((c) => c.id === pick.id)
+    ? activeCues(plan.cues, { ...plan.optionPicks, [pick.option.group]: pick.option.choice })
+    : runningCues();
+  const settle = Math.max(0.02, ...cues.filter((c) => c.transition === 'fade').map((c) => c.fade));
+  const at = next === undefined ? t + settle : Math.min(t + settle, next - 0.01);
+  const run = cues.find((c) => c.repeat);
+  const out = { first: stateAt(live, at).lights, then: null, tag: '' };
+  if (run) {
+    const r = run.repeat;
+    if (r.altColor && r.onFrac >= 1 && r.count >= 2) {
+      const [a, b] = flashTimes(run);
+      out.first = stateAt(live, a + 0.01).lights;
+      out.then = stateAt(live, b + 0.01).lights;
+      out.tag = `⇄ ${r.count}× · every ${flashGap(r).toFixed(2)}s`;
+    } else if (r.onFrac < 1) {
+      out.first = stateAt(live, t + 0.01).lights;
+      out.tag = `strobe ${r.count}× · every ${flashGap(r).toFixed(2)}s`;
+    } else out.tag = `again ${r.count}× · every ${flashGap(r).toFixed(2)}s`;
+  }
+  return out;
+}
+
 function renderCueList() {
   if (cueView === 'grid') renderCueGrid();
   const sorted = sortCues(plan.cues);
   $('cueCount').textContent = sorted.length ? `· ${sorted.length}` : '';
+  const moments = [];
+  for (const c of sorted) {
+    const last = moments[moments.length - 1];
+    if (last && last.t === c.time) last.cues.push(c);
+    else moments.push({ t: c.time, cues: [c] });
+  }
   for (const [list, readOnly] of [[$('cueList'), false], [$('cueListRO'), true]]) {
     list.replaceChildren();
     if (!sorted.length) {
@@ -767,7 +822,7 @@ function renderCueList() {
       continue;
     }
     const head = document.createElement('div');
-    head.className = 'cue cue-head';
+    head.className = 'moment-head';
     head.setAttribute('aria-hidden', 'true');
     const nums = document.createElement('span');
     nums.className = 'cue-dots';
@@ -778,14 +833,14 @@ function renderCueList() {
       d.title = APPARATUS[l] ? `Light ${l} (${APPARATUS[l]})` : `Light ${l}`;
       nums.append(d);
     }
-    head.append(nums);
+    head.append(document.createElement('span'), document.createElement('span'), nums);
     list.append(head);
     let shownSec = null;
     const groups = optionGroups(plan.cues);
     const running = new Set(runningCues().map((c) => c.id));
     const shownGroups = new Set();
-    sorted.forEach((c, i) => {
-      const sec = sectionAt(plan.sections, plan.tempo, c.time);
+    moments.forEach((m, mi) => {
+      const sec = sectionAt(plan.sections, plan.tempo, m.t);
       if (sec && sec !== shownSec) {
         shownSec = sec;
         const h = document.createElement('div');
@@ -798,71 +853,105 @@ function renderCueList() {
         h.append(n, at);
         list.append(h);
       }
-      if (c.option && !shownGroups.has(c.option.group)) {
-        shownGroups.add(c.option.group);
-        list.append(optionHeader(groups.find((g) => g.group === c.option.group)));
+      for (const c of m.cues) {
+        if (c.option && !shownGroups.has(c.option.group)) {
+          shownGroups.add(c.option.group);
+          list.append(optionHeader(groups.find((g) => g.group === c.option.group)));
+        }
       }
       const row = document.createElement('div');
-      row.className = 'cue';
-      if (c.option) row.classList.add('in-option');
-      if (c.option && !running.has(c.id)) row.classList.add('is-alt');
-      const { what, how } = describe(c);
-      row.innerHTML = `
-        <span class="cue-n">Q${i + 1}</span>
-        <button class="cue-time" type="button" title="Jump here"></button>
-        <span class="cue-dots" aria-hidden="true"></span>
-        <div class="cue-desc"><div class="what"></div><div class="how"></div><div class="note"></div></div>
-        ${readOnly ? '' : `<div class="cue-actions">
-          <button class="btn small" data-act="edit" type="button">Edit</button>
-          <button class="btn small" data-act="dup" type="button" title="Copy this cue to the current playback time">Copy to now</button>
-          <button class="btn small danger" data-act="del" type="button" aria-label="Delete cue ${i + 1}">✕</button>
-        </div>`}`;
-      const until = c.repeat ? flashEnd(c) : c.end;
-      row.querySelector('.cue-time').textContent = until !== null ? `${formatTime(c.time)}–${formatTime(until)}` : formatTime(c.time);
-      row.querySelector('.cue-time').onclick = () => seek(c.time);
-      const dots = row.querySelector('.cue-dots');
-      for (const l of ALL_LIGHTS) {
-        const d = document.createElement('span');
-        const mine = c.lights.includes(l);
-        if (mine && c.action === 'on') {
-          d.className = 'dot on';
-          // a colour-swapping run shows both colours, half and half
-          d.style.background = c.repeat?.altColor ? `linear-gradient(90deg, ${c.color} 50%, ${c.repeat.altColor} 50%)` : c.color;
-          d.style.opacity = (0.35 + 0.65 * c.level / 100).toFixed(2);
-        } else if (mine || c.othersOff) d.className = 'dot off';
-        else d.className = 'dot idle';
-        dots.append(d);
+      row.className = 'moment';
+      row.dataset.t = m.t;
+      if (m.cues.some((c) => c.option)) row.classList.add('in-option');
+      if (m.cues.every((c) => c.option && !running.has(c.id))) row.classList.add('is-alt');
+      const looks = momentLooks(m.cues, m.t, moments[mi + 1]?.t);
+      const line = document.createElement('div');
+      line.className = 'moment-line';
+      const n = document.createElement('span');
+      n.className = 'cue-n';
+      n.textContent = `#${mi + 1}`;
+      const time = document.createElement('button');
+      time.type = 'button';
+      time.className = 'cue-time';
+      time.title = 'Jump here';
+      time.textContent = formatTime(m.t);
+      time.onclick = () => seek(m.t);
+      const tag = document.createElement('span');
+      tag.className = 'moment-tag';
+      tag.textContent = looks.then ? '' : looks.tag;
+      line.append(n, time, stageDots(looks.first), tag);
+      row.append(line);
+      if (looks.then) {
+        const thenLine = document.createElement('div');
+        thenLine.className = 'moment-line then';
+        const lbl = document.createElement('span');
+        lbl.className = 'moment-then';
+        lbl.textContent = 'then';
+        const tag2 = document.createElement('span');
+        tag2.className = 'moment-tag';
+        tag2.textContent = looks.tag;
+        thenLine.append(document.createElement('span'), lbl, stageDots(looks.then), tag2);
+        row.append(thenLine);
       }
-      row.querySelector('.what').textContent = what;
-      const howEl = row.querySelector('.how');
-      howEl.textContent = how;
-      if (c.othersOff) {
-        const p = document.createElement('span');
-        p.className = 'pill'; p.textContent = 'all others off';
-        howEl.append(p);
+      const cuesBox = document.createElement('div');
+      cuesBox.className = 'moment-cues';
+      for (const c of m.cues) {
+        const item = document.createElement('div');
+        item.className = 'moment-cue';
+        if (c.option && !running.has(c.id)) item.classList.add('is-alt');
+        const sw = document.createElement('span');
+        sw.className = 'cue-swatch';
+        if (c.action === 'off') sw.classList.add('off');
+        else sw.style.background = c.repeat?.altColor ? `linear-gradient(90deg, ${c.color} 50%, ${c.repeat.altColor} 50%)` : c.color;
+        const desc = document.createElement('span');
+        desc.className = 'cue-desc';
+        const { what, how } = describe(c);
+        const w = document.createElement('span');
+        w.className = 'what';
+        w.textContent = what;
+        const h = document.createElement('span');
+        h.className = 'how';
+        h.textContent = how;
+        if (c.othersOff) { const p = document.createElement('span'); p.className = 'pill'; p.textContent = 'all others off'; h.append(p); }
+        if (c.option) {
+          const p = document.createElement('span');
+          p.className = 'pill option-pill';
+          p.textContent = running.has(c.id) ? c.option.choice : `${c.option.choice} · not in use`;
+          h.append(p);
+        }
+        desc.append(w, h);
+        item.append(sw, desc);
+        if (!readOnly) {
+          const acts = document.createElement('span');
+          acts.className = 'cue-actions';
+          acts.innerHTML = `
+            <button class="btn small" data-act="edit" type="button">Edit</button>
+            <button class="btn small" data-act="dup" type="button" title="Copy this cue to the current playback time">Copy to now</button>
+            <button class="btn small danger" data-act="del" type="button" aria-label="Delete this cue">✕</button>`;
+          acts.querySelector('[data-act="edit"]').onclick = () => openEditor(c);
+          acts.querySelector('[data-act="dup"]').onclick = () => {
+            const copy = { ...structuredClone(c), id: undefined, option: null };
+            const len = c.end !== null ? c.end - c.time : null;
+            copy.time = Math.round(now() * 100) / 100;
+            copy.end = len !== null ? copy.time + len : null;
+            openEditor(null, copy);
+          };
+          acts.querySelector('[data-act="del"]').onclick = () => {
+            snapshot('delete');
+            plan.cues = plan.cues.filter((x) => x.id !== c.id);
+            commit();
+            notify(`Deleted cue at ${formatTime(c.time)}.`, { withUndo: true });
+          };
+          item.append(acts);
+        }
+        cuesBox.append(item);
       }
-      if (c.option) {
-        const p = document.createElement('span');
-        p.className = 'pill option-pill';
-        p.textContent = running.has(c.id) ? c.option.choice : `${c.option.choice} · not in use`;
-        howEl.append(p);
-      }
-      row.querySelector('.note').textContent = c.note;
-      if (!readOnly) {
-        row.querySelector('[data-act="edit"]').onclick = () => openEditor(c);
-        row.querySelector('[data-act="dup"]').onclick = () => {
-          const copy = { ...structuredClone(c), id: undefined, option: null };
-          const len = c.end !== null ? c.end - c.time : null;
-          copy.time = Math.round(now() * 100) / 100;
-          copy.end = len !== null ? copy.time + len : null;
-          openEditor(null, copy);
-        };
-        row.querySelector('[data-act="del"]').onclick = () => {
-          snapshot('delete');
-          plan.cues = plan.cues.filter((x) => x.id !== c.id);
-          commit();
-          notify(`Deleted cue at ${formatTime(c.time)}.`, { withUndo: true });
-        };
+      row.append(cuesBox);
+      for (const text of m.cues.map((c) => c.note).filter(Boolean)) {
+        const note = document.createElement('div');
+        note.className = 'note';
+        note.textContent = text;
+        row.append(note);
       }
       list.append(row);
     });
