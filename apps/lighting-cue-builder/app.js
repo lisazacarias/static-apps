@@ -828,6 +828,7 @@ function renderCueList() {
     const groups = optionGroups(plan.cues);
     const running = new Set(runningCues().map((c) => c.id));
     const shownGroups = new Set();
+    const shownPatterns = new Set();
     moments.forEach((m, mi) => {
       const sec = sectionAt(plan.sections, plan.tempo, m.t);
       if (sec && sec !== shownSec) {
@@ -937,7 +938,10 @@ function renderCueList() {
         cuesBox.append(item);
       }
       row.append(cuesBox);
-      const patterns = [...new Set(m.cues.filter((c) => c.repeat).map(patternText))];
+      // A pattern is spelled out the first time it appears in a section;
+      // repeats of it just carry their step tags.
+      const patterns = [...new Set(m.cues.filter((c) => c.repeat).map(patternText))]
+        .filter((text) => { const k = `${sec?.id}|${text.replace(/, through .*$/, '')}`; if (shownPatterns.has(k)) return false; shownPatterns.add(k); return true; });
       for (const text of patterns) {
         const p = document.createElement('div');
         p.className = 'note pattern';
