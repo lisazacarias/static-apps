@@ -6,6 +6,7 @@ import {
   DEFAULT_TEMPO, normalizeTempo, parseStart, formatStart, normalizeSection,
   sectionStart, sortSections, sectionAt, parseSectionLines, timeToBar,
   diffPlans, applyMerge, planSignature, activeCues, optionGroups,
+  runSheet, cueGrid, cellColor, inkOn,
 } from './cues.js';
 import { cueWorkbook } from './xlsx.js';
 import { videoSupported, recorderType, videoExtension, stageBackground, drawFrame as drawVideoStage, recorder } from './video.js';
@@ -589,7 +590,108 @@ function activeLabel(id) {
   return `Cue ${i + 1} of ${sorted.length} · ${formatTime(sorted[i].time)}`;
 }
 
+/* ── grid view ───────────────────────────────────────────────────────── */
+
+// Which way the cue list shows, per browser. localStorage is shared by every
+// app on this origin, so the key is prefixed.
+const VIEW_KEY = 'lighting-cue-builder:cue-view';
+let cueView = (() => { try { return localStorage.getItem(VIEW_KEY) === 'grid' ? 'grid' : 'list'; } catch { return 'list'; } })();
+
+function setCueView(view, { save = true } = {}) {
+  cueView = view;
+  if (save) { try { localStorage.setItem(VIEW_KEY, view); } catch { /* best effort */ } }
+  document.querySelectorAll('.view-toggle .btn').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+  for (const [list, grid] of [['cueList', 'cueGrid'], ['cueListRO', 'cueGridRO']]) {
+    $(list).hidden = view === 'grid';
+    $(grid).hidden = view !== 'grid';
+  }
+  if (save) renderCueList();
+}
+document.querySelectorAll('.view-toggle .btn').forEach((b) => { b.onclick = () => setCueView(b.dataset.view); });
+setCueView(cueView, { save: false }); // boot's renderCueList draws it
+
+// A thumbnail of the stage: each light in its colour, dark outline if off.
+// Cropped to the lit area, so the lights fill it rather than the whole room.
+const MINI_VIEW = { x: 500, y: 380, w: 580, h: 700 };
+function miniStage(lights) {
+  const v = MINI_VIEW;
+  const s = svg('svg', { viewBox: `${v.x} ${v.y} ${v.w} ${v.h}`, class: 'mini-stage', 'aria-hidden': 'true' });
+  s.append(svg('rect', { x: v.x, y: v.y, width: v.w, height: v.h, rx: 40, class: 'mini-floor' }));
+  for (const n of DRAW_ORDER) {
+    const l = lights[n - 1];
+    s.append(shapeEl(SHAPES[n], l
+      ? { fill: l.hex, 'fill-opacity': (0.35 + 0.65 * l.level / 100).toFixed(2), class: 'mini-on' }
+      : { class: 'mini-off' }));
+  }
+  return s;
+}
+
+function renderCueGrid() {
+  const { rows, looks } = runSheet(plan);
+  const cells = cueGrid(plan);
+  const byName = new Map(looks.map((l) => [l.name, l.lights]));
+  for (const box of [$('cueGrid'), $('cueGridRO')]) {
+    box.replaceChildren();
+    if (!rows.length) { box.textContent = 'No cues yet.'; continue; }
+    rows.forEach((r, i) => {
+      if (r.section) {
+        const h = document.createElement('div');
+        h.className = 'cue-section-head';
+        h.textContent = r.section;
+        box.append(h);
+      }
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'look-row';
+      row.dataset.t = r.t;
+      row.title = r.notes ? `${r.notes}\n\nClick to jump here` : 'Click to jump here';
+      const time = document.createElement('span');
+      time.className = 'look-time';
+      time.textContent = r.time;
+      const pics = document.createElement('span');
+      pics.className = 'look-pics';
+      const [a, b] = r.look.split(' ⇄ ');
+      pics.append(miniStage(cells[i].lights));
+      if (b && byName.has(b)) {
+        const x = document.createElement('span');
+        x.className = 'look-swap';
+        x.textContent = '⇄';
+        pics.append(x, miniStage(byName.get(b)));
+      }
+      const text = document.createElement('span');
+      text.className = 'look-text';
+      const name = document.createElement('span');
+      name.className = 'look-name';
+      name.textContent = b ? `${a} ⇄ ${b}` : a;
+      const act = document.createElement('span');
+      act.className = 'look-act';
+      act.textContent = r.action;
+      text.append(name, act);
+      row.append(time, pics, text);
+      row.onclick = () => seek(r.t);
+      box.append(row);
+    });
+  }
+  markGrid();
+}
+
+// Highlight the row that's playing now; earlier rows dim.
+function markGrid() {
+  if (cueView !== 'grid') return;
+  const t = now() + 0.005;
+  for (const box of [$('cueGrid'), $('cueGridRO')]) {
+    const rows = [...box.querySelectorAll('.look-row')];
+    let idx = -1;
+    rows.forEach((row, i) => { if (Number(row.dataset.t) <= t) idx = i; });
+    rows.forEach((row, i) => {
+      row.classList.toggle('is-active', i === idx);
+      row.classList.toggle('is-past', i < idx);
+    });
+  }
+}
+
 function markActive(id) {
+  markGrid();
   const sorted = sortCues(plan.cues);
   const idx = sorted.findIndex((c) => c.id === id);
   for (const list of [$('cueList'), $('cueListRO')]) {
@@ -649,6 +751,7 @@ function optionHeader(g) {
 }
 
 function renderCueList() {
+  if (cueView === 'grid') renderCueGrid();
   const sorted = sortCues(plan.cues);
   $('cueCount').textContent = sorted.length ? `· ${sorted.length}` : '';
   for (const [list, readOnly] of [[$('cueList'), false], [$('cueListRO'), true]]) {

@@ -184,6 +184,35 @@ kbd { font-family: var(--font-mono); font-size: 11px; border: 1px solid var(--bo
 .file-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 
 .cue-list { display: grid; gap: 6px; }
+
+/* looks view: each cue as a little picture of the stage */
+.view-toggle { display: flex; gap: 6px; margin: 0 0 10px; }
+.view-toggle .btn[aria-pressed="true"] { border-color: var(--gold); color: var(--text-bright); }
+.cue-grid { display: grid; gap: 6px; }
+.look-row {
+    display: grid; grid-template-columns: 76px auto minmax(0, 1fr); align-items: center; gap: 14px;
+    width: 100%; text-align: left; font: inherit; color: inherit; cursor: pointer;
+    background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--border);
+    border-radius: 4px; padding: 8px 12px;
+}
+.look-row:hover { border-color: var(--border-bright); }
+.look-row:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.look-row.is-active { border-left-color: var(--gold); background: #1d1314; }
+.look-row.is-past { opacity: 0.6; }
+.look-time { font-family: var(--font-mono); font-size: 14px; color: var(--text-bright); }
+.look-pics { display: flex; align-items: center; gap: 6px; }
+.look-swap { color: var(--text-muted); font-size: 14px; }
+.mini-stage { width: 58px; height: 70px; display: block; }
+.mini-floor { fill: #120c0d; stroke: #2a1a1b; stroke-width: 6; }
+.mini-off { fill: none; stroke: #4a3f40; stroke-width: 6; }
+.mini-on { stroke: none; }
+.look-text { display: grid; gap: 2px; min-width: 0; }
+.look-name { font-weight: 600; color: var(--text-bright); }
+.look-act { color: var(--text-muted); font-size: 13px; }
+@media (max-width: 520px) {
+    .look-row { grid-template-columns: auto 1fr; gap: 8px 12px; }
+    .look-text { grid-column: 1 / -1; }
+}
 .cue-empty { padding: 22px; text-align: center; color: var(--text-muted); font-size: 14px; border: 1px dashed var(--border); border-radius: 6px; }
 
 .cue {
