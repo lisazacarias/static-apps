@@ -696,7 +696,7 @@ function markActive(id) {
   const sorted = sortCues(plan.cues);
   const idx = sorted.findIndex((c) => c.id === id);
   for (const list of [$('cueList'), $('cueListRO')]) {
-    list.querySelectorAll('.cue').forEach((row, i) => {
+    list.querySelectorAll('.cue:not(.cue-head)').forEach((row, i) => {
       row.classList.toggle('is-active', i === idx);
       row.classList.toggle('is-past', idx >= 0 && i < idx);
     });
@@ -766,6 +766,20 @@ function renderCueList() {
       list.append(e);
       continue;
     }
+    const head = document.createElement('div');
+    head.className = 'cue cue-head';
+    head.setAttribute('aria-hidden', 'true');
+    const nums = document.createElement('span');
+    nums.className = 'cue-dots';
+    for (const l of ALL_LIGHTS) {
+      const d = document.createElement('span');
+      d.className = `dot g-${groupOf(l)}`;
+      d.textContent = l;
+      d.title = APPARATUS[l] ? `Light ${l} (${APPARATUS[l]})` : `Light ${l}`;
+      nums.append(d);
+    }
+    head.append(nums);
+    list.append(head);
     let shownSec = null;
     const groups = optionGroups(plan.cues);
     const running = new Set(runningCues().map((c) => c.id));
@@ -796,7 +810,7 @@ function renderCueList() {
       row.innerHTML = `
         <span class="cue-n">Q${i + 1}</span>
         <button class="cue-time" type="button" title="Jump here"></button>
-        <span class="cue-swatch"></span>
+        <span class="cue-dots" aria-hidden="true"></span>
         <div class="cue-desc"><div class="what"></div><div class="how"></div><div class="note"></div></div>
         ${readOnly ? '' : `<div class="cue-actions">
           <button class="btn small" data-act="edit" type="button">Edit</button>
@@ -806,8 +820,19 @@ function renderCueList() {
       const until = c.repeat ? flashEnd(c) : c.end;
       row.querySelector('.cue-time').textContent = until !== null ? `${formatTime(c.time)}–${formatTime(until)}` : formatTime(c.time);
       row.querySelector('.cue-time').onclick = () => seek(c.time);
-      const sw = row.querySelector('.cue-swatch');
-      if (c.action === 'off') sw.classList.add('off'); else sw.style.background = c.color;
+      const dots = row.querySelector('.cue-dots');
+      for (const l of ALL_LIGHTS) {
+        const d = document.createElement('span');
+        const mine = c.lights.includes(l);
+        if (mine && c.action === 'on') {
+          d.className = 'dot on';
+          // a colour-swapping run shows both colours, half and half
+          d.style.background = c.repeat?.altColor ? `linear-gradient(90deg, ${c.color} 50%, ${c.repeat.altColor} 50%)` : c.color;
+          d.style.opacity = (0.35 + 0.65 * c.level / 100).toFixed(2);
+        } else if (mine || c.othersOff) d.className = 'dot off';
+        else d.className = 'dot idle';
+        dots.append(d);
+      }
       row.querySelector('.what').textContent = what;
       const howEl = row.querySelector('.how');
       howEl.textContent = how;

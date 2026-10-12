@@ -228,9 +228,10 @@ kbd { font-family: var(--font-mono); font-size: 11px; border: 1px solid var(--bo
 
 .cue {
     display: grid;
-    grid-template-columns: 34px 132px 26px minmax(0, 1fr) auto;
+    grid-template-columns: 34px 132px auto minmax(0, 1fr) auto;
+    grid-template-areas: "n t s . a" ". d d d d";
     align-items: center;
-    gap: 12px;
+    gap: 6px 12px;
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-left: 3px solid transparent;
@@ -243,11 +244,23 @@ kbd { font-family: var(--font-mono); font-size: 11px; border: 1px solid var(--bo
 .cue-n { font-family: var(--font-mono); color: var(--text-muted); font-size: 12px; }
 .cue-time { font-family: var(--font-mono); color: var(--text-bright); background: none; border: 0; padding: 0; text-align: left; cursor: pointer; font-size: 13px; }
 .cue-time:hover { color: var(--blue); text-decoration: underline; }
-.cue-swatch { width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.25); }
-.cue-swatch.off { background: repeating-linear-gradient(45deg, #222 0 4px, #111 4px 8px) !important; }
-.cue-desc { min-width: 0; }
+.cue-n { grid-area: n; } .cue-time { grid-area: t; } .cue-actions { grid-area: a; }
+/* one circle per light, always in light order, so the rows line up like a grid */
+.cue-dots { grid-area: s; display: grid; grid-template-columns: repeat(12, 18px); gap: 5px; align-items: center; }
+.dot { width: 18px; height: 18px; border-radius: 50%; box-sizing: border-box; }
+.dot.on { box-shadow: 0 0 0 1px rgba(255,255,255,0.18) inset; }
+.dot.idle { background: #2a2224; transform: scale(0.38); }
+.dot.off { border: 2px solid #6a5f60; background: linear-gradient(135deg, transparent 44%, #6a5f60 44% 56%, transparent 56%); }
+.cue-head { background: none; border-color: transparent; padding-top: 0; padding-bottom: 0; }
+.cue-head .dot { display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 10px; color: var(--floor); }
+.cue-head .dot.g-apparatus { color: var(--apparatus); }
+.cue-head .dot.g-backdrop { color: var(--backdrop); }
+.cue-desc { grid-area: d; min-width: 0; }
 .cue-desc .what { color: var(--text); }
 .cue-desc .how { color: var(--text-muted); font-size: 12px; }
+.cue-desc .what + .how:not(:empty)::before { content: " · "; }
+.cue-desc .what, .cue-desc .how { display: inline; }
+.cue-desc .note { display: block; }
 .cue-desc .note { color: var(--gold); font-size: 12px; font-style: italic; }
 .cue-actions { display: flex; gap: 4px; }
 .pill { display: inline-block; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; border: 1px solid var(--border-bright); border-radius: 3px; padding: 0 5px; margin-left: 6px; color: var(--text-label); }
@@ -360,10 +373,11 @@ body.presenting .title-input { pointer-events: none; border-bottom-color: transp
 }
 @media (max-width: 560px) {
     .container.wide { padding: 16px 16px 40px; }
-    .cue { grid-template-columns: 26px 1fr 22px; grid-template-areas: "n t s" "d d d" "a a a"; gap: 6px 10px; }
-    .cue-n { grid-area: n; } .cue-time { grid-area: t; } .cue-swatch { grid-area: s; }
-    .cue-desc { grid-area: d; } .cue-actions { grid-area: a; justify-content: flex-end; }
-    body.presenting .cue { grid-template-columns: 26px 1fr 22px; }
+    .cue { grid-template-columns: 26px 1fr; grid-template-areas: "n t" "s s" "d d" "a a"; gap: 6px 10px; }
+    .cue-actions { justify-content: flex-end; }
+    .cue-dots { grid-template-columns: repeat(12, 16px); gap: 4px; }
+    .dot { width: 16px; height: 16px; }
+    body.presenting .cue { grid-template-columns: 26px 1fr; }
     .row.two { grid-template-columns: 1fr; }
     .time-now { font-size: 32px; }
     .pick-group .label { width: 100%; }
