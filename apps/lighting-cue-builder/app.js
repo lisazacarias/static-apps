@@ -804,12 +804,13 @@ function renderCueList() {
   const byTime = new Map();
   const at = (t) => {
     const k = Math.round(t * 100) / 100;
-    if (!byTime.has(k)) byTime.set(k, { t: k, cues: [], steps: [] });
+    if (!byTime.has(k)) byTime.set(k, { t: k, cues: [], steps: [], ends: [] });
     return byTime.get(k);
   };
   for (const c of sorted) {
     at(c.time).cues.push(c);
     if (c.repeat) flashTimes(c).slice(1).forEach((ft, k) => at(ft).steps.push({ cue: c, n: k + 2 }));
+    else if (c.end !== null) at(c.end).ends.push(c); // its fade-out gets a row of its own
   }
   const moments = [...byTime.values()].sort((x, y) => x.t - y.t);
   for (const [list, readOnly] of [[$('cueList'), false], [$('cueListRO'), true]]) {
@@ -872,8 +873,14 @@ function renderCueList() {
         if (seen.has(k)) return false;
         seen.add(k);
         return true;
-      }).map((s) => `↻ ${s.n}/${s.cue.repeat.count}`).join('  ');
-      line.append(n, time, stageDots(stageAfter([...m.cues, ...m.steps.map((s) => s.cue)], m.t, moments[mi + 1]?.t)), tag);
+      }).map((s) => `↻ ${s.n}/${s.cue.repeat.count}`)
+        .concat([...new Set(m.ends.map((c) => (c.outFade ? `↘ fades out over ${c.outFade}s` : '↘ off')))])
+        .join('  ');
+      // a fade-out row shows the stage once the fade has finished
+      const outFor = Math.max(0, ...m.ends.map((c) => c.outFade || 0));
+      const next = moments[mi + 1]?.t;
+      const shown = m.cues.length || m.steps.length ? m.t : Math.min(m.t + outFor, (next ?? Infinity) - 0.01);
+      line.append(n, time, stageDots(stageAfter([...m.cues, ...m.steps.map((s) => s.cue)], shown, next)), tag);
       row.append(line);
       if (!m.cues.length) row.classList.add('is-step');
       const cuesBox = document.createElement('div');
