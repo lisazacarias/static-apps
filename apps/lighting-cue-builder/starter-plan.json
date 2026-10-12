@@ -2299,7 +2299,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Raven solo: all on but the loops (10); pole 7 lime",
+      "note": "Raven solo: all on but the loops (10); the pole (7) stays warm white",
       "repeat": null,
       "option": {
         "group": "solo-run",
@@ -2357,7 +2357,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Raven solo: background vocal pair 1/8; lime and lavender swap; pole (7) lime, loops (10) dark",
+      "note": "Raven solo: background vocal pair 1/8; lime and lavender swap; pole (7) warm white, loops (10) dark",
       "repeat": {
         "bpm": 95.77,
         "beats": 1,
@@ -2421,7 +2421,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Raven solo: background vocal pair 2/8; lime and lavender swap; pole (7) lime, loops (10) dark",
+      "note": "Raven solo: background vocal pair 2/8; lime and lavender swap; pole (7) warm white, loops (10) dark",
       "repeat": {
         "bpm": 95.77,
         "beats": 1,
@@ -2533,7 +2533,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Raven solo: background vocal pair 3/8; lime and lavender swap; pole (7) lime, loops (10) dark",
+      "note": "Raven solo: background vocal pair 3/8; lime and lavender swap; pole (7) warm white, loops (10) dark",
       "repeat": {
         "bpm": 95.77,
         "beats": 1,
@@ -2597,7 +2597,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Raven solo: background vocal pair 4/8; lime and lavender swap; pole (7) lime, loops (10) dark",
+      "note": "Raven solo: background vocal pair 4/8; lime and lavender swap; pole (7) warm white, loops (10) dark",
       "repeat": {
         "bpm": 95.77,
         "beats": 1,
@@ -2661,7 +2661,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Raven solo: background vocal pair 5/8; lime and lavender swap; pole (7) lime, loops (10) dark",
+      "note": "Raven solo: background vocal pair 5/8; lime and lavender swap; pole (7) warm white, loops (10) dark",
       "repeat": {
         "bpm": 95.77,
         "beats": 1,
@@ -2725,7 +2725,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Raven solo: background vocal (one beat only — none at 1:05) 6/8; lime and lavender swap; pole (7) lime, loops (10) dark",
+      "note": "Raven solo: background vocal (one beat only — none at 1:05) 6/8; lime and lavender swap; pole (7) warm white, loops (10) dark",
       "repeat": null,
       "option": null,
       "updatedAt": 1791735000000
@@ -2773,7 +2773,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Raven solo: background vocal pair 7/8; lime and lavender swap; pole (7) lime, loops (10) dark",
+      "note": "Raven solo: background vocal pair 7/8; lime and lavender swap; pole (7) warm white, loops (10) dark",
       "repeat": {
         "bpm": 95.77,
         "beats": 1,
@@ -2837,7 +2837,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Raven solo: background vocal pair 8/8; lime and lavender swap; pole (7) lime, loops (10) dark",
+      "note": "Raven solo: background vocal pair 8/8; lime and lavender swap; pole (7) warm white, loops (10) dark",
       "repeat": {
         "bpm": 95.77,
         "beats": 1,
