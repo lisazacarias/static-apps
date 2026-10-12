@@ -33,12 +33,15 @@ export const PRESETS = [
   { name: 'Green', hex: '#2aff7a' },
 ];
 
-// The show's palette: the five colours of the Teen Titans logo.
+// The show's palette: the five colours of the Teen Titans logo. Lavender is
+// richer than the logo's #858ac2, which is grey enough that it reads as
+// dull blue-white on stage.
+// CHECK: does #9b72ff still read as purple on the venue's LED fixtures?
 export const LOGO_COLORS = [
   { name: 'Titans red', hex: '#ec1b24' },
   { name: 'Titans orange', hex: '#fbb612' },
   { name: 'Titans lime', hex: '#c0d62d' },
-  { name: 'Titans lavender', hex: '#858ac2' },
+  { name: 'Titans lavender', hex: '#9b72ff' },
   { name: 'Titans blue', hex: '#00acee' },
 ];
 

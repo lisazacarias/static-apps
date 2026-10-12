@@ -480,6 +480,7 @@ test('the shipped show plan loads cleanly', () => {
     assert.equal(at(t)[7].color, '#c0d62d');
   }
   assert.equal(at(60)[7].level, 1);
+  assert.equal(at(60)[7].color, '#ffd9a0', 'her pole in a warm white spotlight for her solo');
   assert.equal(at(60)[10].level, 0);
   assert.equal(at(100)[7].level, 0);
   assert.equal(at(100)[10].level, 1);

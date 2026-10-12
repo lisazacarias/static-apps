@@ -188,7 +188,7 @@
         10
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "fade",
@@ -197,7 +197,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-blue",
@@ -241,12 +241,12 @@
         "beats": 4,
         "count": 3,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr1-lime-lavender",
@@ -258,7 +258,7 @@
         6
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -275,7 +275,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr1-orange-red",
@@ -355,12 +355,12 @@
         "beats": 4,
         "count": 3,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr1-orange-lime",
@@ -439,12 +439,12 @@
         "beats": 4,
         "count": 3,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr1-orange-lavender",
@@ -455,7 +455,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -472,7 +472,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr1-blue-red",
@@ -511,7 +511,7 @@
         1
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -528,7 +528,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr2-lime-lavender",
@@ -552,12 +552,12 @@
         "beats": 4,
         "count": 1,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr2-orange-red",
@@ -625,7 +625,7 @@
         5
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -642,7 +642,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr2-orange-lime",
@@ -709,7 +709,7 @@
         10
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -726,7 +726,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr2-orange-lavender",
@@ -749,12 +749,12 @@
         "beats": 4,
         "count": 1,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr2-blue-red",
@@ -805,12 +805,12 @@
         "beats": 4,
         "count": 2,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr3-lime-lavender",
@@ -822,7 +822,7 @@
         6
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -839,7 +839,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr3-orange-red",
@@ -919,12 +919,12 @@
         "beats": 4,
         "count": 2,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr3-orange-lime",
@@ -1003,12 +1003,12 @@
         "beats": 4,
         "count": 2,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr3-orange-lavender",
@@ -1019,7 +1019,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -1036,7 +1036,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr3-blue-red",
@@ -1087,12 +1087,12 @@
         "beats": 4,
         "count": 5,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr4-lime-lavender",
@@ -1104,7 +1104,7 @@
         6
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -1121,7 +1121,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr4-red-blue",
@@ -1173,12 +1173,12 @@
         "beats": 4,
         "count": 5,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr4-blue-lime",
@@ -1229,12 +1229,12 @@
         "beats": 4,
         "count": 5,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr4-orange-lavender",
@@ -1245,7 +1245,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -1262,7 +1262,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr4-blue-red",
@@ -1301,7 +1301,7 @@
         1
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -1318,7 +1318,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr5-lime-lavender",
@@ -1342,12 +1342,12 @@
         "beats": 4,
         "count": 1,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr5-red-blue",
@@ -1387,7 +1387,7 @@
         5
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -1404,7 +1404,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr5-blue-lime",
@@ -1443,7 +1443,7 @@
         10
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -1460,7 +1460,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr5-orange-lavender",
@@ -1483,12 +1483,12 @@
         "beats": 4,
         "count": 1,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791733000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "intro-gtr5-blue-red",
@@ -1555,7 +1555,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -1564,7 +1564,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791594600000
+      "updatedAt": 1791735000000
     },
     {
       "id": "rustage-pole-lime",
@@ -1643,7 +1643,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -1652,7 +1652,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791594600000
+      "updatedAt": 1791735000000
     },
     {
       "id": "rustage-hit3-lime",
@@ -1691,7 +1691,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -1700,7 +1700,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791594600000
+      "updatedAt": 1791735000000
     },
     {
       "id": "rustage-hit4-lime",
@@ -1739,7 +1739,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -1748,7 +1748,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791594600000
+      "updatedAt": 1791735000000
     },
     {
       "id": "rustage-hit5-lime",
@@ -1787,7 +1787,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -1796,7 +1796,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791594600000
+      "updatedAt": 1791735000000
     },
     {
       "id": "rustage-hit6-lime",
@@ -1835,7 +1835,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -1844,7 +1844,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791594600000
+      "updatedAt": 1791735000000
     },
     {
       "id": "rustage-hit7-lime",
@@ -1883,7 +1883,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -1892,7 +1892,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791594600000
+      "updatedAt": 1791735000000
     },
     {
       "id": "rustage-hit8-lime",
@@ -1931,7 +1931,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -1940,7 +1940,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791594600000
+      "updatedAt": 1791735000000
     },
     {
       "id": "rustage-hit9-lime",
@@ -1979,7 +1979,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -1988,7 +1988,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791594600000
+      "updatedAt": 1791735000000
     },
     {
       "id": "raven-solo-fade-lime",
@@ -2033,7 +2033,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "fade",
@@ -2047,7 +2047,7 @@
         "choice": "Fade",
         "primary": false
       },
-      "updatedAt": 1791592800000
+      "updatedAt": 1791735000000
     },
     {
       "id": "rustage-hit10-lime",
@@ -2091,7 +2091,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -2105,7 +2105,7 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791594600000
+      "updatedAt": 1791735000000
     },
     {
       "id": "rustage-hit11-lime",
@@ -2149,7 +2149,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -2163,7 +2163,7 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791594600000
+      "updatedAt": 1791735000000
     },
     {
       "id": "rustage-hit12-lime",
@@ -2207,7 +2207,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -2221,7 +2221,7 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791594600000
+      "updatedAt": 1791735000000
     },
     {
       "id": "rustage-hit13-lime",
@@ -2265,7 +2265,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -2279,7 +2279,7 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791594600000
+      "updatedAt": 1791735000000
     },
     {
       "id": "raven-solo-lime",
@@ -2324,7 +2324,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -2338,7 +2338,27 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791592800000
+      "updatedAt": 1791735000000
+    },
+    {
+      "id": "raven-pole-warm",
+      "time": 37.52,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "on",
+      "color": "#ffd9a0",
+      "colorName": "Warm white",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Raven solo: her pole (7) in a warm white spotlight, flattering on skin, with the lime and lavender all around",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791735000000
     },
     {
       "id": "raven-vocal1-x",
@@ -2365,12 +2385,12 @@
         "beats": 1,
         "count": 2,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791722000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "raven-vocal1-y",
@@ -2385,7 +2405,7 @@
         12
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -2402,7 +2422,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791722000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "raven-vocal2-x",
@@ -2429,12 +2449,12 @@
         "beats": 1,
         "count": 2,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791722000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "raven-vocal2-y",
@@ -2449,7 +2469,7 @@
         12
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -2466,7 +2486,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791722000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "raven-rap-x",
@@ -2505,7 +2525,7 @@
         12
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -2514,7 +2534,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791722000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "raven-vocal3-x",
@@ -2529,7 +2549,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -2546,7 +2566,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791722000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "raven-vocal3-y",
@@ -2573,12 +2593,12 @@
         "beats": 1,
         "count": 2,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791722000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "raven-vocal4-x",
@@ -2593,7 +2613,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -2610,7 +2630,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791722000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "raven-vocal4-y",
@@ -2637,12 +2657,12 @@
         "beats": 1,
         "count": 2,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791722000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "raven-vocal5-x",
@@ -2657,7 +2677,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -2674,7 +2694,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791722000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "raven-vocal5-y",
@@ -2701,12 +2721,12 @@
         "beats": 1,
         "count": 2,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791722000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "raven-vocal6-x",
@@ -2721,7 +2741,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -2730,7 +2750,7 @@
       "note": "Raven solo: background vocal (one beat only — none at 1:05) 6/8; lime and lavender swap; pole (7) lime, loops (10) dark",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791722000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "raven-vocal6-y",
@@ -2781,12 +2801,12 @@
         "beats": 1,
         "count": 2,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791722000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "raven-vocal7-y",
@@ -2801,7 +2821,7 @@
         12
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -2818,7 +2838,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791722000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "raven-vocal8-x",
@@ -2845,12 +2865,12 @@
         "beats": 1,
         "count": 2,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791722000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "raven-vocal8-y",
@@ -2865,7 +2885,7 @@
         12
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -2882,7 +2902,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791722000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "raven-out",
@@ -4141,7 +4161,7 @@
         10
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -4150,7 +4170,7 @@
       "note": "Victory: snaps in to the intro look on the first piano hit (2:59.25)",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791734000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "victory-lime",
@@ -4270,7 +4290,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -4279,7 +4299,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791734000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "victory-pianoB-red",
@@ -4440,7 +4460,7 @@
         12
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -4449,7 +4469,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791734000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "drums-a-lavender",
@@ -4462,7 +4482,7 @@
         10
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -4471,7 +4491,7 @@
       "note": "Drums: hold intro look A through the first bar",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791734000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "drums-a-lime",
@@ -4599,7 +4619,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -4616,7 +4636,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791734000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "drums-switch-red",
@@ -4716,7 +4736,7 @@
         10
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -4733,7 +4753,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791734000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "drums-b-lime",
@@ -4873,12 +4893,12 @@
         "beats": 0.5,
         "count": 16,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791734000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "victory-hold-lavender-lime",
@@ -4890,7 +4910,7 @@
         6
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -4907,7 +4927,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791734000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "victory-hold-red-orange",
@@ -4987,12 +5007,12 @@
         "beats": 0.5,
         "count": 16,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791734000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "victory-hold-lime-orange",
@@ -5071,12 +5091,12 @@
         "beats": 0.5,
         "count": 16,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791734000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "victory-hold-lavender-orange",
@@ -5087,7 +5107,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -5104,7 +5124,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791734000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "victory-hold-red-blue",
@@ -5175,7 +5195,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -5192,7 +5212,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791734000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "victory-b-red",
@@ -5292,7 +5312,7 @@
         10
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -5309,7 +5329,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791734000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "victory-a-lime",
@@ -5556,7 +5576,7 @@
         12
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -5573,7 +5593,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791734000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "victory-c2-lime",
@@ -5616,7 +5636,7 @@
         11
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -5633,7 +5653,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791734000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "victory-c2-red",
@@ -5731,7 +5751,7 @@
         1
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -5748,7 +5768,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791734000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "finale-flip-lime-lavender",
@@ -5772,12 +5792,12 @@
         "beats": 0.5,
         "count": 32,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791734000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "finale-flip-orange-red",
@@ -5845,7 +5865,7 @@
         5
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -5862,7 +5882,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791734000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "finale-flip-orange-lime",
@@ -5929,7 +5949,7 @@
         10
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -5946,7 +5966,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791734000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "finale-flip-orange-lavender",
@@ -5969,12 +5989,12 @@
         "beats": 0.5,
         "count": 32,
         "onFrac": 1,
-        "altColor": "#858ac2",
+        "altColor": "#9b72ff",
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791734000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "finale-flip-blue-red",
@@ -6015,7 +6035,7 @@
         10
       ],
       "action": "on",
-      "color": "#858ac2",
+      "color": "#9b72ff",
       "colorName": "Titans lavender",
       "level": 100,
       "transition": "sharp",
@@ -6024,7 +6044,7 @@
       "note": "Finale: the last hit — intro look A at full",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791734000000
+      "updatedAt": 1791735000000
     },
     {
       "id": "finale-last-lime",
