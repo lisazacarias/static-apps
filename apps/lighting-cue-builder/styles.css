@@ -578,3 +578,23 @@ input:disabled { opacity: 0.45; }
 .moment-fold[open] > summary::after { content: ' ▾'; }
 .moment-fold[open] { display: grid; gap: 4px; }
 .moment-fold > summary:hover { color: var(--text); }
+
+/* the published viewer: no way into the editor from the page */
+body.viewer #presentToggle,
+body.viewer .player-panel .link-ish { display: none; }
+
+/* Phone viewer: trim to what someone following along needs, so the cue
+   list starts on the first screen instead of two screens down. */
+@media (max-width: 900px) {
+    body.viewer .top h1,
+    body.viewer .stage-panel .legend,
+    body.viewer .track-row,
+    body.viewer .zoom-head,
+    body.viewer #zoomWrap,
+    body.viewer .transport.secondary,
+    body.viewer .transport [data-nudge="-0.1"],
+    body.viewer .transport [data-nudge="0.1"],
+    body.viewer [data-proxy="exportVideo"] { display: none; } /* recording is a laptop job */
+    body.viewer .top { margin-bottom: 12px; padding-bottom: 12px; }
+    body.viewer .time-now { font-size: 32px; }
+}

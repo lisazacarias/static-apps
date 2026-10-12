@@ -47,6 +47,11 @@ let plan = loadPlan();          // { title, audio:{name,duration}, cues, tempo, 
 let ownPlan = null;             // stashed while viewing a shared link
 let viewingShared = false;
 let presenting = false;
+// The published page is a viewer: it always shows the plan in
+// starter-plan.json, so whatever was last pushed is what people see, and
+// nothing a viewer does can drift from it. `?edit` brings the editor back
+// (with this browser's own saved plan) for anyone who still wants it.
+const viewer = !new URLSearchParams(location.search).has('edit');
 let editing = null;             // { draft, isNew } while the editor is open
 let undo = null;                // { plan, label }
 let peaks = null;               // Float32Array, PEAKS_PER_SEC buckets
@@ -79,7 +84,7 @@ function planFrom(p) {
 }
 
 function savePlan() {
-  if (viewingShared) return;
+  if (viewingShared || viewer) return; // a viewer never touches the saved plan
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify(serializePlan(plan)));
     $('saveState').textContent = `Saved in this browser · ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}. Export JSON to keep a backup or send a copy.`;
@@ -1796,6 +1801,7 @@ function setPresenting(on) {
   dirtyStage = dirtyWave = true;
 }
 $('presentToggle').onclick = () => setPresenting(!presenting);
+for (const b of document.querySelectorAll('[data-proxy]')) b.onclick = () => $(b.dataset.proxy).click();
 
 async function openSharedFromHash() {
   const h = location.hash.slice(1);
@@ -1917,7 +1923,27 @@ async function loadShowAudio() {
   }
 }
 
+// Viewer boot: the pushed plan and the shipped track, read-only.
+async function bootViewer() {
+  buildStage();
+  document.body.classList.add('viewer');
+  setPresenting(true);
+  try {
+    plan = planFrom(await fetchShowPlan());
+  } catch {
+    notify('Couldn’t load the cue plan right now — check your connection and reload.', { error: true, sticky: true });
+  }
+  $('title').value = plan.title;
+  syncTempoInputs();
+  renderSections();
+  renderCueList();
+  new ResizeObserver(() => { dirtyWave = true; }).observe($('waveWrap'));
+  requestAnimationFrame(frame);
+  await loadShowAudio();
+}
+
 async function boot() {
+  if (viewer) return bootViewer();
   buildStage();
   buildEditor();
   document.body.classList.add('edit-mode');
