@@ -468,7 +468,7 @@ test('the shipped show plan loads cleanly', () => {
   assert.ok(p.cues.length >= 25);
   assert.equal(new Set(p.cues.map((c) => c.id)).size, p.cues.length);
   assert.equal(p.sections[0].name, 'Theme song intro');
-  // pole 7 stays lit in lime through the Rustage hits; the hits leave it alone
+  // pole 7 stays lit in warm white through the Rustage hits; the hits leave it alone
   const hits = p.cues.filter((c) => c.id.startsWith('rustage-hit'));
   assert.ok(hits.every((c) => !c.lights.includes(7)));
   // the solo handoff: pole lit through the solo, loops dark until she comes in,
@@ -477,7 +477,7 @@ test('the shipped show plan loads cleanly', () => {
   for (const t of [27.6, 28.3, 29.5, 33, 36.5]) {
     assert.equal(at(t)[10].level, 0, `loops dark at ${t}`);
     assert.equal(at(t)[7].level, 1, `pole lit at ${t}`);
-    assert.equal(at(t)[7].color, '#c0d62d');
+    assert.equal(at(t)[7].color, '#ffd9a0');
   }
   assert.equal(at(60)[7].level, 1);
   assert.equal(at(60)[7].color, '#ffd9a0', 'her pole in a warm white spotlight for her solo');

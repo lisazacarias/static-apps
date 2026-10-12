@@ -1575,16 +1575,16 @@
         7
       ],
       "action": "on",
-      "color": "#c0d62d",
-      "colorName": "Titans lime",
+      "color": "#ffd9a0",
+      "colorName": "Warm white",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Pole (7) to its solo lime on the first Rustage hit and holds through Raven’s solo",
+      "note": "Pole (7) to a warm white spotlight on the first Rustage hit, held through Raven’s solo",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791712000000
+      "updatedAt": 1791737000000
     },
     {
       "id": "rustage-loops-off",
@@ -1999,7 +1999,6 @@
         1,
         3,
         6,
-        7,
         8,
         12
       ],
@@ -2018,7 +2017,7 @@
         "choice": "Fade",
         "primary": false
       },
-      "updatedAt": 1791592800000
+      "updatedAt": 1791737000000
     },
     {
       "id": "raven-solo-fade-lav",
@@ -2290,7 +2289,6 @@
         1,
         3,
         6,
-        7,
         8,
         12
       ],
@@ -2309,7 +2307,7 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791592800000
+      "updatedAt": 1791737000000
     },
     {
       "id": "raven-solo-lav",
@@ -2338,26 +2336,6 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791735000000
-    },
-    {
-      "id": "raven-pole-warm",
-      "time": 37.52,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        7
-      ],
-      "action": "on",
-      "color": "#ffd9a0",
-      "colorName": "Warm white",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "Raven solo: her pole (7) in a warm white spotlight, flattering on skin, with the lime and lavender all around",
-      "repeat": null,
-      "option": null,
       "updatedAt": 1791735000000
     },
     {
