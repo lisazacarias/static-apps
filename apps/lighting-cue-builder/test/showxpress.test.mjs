@@ -97,23 +97,34 @@ test('the whole show plays from its blocks the way the page shows it', () => {
   const { blocks } = showxpressShow(plan, { fixturesIni: INI, duration: 235.31 });
   for (const b of blocks) assert.ok(Math.abs(b.start * 10 - Math.round(b.start * 10)) < 1e-9, `${b.start} is on a tenth`);
   for (let i = 1; i < blocks.length; i++) assert.ok(Math.abs(blocks[i].start - blocks[i - 1].start - blocks[i - 1].length) < 1e-9, 'back to back');
-  // away from the instant of a snap (steps round to the hundredth), every light matches
+  // every step is whole 0.05 s ticks, which ShowXpress plays exactly
+  for (const b of blocks) for (const st of b.steps) assert.equal(st.ticks % 5, 0, `${b.file}: ${st.ticks} hundredths`);
+  // so every light matches the page give or take a tick (0.05 s: half from
+  // rounding to the grid, up to half more where a 0.04 s flash needs its tick)
   const ch = changeTimes(cues);
+  const shifts = [-0.05, -0.025, 0, 0.025, 0.05];
   let worst = 0, at = 0;
-  for (let t = 0.004; t < 235.3; t += 0.007) {
-    if (ch.some((c) => Math.abs(c - t) < 0.006)) continue;
-    const got = play(blocks, t), want = stateAt(cues, t).lights;
-    for (let l = 1; l <= 12; l++) { const e = Math.abs(got[l - 1] - Math.round(want[l].level * 255)); if (e > worst) { worst = e; at = t; } }
+  for (let t = 0.004; t < 235.3; t += 0.023) {
+    if (ch.some((c) => Math.abs(c - t) < 0.055)) continue;
+    const got = play(blocks, t);
+    const wants = shifts.map((d) => stateAt(cues, t + d).lights);
+    for (let l = 1; l <= 12; l++) {
+      const e = Math.min(...wants.map((w) => Math.abs(got[l - 1] - Math.round(w[l].level * 255))));
+      if (e > worst) { worst = e; at = t; }
+    }
   }
-  assert.ok(worst <= 3, `dimmers within 3/255 of the page (worst ${worst.toFixed(1)} at ${at.toFixed(3)})`);
+  // fades land on the grid too, so a 0.22 s one plays as 0.2: mid-fade it can be ~5% off
+  assert.ok(worst <= 16, `dimmers within 16/255 of the page (worst ${worst.toFixed(1)} at ${at.toFixed(3)})`);
 });
 
-test('fast runs keep their rhythm: steps, not tenths, set the timing', () => {
-  // eighths at 104.79 BPM are 0.286 s apart; on a tenths grid they came out 0.3, 0.3, 0.2…
-  const plan = normalizePlan({ cues: [cue({ time: 1, lights: [1], repeat: { bpm: 104.79, beats: 0.5, count: 8, onFrac: 1, altColor: '#00ff00' } })] });
-  const { blocks } = showxpressShow(plan, { fixturesIni: INI, duration: 5 });
-  const lens = blocks[0].steps.slice(1, -1).map((s) => s.ticks);
-  assert.ok(lens.every((n) => n === 28 || n === 29), `steps of 0.28–0.29 s (${lens})`);
+test('fast runs stay on time: no drift, every switch within half a tick', () => {
+  // eighths at 104.79 BPM are 0.286 s apart. ShowXpress rounds each step up
+  // to 0.05 s, so written as 0.29 they drifted; on the grid they can't
+  const plan = normalizePlan({ cues: [cue({ time: 1, lights: [1], repeat: { bpm: 104.79, beats: 0.5, count: 32, onFrac: 1, altColor: '#00ff00' } })] });
+  const { blocks } = showxpressShow(plan, { fixturesIni: INI, duration: 12 });
+  let t = blocks[0].start;
+  const starts = blocks[0].steps.map((st) => { const at = t; t += st.ticks / 100; return at; }).slice(1, -1);
+  starts.forEach((at, k) => assert.ok(Math.abs(at - (1 + k * 60 / 104.79 / 2)) <= 0.0251, `switch ${k + 1} at ${at.toFixed(3)}`));
 });
 
 import { showxpressPackage } from '../showxpress.js';

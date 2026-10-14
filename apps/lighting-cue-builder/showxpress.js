@@ -21,6 +21,12 @@ const SLIMPAR = { red: 0, green: 1, blue: 2, dimmer: 6, channels: 7 };
 // HOLD (10 min) pads each block's last step so a scene never loops back
 // to its start inside its block.
 const HOLD = 600;
+// ShowXpress plays steps in 0.05 s ticks and rounds each step up: a timing
+// test on Lisa's Mac (ShowXpress 9.2.6) played 40 steps of 0.25 s in
+// 10.02 s, but 40 of 0.07 s took 3.97 s (0.10 each). Rounded one by one,
+// that drift added up over a strobe run. So every step edge goes on the
+// 0.05 s grid, counted from the block's start, and nothing gets rounded.
+const TICK = 0.05;
 
 /** Reads fixtures.ini → [{ light, id, name, model, address }]. Fixture names
  *  start "CH1:", "CH2:"… and CHn is light n on the venue's map. */
@@ -163,10 +169,10 @@ export function blocks(pieceList, duration, { every = 3, most = 8, longest = 16,
         continue;
       }
       // a fade that doesn't carry on from the step before (a flash that
-      // snapped on, or the block's first step) starts with a 0.01 s snap
+      // snapped on, or the block's first step) starts with a one-tick snap
       const joins = last && looksSame(last.snap, s0);
       if (!joins) steps.push({ t: s, snap: s0, fade: false });
-      steps.push({ t: joins ? s : s + 0.01, snap: e0, fade: true });
+      steps.push({ t: joins ? s : s + TICK, snap: e0, fade: true });
     }
     // a block that ends mid-fade gets a closing hold, which takes the
     // never-loop padding; padding the fade itself would stretch it out
@@ -233,15 +239,26 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
   const end = duration ?? Math.max(0, ...cues.map((c) => (c.end ?? c.time) + 5));
 
   // One scene per block, named by where it starts. Step lengths come from
-  // rounding each step's start to the hundredth, so they add up exactly.
+  // putting each step's start on the 0.05 s grid (blocks start on tenths,
+  // so that's the block's own grid too); they add up exactly, in hundredths.
   const scenes = new Map();
-  const tick = (t) => Math.round(t * 100);
+  const tick = (t) => Math.round(t / TICK) * TICK * 100;
   const blockList = blocks(pieces(cues, end), end).map((bl, i) => {
     const file = `${String(i + 1).padStart(3, '0')} at ${(Math.round(bl.start * 10) / 10).toFixed(1)}s.scex`;
-    const steps = bl.steps.map((st, k) => {
-      const next = k + 1 < bl.steps.length ? bl.steps[k + 1].t : bl.end;
-      return { ...st, ticks: tick(next) - tick(st.t) + (k + 1 === bl.steps.length ? HOLD * 100 : 0) };
-    }).filter((st, k, all) => st.ticks > 0 || k === 0 || k === all.length - 1).map((st) => ({ ...st, ticks: Math.max(1, st.ticks) }));
+    // A step that rounds to nothing goes if it only repeats what's already
+    // up (the dark moment after a fade-out); one that changes something
+    // (a 0.04 s flash) gets one tick, and the next ones catch up.
+    const kept = bl.steps.filter((st, k, all) => {
+      if (k === 0 || k === all.length - 1 || !(!st.fade && looksSame(st.snap, all[k - 1].snap))) return true;
+      const next = k + 1 < all.length ? all[k + 1].t : bl.end;
+      return tick(next) > tick(st.t);
+    });
+    const at = [];
+    kept.forEach((st, k) => at.push(k ? Math.max(tick(st.t), at[k - 1] + TICK * 100) : tick(st.t)));
+    const steps = kept.map((st, k) => {
+      const next = k + 1 < kept.length ? at[k + 1] : Math.max(tick(bl.end), at[k] + TICK * 100);
+      return { ...st, ticks: Math.round(next - at[k] + (k + 1 === kept.length ? HOLD * 100 : 0)) };
+    });
     scenes.set(file, sceneXml(fixtures, steps));
     return { start: bl.start, length: bl.end - bl.start, file, steps };
   });
