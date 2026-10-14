@@ -43,12 +43,12 @@
     <a class="back" href="./">← Back to the lighting plan</a>
     <header>
         <h1>Lighting a piece at Revel</h1>
-        <p class="subtitle">You've been handed a song and a list of cues, in whatever shape they wrote it. This is how to turn that into a ShowXpress show that plays on Revel's lights, using the setup we already have from the Teen Titans showcase. Everything up to the last section needs no programming.</p>
+        <p class="subtitle">You have your song and an idea of the lights you want. This is how to turn that into a ShowXpress show that plays on Revel's lights, using the setup we already have from the Teen Titans showcase. Section 2 is for programmers; everything else needs no programming.</p>
         <nav class="toc">
             <a class="btn small" href="#rig">Revel's lights</a>
             <a class="btn small" href="#setup">Set up</a>
             <a class="btn small" href="#code">For programmers</a>
-            <a class="btn small" href="#cuelist">Their cue list</a>
+            <a class="btn small" href="#cuelist">Your cue list</a>
             <a class="btn small" href="#scenes">Make the looks</a>
             <a class="btn small" href="#timeline">Put it on the song</a>
             <a class="btn small" href="#buttons">Or press GO by hand</a>
@@ -297,9 +297,9 @@ Path = OFF</pre>
     </section>
 
     <section class="section" id="cuelist">
-        <div class="section-header"><h2>3. Turn their cue list into times <span class="track">Everyone</span></h2><div class="section-line"></div></div>
-        <p>Get <b>the exact music file the show will play</b>. Every time is measured against that file; a re-export that starts a little later shifts every cue. A video of the piece helps too.</p>
-        <p>Cue lists arrive as lyrics ("blue when she sings 'falling'"), counts ("8 counts into the chorus"), bars, rough times, or a feeling. Whatever the shape, rewrite it as a table first, using Revel's light numbers:</p>
+        <div class="section-header"><h2>3. Turn your ideas into a cue list <span class="track">Everyone</span></h2><div class="section-line"></div></div>
+        <p>Start from <b>the exact music file the show will play</b>. Every time is measured against that file; a re-export that starts a little later shifts every cue. A video of yourself doing the piece helps you see what needs lighting where.</p>
+        <p>Your notes might be lyrics ("blue on 'falling'"), counts ("8 counts into the chorus"), or just a feeling. Before you touch ShowXpress, write them as a table using Revel's light numbers:</p>
         <div class="table-wrap"><table>
             <tr><th>Time</th><th>Lights</th><th>Colour</th><th>Level</th><th>How</th><th>Until</th></tr>
             <tr><td>0:00.00</td><td>all</td><td>dark</td><td>0</td><td>—</td><td></td></tr>
@@ -313,15 +313,15 @@ Path = OFF</pre>
             <li>For counts, find the first count of the phrase, then the beat length: 60 ÷ BPM seconds. At 120 BPM a count is 0.5 s, and an "&amp;" lands halfway between.</li>
             <li>If a figure repeats, time it once and copy it. The repeat is usually the same distance apart.</li>
         </ul>
-        <h3>Ask the performer when it's unclear</h3>
-        <p>These are where we got it wrong the first time:</p>
+        <h3>Pin down each cue</h3>
+        <p>Vague notes are where our first versions went wrong. For each cue, decide:</p>
         <ul>
-            <li>"Fade": fade <i>in</i>, fade <i>out</i>, or blend from one colour to another? How long?</li>
-            <li>When does it stop? "Chaos in the last section" turned out to mean two separate bursts.</li>
-            <li>Which lights? "Light her up" might mean her apparatus at full and everything else dimmed.</li>
-            <li>Read the rhythm back to them ("1, and 2, &amp;?"). People mis-say counts; we lost a round to it.</li>
+            <li><b>Which way it fades.</b> In, out, or blending one colour into another? Over how long? "Snap on, fade out over 0.3 s" is a different look from "fade in".</li>
+            <li><b>When it stops.</b> "Chaos at the end" turned into two separate bursts once we wrote down the times.</li>
+            <li><b>Which lights.</b> Your apparatus at full and the floor dimmed often reads better than everything bright.</li>
+            <li><b>The exact rhythm.</b> Count it out loud against the music. "1 and 2&amp;" and "1, 2 and" are easy to mix up.</li>
         </ul>
-        <p>Then show them something (a recording of the 3D view, below) as early as you can. Most of our big changes came from the performer seeing it.</p>
+        <p>Then record the 3D view (step 6) and watch it with the music as early as you can. Most of our big changes came from seeing it, not from reading the list.</p>
     </section>
 
     <section class="section" id="scenes">
@@ -351,7 +351,7 @@ Path = OFF</pre>
         <h3>Looks that worked at Revel</h3>
         <ul>
             <li>Solos: the soloist's apparatus light warm white at full, the other apparatus lights dark, the floor at about 55% in soft colours.</li>
-            <li>In busy sections keep the dancer's light at full and the floor lower (we used 50%), so they don't disappear.</li>
+            <li>In busy sections keep your apparatus light at full and the floor lower (we used 50%), so you don't disappear.</li>
             <li>Snaps for punchy intros. Hits that snap on and fade away. Crossfades for calm passages.</li>
             <li>The backdrop (11) with the soloist's colour ties the picture together.</li>
             <li>Pick a palette and stay in it. The Teen Titans logo's own lavender looked grey-blue on screen, so we used a bluer <code>#9b72ff</code>. Not yet checked on the real lights.</li>
@@ -398,7 +398,7 @@ Path = OFF</pre>
             <li>In Live, top right, the <b>cube</b> is 3D output and the icon beside it is DMX. A green line under one means it's on.</li>
             <li>In <b>Editor › Steps</b>, turn the DMX and 3D buttons <i>off</i>. The Editor overrides Live, so with them on, the timeline seems to do nothing.</li>
             <li>Play it. <b>Windows › DMX Bargraph</b> shows the actual numbers going out, if the 3D view is confusing (V9 p4).</li>
-            <li>Record the 3D view for the performer: <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>5</kbd> › Record Selected Portion. ShowXpress has no video export, and the Mac recorder doesn't capture the sound, so add the song afterwards.</li>
+            <li>Record the 3D view to watch back: <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>5</kbd> › Record Selected Portion. ShowXpress has no video export, and the Mac recorder doesn't capture the sound, so add the song afterwards.</li>
             <li>At Revel: plug the adapter in, make sure DMX has its green line, play.</li>
         </ol>
     </section>
