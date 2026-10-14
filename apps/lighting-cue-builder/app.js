@@ -8,7 +8,8 @@ import {
   diffPlans, applyMerge, planSignature, activeCues, optionGroups,
   runSheet, cueGrid, cellColor, inkOn, shortColorName,
 } from './cues.js';
-import { cueWorkbook } from './xlsx.js';
+import { cueWorkbook, zip } from './xlsx.js';
+import { showxpressPackage } from './showxpress.js';
 import { videoSupported, recorderType, videoExtension, stageBackground, drawFrame as drawVideoStage, recorder } from './video.js';
 
 // localStorage is shared by every app on the Pages origin — keep the prefix.
@@ -739,7 +740,7 @@ function cueParts(c) {
     const on = r.onFrac >= 1 ? 'held' : `${Math.round(r.onFrac * 100)}% on${r.dimTo ? `, dims to ${r.dimTo}%` : ''}${c.transition === 'fade' ? ', fading' : ''}`;
     return {
       shared: `Flash ×${r.count} · ${r.bpm} BPM, every ${flashGap(r).toFixed(3)}s · ${on} · ${c.level}%`,
-      own: `${lights} · ${shortName(c, c.color)}${r.altColor ? ` ⇄ ${shortName(c, r.altColor)}` : ''}`,
+      own: `${lights} · ${r.cycle ? `${new Set(r.cycle).size} colours, shuffled` : `${shortName(c, c.color)}${r.altColor ? ` ⇄ ${shortName(c, r.altColor)}` : ''}`}`,
     };
   }
   const bits = [transitionLabel(c)];
@@ -831,8 +832,10 @@ function stageAfter(cues, t, next) {
 // A run in plain words, for the note on the row where it starts.
 function patternText(c) {
   const r = c.repeat;
-  const kind = r.altColor && r.onFrac >= 1 ? 'switches colours' : r.onFrac < 1 ? 'flashes' : 'repeats';
-  return `Pattern: ${kind} every ${flashGap(r).toFixed(2)}s, ${r.count} times, through ${formatTime(flashTimes(c).at(-1))}`;
+  const kind = (r.altColor || r.cycle) && r.onFrac >= 1 ? 'switches colours' : r.onFrac < 1 ? (r.dimTo ? 'pulses' : 'flashes') : 'repeats';
+  const spread = Math.max(0, ...Object.values(r.stagger || {}));
+  const roll = spread ? `, rolling across the lights over ${spread.toFixed(1)}s` : '';
+  return `Pattern: ${kind} every ${flashGap(r).toFixed(2)}s, ${r.count} times${roll}, through ${formatTime(flashTimes(c).at(-1) + spread)}`;
 }
 
 function renderCueList() {
@@ -957,7 +960,10 @@ function renderCueList() {
         const sw = document.createElement('span');
         sw.className = 'cue-swatch';
         if (c.action === 'off') sw.classList.add('off');
-        else sw.style.background = c.repeat?.altColor ? `linear-gradient(90deg, ${c.color} 50%, ${c.repeat.altColor} 50%)` : c.color;
+        else if (c.repeat?.cycle) {
+          const cols = [...new Set(c.repeat.cycle)];
+          sw.style.background = `linear-gradient(90deg, ${cols.map((h, i) => `${h} ${(i / cols.length) * 100}% ${((i + 1) / cols.length) * 100}%`).join(', ')})`;
+        } else sw.style.background = c.repeat?.altColor ? `linear-gradient(90deg, ${c.color} 50%, ${c.repeat.altColor} 50%)` : c.color;
         const desc = document.createElement('span');
         desc.className = 'cue-desc';
         const p = cueParts(c);
@@ -1155,6 +1161,9 @@ function readForm() {
       onFrac: $('fOnFrac').value, altColor: $('fAlt').checked ? $('fAltColor').value : null,
       dimTo: $('fDimTo').value,
       keepColor: $('fKeepColor').checked,
+      // the form has no stagger or colour-cycle controls, so keep what the cue had
+      stagger: d.repeat?.stagger,
+      cycle: d.repeat?.cycle,
     })
     : null;
   if (d.repeat) d.end = null;
@@ -1778,6 +1787,29 @@ $('exportGrid').onclick = () => {
   if (!plan.cues.length) { notify('Add some cues first — the spreadsheet would be empty.'); return; }
   download(`${slug(plan.title)}-cue-grid.xlsx`, cueWorkbook(plan), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 };
+// The venue's patch and light profile (sent by Quan): the scenes are
+// written for exactly these lights and their ids. SXP_SHOW is the light
+// show Lisa made in ShowXpress, so updates land in the same place.
+const VENUE = { ini: 'venue/fixtures.ini', profile: 'venue/slimpar-56-7ch.txt', profileName: 'SlimPAR 56 (7CH)' };
+const SXP_SHOW = 'Teen Titans';
+$('exportShowxpress').onclick = async () => {
+  if (!plan.cues.length) { notify('Add some cues first.'); return; }
+  try {
+    const get = async (url, as) => { const r = await fetch(url, { cache: 'no-cache' }); if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`); return r[as](); };
+    const [ini, profile, audio] = await Promise.all([
+      get(VENUE.ini, 'text'), get(VENUE.profile, 'text'),
+      get(SHOW_AUDIO.url, 'arrayBuffer').catch(() => null), // the song is a nicety; the show still works without it
+    ]);
+    const pools = Object.fromEntries(Object.entries(SHAPES).map(([l, sh]) => [l, sh.rect ? [sh.x + sh.w / 2, sh.y + sh.h / 2] : [sh.cx, sh.cy]]));
+    const files = showxpressPackage(plan, { fixturesIni: ini, profile, profileName: VENUE.profileName, pools,
+      audio: audio && new Uint8Array(audio), duration: duration() || undefined, showName: SXP_SHOW });
+    download(`${slug(SXP_SHOW)}-for-showxpress.zip`, zip(files), 'application/zip');
+    notify('Downloaded. The ShowXpress guide (link next to the button) says how to put it in.');
+  } catch {
+    notify('Couldn’t build the ShowXpress files right now — check your connection and try again.', { error: true });
+  }
+};
+
 $('sheetDownload').onclick = () => download(`${slug(plan.title)}-cue-sheet.txt`, $('sheetText').value, 'text/plain');
 $('sheetCopy').onclick = async () => {
   try {

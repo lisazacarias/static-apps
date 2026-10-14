@@ -1,0 +1,34 @@
+﻿ViewType = VIEW_TYPE_COLOR_CHANGER
+ViewPower = VIEW_POWER_LED30W
+ViewAnglePan = 120
+ViewAngleTilt = 120
+ViewAngleBeam = 30
+ViewReversePan = FALSE
+ViewReverseTilt = FALSE
+ViewReverseDimmer = FALSE
+ViewReverseIris = FALSE
+ViewColor = 0
+3DViewShape = 
+2DViewImage = Chauvet/DJ/SlimPAR 56.png
+
+Channel = red
+ Red,0,255 
+
+Channel = green
+ Green,0,255 
+
+Channel = blue
+ Blue,0,255 
+
+Channel = color_macro
+ off,0,7 new_level,8,15 new_level,16,23 new_level,24,31 new_level,32,39 new_level,40,47 new_level,48,55 new_level,56,63 new_level,64,64 new_level,65,71 new_level,72,79 new_level,80,87 new_level,88,95 new_level,96,103 new_level,104,111 new_level,112,119 new_level,120,127 new_level,128,135 new_level,136,143 new_level,144,151 new_level,152,159 new_level,160,167 new_level,168,175 new_level,176,183 new_level,184,191 new_level,192,199 new_level,200,207 new_level,208,215 new_level,216,223 new_level,224,231 new_level,232,239 new_level,240,247 new_level,248,255 
+
+Channel = shutter
+ open,0,15 strobe,16,255 
+
+Channel = mode
+ RGB,0,31 pulse_effect_0%-100%,32,63 pulse_effect_100%-0%,64,95 pulse_effect_100%-0%-100%,96,127 auto_snap_transition,128,159 auto_snap_transition(3colors),160,191 auto_snap_transition(7colors),192,223 sound_triggering_mode,224,255 
+
+Channel = dimmer
+ dimmer,0,255 
+

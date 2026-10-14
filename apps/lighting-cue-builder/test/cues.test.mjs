@@ -386,7 +386,7 @@ test('repeat normalises, drops End, and Off cues cannot flash', () => {
   assert.equal(normalizeRepeat({ bpm: 10, count: 4 }), null);
   assert.equal(normalizeRepeat({ bpm: 120, count: 1 }), null);
   assert.deepEqual(normalizeRepeat({ bpm: '96.4', count: '16', beats: 3, onFrac: 2, altColor: 'nope' }),
-    { bpm: 96.4, beats: 1, count: 16, onFrac: 0.5, altColor: null, dimTo: 0, keepColor: false });
+    { bpm: 96.4, beats: 1, count: 16, onFrac: 0.5, altColor: null, dimTo: 0, keepColor: false, stagger: null, cycle: null });
   const c = normalizeCue({ time: 1, end: 5, lights: [1], repeat: { bpm: 120, count: 4 } });
   assert.equal(c.end, null);
   assert.equal(normalizeCue({ time: 1, lights: [1], action: 'off', repeat: { bpm: 120, count: 4 } }).repeat, null);
@@ -468,15 +468,15 @@ test('the shipped show plan loads cleanly', () => {
   assert.ok(p.cues.length >= 25);
   assert.equal(new Set(p.cues.map((c) => c.id)).size, p.cues.length);
   assert.equal(p.sections[0].name, 'Theme song intro');
-  // pole 7 stays lit in warm white through the Rustage hits; the hits leave it alone
-  const hits = p.cues.filter((c) => c.id.startsWith('rustage-hit'));
+  // pole 7 stays warm white through the Rustage hits; only its own cues touch it
+  const hits = p.cues.filter((c) => c.id.startsWith('rustage-hit') && !c.id.includes('-pole'));
   assert.ok(hits.every((c) => !c.lights.includes(7)));
   // the solo handoff: pole lit through the solo, loops dark until she comes in,
   // pole faded out by then, black on the thunderclap
   const at = (t) => stateAt(activeCues(p.cues, p.optionPicks), t).lights;
   for (const t of [27.6, 28.3, 29.5, 33, 36.5]) {
     assert.equal(at(t)[10].level, 0, `loops dark at ${t}`);
-    assert.equal(at(t)[7].level, 1, `pole lit at ${t}`);
+    assert.ok(Math.abs(at(t)[7].level - at(t)[1].level) < 1e-9, `pole pulses with the others at ${t}`);
     assert.equal(at(t)[7].color, '#ffd9a0');
   }
   assert.equal(at(60)[7].level, 1);
@@ -487,9 +487,11 @@ test('the shipped show plan loads cleanly', () => {
   // the thunderclap: all white on the clap, black again before Slade's fade
   assert.ok(ALL_LIGHTS.every((l) => at(117.8)[l].level === 1 && at(117.8)[l].color === '#ffffff'));
   assert.ok(ALL_LIGHTS.every((l) => at(119.9)[l].level === 0));
-  // everyone else is lit through each solo; only the other dancer is dark
-  assert.ok(ALL_LIGHTS.filter((l) => l !== 10).every((l) => at(60)[l].level === 1));
-  assert.ok(ALL_LIGHTS.filter((l) => l !== 7).every((l) => at(100)[l].level === 1));
+  // each solo: her apparatus at full, the other dancer's dark, everyone else at 55%
+  assert.equal(at(60)[7].level, 1);
+  assert.ok(ALL_LIGHTS.filter((l) => l !== 10 && l !== 7).every((l) => Math.abs(at(60)[l].level - 0.55) < 1e-9));
+  assert.ok([10, 11].every((l) => at(100)[l].level === 1));
+  assert.ok(ALL_LIGHTS.filter((l) => ![7, 10, 11].includes(l)).every((l) => Math.abs(at(100)[l].level - 0.55) < 1e-9));
   assert.equal(at(100)[10].color, '#ffd9a0', 'her loops in a warm white spotlight');
   assert.equal(at(100)[11].color, '#ffd9a0', 'backdrop warm white with her');
   assert.ok(ALL_LIGHTS.filter((l) => ![7, 10, 11].includes(l)).every((l) => ['#b79cff', '#ff8fc8'].includes(at(100)[l].color)), 'everyone else light purple or pink');
@@ -559,4 +561,32 @@ test("a brightness-only pulse keeps each light's own colour", () => {
   assert.ok(Math.abs(s(11.5)[1].level - 0.7) < 1e-9, 'rests at 70% between');
   assert.equal(s(12)[2].level, 1, 'next bar swells again');
   assert.match(cueSheet({ cues: [pulse] }), /each light keeps its colour/);
+});
+
+test('a staggered run ripples: each light flashes on its own delay', () => {
+  const c = normalizeCue({ time: 10, lights: [1, 2, 3], othersOff: true,
+    repeat: { bpm: 60, beats: 1, count: 2, onFrac: 0.5, stagger: { 2: 0.3, 3: 0.6, 9: 'x', 99: 1 } } });
+  assert.deepEqual(c.repeat.stagger, { 2: 0.3, 3: 0.6 }, 'only real lights and delays are kept');
+  const lv = (t, l) => stateAt([c], t).lights[l].level;
+  assert.deepEqual([lv(10.1, 1), lv(10.1, 2), lv(10.1, 3)], [1, 0, 0], 'light 1 first');
+  assert.deepEqual([lv(10.4, 1), lv(10.4, 2), lv(10.4, 3)], [1, 1, 0], 'then 2');
+  assert.deepEqual([lv(10.7, 1), lv(10.7, 2), lv(10.7, 3)], [0, 1, 1], '1 is out again while 3 comes up');
+  assert.equal(lv(10.1, 4), 0, 'others-off still clears the rest at the start');
+  assert.equal(flashEnd(c), 11 + 0.6 + 0.5, 'the run ends when its last light goes out');
+  // a run saved before staggers existed: every light together, as before
+  const old = normalizeCue({ time: 10, lights: [1, 2], repeat: { bpm: 60, count: 2, onFrac: 0.5 } });
+  assert.equal(old.repeat.stagger, null);
+  assert.deepEqual([lv(10.1, 1), stateAt([old], 10.1).lights[2].level], [1, 1]);
+  const back = normalizePlan(JSON.parse(JSON.stringify(serializePlan(normalizePlan({ cues: [c] }))))).cues[0];
+  assert.deepEqual(back.repeat.stagger, { 2: 0.3, 3: 0.6 }, 'survives save and load');
+});
+
+test('a colour cycle steps through its colours, one per flash', () => {
+  const c = normalizeCue({ time: 0, lights: [1], color: '#ff0000',
+    repeat: { bpm: 60, beats: 1, count: 4, onFrac: 1, altColor: '#00ff00', cycle: ['#C0D62D', 'nope', '#00acee', '#ec1b24'] } });
+  assert.deepEqual(c.repeat.cycle, ['#c0d62d', '#00acee', '#ec1b24'], 'bad colours dropped, case folded');
+  const col = (t) => stateAt([c], t).lights[1].color;
+  assert.deepEqual([0.1, 1.1, 2.1, 3.1].map(col), ['#c0d62d', '#00acee', '#ec1b24', '#c0d62d'], 'the cycle wins over colour ⇄ alt, and wraps');
+  assert.equal(normalizeCue({ time: 0, lights: [1], repeat: { bpm: 60, count: 2, cycle: ['#ffffff'] } }).repeat.cycle, null, 'one colour is not a cycle');
+  assert.equal(normalizeCue({ time: 0, lights: [1], repeat: { bpm: 60, count: 2 } }).repeat.cycle, null, 'older runs have none');
 });

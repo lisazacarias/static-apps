@@ -114,5 +114,7 @@ test('the shipped workbook opens on the run sheet, then looks, grid and backup',
   const wb = parts.find((p) => p.name === 'xl/workbook.xml').text;
   assert.deepEqual([...wb.matchAll(/<sheet name="([^"]+)"/g)].map((m) => m[1]), ['Run sheet', 'Looks', 'Cue grid', 'Backup 0.36.75']);
   const { looks } = runSheet(plan);
-  assert.ok(looks.length <= 20, `a tech-sized number of looks (${looks.length})`);
+  // Lisa runs ShowXpress from generated files, so this only checks that
+  // naming hasn't run away (one look per cue would be well over 100)
+  assert.ok(looks.length <= 40, `looks still group into a readable list (${looks.length})`);
 });

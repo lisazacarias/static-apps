@@ -47,8 +47,12 @@ export function zip(files) {
     parts.push(new Uint8Array(local.buffer), name, data);
     const dir = new DataView(new ArrayBuffer(46));
     dir.setUint32(0, 0x02014b50, true);
-    dir.setUint16(4, 20, true);
+    dir.setUint16(4, f.executable ? (3 << 8) | 20 : 20, true);
     dir.setUint16(6, 20, true);
+    // a file can ask to be runnable (install.sh): marked "made by Unix" with
+    // mode rwxr-xr-x so unzip tools honour it. Others, the spreadsheet's
+    // parts included, stay exactly as before.
+    if (f.executable) dir.setUint32(38, (0o100755 << 16) >>> 0, true);
     dir.setUint16(8, 0x0800, true);
     dir.setUint32(16, crc, true);
     dir.setUint32(20, data.length, true);

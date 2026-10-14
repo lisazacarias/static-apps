@@ -166,8 +166,35 @@ export function normalizeRepeat(raw) {
     dimTo: FLASH_DIM.includes(Number(raw.dimTo)) ? Number(raw.dimTo) : 0,
     // Brightness only: each light keeps whatever colour it already has.
     keepColor: Boolean(raw.keepColor),
+    stagger: normalizeStagger(raw.stagger),
+    // Colours to step through, one per flash, instead of colour ⇄ altColor:
+    // the victory section gives each light its own shuffled run of logo
+    // colours so the stage never settles into two looks.
+    cycle: normalizeCycle(raw.cycle),
   };
 }
+
+function normalizeCycle(raw) {
+  if (!Array.isArray(raw)) return null;
+  const out = raw.filter(isHex).map((h) => h.toLowerCase()).slice(0, 500);
+  return out.length >= 2 ? out : null;
+}
+
+// Per-light delay (seconds) added to every flash, so one cue can ripple
+// across the stage: Slade's breathing runs light by light around the rig.
+// Runs saved before this existed have none, and every light goes together.
+function normalizeStagger(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const out = {};
+  for (const [k, v] of Object.entries(raw)) {
+    const l = Number(k), o = Number(v);
+    if (ALL_LIGHTS.includes(l) && Number.isFinite(o) && o > 0 && o <= 60) out[l] = Math.round(o * 100) / 100;
+  }
+  return Object.keys(out).length ? out : null;
+}
+
+const staggerOf = (rep, light) => rep.stagger?.[light] ?? 0;
+const maxStagger = (rep) => Math.max(0, ...Object.values(rep.stagger || {}));
 
 export function flashGap(rep) {
   return (60 / rep.bpm) * rep.beats;
@@ -180,9 +207,10 @@ export function flashTimes(cue) {
 }
 
 // When the run is over: the last flash going out, or (held) the last flash.
+// A staggered run ends when its latest light does.
 export function flashEnd(cue) {
   const times = flashTimes(cue);
-  const last = times[times.length - 1];
+  const last = times[times.length - 1] + maxStagger(cue.repeat);
   return cue.repeat.onFrac < 1 ? last + flashGap(cue.repeat) * cue.repeat.onFrac : last;
 }
 
@@ -434,16 +462,26 @@ function pushFlashes(events, c, order, dur, level) {
   const low = Math.min(c.repeat.dimTo || 0, c.level ?? 100) / 100;
   // A fade longer than the flash would never arrive; cap it inside the flash.
   const d = Math.min(dur, onFor * 0.9);
+  // Lights sharing a delay flash together; without a stagger that's all of them.
+  const groups = new Map();
+  for (const l of c.lights) {
+    const o = staggerOf(c.repeat, l);
+    groups.set(o, [...(groups.get(o) || []), l]);
+  }
   flashTimes(c).forEach((at, k) => {
-    const color = c.repeat.keepColor ? null : k % 2 === 1 && c.repeat.altColor ? c.repeat.altColor : c.color;
-    const targets = c.lights.map((l) => ({ light: l, level, color }));
+    const color = c.repeat.keepColor ? null
+      : c.repeat.cycle ? c.repeat.cycle[k % c.repeat.cycle.length]
+        : k % 2 === 1 && c.repeat.altColor ? c.repeat.altColor : c.color;
     // "All others off" is a one-time clear at the start of the run.
     if (c.othersOff && k === 0) {
-      for (const l of ALL_LIGHTS) if (!c.lights.includes(l)) targets.push({ light: l, level: 0, color: null });
+      const others = ALL_LIGHTS.filter((l) => !c.lights.includes(l)).map((l) => ({ light: l, level: 0, color: null }));
+      if (others.length) events.push({ at, dur: d, targets: others, cue: c.id, order, kind: 'go' });
     }
-    events.push({ at, dur: d, targets, cue: c.id, order, kind: 'go' });
-    if (c.repeat.onFrac < 1) {
-      events.push({ at: at + onFor, dur: c.outFade ?? d, cue: c.id, order, kind: 'out', targets: c.lights.map((l) => ({ light: l, level: low, color: null })) });
+    for (const [o, lights] of groups) {
+      events.push({ at: at + o, dur: d, targets: lights.map((l) => ({ light: l, level, color })), cue: c.id, order, kind: 'go' });
+      if (c.repeat.onFrac < 1) {
+        events.push({ at: at + o + onFor, dur: c.outFade ?? d, cue: c.id, order, kind: 'out', targets: lights.map((l) => ({ light: l, level: low, color: null })) });
+      }
     }
   });
 }
@@ -461,6 +499,15 @@ function sample(seg, t) {
     level: k >= 1 ? seg.to.level : seg.from.level + (seg.to.level - seg.from.level) * k,
     color: k >= 1 ? seg.to.color : mix(seg.from.color, seg.to.color, k),
   };
+}
+
+// Every time something starts or finishes changing. Between two of these
+// each light is either holding or fading in a straight line, which is how a
+// desk's step fades work too (see showxpress.js).
+export function changeTimes(cues) {
+  const out = new Set();
+  for (const ev of eventsFor(cues)) { out.add(ev.at); out.add(ev.at + ev.dur); }
+  return [...out].sort((x, y) => x - y);
 }
 
 // → { lights: { [n]: { level 0..1, color, cue } }, activeCue }
