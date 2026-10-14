@@ -387,8 +387,8 @@ if [ -n "$SONG" ] && [ ! -f "$SONG" ]; then
   echo "Couldn't find the song at $SONG."
   exit 1
 fi
-# CHECK: does ShowXpress open a show that is only these files, never made with
-# File > New lightshow? (The Teen Titans show was made in the app first.)
+# ShowXpress opens a show made only of these files: a "Test" show made
+# this way opened and played on ShowXpress 9.2.6.
 [ -d "$DEST" ] || echo "Making a new show called \\"$NAME\\"."
 
 # the patch and 3D layout are Revel's, so these replace whatever is there
