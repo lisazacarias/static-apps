@@ -3578,7 +3578,7 @@
       "transition": "fade",
       "fade": 2,
       "othersOff": false,
-      "note": "Slade breathes from his first word (2:00): each light fades up to 60% orange in turn around the stage, then eases to 20% and back every 4.6s, one after another",
+      "note": "Slade breathes from his first word (2:00): each light fades up to 60% orange in a scattered order, then eases to 20% and back every 4.6s, out of step with its neighbours",
       "repeat": {
         "bpm": 26,
         "beats": 2,
@@ -3588,21 +3588,21 @@
         "dimTo": 20,
         "keepColor": false,
         "stagger": {
-          "1": 0.09,
-          "3": 0.36,
-          "4": 0.65,
-          "5": 1.45,
-          "6": 1.07,
-          "7": 1.1,
-          "8": 2.21,
-          "9": 2.81,
-          "10": 3.27,
-          "11": 2.89,
-          "12": 3.94
+          "1": 1.92,
+          "2": 3.08,
+          "3": 3.85,
+          "4": 2.69,
+          "5": 2.31,
+          "7": 3.46,
+          "8": 1.15,
+          "9": 0.38,
+          "10": 1.54,
+          "11": 0.77,
+          "12": 4.23
         }
       },
       "option": null,
-      "updatedAt": 1791955505701
+      "updatedAt": 1791956304380
     },
     {
       "id": "battle-in-on",
