@@ -57,6 +57,8 @@ function snapshot(cues, t) {
 // Within rounding: a colour fade sampled either side of an edge can differ by 1.
 const near = (a, b) => a.every((v, i) => v.every((x, j) => Math.abs(x - b[i][j]) <= 2));
 
+const lerp = (a, b, k) => a.map((v, i) => v.map((x, j) => x + (b[i][j] - x) * k));
+
 // Lights that are dark all match, whatever colour they were left on.
 // (a dimmer at 1–2 of 255 is the last moment of a fade, and reads as dark)
 const keyOf = (snap) => snap.map(([r, g, b, d]) => (d > 2 ? `${r},${g},${b}@${d}` : '-')).join('|');
@@ -69,7 +71,9 @@ export function pieces(cues, duration) {
   const out = [];
   for (let i = 0; i < edges.length - 1; i++) {
     const [start, end] = [edges[i], edges[i + 1]];
-    if (end - start < 0.005) continue;
+    // a piece too short to matter (where two changes are a few thousandths
+    // apart) just makes the block before it longer, so blocks stay back to back
+    if (end - start < 0.005) { if (out.length) out[out.length - 1].end = end; continue; }
     const from = snapshot(cues, start);
     const to = snapshot(cues, end - 0.0001);
     const prev = out[out.length - 1];
@@ -77,11 +81,14 @@ export function pieces(cues, duration) {
     // A sliver left over where two fades overlap (a hundredth of a second)
     // isn't worth its own block: the fade before it just lands there. A
     // short piece that starts with a snap is a real flash and stays.
-    if (prev && end - start < 0.05 && near(from, prev.to)) {
+    // a still sliver only makes the block longer; a moving one is the tail
+    // of the fade, which then lands where the sliver ends, as long as the
+    // longer straight line still passes where the lights really were
+    const joints = [...(prev?.joints || []), [start, from]];
+    const fits = !holding && prev?.fade && joints.every(([t, snap]) => near(lerp(prev.from, to, (t - prev.start) / (end - prev.start)), snap));
+    if (prev && end - start < 0.05 && near(from, prev.to) && (holding || fits)) {
       prev.end = end;
-      // a still sliver only makes the block longer; a moving one is the
-      // tail of the fade, which then lands where the sliver ends
-      if (!holding) { prev.to = to; prev.fade = end - prev.start; }
+      if (!holding) { prev.to = to; prev.fade = end - prev.start; prev.joints = joints; }
       continue;
     }
     // a hold that carries on the look before it just makes that block longer
