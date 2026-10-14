@@ -2573,8 +2573,7 @@
       "lights": [
         1,
         3,
-        6,
-        12
+        6
       ],
       "action": "on",
       "color": "#c0d62d",
@@ -2591,7 +2590,7 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791961737730
+      "updatedAt": 1791961836991
     },
     {
       "id": "raven-solo-lime-bright",
@@ -2599,7 +2598,8 @@
       "end": null,
       "outFade": null,
       "lights": [
-        8
+        8,
+        12
       ],
       "action": "on",
       "color": "#c0d62d",
@@ -2616,7 +2616,7 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791961737730
+      "updatedAt": 1791961836991
     },
     {
       "id": "raven-solo-lav",
@@ -2661,7 +2661,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "2, 5, 8 and 9 at full through the first part of the solo (to 0:54.47): Raven is around there too",
+      "note": "2, 5, 8, 9 and 12 at full through the first part of the solo (to 0:54.47): Raven is around there too",
       "repeat": null,
       "option": {
         "group": "solo-run",
@@ -2738,8 +2738,7 @@
       "lights": [
         1,
         3,
-        6,
-        12
+        6
       ],
       "action": "on",
       "color": "#9b72ff",
@@ -2759,7 +2758,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791961737730
+      "updatedAt": 1791961836991
     },
     {
       "id": "raven-vocal1-y-bright",
@@ -2767,7 +2766,8 @@
       "end": null,
       "outFade": null,
       "lights": [
-        8
+        8,
+        12
       ],
       "action": "on",
       "color": "#9b72ff",
@@ -2787,7 +2787,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791961737730
+      "updatedAt": 1791961836991
     },
     {
       "id": "raven-vocal2-x",
@@ -2856,8 +2856,7 @@
       "lights": [
         1,
         3,
-        6,
-        12
+        6
       ],
       "action": "on",
       "color": "#9b72ff",
@@ -2877,7 +2876,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791961737730
+      "updatedAt": 1791961836991
     },
     {
       "id": "raven-vocal2-y-bright",
@@ -2885,7 +2884,8 @@
       "end": null,
       "outFade": null,
       "lights": [
-        8
+        8,
+        12
       ],
       "action": "on",
       "color": "#9b72ff",
@@ -2905,7 +2905,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791961737730
+      "updatedAt": 1791961836991
     },
     {
       "id": "raven-rap-x",
@@ -2958,8 +2958,7 @@
       "lights": [
         1,
         3,
-        6,
-        12
+        6
       ],
       "action": "on",
       "color": "#9b72ff",
@@ -2971,7 +2970,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791961737730
+      "updatedAt": 1791961836991
     },
     {
       "id": "raven-rap-y-bright",
@@ -2979,7 +2978,8 @@
       "end": null,
       "outFade": null,
       "lights": [
-        8
+        8,
+        12
       ],
       "action": "on",
       "color": "#9b72ff",
@@ -2991,7 +2991,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791961737730
+      "updatedAt": 1791961836991
     },
     {
       "id": "raven-vocal3-x",
@@ -3060,8 +3060,7 @@
       "lights": [
         1,
         3,
-        6,
-        12
+        6
       ],
       "action": "on",
       "color": "#c0d62d",
@@ -3081,7 +3080,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791961737730
+      "updatedAt": 1791961836991
     },
     {
       "id": "raven-vocal3-y-bright",
@@ -3089,7 +3088,8 @@
       "end": null,
       "outFade": null,
       "lights": [
-        8
+        8,
+        12
       ],
       "action": "on",
       "color": "#c0d62d",
@@ -3109,7 +3109,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791961737730
+      "updatedAt": 1791961836991
     },
     {
       "id": "raven-vocal4-x",
