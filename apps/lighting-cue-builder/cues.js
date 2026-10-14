@@ -463,6 +463,15 @@ function sample(seg, t) {
   };
 }
 
+// Every time something starts or finishes changing. Between two of these
+// each light is either holding or fading in a straight line, which is how a
+// desk's step fades work too (see showxpress.js).
+export function changeTimes(cues) {
+  const out = new Set();
+  for (const ev of eventsFor(cues)) { out.add(ev.at); out.add(ev.at + ev.dur); }
+  return [...out].sort((x, y) => x - y);
+}
+
 // → { lights: { [n]: { level 0..1, color, cue } }, activeCue }
 export function stateAt(cues, t) {
   const segs = {};
