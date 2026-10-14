@@ -269,7 +269,7 @@ export function showxpressPackage(plan, { fixturesIni, profile, profileName, poo
   const show = `${root}/show`;
   const { scenes, timeline } = showxpressShow(plan, { fixturesIni, duration, title: `${showName} lights`, audioPath: 'Live/music.wav' });
   const files = [
-    { name: `${root}/install.sh`, data: installScript(showName) },
+    { name: `${root}/install.sh`, data: installScript(showName), executable: true },
     { name: `${show}/fixtures.ini`, data: fixturesIni },
     { name: `${show}/fixtures/${profileName}.txt`, data: profile },
     { name: `${show}/3DView/fixtures.ini`, data: view3dIni(fixturesIni, pools) },

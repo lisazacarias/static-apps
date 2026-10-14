@@ -105,3 +105,16 @@ test('the download is one folder: an install script and the show laid out for Sh
   assert.match(sh, /pgrep -f "TheLightingController.app\/Contents\/MacOS"/, 'refuses to run while ShowXpress is open');
   assert.match(sh, /rm -rf "\$DEST\/scenes"/, 'old scenes go before the new ones land');
 });
+
+test('install.sh comes out of the zip runnable', async () => {
+  const { zip } = await import('../xlsx.js');
+  const bytes = zip([{ name: 'a/install.sh', data: '#!/bin/bash\n', executable: true }, { name: 'a/x.txt', data: 'x' }]);
+  const v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let at = v.getUint32(bytes.length - 22 + 16, true);
+  const modes = [];
+  for (let i = 0; i < 2; i++) {
+    modes.push((v.getUint32(at + 38, true) >>> 16) & 0o777);
+    at += 46 + v.getUint16(at + 28, true);
+  }
+  assert.deepEqual(modes, [0o755, 0], 'only the script is marked; other files keep the old plain entry');
+});
