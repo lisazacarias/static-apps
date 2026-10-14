@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { normalizePlan, activeCues, stateAt } from '../cues.js';
-import { parseFixturesIni, pieces, showxpressShow, view3dIni } from '../showxpress.js';
+import { onGrid, parseFixturesIni, pieces, showxpressShow, view3dIni } from '../showxpress.js';
 
 const cue = (o) => ({ id: o.id || Math.random().toString(36), time: 0, end: null, lights: [], action: 'on',
   color: '#ff0000', colorName: '', level: 100, transition: 'sharp', fade: 2, othersOff: false, note: '', ...o });
@@ -70,4 +70,20 @@ test('the 3D layout hangs each light over its pool, mirror side at the back', ()
   assert.match(ini, /\[1000\]\r\nName = CH1: SlimPAR 56 \(7CH\)\r\nPosition = -1.00,4.50,1.00\r\n/);
   assert.match(ini, /\[1001\]\r\nName = CH2: SlimPAR 56 \(7CH\) #2\r\nPosition = 1.00,4.50,-1.00\r\n/);
   assert.match(ini, /\[1012\][^[]*Position = 5.50,4.50,3.50/, 'off-map light parked in a corner');
+});
+
+test('blocks sit on tenths, back to back, without losing a short flash', () => {
+  // a 0.02 s flash that then fades out (both round to 1.0), and a 0.04 s flash on its own
+  const plan = normalizePlan({ cues: [
+    cue({ time: 1.02, end: 1.04, outFade: 0.5, lights: [1] }),
+    cue({ time: 3.01, end: 3.05, outFade: 0, lights: [2] }),
+  ] });
+  const ps = onGrid(pieces(activeCues(plan.cues), 5), 5);
+  for (const p of ps) assert.ok(Math.abs(p.start * 10 - Math.round(p.start * 10)) < 1e-9, `${p.start} is on a tenth`);
+  for (let i = 1; i < ps.length; i++) assert.equal(ps[i].start, ps[i - 1].end, 'no gaps for the lights to drop out in');
+  const at = (t) => ps.find((p) => t >= p.start && t < p.end);
+  assert.equal(at(1.0).from[0][3], 255, 'the flash still snaps on at full');
+  assert.equal(at(1.0).fade, 0.5, '...and still fades out over its own 0.5 s');
+  assert.equal(at(3.0).to[1][3], 255, 'a 0.04 s flash gets a tenth instead of vanishing');
+  assert.equal(at(3.1).to[1][3], 0);
 });

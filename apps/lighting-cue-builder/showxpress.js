@@ -104,13 +104,44 @@ export function pieces(cues, duration) {
   return out;
 }
 
+/** Puts the pieces on ShowXpress's grid. Its timeline works in tenths of a
+ *  second (4.32 shows and moves as 4.3), and a block whose start is rounded
+ *  but whose length isn't ends early, leaving a gap where the row plays
+ *  nothing and the lights drop out. So every block starts on a tenth and
+ *  runs exactly to the next. A piece rounded away entirely is dropped if
+ *  it's a fade (it becomes a snap) and nudged a tenth later if it's a held
+ *  look, so a short flash is never lost; a fade right after a flash
+ *  shorter than a tenth replaces it, since it starts from that look. → [{ start, end, from, to, fade }] */
+export function onGrid(ps, duration, grid = 0.1) {
+  const q = (t) => Math.round(t / grid) * grid;
+  const out = [];
+  for (const p of ps) {
+    const prev = out[out.length - 1];
+    let start = q(p.start);
+    if (prev && start <= prev.start + 1e-9) {
+      // a flash held for less than a tenth, then fading out: the fade
+      // scene's first step snaps to that same look, so it takes the slot
+      if (p.fade && !prev.fade && near(prev.to, p.from)) { out[out.length - 1] = { ...p, start: prev.start, at: p.start }; continue; }
+      // two fades back to back (Slade's breaths overlapping): one longer
+      // fade to where the second lands, instead of losing the second
+      if (p.fade && prev.fade && near(prev.to, p.from)) { prev.to = p.to; prev.fade = p.start + p.fade - prev.at; continue; }
+      if (p.fade) continue;
+      start = prev.start + grid;
+    }
+    // `at` keeps the real start, which merged fade lengths are measured from
+    out.push({ ...p, start: Math.round(start * 1000) / 1000, at: p.start });
+  }
+  out.forEach((p, i) => { p.end = i + 1 < out.length ? out[i + 1].start : Math.max(q(duration), p.start + grid); });
+  return out;
+}
+
 const fmt = (sec) => {
   const cs = Math.round(sec * 100);
   const h = Math.floor(cs / 360000);
   const m = Math.floor(cs / 6000) % 60;
   const s = Math.floor(cs / 100) % 60;
-  // CHECK: the demo timeline only uses tenths (0:00:01.4). Does ShowXpress
-  // read hundredths? If it rounds or rejects them, drop to one decimal.
+  // Blocks are on tenths already (see onGrid); a second decimal keeps the
+  // file exact without changing what ShowXpress reads.
   return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(cs % 100).padStart(2, '0')}`;
 };
 const hundredths = (sec) => String(Math.max(1, Math.round(sec * 100)));
@@ -195,7 +226,7 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
   };
 
   const scenes = new Map();
-  const blocks = pieces(cues, end).map((p) => {
+  const blocks = onGrid(pieces(cues, end), end).map((p) => {
     let file;
     if (!p.fade) {
       file = `${safe(lookName(p.to))}.scex`;
