@@ -133,7 +133,25 @@ export function onGrid(ps, duration, grid = 0.1) {
     out.push({ ...p, start: Math.round(start * 1000) / 1000, at: p.start });
   }
   out.forEach((p, i) => { p.end = i + 1 < out.length ? out[i + 1].start : Math.max(q(duration), p.start + grid); });
+  // Rounding moves block edges by up to half a tenth, so a fade could start
+  // a few levels away from where the block before left the lights: a small
+  // jump each time, which reads as a glitch in slow fades like Slade's
+  // breathing. Where the page doesn't snap at an edge, the fade starts from
+  // what the block before ends on instead, and never runs past its block.
+  out.forEach((p, i) => {
+    if (!p.fade) return;
+    p.fade = Math.min(p.fade, p.end - p.start);
+    const prev = out[i - 1];
+    if (prev && near(prev.to, p.from)) p.from = shownAtEnd(prev);
+  });
   return out;
+}
+
+// what a block leaves the lights on when it ends: a fade cut short stops partway
+function shownAtEnd(p) {
+  if (!p.fade) return p.to;
+  const k = Math.min(1, (p.end - p.start) / p.fade);
+  return k >= 1 ? p.to : lerp(p.from, p.to, k);
 }
 
 const fmt = (sec) => {
@@ -238,7 +256,8 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
       if (!scenes.has(file)) {
         scenes.set(file, sceneXml(fixtures, [
           { length: LEAD, snap: p.from, fade: false },
-          { length: p.fade, snap: p.to, fade: true },
+          // the snap step is part of the fade's time, so it still lands on time
+          { length: Math.max(0.01, p.fade - LEAD), snap: p.to, fade: true },
           { length: HOLD, snap: p.to, fade: false },
         ]));
       }

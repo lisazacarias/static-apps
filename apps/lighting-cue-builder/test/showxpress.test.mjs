@@ -35,7 +35,7 @@ test('a fade becomes a scene that fades over exactly its length', () => {
   assert.deepEqual(blocks.map((b) => [b.start, b.file]), [[0, 'Blackout.scex'], [1, 'Blackout to Look 2.5s.scex']]);
   // lengths are hundredths of a second
   const steps = [...scenes.get(blocks[1].file).matchAll(/<Step length="(\d+)">/g)].map((m) => Number(m[1]));
-  assert.deepEqual(steps, [5, 250, 60000]);
+  assert.deepEqual(steps, [5, 245, 60000], 'the 0.05 s snap step counts toward the fade, so it still lands at 2.5 s');
   assert.match(timeline, /\[Event_2\]\r\nTimeLineIndex = 3\r\nStartTime = 0:00:01.00\r\nPath = Blackout to Look 2.5s.scex\r\nLength = 0:00:09.00/);
   assert.match(timeline, /\[Event_0\]\r\nTimeLineIndex = 2\r\nStartTime = 0:00:00.00\r\nPath = Live\/music.wav/);
 });
@@ -117,4 +117,20 @@ test('install.sh comes out of the zip runnable', async () => {
     at += 46 + v.getUint16(at + 28, true);
   }
   assert.deepEqual(modes, [0o755, 0], 'only the script is marked; other files keep the old plain entry');
+});
+
+test('a slow fade split across blocks carries on without a jump', () => {
+  // two overlapping slow fades: rounding the edge between them used to step the light
+  const plan = normalizePlan({ cues: [
+    cue({ time: 0, lights: [1], level: 60 }),
+    cue({ time: 1.03, lights: [1], level: 20, transition: 'fade', fade: 2.3 }),
+    cue({ time: 2.07, lights: [2], level: 50, transition: 'fade', fade: 1 }),
+  ] });
+  const ps = onGrid(pieces(activeCues(plan.cues), 5), 5);
+  for (let i = 1; i < ps.length; i++) {
+    const p = ps[i - 1], q = ps[i];
+    const k = p.fade ? Math.min(1, (p.end - p.start) / p.fade) : 1;
+    const end = p.from.map((v, j) => v[3] + (p.to[j][3] - v[3]) * k);
+    assert.ok(end.every((v, j) => Math.abs(v - q.from[j][3]) < 0.5), `no jump at ${q.start}`);
+  }
 });
