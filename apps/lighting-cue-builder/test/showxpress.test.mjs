@@ -95,10 +95,10 @@ test('the download is one folder: an install script and the show laid out for Sh
   const files = showxpressPackage(plan, { fixturesIni: INI, profile: 'Channel = red', profileName: 'SlimPAR 56 (7CH)',
     pools: { 1: [0, 0] }, audio: new Uint8Array([1, 2, 3]), duration: 5, showName: 'Teen Titans' });
   const names = files.map((f) => f.name);
-  assert.ok(names.every((n) => n.startsWith('Teen Titans for ShowXpress/')));
+  assert.ok(names.every((n) => n.startsWith('teen-titans-showxpress/')));
   for (const n of ['install.sh', 'show/fixtures.ini', 'show/fixtures/SlimPAR 56 (7CH).txt', 'show/3DView/fixtures.ini',
     'show/Live/TimeLine/timelines/Teen Titans.tml', 'show/Live/music.mp3', 'show/scenes/Blackout.scex']) {
-    assert.ok(names.includes(`Teen Titans for ShowXpress/${n}`), n);
+    assert.ok(names.includes(`teen-titans-showxpress/${n}`), n);
   }
   const sh = files.find((f) => f.name.endsWith('install.sh')).data;
   assert.match(sh, /DEST="\$SHOWS\/Teen Titans"/);

@@ -57,16 +57,16 @@
     <section class="section">
         <div class="section-header"><h2>2. Put the show in (every time the plan changes)</h2><div class="section-line"></div></div>
         <ol>
-            <li>On a laptop, open the lighting page and click <b>Download for ShowXpress</b> (next to Download spreadsheet). You get <code>teen-titans-for-showxpress.zip</code> in Downloads.</li>
-            <li>Double-click the zip. It makes a folder called <b>Teen Titans for ShowXpress</b>.</li>
+            <li>On a laptop, open the lighting page and click <b>Download for ShowXpress</b> (next to Download spreadsheet). You get <code>teen-titans-showxpress.zip</code> in Downloads.</li>
+            <li>Double-click the zip. It makes a folder called <code>teen-titans-showxpress</code>.</li>
             <li><b>Quit ShowXpress</b> (<kbd>Cmd</kbd> + <kbd>Q</kbd>). If it's open, it saves over the new files when it closes, so the script won't run while it's open.</li>
             <li>Open Terminal: <kbd>Cmd</kbd> + <kbd>Space</kbd>, type <code>Terminal</code>, press Enter.</li>
-            <li>Type <code>bash</code> and a space, then drag <code>install.sh</code> from the unzipped folder into the Terminal window and press Enter. It should look like:
-                <pre>bash /Users/you/Downloads/Teen\ Titans\ for\ ShowXpress/install.sh</pre>
-                It finishes with <b>Done</b>.</li>
+            <li>Paste this and press Enter:
+                <pre>bash ~/Downloads/teen-titans-showxpress/install.sh</pre>
+                It finishes with <b>Done</b>. (Or type <code>bash</code> and a space, drag <code>install.sh</code> from the unzipped folder into the window, and press Enter.)</li>
         </ol>
         <p>What the script does: replaces the show's scenes, timeline and 3D layout with the new ones, puts the venue's lights in, and the first time, adds the song. Anything you changed by hand inside ShowXpress gets replaced, so make changes on the lighting page instead.</p>
-        <p class="note">If you downloaded more than once, the newer folder may be called "Teen Titans for ShowXpress 2". Drag the install.sh from the newest one; the script always installs from its own folder.</p>
+        <p class="note">If an older <code>teen-titans-showxpress</code> folder is still in Downloads, the new one may be called <code>teen-titans-showxpress 2</code>. Delete the old folder before unzipping, or drag the newest install.sh into Terminal instead; the script always installs from its own folder.</p>
     </section>
 
     <section class="section">

@@ -279,13 +279,14 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
 }
 
 /** Everything ShowXpress needs, as files for one zip:
- *  `<show> for ShowXpress/install.sh` plus a `show/` folder laid out like a
+ *  `<show>-showxpress/install.sh` plus a `show/` folder laid out like a
  *  ShowXpress light show. install.sh copies `show/` into
  *  ~/TheLightingController/LightShows/<show>, which is where ShowXpress 9
  *  on a Mac keeps its shows (File › Open lightshow Folder shows it).
  *  → [{ name, data }] for xlsx.js's zip() */
 export function showxpressPackage(plan, { fixturesIni, profile, profileName, pools, audio, duration, showName }) {
-  const root = `${showName} for ShowXpress`;
+  // no spaces, so the install command needs no escaping: bash ~/Downloads/teen-titans-showxpress/install.sh
+  const root = `${showName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-showxpress`;
   const show = `${root}/show`;
   const { scenes, timeline } = showxpressShow(plan, { fixturesIni, duration, title: `${showName} lights`, audioPath: 'Live/music.wav' });
   const files = [
