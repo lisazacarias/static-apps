@@ -487,9 +487,11 @@ test('the shipped show plan loads cleanly', () => {
   // the thunderclap: all white on the clap, black again before Slade's fade
   assert.ok(ALL_LIGHTS.every((l) => at(117.8)[l].level === 1 && at(117.8)[l].color === '#ffffff'));
   assert.ok(ALL_LIGHTS.every((l) => at(119.9)[l].level === 0));
-  // everyone else is lit through each solo; only the other dancer is dark
-  assert.ok(ALL_LIGHTS.filter((l) => l !== 10).every((l) => at(60)[l].level === 1));
-  assert.ok(ALL_LIGHTS.filter((l) => l !== 7).every((l) => at(100)[l].level === 1));
+  // each solo: her apparatus at full, the other dancer's dark, everyone else at 55%
+  assert.equal(at(60)[7].level, 1);
+  assert.ok(ALL_LIGHTS.filter((l) => l !== 10 && l !== 7).every((l) => Math.abs(at(60)[l].level - 0.55) < 1e-9));
+  assert.ok([10, 11].every((l) => at(100)[l].level === 1));
+  assert.ok(ALL_LIGHTS.filter((l) => ![7, 10, 11].includes(l)).every((l) => Math.abs(at(100)[l].level - 0.55) < 1e-9));
   assert.equal(at(100)[10].color, '#ffd9a0', 'her loops in a warm white spotlight');
   assert.equal(at(100)[11].color, '#ffd9a0', 'backdrop warm white with her');
   assert.ok(ALL_LIGHTS.filter((l) => ![7, 10, 11].includes(l)).every((l) => ['#b79cff', '#ff8fc8'].includes(at(100)[l].color)), 'everyone else light purple or pink');
