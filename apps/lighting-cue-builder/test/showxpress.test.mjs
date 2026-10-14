@@ -87,3 +87,21 @@ test('blocks sit on tenths, back to back, without losing a short flash', () => {
   assert.equal(at(3.0).to[1][3], 255, 'a 0.04 s flash gets a tenth instead of vanishing');
   assert.equal(at(3.1).to[1][3], 0);
 });
+
+import { showxpressPackage } from '../showxpress.js';
+
+test('the download is one folder: an install script and the show laid out for ShowXpress', () => {
+  const plan = normalizePlan({ cues: [cue({ time: 1, lights: [1] })] });
+  const files = showxpressPackage(plan, { fixturesIni: INI, profile: 'Channel = red', profileName: 'SlimPAR 56 (7CH)',
+    pools: { 1: [0, 0] }, audio: new Uint8Array([1, 2, 3]), duration: 5, showName: 'Teen Titans' });
+  const names = files.map((f) => f.name);
+  assert.ok(names.every((n) => n.startsWith('Teen Titans for ShowXpress/')));
+  for (const n of ['install.sh', 'show/fixtures.ini', 'show/fixtures/SlimPAR 56 (7CH).txt', 'show/3DView/fixtures.ini',
+    'show/Live/TimeLine/timelines/Teen Titans.tml', 'show/Live/music.mp3', 'show/scenes/Blackout.scex']) {
+    assert.ok(names.includes(`Teen Titans for ShowXpress/${n}`), n);
+  }
+  const sh = files.find((f) => f.name.endsWith('install.sh')).data;
+  assert.match(sh, /DEST="\$SHOWS\/Teen Titans"/);
+  assert.match(sh, /pgrep -f "TheLightingController.app\/Contents\/MacOS"/, 'refuses to run while ShowXpress is open');
+  assert.match(sh, /rm -rf "\$DEST\/scenes"/, 'old scenes go before the new ones land');
+});

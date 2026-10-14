@@ -594,7 +594,8 @@ body.viewer .player-panel .link-ish { display: none; }
     body.viewer .transport.secondary,
     body.viewer .transport [data-nudge="-0.1"],
     body.viewer .transport [data-nudge="0.1"],
-    body.viewer [data-proxy="exportVideo"] { display: none; } /* recording is a laptop job */
+    body.viewer [data-proxy="exportVideo"],
+    body.viewer [data-proxy="exportShowxpress"] { display: none; } /* recording and installing are laptop jobs */
     body.viewer .top { margin-bottom: 12px; padding-bottom: 12px; }
     body.viewer .time-now { font-size: 32px; }
 }

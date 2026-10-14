@@ -257,3 +257,62 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
   ini.push('');
   return { scenes, timeline: ini.join('\r\n'), blocks };
 }
+
+/** Everything ShowXpress needs, as files for one zip:
+ *  `<show> for ShowXpress/install.sh` plus a `show/` folder laid out like a
+ *  ShowXpress light show. install.sh copies `show/` into
+ *  ~/TheLightingController/LightShows/<show>, which is where ShowXpress 9
+ *  on a Mac keeps its shows (File › Open lightshow Folder shows it).
+ *  → [{ name, data }] for xlsx.js's zip() */
+export function showxpressPackage(plan, { fixturesIni, profile, profileName, pools, audio, duration, showName }) {
+  const root = `${showName} for ShowXpress`;
+  const show = `${root}/show`;
+  const { scenes, timeline } = showxpressShow(plan, { fixturesIni, duration, title: `${showName} lights`, audioPath: 'Live/music.wav' });
+  const files = [
+    { name: `${root}/install.sh`, data: installScript(showName) },
+    { name: `${show}/fixtures.ini`, data: fixturesIni },
+    { name: `${show}/fixtures/${profileName}.txt`, data: profile },
+    { name: `${show}/3DView/fixtures.ini`, data: view3dIni(fixturesIni, pools) },
+    { name: `${show}/Live/TimeLine/timelines/${showName}.tml`, data: timeline },
+    ...[...scenes].map(([file, xml]) => ({ name: `${show}/scenes/${file}`, data: xml })),
+  ];
+  if (audio) files.push({ name: `${show}/Live/music.mp3`, data: audio });
+  return files;
+}
+
+function installScript(showName) {
+  return `#!/bin/bash
+# Puts this show into ShowXpress. In Terminal, type "bash " (with the
+# space), drag this file into the window, and press Enter.
+set -e
+HERE="$(cd "$(dirname "$0")" && pwd)"
+SHOWS="$HOME/TheLightingController/LightShows"
+DEST="$SHOWS/${showName}"
+
+# match the app's own path: process names get cut short, and this script's path doesn't contain it
+if pgrep -f "TheLightingController.app/Contents/MacOS" >/dev/null; then
+  echo "ShowXpress is open. Quit it first (Cmd+Q), then run this again."
+  echo "(If it's open while this runs, it saves over the new files when it closes.)"
+  exit 1
+fi
+if [ ! -d "$SHOWS" ]; then
+  echo "Couldn't find ShowXpress's show folder at $SHOWS."
+  echo "Open ShowXpress once, quit it, and run this again."
+  exit 1
+fi
+
+mkdir -p "$DEST"
+# old scenes go first, so ones the new plan doesn't use don't pile up
+rm -rf "$DEST/scenes"
+ditto "$HERE/show" "$DEST"
+# ShowXpress only draws the waveform for WAV; macOS's afconvert makes one once
+if [ ! -f "$DEST/Live/music.wav" ] && [ -f "$DEST/Live/music.mp3" ]; then
+  afconvert -f WAVE -d LEI16 "$DEST/Live/music.mp3" "$DEST/Live/music.wav"
+fi
+# zip files carry no real dates; give everything today's
+find "$DEST" -exec touch {} +
+
+echo "Done: $DEST"
+echo "Open ShowXpress, choose File > Open lightshow > ${showName}, then Live > TimeLine > Open > ${showName}."
+`;
+}
