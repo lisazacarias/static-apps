@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { normalizePlan, activeCues, stateAt } from '../cues.js';
-import { parseFixturesIni, pieces, showxpressShow } from '../showxpress.js';
+import { parseFixturesIni, pieces, showxpressShow, view3dIni } from '../showxpress.js';
 
 const cue = (o) => ({ id: o.id || Math.random().toString(36), time: 0, end: null, lights: [], action: 'on',
   color: '#ff0000', colorName: '', level: 100, transition: 'sharp', fade: 2, othersOff: false, note: '', ...o });
@@ -33,8 +33,9 @@ test('a fade becomes a scene that fades over exactly its length', () => {
   const plan = normalizePlan({ cues: [cue({ time: 1, lights: [1], transition: 'fade', fade: 2.5 })] });
   const { scenes, blocks, timeline } = showxpressShow(plan, { fixturesIni: INI, duration: 10 });
   assert.deepEqual(blocks.map((b) => [b.start, b.file]), [[0, 'Blackout.scex'], [1, 'Blackout to Look 2.5s.scex']]);
-  const steps = [...scenes.get(blocks[1].file).matchAll(/<Step length="([\d.]+)">/g)].map((m) => Number(m[1]));
-  assert.deepEqual(steps, [0.05, 2.5, 600]);
+  // lengths are hundredths of a second
+  const steps = [...scenes.get(blocks[1].file).matchAll(/<Step length="(\d+)">/g)].map((m) => Number(m[1]));
+  assert.deepEqual(steps, [5, 250, 60000]);
   assert.match(timeline, /\[Event_2\]\r\nTimeLineIndex = 3\r\nStartTime = 0:00:01.00\r\nPath = Blackout to Look 2.5s.scex\r\nLength = 0:00:09.00/);
   assert.match(timeline, /\[Event_0\]\r\nTimeLineIndex = 2\r\nStartTime = 0:00:00.00\r\nPath = Live\/music.wav/);
 });
@@ -62,4 +63,11 @@ test('the show plan replays in ShowXpress the way the page shows it', () => {
 test('fails loudly when the patch is missing a light', () => {
   const plan = normalizePlan({ cues: [cue({ lights: [1] })] });
   assert.throws(() => showxpressShow(plan, { fixturesIni: INI.split('[Fixture12]')[0], duration: 5 }), /CH12/);
+});
+
+test('the 3D layout hangs each light over its pool, mirror side at the back', () => {
+  const ini = view3dIni(INI, { 1: [100, 100], 2: [270, 270] }, { scale: 85 });
+  assert.match(ini, /\[1000\]\r\nName = CH1: SlimPAR 56 \(7CH\)\r\nPosition = -1.00,4.50,1.00\r\n/);
+  assert.match(ini, /\[1001\]\r\nName = CH2: SlimPAR 56 \(7CH\) #2\r\nPosition = 1.00,4.50,-1.00\r\n/);
+  assert.match(ini, /\[1012\][^[]*Position = 5.50,4.50,3.50/, 'off-map light parked in a corner');
 });

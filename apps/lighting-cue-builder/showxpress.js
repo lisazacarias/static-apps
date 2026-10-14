@@ -14,7 +14,10 @@ import { ALL_LIGHTS, activeCues, changeTimes, hexToRgb, rgbToHex, shortColorName
 // dimmer. Index 3–5 stay at 0: macro off, shutter open, plain RGB mode.
 const SLIMPAR = { red: 0, green: 1, blue: 2, dimmer: 6, channels: 7 };
 
-// Long enough that a held look never loops back inside a timeline block.
+// Step lengths are whole hundredths of a second: the demo's 5 s fade-off
+// is length="500", and a step written as 600 showed as 00:06.00.
+// HOLD is long enough (10 min) that a held look never loops back inside a
+// timeline block; a loop would replay a fade scene from its start.
 const HOLD = 600;
 // A fade scene starts with one short snap step holding where the lights
 // already are, so the fade starts from that rather than from whatever
@@ -103,7 +106,23 @@ const fmt = (sec) => {
   // read hundredths? If it rounds or rejects them, drop to one decimal.
   return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(cs % 100).padStart(2, '0')}`;
 };
-const secs = (n) => String(Math.round(n * 1000) / 1000);
+const hundredths = (sec) => String(Math.max(1, Math.round(sec * 100)));
+/** 3DView/fixtures.ini: each light hung at `height`, pointing straight
+ *  down at its pool on the venue map. `pools` maps light → [x, y] in the
+ *  map's units; `scale` is map units per metre. In the 3D view +x is the
+ *  pole side and -z is nearest the camera, so the mirror (top of the map)
+ *  goes to +z, the far wall. Lights not on the map are parked in a corner. */
+export function view3dIni(fixturesIni, pools, { scale = 85, height = 4.5 } = {}) {
+  const pts = Object.values(pools);
+  const mid = [0, 1].map((k) => (Math.min(...pts.map((p) => p[k])) + Math.max(...pts.map((p) => p[k]))) / 2);
+  return parseFixturesIni(fixturesIni).map((f) => {
+    const p = pools[f.light];
+    const [x, z] = p ? [(p[0] - mid[0]) / scale, -(p[1] - mid[1]) / scale] : [5.5, 3.5];
+    return [`[${f.id}]`, `Name = ${f.name}`, `Position = ${x.toFixed(2)},${height.toFixed(2)},${z.toFixed(2)}`,
+      'Orientation = 0,0,0', 'Scale = 1,1,1', 'Color = 125,125,125'].join('\r\n');
+  }).join('\r\n') + '\r\n';
+}
+
 const safe = (name) => name.replace(/[^A-Za-z0-9 ._()%+-]+/g, '').replace(/\s+/g, ' ').trim();
 
 function sceneXml(fixtures, steps) {
@@ -111,8 +130,7 @@ function sceneXml(fixtures, steps) {
   for (const f of fixtures) lines.push(`    <Fixture id="${f.id}" name="${f.name}" model="${f.model}"/>`);
   lines.push('  </Fixtures>', '  <Steps>');
   for (const st of steps) {
-    // CHECK: step length in seconds, with decimals? The demo only has whole numbers.
-    lines.push(`    <Step length="${secs(st.length)}">`);
+    lines.push(`    <Step length="${hundredths(st.length)}">`);
     fixtures.forEach((f, i) => {
       const [r, g, b, d] = st.snap[i];
       const vals = new Array(SLIMPAR.channels).fill(0);
