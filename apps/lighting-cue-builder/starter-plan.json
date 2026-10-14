@@ -7747,7 +7747,7 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 0.25,
-        "count": 31,
+        "count": 23,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
@@ -7776,19 +7776,11 @@
           "#ec1b24",
           "#c0d62d",
           "#00acee",
-          "#fbb612",
-          "#00acee",
-          "#ec1b24",
-          "#9b72ff",
-          "#ec1b24",
-          "#9b72ff",
-          "#fbb612",
-          "#c0d62d",
-          "#9b72ff"
+          "#fbb612"
         ]
       },
       "option": null,
-      "updatedAt": 1791960545174
+      "updatedAt": 1791964813402
     },
     {
       "id": "finale-16ths-l2",
@@ -7809,7 +7801,7 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 0.25,
-        "count": 31,
+        "count": 23,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
@@ -7838,19 +7830,11 @@
           "#c0d62d",
           "#9b72ff",
           "#ec1b24",
-          "#c0d62d",
-          "#9b72ff",
-          "#c0d62d",
-          "#fbb612",
-          "#c0d62d",
-          "#fbb612",
-          "#00acee",
-          "#fbb612",
-          "#ec1b24"
+          "#c0d62d"
         ]
       },
       "option": null,
-      "updatedAt": 1791960545174
+      "updatedAt": 1791964813402
     },
     {
       "id": "finale-16ths-l3",
@@ -7871,7 +7855,7 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 0.25,
-        "count": 31,
+        "count": 23,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
@@ -7900,19 +7884,11 @@
           "#00acee",
           "#ec1b24",
           "#c0d62d",
-          "#00acee",
-          "#ec1b24",
-          "#9b72ff",
-          "#ec1b24",
-          "#fbb612",
-          "#c0d62d",
-          "#ec1b24",
-          "#00acee",
-          "#c0d62d"
+          "#00acee"
         ]
       },
       "option": null,
-      "updatedAt": 1791960545174
+      "updatedAt": 1791964813402
     },
     {
       "id": "finale-16ths-l4",
@@ -7933,7 +7909,7 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 0.25,
-        "count": 31,
+        "count": 23,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
@@ -7962,19 +7938,11 @@
           "#fbb612",
           "#c0d62d",
           "#ec1b24",
-          "#fbb612",
-          "#c0d62d",
-          "#ec1b24",
-          "#fbb612",
-          "#9b72ff",
-          "#ec1b24",
-          "#00acee",
-          "#9b72ff",
-          "#00acee"
+          "#fbb612"
         ]
       },
       "option": null,
-      "updatedAt": 1791960545174
+      "updatedAt": 1791964813402
     },
     {
       "id": "finale-16ths-l5",
@@ -7995,7 +7963,7 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 0.25,
-        "count": 31,
+        "count": 23,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
@@ -8024,19 +7992,11 @@
           "#ec1b24",
           "#c0d62d",
           "#ec1b24",
-          "#00acee",
-          "#c0d62d",
-          "#ec1b24",
-          "#c0d62d",
-          "#fbb612",
-          "#00acee",
-          "#c0d62d",
-          "#9b72ff",
-          "#ec1b24"
+          "#00acee"
         ]
       },
       "option": null,
-      "updatedAt": 1791960545174
+      "updatedAt": 1791964813402
     },
     {
       "id": "finale-16ths-l6",
@@ -8057,7 +8017,7 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 0.25,
-        "count": 31,
+        "count": 23,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
@@ -8086,19 +8046,11 @@
           "#c0d62d",
           "#00acee",
           "#c0d62d",
-          "#ec1b24",
-          "#9b72ff",
-          "#00acee",
-          "#ec1b24",
-          "#00acee",
-          "#fbb612",
-          "#ec1b24",
-          "#00acee",
-          "#9b72ff"
+          "#ec1b24"
         ]
       },
       "option": null,
-      "updatedAt": 1791960545174
+      "updatedAt": 1791964813402
     },
     {
       "id": "finale-16ths-l7",
@@ -8119,7 +8071,7 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 0.25,
-        "count": 31,
+        "count": 23,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
@@ -8148,19 +8100,11 @@
           "#9b72ff",
           "#ec1b24",
           "#00acee",
-          "#9b72ff",
-          "#ec1b24",
-          "#9b72ff",
-          "#00acee",
-          "#ec1b24",
-          "#c0d62d",
-          "#fbb612",
-          "#ec1b24",
-          "#c0d62d"
+          "#9b72ff"
         ]
       },
       "option": null,
-      "updatedAt": 1791960545174
+      "updatedAt": 1791964813402
     },
     {
       "id": "finale-16ths-l8",
@@ -8181,7 +8125,7 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 0.25,
-        "count": 31,
+        "count": 23,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
@@ -8210,19 +8154,11 @@
           "#00acee",
           "#fbb612",
           "#9b72ff",
-          "#ec1b24",
-          "#fbb612",
-          "#c0d62d",
-          "#fbb612",
-          "#00acee",
-          "#fbb612",
-          "#00acee",
-          "#fbb612",
-          "#9b72ff"
+          "#ec1b24"
         ]
       },
       "option": null,
-      "updatedAt": 1791960545174
+      "updatedAt": 1791964813402
     },
     {
       "id": "finale-16ths-l9",
@@ -8243,7 +8179,7 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 0.25,
-        "count": 31,
+        "count": 23,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
@@ -8272,19 +8208,11 @@
           "#ec1b24",
           "#00acee",
           "#c0d62d",
-          "#00acee",
-          "#c0d62d",
-          "#fbb612",
-          "#9b72ff",
-          "#fbb612",
-          "#9b72ff",
-          "#ec1b24",
-          "#c0d62d",
           "#00acee"
         ]
       },
       "option": null,
-      "updatedAt": 1791960545174
+      "updatedAt": 1791964813402
     },
     {
       "id": "finale-16ths-l10",
@@ -8305,7 +8233,7 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 0.25,
-        "count": 31,
+        "count": 23,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
@@ -8334,19 +8262,11 @@
           "#c0d62d",
           "#9b72ff",
           "#fbb612",
-          "#9b72ff",
-          "#00acee",
-          "#ec1b24",
-          "#00acee",
-          "#ec1b24",
-          "#c0d62d",
-          "#fbb612",
-          "#00acee",
-          "#fbb612"
+          "#9b72ff"
         ]
       },
       "option": null,
-      "updatedAt": 1791960545174
+      "updatedAt": 1791964813402
     },
     {
       "id": "finale-16ths-l11",
@@ -8367,7 +8287,7 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 0.25,
-        "count": 31,
+        "count": 23,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
@@ -8396,19 +8316,11 @@
           "#fbb612",
           "#9b72ff",
           "#c0d62d",
-          "#00acee",
-          "#9b72ff",
-          "#c0d62d",
-          "#ec1b24",
-          "#00acee",
-          "#ec1b24",
-          "#fbb612",
-          "#c0d62d",
           "#00acee"
         ]
       },
       "option": null,
-      "updatedAt": 1791960545174
+      "updatedAt": 1791964813402
     },
     {
       "id": "finale-16ths-l12",
@@ -8429,7 +8341,7 @@
       "repeat": {
         "bpm": 104.79,
         "beats": 0.25,
-        "count": 31,
+        "count": 23,
         "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
@@ -8458,19 +8370,575 @@
           "#fbb612",
           "#c0d62d",
           "#00acee",
+          "#ec1b24"
+        ]
+      },
+      "option": null,
+      "updatedAt": 1791964813402
+    },
+    {
+      "id": "finale-32nds-l1",
+      "time": 228.36,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1
+      ],
+      "action": "on",
+      "color": "#9b72ff",
+      "colorName": "",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Chaos doubles again to 32nd notes (3:48.36 to the end): about 14 changes a second",
+      "repeat": {
+        "bpm": 209.58,
+        "beats": 0.25,
+        "count": 16,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false,
+        "stagger": null,
+        "cycle": [
+          "#9b72ff",
+          "#00acee",
+          "#9b72ff",
+          "#ec1b24",
+          "#c0d62d",
+          "#9b72ff",
+          "#ec1b24",
+          "#00acee",
+          "#ec1b24",
+          "#fbb612",
+          "#00acee",
+          "#fbb612",
+          "#c0d62d",
+          "#9b72ff",
+          "#c0d62d",
+          "#9b72ff"
+        ]
+      },
+      "option": null,
+      "updatedAt": 1791964813402
+    },
+    {
+      "id": "finale-32nds-l2",
+      "time": 228.36,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 209.58,
+        "beats": 0.25,
+        "count": 16,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false,
+        "stagger": null,
+        "cycle": [
+          "#fbb612",
+          "#9b72ff",
+          "#fbb612",
+          "#c0d62d",
           "#ec1b24",
           "#fbb612",
           "#9b72ff",
+          "#fbb612",
+          "#9b72ff",
+          "#ec1b24",
           "#c0d62d",
           "#9b72ff",
           "#00acee",
           "#c0d62d",
-          "#9b72ff",
+          "#fbb612",
           "#c0d62d"
         ]
       },
       "option": null,
-      "updatedAt": 1791960545174
+      "updatedAt": 1791964813402
+    },
+    {
+      "id": "finale-32nds-l3",
+      "time": 228.36,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        3
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 209.58,
+        "beats": 0.25,
+        "count": 16,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false,
+        "stagger": null,
+        "cycle": [
+          "#c0d62d",
+          "#ec1b24",
+          "#00acee",
+          "#fbb612",
+          "#00acee",
+          "#c0d62d",
+          "#fbb612",
+          "#ec1b24",
+          "#fbb612",
+          "#c0d62d",
+          "#9b72ff",
+          "#00acee",
+          "#fbb612",
+          "#00acee",
+          "#ec1b24",
+          "#00acee"
+        ]
+      },
+      "option": null,
+      "updatedAt": 1791964813402
+    },
+    {
+      "id": "finale-32nds-l4",
+      "time": 228.36,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        4
+      ],
+      "action": "on",
+      "color": "#9b72ff",
+      "colorName": "",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 209.58,
+        "beats": 0.25,
+        "count": 16,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false,
+        "stagger": null,
+        "cycle": [
+          "#9b72ff",
+          "#fbb612",
+          "#9b72ff",
+          "#c0d62d",
+          "#ec1b24",
+          "#00acee",
+          "#c0d62d",
+          "#fbb612",
+          "#00acee",
+          "#9b72ff",
+          "#00acee",
+          "#9b72ff",
+          "#ec1b24",
+          "#fbb612",
+          "#9b72ff",
+          "#ec1b24"
+        ]
+      },
+      "option": null,
+      "updatedAt": 1791964813402
+    },
+    {
+      "id": "finale-32nds-l5",
+      "time": 228.36,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        5
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 209.58,
+        "beats": 0.25,
+        "count": 16,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false,
+        "stagger": null,
+        "cycle": [
+          "#fbb612",
+          "#00acee",
+          "#ec1b24",
+          "#fbb612",
+          "#c0d62d",
+          "#ec1b24",
+          "#9b72ff",
+          "#00acee",
+          "#fbb612",
+          "#9b72ff",
+          "#00acee",
+          "#c0d62d",
+          "#00acee",
+          "#9b72ff",
+          "#fbb612",
+          "#ec1b24"
+        ]
+      },
+      "option": null,
+      "updatedAt": 1791964813402
+    },
+    {
+      "id": "finale-32nds-l6",
+      "time": 228.36,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        6
+      ],
+      "action": "on",
+      "color": "#00acee",
+      "colorName": "",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 209.58,
+        "beats": 0.25,
+        "count": 16,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false,
+        "stagger": null,
+        "cycle": [
+          "#00acee",
+          "#9b72ff",
+          "#00acee",
+          "#9b72ff",
+          "#00acee",
+          "#9b72ff",
+          "#ec1b24",
+          "#c0d62d",
+          "#ec1b24",
+          "#fbb612",
+          "#9b72ff",
+          "#ec1b24",
+          "#9b72ff",
+          "#ec1b24",
+          "#c0d62d",
+          "#00acee"
+        ]
+      },
+      "option": null,
+      "updatedAt": 1791964813402
+    },
+    {
+      "id": "finale-32nds-l7",
+      "time": 228.36,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 209.58,
+        "beats": 0.25,
+        "count": 16,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false,
+        "stagger": null,
+        "cycle": [
+          "#c0d62d",
+          "#ec1b24",
+          "#c0d62d",
+          "#ec1b24",
+          "#9b72ff",
+          "#c0d62d",
+          "#00acee",
+          "#9b72ff",
+          "#c0d62d",
+          "#00acee",
+          "#fbb612",
+          "#00acee",
+          "#c0d62d",
+          "#00acee",
+          "#ec1b24",
+          "#fbb612"
+        ]
+      },
+      "option": null,
+      "updatedAt": 1791964813402
+    },
+    {
+      "id": "finale-32nds-l8",
+      "time": 228.36,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        8
+      ],
+      "action": "on",
+      "color": "#9b72ff",
+      "colorName": "",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 209.58,
+        "beats": 0.25,
+        "count": 16,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false,
+        "stagger": null,
+        "cycle": [
+          "#9b72ff",
+          "#c0d62d",
+          "#fbb612",
+          "#c0d62d",
+          "#9b72ff",
+          "#00acee",
+          "#ec1b24",
+          "#c0d62d",
+          "#ec1b24",
+          "#c0d62d",
+          "#fbb612",
+          "#9b72ff",
+          "#ec1b24",
+          "#00acee",
+          "#9b72ff",
+          "#fbb612"
+        ]
+      },
+      "option": null,
+      "updatedAt": 1791964813402
+    },
+    {
+      "id": "finale-32nds-l9",
+      "time": 228.36,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        9
+      ],
+      "action": "on",
+      "color": "#ec1b24",
+      "colorName": "",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 209.58,
+        "beats": 0.25,
+        "count": 16,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false,
+        "stagger": null,
+        "cycle": [
+          "#ec1b24",
+          "#00acee",
+          "#9b72ff",
+          "#fbb612",
+          "#c0d62d",
+          "#9b72ff",
+          "#fbb612",
+          "#00acee",
+          "#fbb612",
+          "#9b72ff",
+          "#00acee",
+          "#c0d62d",
+          "#fbb612",
+          "#9b72ff",
+          "#c0d62d",
+          "#ec1b24"
+        ]
+      },
+      "option": null,
+      "updatedAt": 1791964813402
+    },
+    {
+      "id": "finale-32nds-l10",
+      "time": 228.36,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        10
+      ],
+      "action": "on",
+      "color": "#00acee",
+      "colorName": "",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 209.58,
+        "beats": 0.25,
+        "count": 16,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false,
+        "stagger": null,
+        "cycle": [
+          "#00acee",
+          "#9b72ff",
+          "#ec1b24",
+          "#9b72ff",
+          "#00acee",
+          "#c0d62d",
+          "#00acee",
+          "#ec1b24",
+          "#00acee",
+          "#ec1b24",
+          "#c0d62d",
+          "#ec1b24",
+          "#9b72ff",
+          "#fbb612",
+          "#00acee",
+          "#9b72ff"
+        ]
+      },
+      "option": null,
+      "updatedAt": 1791964813402
+    },
+    {
+      "id": "finale-32nds-l11",
+      "time": 228.36,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        11
+      ],
+      "action": "on",
+      "color": "#ec1b24",
+      "colorName": "",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 209.58,
+        "beats": 0.25,
+        "count": 16,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false,
+        "stagger": null,
+        "cycle": [
+          "#ec1b24",
+          "#c0d62d",
+          "#00acee",
+          "#fbb612",
+          "#9b72ff",
+          "#ec1b24",
+          "#c0d62d",
+          "#fbb612",
+          "#00acee",
+          "#9b72ff",
+          "#fbb612",
+          "#9b72ff",
+          "#00acee",
+          "#ec1b24",
+          "#9b72ff",
+          "#fbb612"
+        ]
+      },
+      "option": null,
+      "updatedAt": 1791964813402
+    },
+    {
+      "id": "finale-32nds-l12",
+      "time": 228.36,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        12
+      ],
+      "action": "on",
+      "color": "#9b72ff",
+      "colorName": "",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 209.58,
+        "beats": 0.25,
+        "count": 16,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false,
+        "stagger": null,
+        "cycle": [
+          "#9b72ff",
+          "#ec1b24",
+          "#c0d62d",
+          "#ec1b24",
+          "#fbb612",
+          "#00acee",
+          "#c0d62d",
+          "#9b72ff",
+          "#c0d62d",
+          "#fbb612",
+          "#9b72ff",
+          "#00acee",
+          "#ec1b24",
+          "#00acee",
+          "#ec1b24",
+          "#00acee"
+        ]
+      },
+      "option": null,
+      "updatedAt": 1791964813402
     },
     {
       "id": "finale-last-lavender",
