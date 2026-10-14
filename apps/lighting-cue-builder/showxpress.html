@@ -57,16 +57,16 @@
     <section class="section">
         <div class="section-header"><h2>2. Put the show in (every time the plan changes)</h2><div class="section-line"></div></div>
         <ol>
-            <li>On a laptop, open the lighting page and click <b>Download for ShowXpress</b> (next to Download spreadsheet). You get <code>teen-titans-for-showxpress.zip</code> in Downloads.</li>
-            <li>Double-click the zip. It makes a folder called <b>Teen Titans for ShowXpress</b>.</li>
+            <li>On a laptop, open the lighting page and click <b>Download for ShowXpress</b> (next to Download spreadsheet). You get <code>teen-titans-showxpress.zip</code> in Downloads.</li>
+            <li>Double-click the zip. It makes a folder called <code>teen-titans-showxpress</code>.</li>
             <li><b>Quit ShowXpress</b> (<kbd>Cmd</kbd> + <kbd>Q</kbd>). If it's open, it saves over the new files when it closes, so the script won't run while it's open.</li>
             <li>Open Terminal: <kbd>Cmd</kbd> + <kbd>Space</kbd>, type <code>Terminal</code>, press Enter.</li>
-            <li>Type <code>bash</code> and a space, then drag <code>install.sh</code> from the unzipped folder into the Terminal window and press Enter. It should look like:
-                <pre>bash /Users/you/Downloads/Teen\ Titans\ for\ ShowXpress/install.sh</pre>
-                It finishes with <b>Done</b>.</li>
+            <li>Paste this and press Enter:
+                <pre>bash ~/Downloads/teen-titans-showxpress/install.sh</pre>
+                It finishes with <b>Done</b>. (Or type <code>bash</code> and a space, drag <code>install.sh</code> from the unzipped folder into the window, and press Enter.)</li>
         </ol>
         <p>What the script does: replaces the show's scenes, timeline and 3D layout with the new ones, puts the venue's lights in, and the first time, adds the song. Anything you changed by hand inside ShowXpress gets replaced, so make changes on the lighting page instead.</p>
-        <p class="note">If you downloaded more than once, the newer folder may be called "Teen Titans for ShowXpress 2". Drag the install.sh from the newest one; the script always installs from its own folder.</p>
+        <p class="note">If an older <code>teen-titans-showxpress</code> folder is still in Downloads, the new one may be called <code>teen-titans-showxpress 2</code>. Delete the old folder before unzipping, or drag the newest install.sh into Terminal instead; the script always installs from its own folder.</p>
     </section>
 
     <section class="section">
@@ -95,14 +95,14 @@
         <div class="fix"><span class="q">The script says ShowXpress is open.</span><span>Quit it with <kbd>Cmd</kbd> + <kbd>Q</kbd> (closing the window isn't enough) and run the script again.</span></div>
         <div class="fix"><span class="q">Terminal shows <code>quote&gt;</code> and waits.</span><span>Something you pasted had an unmatched quote or apostrophe. Press <kbd>Ctrl</kbd> + <kbd>C</kbd> and try again. Nothing ran.</span></div>
         <div class="fix"><span class="q">Lights blink off for a moment, or fades snap on instantly.</span><span>Those were bugs in older downloads. Download again from the page and reinstall.</span></div>
-        <div class="fix"><span class="q">The lights drift out of time with the music.</span><span>Play a little, stop, then start again; ShowXpress sometimes lags the first time through. Every block starts on a tenth of a second (that's what ShowXpress works in), so cues can be up to 0.05 s off the page.</span></div>
+        <div class="fix"><span class="q">The lights drift out of time with the music.</span><span>Play a little, stop, then start again; ShowXpress sometimes lags the first time through. The timing itself matches the page to the hundredth: each block on the timeline is a few seconds of the show, with every change inside it as a step.</span></div>
         <div class="fix"><span class="q">The 3D lights are in the wrong places.</span><span>Each install puts them back where the stage map has them. To move one, right-click the 3D view › <b>Fixtures setting</b>, but it moves back on the next install, so tell Claude instead and the layout gets fixed for good.</span></div>
     </section>
 
     <section class="section">
         <div class="section-header"><h2>What's in the download</h2><div class="section-line"></div></div>
         <ul>
-            <li><code>scenes/</code>: one scene per look or fade. Every scene sets all 7 channels of all 12 lights, so nothing is left over from the scene before.</li>
+            <li><code>scenes/</code>: one scene per timeline block, a few seconds of the show each, with every change as a step. Every step sets all 7 channels of all 12 lights, so nothing is left over from the one before.</li>
             <li><code>Live/TimeLine/timelines/Teen Titans.tml</code>: the timeline, every block at its time.</li>
             <li><code>fixtures.ini</code> and <code>fixtures/SlimPAR 56 (7CH).txt</code>: the venue's 13 SlimPAR 56 lights as Quan set them up (addresses 1, 33, 65… 385).</li>
             <li><code>3DView/fixtures.ini</code>: where each light hangs in the 3D view.</li>

@@ -1803,7 +1803,7 @@ $('exportShowxpress').onclick = async () => {
     const pools = Object.fromEntries(Object.entries(SHAPES).map(([l, sh]) => [l, sh.rect ? [sh.x + sh.w / 2, sh.y + sh.h / 2] : [sh.cx, sh.cy]]));
     const files = showxpressPackage(plan, { fixturesIni: ini, profile, profileName: VENUE.profileName, pools,
       audio: audio && new Uint8Array(audio), duration: duration() || undefined, showName: SXP_SHOW });
-    download(`${slug(SXP_SHOW)}-for-showxpress.zip`, zip(files), 'application/zip');
+    download(`${slug(SXP_SHOW)}-showxpress.zip`, zip(files), 'application/zip');
     notify('Downloaded. The ShowXpress guide (link next to the button) says how to put it in.');
   } catch {
     notify('Couldn’t build the ShowXpress files right now — check your connection and try again.', { error: true });
