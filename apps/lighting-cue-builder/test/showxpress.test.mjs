@@ -2,7 +2,25 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { normalizePlan, activeCues, stateAt } from '../cues.js';
-import { onGrid, parseFixturesIni, pieces, showxpressShow, view3dIni } from '../showxpress.js';
+import { changeTimes } from '../cues.js';
+import { parseFixturesIni, pieces, showxpressShow, view3dIni } from '../showxpress.js';
+
+// Plays a timeline the way ShowXpress does: each block from its start, step
+// by step (lengths in hundredths), a fade step running from the step before.
+// → each light's dimmer (0–255) at time t
+function play(blocks, t) {
+  const b = blocks.find((x) => t >= x.start - 1e-9 && t < x.start + x.length - 1e-9) || blocks[blocks.length - 1];
+  let at = b.start, prev = null;
+  for (const st of b.steps) {
+    const len = st.ticks / 100;
+    if (t < at + len || st === b.steps[b.steps.length - 1]) {
+      if (!st.fade || !prev) return st.snap.map((v) => Math.round(v[3]));
+      const k = Math.min(1, (t - at) / len);
+      return prev.snap.map((v, i) => v[3] + (st.snap[i][3] - v[3]) * k);
+    }
+    prev = st; at += len;
+  }
+}
 
 const cue = (o) => ({ id: o.id || Math.random().toString(36), time: 0, end: null, lights: [], action: 'on',
   color: '#ff0000', colorName: '', level: 100, transition: 'sharp', fade: 2, othersOff: false, note: '', ...o });
@@ -28,15 +46,16 @@ test('a held look is one scene that sets all 7 channels on all 12 lights', () =>
   assert.ok(!xml.includes('id="1012"'), 'CH13 is not on the map, so scenes leave it alone');
 });
 
-test('a fade becomes a scene that fades over exactly its length', () => {
-  // (with no sections the run sheet calls the one look just "Look")
+test('a fade becomes steps that fade over exactly its length', () => {
   const plan = normalizePlan({ cues: [cue({ time: 1, lights: [1], transition: 'fade', fade: 2.5 })] });
   const { scenes, blocks, timeline } = showxpressShow(plan, { fixturesIni: INI, duration: 10 });
-  assert.deepEqual(blocks.map((b) => [b.start, b.file]), [[0, 'Blackout.scex'], [1, 'Blackout to Look 2.5s.scex']]);
-  // lengths are hundredths of a second
-  const steps = [...scenes.get(blocks[1].file).matchAll(/<Step length="(\d+)">/g)].map((m) => Number(m[1]));
-  assert.deepEqual(steps, [5, 245, 60000], 'the 0.05 s snap step counts toward the fade, so it still lands at 2.5 s');
-  assert.match(timeline, /\[Event_2\]\r\nTimeLineIndex = 3\r\nStartTime = 0:00:01.00\r\nPath = Blackout to Look 2.5s.scex\r\nLength = 0:00:09.00/);
+  // a new block starts inside the held look after the fade
+  assert.deepEqual(blocks.map((b) => [b.start, b.file]), [[0, '001 at 0.0s.scex'], [3.6, '002 at 3.6s.scex']]);
+  // lengths are hundredths: dark for 1 s, fade 2.5 s, then held (padded so it never loops)
+  const steps = [...scenes.get(blocks[0].file).matchAll(/<Step length="(\d+)">/g)].map((m) => Number(m[1]));
+  assert.deepEqual(steps, [100, 250, 10 + 60000]);
+  assert.match(scenes.get(blocks[0].file), /fade="1"/);
+  assert.match(timeline, /\[Event_2\]\r\nTimeLineIndex = 3\r\nStartTime = 0:00:03.60\r\nPath = 002 at 3.6s.scex\r\nLength = 0:00:06.40/);
   assert.match(timeline, /\[Event_0\]\r\nTimeLineIndex = 2\r\nStartTime = 0:00:00.00\r\nPath = Live\/music.wav/);
 });
 
@@ -72,20 +91,29 @@ test('the 3D layout hangs each light over its pool, mirror side at the back', ()
   assert.match(ini, /\[1012\][^[]*Position = 5.50,4.50,3.50/, 'off-map light parked in a corner');
 });
 
-test('blocks sit on tenths, back to back, without losing a short flash', () => {
-  // a 0.02 s flash that then fades out (both round to 1.0), and a 0.04 s flash on its own
-  const plan = normalizePlan({ cues: [
-    cue({ time: 1.02, end: 1.04, outFade: 0.5, lights: [1] }),
-    cue({ time: 3.01, end: 3.05, outFade: 0, lights: [2] }),
-  ] });
-  const ps = onGrid(pieces(activeCues(plan.cues), 5), 5);
-  for (const p of ps) assert.ok(Math.abs(p.start * 10 - Math.round(p.start * 10)) < 1e-9, `${p.start} is on a tenth`);
-  for (let i = 1; i < ps.length; i++) assert.equal(ps[i].start, ps[i - 1].end, 'no gaps for the lights to drop out in');
-  const at = (t) => ps.find((p) => t >= p.start && t < p.end);
-  assert.equal(at(1.0).from[0][3], 255, 'the flash still snaps on at full');
-  assert.equal(at(1.0).fade, 0.5, '...and still fades out over its own 0.5 s');
-  assert.equal(at(3.0).to[1][3], 255, 'a 0.04 s flash gets a tenth instead of vanishing');
-  assert.equal(at(3.1).to[1][3], 0);
+test('the whole show plays from its blocks the way the page shows it', () => {
+  const plan = normalizePlan(JSON.parse(readFileSync(new URL('../starter-plan.json', import.meta.url))));
+  const cues = activeCues(plan.cues, plan.optionPicks);
+  const { blocks } = showxpressShow(plan, { fixturesIni: INI, duration: 235.31 });
+  for (const b of blocks) assert.ok(Math.abs(b.start * 10 - Math.round(b.start * 10)) < 1e-9, `${b.start} is on a tenth`);
+  for (let i = 1; i < blocks.length; i++) assert.ok(Math.abs(blocks[i].start - blocks[i - 1].start - blocks[i - 1].length) < 1e-9, 'back to back');
+  // away from the instant of a snap (steps round to the hundredth), every light matches
+  const ch = changeTimes(cues);
+  let worst = 0, at = 0;
+  for (let t = 0.004; t < 235.3; t += 0.007) {
+    if (ch.some((c) => Math.abs(c - t) < 0.006)) continue;
+    const got = play(blocks, t), want = stateAt(cues, t).lights;
+    for (let l = 1; l <= 12; l++) { const e = Math.abs(got[l - 1] - Math.round(want[l].level * 255)); if (e > worst) { worst = e; at = t; } }
+  }
+  assert.ok(worst <= 3, `dimmers within 3/255 of the page (worst ${worst.toFixed(1)} at ${at.toFixed(3)})`);
+});
+
+test('fast runs keep their rhythm: steps, not tenths, set the timing', () => {
+  // eighths at 104.79 BPM are 0.286 s apart; on a tenths grid they came out 0.3, 0.3, 0.2…
+  const plan = normalizePlan({ cues: [cue({ time: 1, lights: [1], repeat: { bpm: 104.79, beats: 0.5, count: 8, onFrac: 1, altColor: '#00ff00' } })] });
+  const { blocks } = showxpressShow(plan, { fixturesIni: INI, duration: 5 });
+  const lens = blocks[0].steps.slice(1, -1).map((s) => s.ticks);
+  assert.ok(lens.every((n) => n === 28 || n === 29), `steps of 0.28–0.29 s (${lens})`);
 });
 
 import { showxpressPackage } from '../showxpress.js';
@@ -97,7 +125,7 @@ test('the download is one folder: an install script and the show laid out for Sh
   const names = files.map((f) => f.name);
   assert.ok(names.every((n) => n.startsWith('teen-titans-showxpress/')));
   for (const n of ['install.sh', 'show/fixtures.ini', 'show/fixtures/SlimPAR 56 (7CH).txt', 'show/3DView/fixtures.ini',
-    'show/Live/TimeLine/timelines/Teen Titans.tml', 'show/Live/music.mp3', 'show/scenes/Blackout.scex']) {
+    'show/Live/TimeLine/timelines/Teen Titans.tml', 'show/Live/music.mp3', 'show/scenes/001 at 0.0s.scex']) {
     assert.ok(names.includes(`teen-titans-showxpress/${n}`), n);
   }
   const sh = files.find((f) => f.name.endsWith('install.sh')).data;
@@ -119,18 +147,20 @@ test('install.sh comes out of the zip runnable', async () => {
   assert.deepEqual(modes, [0o755, 0], 'only the script is marked; other files keep the old plain entry');
 });
 
-test('a slow fade split across blocks carries on without a jump', () => {
-  // two overlapping slow fades: rounding the edge between them used to step the light
+test('a long fade split across blocks carries on without a jump', () => {
+  // Slade-style: overlapping slow fades and no held look, so blocks split mid-fade
   const plan = normalizePlan({ cues: [
-    cue({ time: 0, lights: [1], level: 60 }),
-    cue({ time: 1.03, lights: [1], level: 20, transition: 'fade', fade: 2.3 }),
-    cue({ time: 2.07, lights: [2], level: 50, transition: 'fade', fade: 1 }),
+    cue({ time: 0, lights: [1, 2], level: 60 }),
+    cue({ time: 0.5, lights: [1], level: 100, transition: 'fade', fade: 2, repeat: { bpm: 26, beats: 2, count: 4, onFrac: 0.5, dimTo: 20 }, outFade: 2.3 }),
+    cue({ time: 1.3, lights: [2], level: 100, transition: 'fade', fade: 2, repeat: { bpm: 26, beats: 2, count: 4, onFrac: 0.5, dimTo: 20 }, outFade: 2.3 }),
   ] });
-  const ps = onGrid(pieces(activeCues(plan.cues), 5), 5);
-  for (let i = 1; i < ps.length; i++) {
-    const p = ps[i - 1], q = ps[i];
-    const k = p.fade ? Math.min(1, (p.end - p.start) / p.fade) : 1;
-    const end = p.from.map((v, j) => v[3] + (p.to[j][3] - v[3]) * k);
-    assert.ok(end.every((v, j) => Math.abs(v - q.from[j][3]) < 0.5), `no jump at ${q.start}`);
+  const cues = activeCues(plan.cues);
+  const { blocks } = showxpressShow(plan, { fixturesIni: INI, duration: 20 });
+  assert.ok(blocks.length >= 3, 'long fades still get split into blocks');
+  for (const b of blocks.slice(1)) {
+    const before = play(blocks, b.start - 0.001), after = play(blocks, b.start + 0.001);
+    assert.ok(before.every((v, i) => Math.abs(v - after[i]) < 2), `no jump at ${b.start}`);
+    const want = stateAt(cues, b.start).lights;
+    assert.ok([1, 2].every((l) => Math.abs(after[l - 1] - want[l].level * 255) < 2), `matches the page at ${b.start}`);
   }
 });

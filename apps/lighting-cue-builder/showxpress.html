@@ -95,14 +95,14 @@
         <div class="fix"><span class="q">The script says ShowXpress is open.</span><span>Quit it with <kbd>Cmd</kbd> + <kbd>Q</kbd> (closing the window isn't enough) and run the script again.</span></div>
         <div class="fix"><span class="q">Terminal shows <code>quote&gt;</code> and waits.</span><span>Something you pasted had an unmatched quote or apostrophe. Press <kbd>Ctrl</kbd> + <kbd>C</kbd> and try again. Nothing ran.</span></div>
         <div class="fix"><span class="q">Lights blink off for a moment, or fades snap on instantly.</span><span>Those were bugs in older downloads. Download again from the page and reinstall.</span></div>
-        <div class="fix"><span class="q">The lights drift out of time with the music.</span><span>Play a little, stop, then start again; ShowXpress sometimes lags the first time through. Every block starts on a tenth of a second (that's what ShowXpress works in), so cues can be up to 0.05 s off the page.</span></div>
+        <div class="fix"><span class="q">The lights drift out of time with the music.</span><span>Play a little, stop, then start again; ShowXpress sometimes lags the first time through. The timing itself matches the page to the hundredth: each block on the timeline is a few seconds of the show, with every change inside it as a step.</span></div>
         <div class="fix"><span class="q">The 3D lights are in the wrong places.</span><span>Each install puts them back where the stage map has them. To move one, right-click the 3D view › <b>Fixtures setting</b>, but it moves back on the next install, so tell Claude instead and the layout gets fixed for good.</span></div>
     </section>
 
     <section class="section">
         <div class="section-header"><h2>What's in the download</h2><div class="section-line"></div></div>
         <ul>
-            <li><code>scenes/</code>: one scene per look or fade. Every scene sets all 7 channels of all 12 lights, so nothing is left over from the scene before.</li>
+            <li><code>scenes/</code>: one scene per timeline block, a few seconds of the show each, with every change as a step. Every step sets all 7 channels of all 12 lights, so nothing is left over from the one before.</li>
             <li><code>Live/TimeLine/timelines/Teen Titans.tml</code>: the timeline, every block at its time.</li>
             <li><code>fixtures.ini</code> and <code>fixtures/SlimPAR 56 (7CH).txt</code>: the venue's 13 SlimPAR 56 lights as Quan set them up (addresses 1, 33, 65… 385).</li>
             <li><code>3DView/fixtures.ini</code>: where each light hangs in the 3D view.</li>

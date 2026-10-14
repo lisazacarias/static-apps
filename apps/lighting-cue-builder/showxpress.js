@@ -7,7 +7,7 @@
 // timeline is an ini file (Live/TimeLine/timelines/*.tml), and the patch is
 // fixtures.ini. Things the demo show doesn't settle are marked CHECK.
 
-import { ALL_LIGHTS, activeCues, changeTimes, hexToRgb, rgbToHex, shortColorName, stateAt, runSheet } from './cues.js';
+import { ALL_LIGHTS, activeCues, changeTimes, hexToRgb, stateAt } from './cues.js';
 
 // Channel order of the venue's SlimPAR 56 in 7-channel mode, from the
 // profile the venue sent: red, green, blue, colour macro, shutter, mode,
@@ -15,16 +15,12 @@ import { ALL_LIGHTS, activeCues, changeTimes, hexToRgb, rgbToHex, shortColorName
 const SLIMPAR = { red: 0, green: 1, blue: 2, dimmer: 6, channels: 7 };
 
 // Step lengths are whole hundredths of a second: the demo's 5 s fade-off
-// is length="500", and a step written as 600 showed as 00:06.00.
-// HOLD is long enough (10 min) that a held look never loops back inside a
-// timeline block; a loop would replay a fade scene from its start.
+// is length="500", and a step written as 600 showed as 00:06.00. That's
+// finer than the timeline, which works in tenths, so the timing lives in
+// the steps (see blocks()).
+// HOLD (10 min) pads each block's last step so a scene never loops back
+// to its start inside its block.
 const HOLD = 600;
-// A fade scene starts with one short snap step holding where the lights
-// already are, so the fade starts from that rather than from whatever
-// the desk thinks the previous scene left behind.
-// CHECK: does a scene's first step fade from the live output anyway? If so,
-// this step does nothing, which is harmless.
-const LEAD = 0.05;
 
 /** Reads fixtures.ini → [{ light, id, name, model, address }]. Fixture names
  *  start "CH1:", "CH2:"… and CHn is light n on the venue's map. */
@@ -56,6 +52,9 @@ function snapshot(cues, t) {
 
 // Within rounding: a colour fade sampled either side of an edge can differ by 1.
 const near = (a, b) => a.every((v, i) => v.every((x, j) => Math.abs(x - b[i][j]) <= 2));
+
+// Same on stage: dark lights match whatever colour they're on.
+const looksSame = (a, b) => a.every((v, i) => (v[3] <= 2 && b[i][3] <= 2) || v.every((x, j) => Math.abs(x - b[i][j]) <= 2));
 
 const lerp = (a, b, k) => a.map((v, i) => v.map((x, j) => x + (b[i][j] - x) * k));
 
@@ -105,53 +104,58 @@ export function pieces(cues, duration) {
   return out;
 }
 
-/** Puts the pieces on ShowXpress's grid. Its timeline works in tenths of a
- *  second (4.32 shows and moves as 4.3), and a block whose start is rounded
- *  but whose length isn't ends early, leaving a gap where the row plays
- *  nothing and the lights drop out. So every block starts on a tenth and
- *  runs exactly to the next. A piece rounded away entirely is dropped if
- *  it's a fade (it becomes a snap) and nudged a tenth later if it's a held
- *  look, so a short flash is never lost; a fade right after a flash
- *  shorter than a tenth replaces it, since it starts from that look. → [{ start, end, from, to, fade }] */
-export function onGrid(ps, duration, grid = 0.1) {
-  const q = (t) => Math.round(t / grid) * grid;
-  const out = [];
-  for (const p of ps) {
-    const prev = out[out.length - 1];
-    let start = q(p.start);
-    if (prev && start <= prev.start + 1e-9) {
-      // a flash held for less than a tenth, then fading out: the fade
-      // scene's first step snaps to that same look, so it takes the slot
-      if (p.fade && !prev.fade && near(prev.to, p.from)) { out[out.length - 1] = { ...p, start: prev.start, at: p.start }; continue; }
-      // two fades back to back (Slade's breaths overlapping): one longer
-      // fade to where the second lands, instead of losing the second
-      if (p.fade && prev.fade && near(prev.to, p.from)) { prev.to = p.to; prev.fade = p.start + p.fade - prev.at; continue; }
-      if (p.fade) continue;
-      start = prev.start + grid;
-    }
-    // `at` keeps the real start, which merged fade lengths are measured from
-    out.push({ ...p, start: Math.round(start * 1000) / 1000, at: p.start });
+/** Packs the pieces into timeline blocks of a few seconds, each one scene
+ *  whose steps carry the timing. The timeline works in tenths (4.32 shows
+ *  and moves as 4.3), and one block per change put every switch on a tenth:
+ *  fast runs came out uneven (eighths at 0.29 s played as 0.3, 0.3, 0.2…)
+ *  and fades stepped at the joins. Steps are exact to the hundredth, so
+ *  only block edges sit on tenths. Edges go inside a held look where one
+ *  comes along (nothing changes there), else every 6 s, and each block's
+ *  first step snaps to exactly what the page shows at its edge, so the
+ *  joins don't show. → [{ start, end, steps: [{ t, snap, fade }] }] */
+export function blocks(pieceList, duration, { every = 3, most = 6, grid = 0.1 } = {}) {
+  // pieces() folds a look held after a fade into the fade's piece; split it
+  // back out so a fade step only ever covers the fade itself
+  const ps = pieceList.flatMap((p) => (p.fade && p.end - p.start > p.fade + 1e-9
+    ? [{ ...p, end: p.start + p.fade }, { start: p.start + p.fade, end: p.end, from: p.to, to: p.to, fade: 0 }]
+    : [p]));
+  const tenth = (t) => Math.round(t / grid) * grid;
+  const shownAt = (t) => {
+    const p = ps.find((q) => t >= q.start && t < q.end) || ps[ps.length - 1];
+    return p.fade ? lerp(p.from, p.to, Math.min(1, (t - p.start) / p.fade)) : p.to;
+  };
+  const holding = (t) => ps.some((p) => !p.fade && p.start <= t - 0.05 && p.end >= t + 0.05);
+  const changes = ps.map((p) => p.start);
+  const edges = [0];
+  for (let t = tenth(every); t < duration - grid / 2; t = tenth(t + grid)) {
+    const from = edges[edges.length - 1];
+    if (t - from < every - 1e-9) continue;
+    const busy = changes.some((c) => c > from + 1e-9 && c < t);
+    if (busy && (holding(t) || t - from >= most - 1e-9)) edges.push(Math.round(t * 1000) / 1000);
   }
-  out.forEach((p, i) => { p.end = i + 1 < out.length ? out[i + 1].start : Math.max(q(duration), p.start + grid); });
-  // Rounding moves block edges by up to half a tenth, so a fade could start
-  // a few levels away from where the block before left the lights: a small
-  // jump each time, which reads as a glitch in slow fades like Slade's
-  // breathing. Where the page doesn't snap at an edge, the fade starts from
-  // what the block before ends on instead, and never runs past its block.
-  out.forEach((p, i) => {
-    if (!p.fade) return;
-    p.fade = Math.min(p.fade, p.end - p.start);
-    const prev = out[i - 1];
-    if (prev && near(prev.to, p.from)) p.from = shownAtEnd(prev);
+  return edges.map((a, i) => {
+    const b = i + 1 < edges.length ? edges[i + 1] : duration;
+    const steps = [];
+    for (const p of ps) {
+      const s = Math.max(p.start, a), e = Math.min(p.end, b);
+      if (e - s < 1e-9) continue;
+      const s0 = shownAt(s), e0 = p.fade ? lerp(p.from, p.to, Math.min(1, (e - p.start) / p.fade)) : p.to;
+      const last = steps[steps.length - 1];
+      if (!p.fade || looksSame(s0, e0)) {
+        if (!(last && !last.fade && looksSame(last.snap, e0))) steps.push({ t: s, snap: e0, fade: false });
+        continue;
+      }
+      // a fade that doesn't carry on from the step before (a flash that
+      // snapped on, or the block's first step) starts with a 0.01 s snap
+      const joins = last && looksSame(last.snap, s0);
+      if (!joins) steps.push({ t: s, snap: s0, fade: false });
+      steps.push({ t: joins ? s : s + 0.01, snap: e0, fade: true });
+    }
+    // a block that ends mid-fade gets a closing hold, which takes the
+    // never-loop padding; padding the fade itself would stretch it out
+    if (steps[steps.length - 1].fade) steps.push({ t: b, snap: steps[steps.length - 1].snap, fade: false });
+    return { start: a, end: b, steps };
   });
-  return out;
-}
-
-// what a block leaves the lights on when it ends: a fade cut short stops partway
-function shownAtEnd(p) {
-  if (!p.fade) return p.to;
-  const k = Math.min(1, (p.end - p.start) / p.fade);
-  return k >= 1 ? p.to : lerp(p.from, p.to, k);
 }
 
 const fmt = (sec) => {
@@ -159,11 +163,10 @@ const fmt = (sec) => {
   const h = Math.floor(cs / 360000);
   const m = Math.floor(cs / 6000) % 60;
   const s = Math.floor(cs / 100) % 60;
-  // Blocks are on tenths already (see onGrid); a second decimal keeps the
-  // file exact without changing what ShowXpress reads.
+  // Blocks start on tenths already (see blocks()); a second decimal keeps
+  // the file exact without changing what ShowXpress reads.
   return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(cs % 100).padStart(2, '0')}`;
 };
-const hundredths = (sec) => String(Math.max(1, Math.round(sec * 100)));
 /** 3DView/fixtures.ini: each light hung at `height`, pointing straight
  *  down at its pool on the venue map. `pools` maps light → [x, y] in the
  *  map's units; `scale` is map units per metre. In the 3D view +x is the
@@ -187,9 +190,9 @@ function sceneXml(fixtures, steps) {
   for (const f of fixtures) lines.push(`    <Fixture id="${f.id}" name="${f.name}" model="${f.model}"/>`);
   lines.push('  </Fixtures>', '  <Steps>');
   for (const st of steps) {
-    lines.push(`    <Step length="${hundredths(st.length)}">`);
+    lines.push(`    <Step length="${st.ticks}">`);
     fixtures.forEach((f, i) => {
-      const [r, g, b, d] = st.snap[i];
+      const [r, g, b, d] = st.snap[i].map((v) => Math.round(v));
       const vals = new Array(SLIMPAR.channels).fill(0);
       vals[SLIMPAR.red] = r; vals[SLIMPAR.green] = g; vals[SLIMPAR.blue] = b; vals[SLIMPAR.dimmer] = d;
       lines.push(`      <Fixture id="${f.id}">`);
@@ -212,57 +215,18 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
   const cues = activeCues(plan.cues, plan.optionPicks);
   const end = duration ?? Math.max(0, ...cues.map((c) => (c.end ?? c.time) + 5));
 
-  // Looks keep the names the run sheet gives them (Intro A, Rustage…).
-  const named = new Map();
-  for (const look of runSheet(plan).looks) {
-    const snap = look.lights.map((x) => (x ? [...hexToRgb(x.hex), Math.round(x.level / 100 * 255)] : [0, 0, 0, 0]));
-    named.set(keyOf(snap), look.name);
-  }
-  let extra = 0;
-  const looks = [...named.entries()].map(([k, name]) => ({ parts: k.split('|'), name }));
-  // In-between states get a plain description where one fits ("7 warm
-  // white", "All white 40%", "Starfire solo A + 7"), else a number.
-  const describe = (snap) => {
-    const lit = snap.map((v, i) => [ALL_LIGHTS[i], v]).filter(([, v]) => v[3] > 2);
-    if (!lit.length) return 'Blackout';
-    const kinds = new Set(lit.map(([, v]) => v.join(',')));
-    if (kinds.size !== 1) {
-      const parts = keyOf(snap).split('|');
-      for (const look of looks) {
-        const diff = parts.map((x, i) => (x === look.parts[i] ? null : ALL_LIGHTS[i])).filter(Boolean);
-        if (diff.length && diff.length <= 2 && diff.every((l) => look.parts[l - 1] === '-')) return `${look.name} + ${diff.join(' ')}`;
-      }
-      return `Look ${++extra}`;
-    }
-    const [r, g, b, d] = lit[0][1];
-    const who = lit.length === ALL_LIGHTS.length ? 'All' : lit.map(([l]) => l).join(' ');
-    return `${who} ${shortColorName(rgbToHex([r, g, b]))}${d < 255 ? ` ${Math.round(d / 2.55)}%` : ''}`;
-  };
-  const lookName = (snap) => {
-    const k = keyOf(snap);
-    if (!named.has(k)) named.set(k, describe(snap));
-    return named.get(k);
-  };
-
+  // One scene per block, named by where it starts. Step lengths come from
+  // rounding each step's start to the hundredth, so they add up exactly.
   const scenes = new Map();
-  const blocks = onGrid(pieces(cues, end), end).map((p) => {
-    let file;
-    if (!p.fade) {
-      file = `${safe(lookName(p.to))}.scex`;
-      if (!scenes.has(file)) scenes.set(file, sceneXml(fixtures, [{ length: HOLD, snap: p.to, fade: false }]));
-    } else {
-      const s = Math.round(p.fade * 100) / 100;
-      file = `${safe(`${lookName(p.from)} to ${lookName(p.to)} ${s}s`)}.scex`;
-      if (!scenes.has(file)) {
-        scenes.set(file, sceneXml(fixtures, [
-          { length: LEAD, snap: p.from, fade: false },
-          // the snap step is part of the fade's time, so it still lands on time
-          { length: Math.max(0.01, p.fade - LEAD), snap: p.to, fade: true },
-          { length: HOLD, snap: p.to, fade: false },
-        ]));
-      }
-    }
-    return { start: p.start, length: p.end - p.start, file };
+  const tick = (t) => Math.round(t * 100);
+  const blockList = blocks(pieces(cues, end), end).map((bl, i) => {
+    const file = `${String(i + 1).padStart(3, '0')} at ${(Math.round(bl.start * 10) / 10).toFixed(1)}s.scex`;
+    const steps = bl.steps.map((st, k) => {
+      const next = k + 1 < bl.steps.length ? bl.steps[k + 1].t : bl.end;
+      return { ...st, ticks: tick(next) - tick(st.t) + (k + 1 === bl.steps.length ? HOLD * 100 : 0) };
+    }).filter((st, k, all) => st.ticks > 0 || k === 0 || k === all.length - 1).map((st) => ({ ...st, ticks: Math.max(1, st.ticks) }));
+    scenes.set(file, sceneXml(fixtures, steps));
+    return { start: bl.start, length: bl.end - bl.start, file, steps };
   });
 
   const ini = ['', '[Params]', 'Version = 0.2', 'CommentTimeLine = 0', 'LightTimeLines = 1', 'MediaTimeLines = 1',
@@ -272,10 +236,10 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
   ev(0, ['TimeLineIndex = 2', 'StartTime = 0:00:00.00', `Path = ${audioPath}`, `Length = ${fmt(end)}`]);
   // One light row: each block takes over from the last, and every scene sets
   // every channel, so nothing carries over between rows.
-  blocks.forEach((b, i) => ev(i + 1, ['TimeLineIndex = 3', `StartTime = ${fmt(b.start)}`, `Path = ${b.file}`,
+  blockList.forEach((b, i) => ev(i + 1, ['TimeLineIndex = 3', `StartTime = ${fmt(b.start)}`, `Path = ${b.file}`,
     `Length = ${fmt(b.length)}`, 'Speed = 100', 'SpeedType = 2']));
   ini.push('');
-  return { scenes, timeline: ini.join('\r\n'), blocks };
+  return { scenes, timeline: ini.join('\r\n'), blocks: blockList };
 }
 
 /** Everything ShowXpress needs, as files for one zip:
