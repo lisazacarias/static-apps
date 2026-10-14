@@ -2929,12 +2929,12 @@
     },
     {
       "end": null,
-      "outFade": 0.12,
+      "outFade": 0.15,
       "action": "on",
       "colorName": "",
       "othersOff": false,
       "option": null,
-      "updatedAt": 1791961004077,
+      "updatedAt": 1791961189541,
       "fade": 2,
       "id": "raven-drums-1",
       "time": 57.66,
@@ -2945,30 +2945,34 @@
         8,
         12
       ],
-      "color": "#c0d62d",
+      "color": "#9b72ff",
       "level": 100,
       "transition": "sharp",
-      "note": "Drum hits (0:57.66–0:58.26, four, 0.2s apart): each switches lime and lavender, flashes to full, and drops back to half",
+      "note": "Drum hits (0:57.66, 0:57.96, 0:58.26): each flashes to full and drops back to half; the first on the current look, then lime and lavender swap and swap back",
       "repeat": {
-        "bpm": 75,
-        "beats": 0.25,
-        "count": 4,
+        "bpm": 100,
+        "beats": 0.5,
+        "count": 3,
         "onFrac": 0.25,
-        "altColor": "#9b72ff",
+        "altColor": null,
         "dimTo": 50,
         "keepColor": false,
         "stagger": null,
-        "cycle": null
+        "cycle": [
+          "#9b72ff",
+          "#c0d62d",
+          "#9b72ff"
+        ]
       }
     },
     {
       "end": null,
-      "outFade": 0.12,
+      "outFade": 0.15,
       "action": "on",
       "colorName": "",
       "othersOff": false,
       "option": null,
-      "updatedAt": 1791961004077,
+      "updatedAt": 1791961189541,
       "fade": 2,
       "id": "raven-drums-2",
       "time": 57.66,
@@ -2979,20 +2983,24 @@
         9,
         11
       ],
-      "color": "#9b72ff",
+      "color": "#c0d62d",
       "level": 100,
       "transition": "sharp",
       "note": "",
       "repeat": {
-        "bpm": 75,
-        "beats": 0.25,
-        "count": 4,
+        "bpm": 100,
+        "beats": 0.5,
+        "count": 3,
         "onFrac": 0.25,
-        "altColor": "#c0d62d",
+        "altColor": null,
         "dimTo": 50,
         "keepColor": false,
         "stagger": null,
-        "cycle": null
+        "cycle": [
+          "#c0d62d",
+          "#9b72ff",
+          "#c0d62d"
+        ]
       }
     },
     {
