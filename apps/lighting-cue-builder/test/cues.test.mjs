@@ -476,7 +476,7 @@ test('the shipped show plan loads cleanly', () => {
   const at = (t) => stateAt(activeCues(p.cues, p.optionPicks), t).lights;
   for (const t of [27.6, 28.3, 29.5, 33, 36.5]) {
     assert.equal(at(t)[10].level, 0, `loops dark at ${t}`);
-    assert.ok(at(t)[7].level >= 0.5, `pole lit at ${t}, pulsing between half and full with the hits`);
+    assert.ok(Math.abs(at(t)[7].level - at(t)[1].level) < 1e-9, `pole pulses with the others at ${t}`);
     assert.equal(at(t)[7].color, '#ffd9a0');
   }
   assert.equal(at(60)[7].level, 1);
