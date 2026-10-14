@@ -831,8 +831,10 @@ function stageAfter(cues, t, next) {
 // A run in plain words, for the note on the row where it starts.
 function patternText(c) {
   const r = c.repeat;
-  const kind = r.altColor && r.onFrac >= 1 ? 'switches colours' : r.onFrac < 1 ? 'flashes' : 'repeats';
-  return `Pattern: ${kind} every ${flashGap(r).toFixed(2)}s, ${r.count} times, through ${formatTime(flashTimes(c).at(-1))}`;
+  const kind = r.altColor && r.onFrac >= 1 ? 'switches colours' : r.onFrac < 1 ? (r.dimTo ? 'pulses' : 'flashes') : 'repeats';
+  const spread = Math.max(0, ...Object.values(r.stagger || {}));
+  const roll = spread ? `, rolling across the lights over ${spread.toFixed(1)}s` : '';
+  return `Pattern: ${kind} every ${flashGap(r).toFixed(2)}s, ${r.count} times${roll}, through ${formatTime(flashTimes(c).at(-1) + spread)}`;
 }
 
 function renderCueList() {
@@ -1155,6 +1157,8 @@ function readForm() {
       onFrac: $('fOnFrac').value, altColor: $('fAlt').checked ? $('fAltColor').value : null,
       dimTo: $('fDimTo').value,
       keepColor: $('fKeepColor').checked,
+      // the form has no stagger control, so keep whatever the cue already had
+      stagger: d.repeat?.stagger,
     })
     : null;
   if (d.repeat) d.end = null;

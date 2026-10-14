@@ -386,7 +386,7 @@ test('repeat normalises, drops End, and Off cues cannot flash', () => {
   assert.equal(normalizeRepeat({ bpm: 10, count: 4 }), null);
   assert.equal(normalizeRepeat({ bpm: 120, count: 1 }), null);
   assert.deepEqual(normalizeRepeat({ bpm: '96.4', count: '16', beats: 3, onFrac: 2, altColor: 'nope' }),
-    { bpm: 96.4, beats: 1, count: 16, onFrac: 0.5, altColor: null, dimTo: 0, keepColor: false });
+    { bpm: 96.4, beats: 1, count: 16, onFrac: 0.5, altColor: null, dimTo: 0, keepColor: false, stagger: null });
   const c = normalizeCue({ time: 1, end: 5, lights: [1], repeat: { bpm: 120, count: 4 } });
   assert.equal(c.end, null);
   assert.equal(normalizeCue({ time: 1, lights: [1], action: 'off', repeat: { bpm: 120, count: 4 } }).repeat, null);
@@ -559,4 +559,22 @@ test("a brightness-only pulse keeps each light's own colour", () => {
   assert.ok(Math.abs(s(11.5)[1].level - 0.7) < 1e-9, 'rests at 70% between');
   assert.equal(s(12)[2].level, 1, 'next bar swells again');
   assert.match(cueSheet({ cues: [pulse] }), /each light keeps its colour/);
+});
+
+test('a staggered run ripples: each light flashes on its own delay', () => {
+  const c = normalizeCue({ time: 10, lights: [1, 2, 3], othersOff: true,
+    repeat: { bpm: 60, beats: 1, count: 2, onFrac: 0.5, stagger: { 2: 0.3, 3: 0.6, 9: 'x', 99: 1 } } });
+  assert.deepEqual(c.repeat.stagger, { 2: 0.3, 3: 0.6 }, 'only real lights and delays are kept');
+  const lv = (t, l) => stateAt([c], t).lights[l].level;
+  assert.deepEqual([lv(10.1, 1), lv(10.1, 2), lv(10.1, 3)], [1, 0, 0], 'light 1 first');
+  assert.deepEqual([lv(10.4, 1), lv(10.4, 2), lv(10.4, 3)], [1, 1, 0], 'then 2');
+  assert.deepEqual([lv(10.7, 1), lv(10.7, 2), lv(10.7, 3)], [0, 1, 1], '1 is out again while 3 comes up');
+  assert.equal(lv(10.1, 4), 0, 'others-off still clears the rest at the start');
+  assert.equal(flashEnd(c), 11 + 0.6 + 0.5, 'the run ends when its last light goes out');
+  // a run saved before staggers existed: every light together, as before
+  const old = normalizeCue({ time: 10, lights: [1, 2], repeat: { bpm: 60, count: 2, onFrac: 0.5 } });
+  assert.equal(old.repeat.stagger, null);
+  assert.deepEqual([lv(10.1, 1), stateAt([old], 10.1).lights[2].level], [1, 1]);
+  const back = normalizePlan(JSON.parse(JSON.stringify(serializePlan(normalizePlan({ cues: [c] }))))).cues[0];
+  assert.deepEqual(back.repeat.stagger, { 2: 0.3, 3: 0.6 }, 'survives save and load');
 });
