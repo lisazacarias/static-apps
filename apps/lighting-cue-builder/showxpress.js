@@ -357,13 +357,15 @@ export function starterPackage({ fixturesIni, profile, profileName, pools }) {
 
 function starterScript() {
   return `#!/bin/bash
-# Puts Revel's lights into a ShowXpress show. Make the show first
-# (File > New lightshow), quit ShowXpress, then run:
-#   bash ~/Downloads/revel-showxpress-starter/install.sh "Show name"
+# Puts Revel's lights into a ShowXpress show, new or existing. Quit
+# ShowXpress, then run:
+#   bash ~/Downloads/revel-showxpress-starter/install.sh "Show name" [song]
+# With a song (MP3, WAV, M4A…), it also goes in as Live/music.wav.
 set -e
 HERE="$(cd "$(dirname "$0")" && pwd)"
 SHOWS="$HOME/TheLightingController/LightShows"
 NAME="$1"
+SONG="$2"
 
 if [ -z "$NAME" ]; then
   echo "Say which show, in quotes, after the command:"
@@ -376,11 +378,18 @@ if pgrep -f "TheLightingController.app/Contents/MacOS" >/dev/null; then
   echo "ShowXpress is open. Quit it first (Cmd+Q), then run this again."
   exit 1
 fi
-if [ ! -d "$DEST" ]; then
-  echo "There's no show called \\"$NAME\\" in $SHOWS."
-  echo "Make it in ShowXpress first (File > New lightshow), quit, and run this again."
+if [ ! -d "$SHOWS" ]; then
+  echo "Couldn't find ShowXpress's show folder at $SHOWS."
+  echo "Open ShowXpress once, quit it, and run this again."
   exit 1
 fi
+if [ -n "$SONG" ] && [ ! -f "$SONG" ]; then
+  echo "Couldn't find the song at $SONG."
+  exit 1
+fi
+# CHECK: does ShowXpress open a show that is only these files, never made with
+# File > New lightshow? (The Teen Titans show was made in the app first.)
+[ -d "$DEST" ] || echo "Making a new show called \\"$NAME\\"."
 
 # the patch and 3D layout are Revel's, so these replace whatever is there
 mkdir -p "$DEST/fixtures" "$DEST/3DView" "$DEST/scenes" "$DEST/Live/TimeLine/timelines"
@@ -392,6 +401,11 @@ for f in "$HERE/show/scenes/"*.scex "$HERE/show/Live/TimeLine/timelines/"*.tml; 
   rel="\${f#$HERE/show/}"
   [ -e "$DEST/$rel" ] || cp "$f" "$DEST/$rel"
 done
+# ShowXpress only draws the waveform for WAV; macOS's afconvert converts anything it can play
+if [ -n "$SONG" ]; then
+  afconvert -f WAVE -d LEI16 "$SONG" "$DEST/Live/music.wav"
+  echo "Song added as Live/music.wav."
+fi
 # zip files carry no real dates; give the new ones today's
 find "$DEST/fixtures.ini" "$DEST/fixtures" "$DEST/3DView" -exec touch {} +
 
