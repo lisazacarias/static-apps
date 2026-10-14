@@ -198,3 +198,28 @@ test('the timing test flips the stage 40 times, then turns it white on schedule'
   assert.equal((fast.match(/<Step length="7">/g) || []).length, 40, '40 × 0.07 s: white 2.8 s in');
   assert.match(files.find((f) => f.name.endsWith('.tml')).data, /StartTime = 0:00:13.00\r\nPath = timing test fast.scex/);
 });
+
+import { starterPackage } from '../showxpress.js';
+
+test('the Revel starter sets every channel of all 13 lights and never installs over scenes', () => {
+  const ini = readFileSync(new URL('../venue/fixtures.ini', import.meta.url), 'utf8');
+  const files = starterPackage({ fixturesIni: ini, profile: 'Channel = red', profileName: 'SlimPAR 56 (7CH)', pools: { 1: [0, 0], 7: [100, 100] } });
+  const names = files.map((f) => f.name);
+  assert.ok(names.every((n) => n.startsWith('revel-showxpress-starter/')));
+  for (const n of ['install.sh', 'show/fixtures.ini', 'show/fixtures/SlimPAR 56 (7CH).txt', 'show/3DView/fixtures.ini',
+    'show/scenes/00 blackout.scex', 'show/scenes/03 find each light.scex', 'show/Live/TimeLine/timelines/Timing test.tml']) {
+    assert.ok(names.includes(`revel-showxpress-starter/${n}`), n);
+  }
+  const scene = (n) => files.find((f) => f.name.endsWith(`${n}.scex`)).data;
+  const black = scene('00 blackout');
+  assert.equal((black.match(/<Fixture id="\d+">/g) || []).length, 13, 'CH13 too');
+  assert.equal((black.match(/<Channel /g) || []).length, 13 * 7);
+  assert.ok(!/value="[1-9]/.test(black), 'every channel at zero');
+  const find = scene('03 find each light');
+  assert.equal((find.match(/<Step length="200">/g) || []).length, 13, 'one light at a time, 2 s each');
+  assert.equal((find.match(/index="6" value="255"/g) || []).length, 13, 'one dimmer up per step');
+  const sh = files.find((f) => f.name.endsWith('install.sh'));
+  assert.ok(sh.executable);
+  assert.match(sh.data, /\[ -e "\$DEST\/\$rel" \] \|\| cp/, 'starter scenes only fill gaps');
+  assert.doesNotMatch(sh.data, /rm -rf/);
+});

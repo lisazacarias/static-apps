@@ -32,6 +32,9 @@ export const SHAPES = {
 // Painter's order: backdrop under floor under apparatus, as in the diagram.
 export const DRAW_ORDER = [11, 1, 2, 4, 5, 6, 8, 9, 12, 3, 7, 10];
 
+// Where each light's pool lands on the map: the centre of its shape.
+export const POOLS = Object.fromEntries(Object.entries(SHAPES).map(([l, sh]) => [l, sh.rect ? [sh.x + sh.w / 2, sh.y + sh.h / 2] : [sh.cx, sh.cy]]));
+
 export function groupOf(light) {
   return GROUPS.find((g) => g.lights.includes(light))?.id;
 }

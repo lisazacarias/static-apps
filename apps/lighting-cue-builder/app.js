@@ -6,7 +6,7 @@ import {
   DEFAULT_TEMPO, normalizeTempo, parseStart, formatStart, normalizeSection,
   sectionStart, sortSections, sectionAt, parseSectionLines, timeToBar,
   diffPlans, applyMerge, planSignature, activeCues, optionGroups,
-  runSheet, cueGrid, cellColor, inkOn, shortColorName, SHAPES, DRAW_ORDER,
+  runSheet, cueGrid, cellColor, inkOn, shortColorName, SHAPES, DRAW_ORDER, POOLS,
 } from './cues.js';
 import { cueWorkbook, zip } from './xlsx.js';
 import { showxpressPackage } from './showxpress.js';
@@ -1781,8 +1781,7 @@ $('exportShowxpress').onclick = async () => {
       get(VENUE.ini, 'text'), get(VENUE.profile, 'text'),
       get(SHOW_AUDIO.url, 'arrayBuffer').catch(() => null), // the song is a nicety; the show still works without it
     ]);
-    const pools = Object.fromEntries(Object.entries(SHAPES).map(([l, sh]) => [l, sh.rect ? [sh.x + sh.w / 2, sh.y + sh.h / 2] : [sh.cx, sh.cy]]));
-    const files = showxpressPackage(plan, { fixturesIni: ini, profile, profileName: VENUE.profileName, pools,
+    const files = showxpressPackage(plan, { fixturesIni: ini, profile, profileName: VENUE.profileName, pools: POOLS,
       audio: audio && new Uint8Array(audio), duration: duration() || undefined, showName: SXP_SHOW });
     download(`${slug(SXP_SHOW)}-showxpress.zip`, zip(files), 'application/zip');
     notify('Downloaded. The ShowXpress guide (link next to the button) says how to put it in.');

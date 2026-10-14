@@ -326,6 +326,80 @@ export function timingTest(fixturesIni) {
   ];
 }
 
+/** Revel's rig as a starting point for programming a piece by hand: the
+ *  patch, the light profile and the 3D layout, plus a few scenes every
+ *  show needs. Every scene sets all 7 channels of all 13 lights, CH13
+ *  included, so each one is a whole look. install.sh puts it into a show
+ *  someone has already made, without touching scenes they've built.
+ *  → [{ name, data }] for xlsx.js's zip() */
+export function starterPackage({ fixturesIni, profile, profileName, pools }) {
+  const root = 'revel-showxpress-starter';
+  const fixtures = parseFixturesIni(fixturesIni).sort((a, b) => a.light - b.light);
+  const all = (rgb, d) => fixtures.map(() => [...rgb, d]);
+  const warm = hexToRgb('#ffd9a0');
+  const hold = HOLD * 100;
+  const scenes = {
+    '00 blackout': [{ ticks: hold, snap: all([0, 0, 0], 0), fade: false }],
+    '01 all warm white fade in': [{ ticks: 200, snap: all(warm, 255), fade: true }, { ticks: hold, snap: all(warm, 255), fade: false }],
+    '02 all white': [{ ticks: hold, snap: all([255, 255, 255], 255), fade: false }],
+    // one light at a time, in number order, 2 s each, to check which is which
+    '03 find each light': fixtures.map((_, k) => ({ ticks: 200, snap: fixtures.map((f, i) => (i === k ? [255, 255, 255, 255] : [0, 0, 0, 0])), fade: false })),
+  };
+  return [
+    { name: `${root}/install.sh`, data: starterScript(), executable: true },
+    { name: `${root}/show/fixtures.ini`, data: fixturesIni },
+    { name: `${root}/show/fixtures/${profileName}.txt`, data: profile },
+    { name: `${root}/show/3DView/fixtures.ini`, data: view3dIni(fixturesIni, pools) },
+    ...Object.entries(scenes).map(([n, steps]) => ({ name: `${root}/show/scenes/${n}.scex`, data: sceneXml(fixtures, steps) })),
+    ...timingTest(fixturesIni).map((f) => ({ ...f, name: `${root}/show/${f.name}` })),
+  ];
+}
+
+function starterScript() {
+  return `#!/bin/bash
+# Puts Revel's lights into a ShowXpress show. Make the show first
+# (File > New lightshow), quit ShowXpress, then run:
+#   bash ~/Downloads/revel-showxpress-starter/install.sh "Show name"
+set -e
+HERE="$(cd "$(dirname "$0")" && pwd)"
+SHOWS="$HOME/TheLightingController/LightShows"
+NAME="$1"
+
+if [ -z "$NAME" ]; then
+  echo "Say which show, in quotes, after the command:"
+  echo "  bash $0 \\"Show name\\""
+  [ -d "$SHOWS" ] && echo "Your shows: $(ls "$SHOWS" | tr '\n' ',' | sed 's/,$//; s/,/, /g')"
+  exit 1
+fi
+DEST="$SHOWS/$NAME"
+if pgrep -f "TheLightingController.app/Contents/MacOS" >/dev/null; then
+  echo "ShowXpress is open. Quit it first (Cmd+Q), then run this again."
+  exit 1
+fi
+if [ ! -d "$DEST" ]; then
+  echo "There's no show called \\"$NAME\\" in $SHOWS."
+  echo "Make it in ShowXpress first (File > New lightshow), quit, and run this again."
+  exit 1
+fi
+
+# the patch and 3D layout are Revel's, so these replace whatever is there
+mkdir -p "$DEST/fixtures" "$DEST/3DView" "$DEST/scenes" "$DEST/Live/TimeLine/timelines"
+ditto "$HERE/show/fixtures.ini" "$DEST/fixtures.ini"
+ditto "$HERE/show/fixtures" "$DEST/fixtures"
+ditto "$HERE/show/3DView" "$DEST/3DView"
+# starter scenes and the timing test only go in if missing: never over someone's work
+for f in "$HERE/show/scenes/"*.scex "$HERE/show/Live/TimeLine/timelines/"*.tml; do
+  rel="\${f#$HERE/show/}"
+  [ -e "$DEST/$rel" ] || cp "$f" "$DEST/$rel"
+done
+# zip files carry no real dates; give the new ones today's
+find "$DEST/fixtures.ini" "$DEST/fixtures" "$DEST/3DView" -exec touch {} +
+
+echo "Done: $DEST"
+echo "Open ShowXpress, choose File > Open lightshow > $NAME. Editor > Fixtures should show CH1 to CH13."
+`;
+}
+
 function installScript(showName) {
   return `#!/bin/bash
 # Puts this show into ShowXpress. In Terminal, type "bash " (with the
