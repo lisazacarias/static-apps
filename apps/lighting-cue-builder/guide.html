@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lighting How-To</title>
+    <title>Revel Lighting How-To</title>
     <link rel="stylesheet" href="../../shared/base.css">
     <style>
         .guide { max-width: 780px; }
         .guide .section { margin-bottom: 40px; }
         .guide p, .guide li, .guide td, .guide th { font-size: 15px; }
-        .guide p + p, .guide ul + p, .guide ol + p, .guide .table-wrap + p, .guide pre + p { margin-top: 12px; }
+        .guide p + p, .guide ul + p, .guide ol + p, .guide .table-wrap + p, .guide pre + p, .guide .map + p { margin-top: 12px; }
         .guide ol, .guide ul { padding-left: 22px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin-top: 10px; }
         .guide li ul, .guide li ol { margin-top: 6px; gap: 4px; }
         .guide h3 { font-size: 16px; color: var(--text-bright); margin: 22px 0 4px; }
@@ -22,12 +22,19 @@
         .guide .toc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
         .guide .track { display: inline-block; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); border: 1px solid var(--border-bright); border-radius: 999px; padding: 2px 8px; margin-left: 6px; vertical-align: middle; }
         .guide .table-wrap { overflow-x: auto; margin-top: 10px; }
-        .guide table { border-collapse: collapse; width: 100%; min-width: 560px; }
+        .guide table { border-collapse: collapse; width: 100%; min-width: 520px; }
         .guide th, .guide td { text-align: left; vertical-align: top; padding: 7px 10px 7px 0; border-top: 1px solid var(--border); }
         .guide th { color: var(--text-bright); font-weight: 600; }
         .guide dl { display: grid; gap: 10px; margin-top: 10px; }
         .guide dt { color: var(--text-bright); font-weight: 600; font-size: 15px; }
         .guide dd { margin: 2px 0 0; font-size: 15px; }
+        .guide .map { display: grid; grid-template-columns: minmax(0, 280px) minmax(0, 1fr); gap: 18px; align-items: center; margin-top: 12px; }
+        .guide .map svg { width: 100%; height: auto; background: var(--bg-elevated); border: 1px solid var(--border-bright); border-radius: 8px; }
+        .guide .map svg text { font-family: var(--font-mono); font-size: 30px; font-weight: 600; fill: #1a1210; text-anchor: middle; dominant-baseline: middle; }
+        .guide .key { display: grid; gap: 6px; font-size: 14px; }
+        .guide .key span::before { content: ''; display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; vertical-align: -1px; background: var(--c); }
+        .guide .get { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
+        @media (max-width: 560px) { .guide .map { grid-template-columns: minmax(0, 1fr); } .guide .map svg { max-width: 300px; } }
         .back { display: inline-block; margin-bottom: 18px; font-size: 14px; }
     </style>
 </head>
@@ -35,13 +42,12 @@
 <div class="container guide">
     <a class="back" href="./">← Back to the lighting plan</a>
     <header>
-        <h1>Lighting someone's piece in ShowXpress</h1>
-        <p class="subtitle">You've been handed a song and a list of cues, in whatever shape they wrote it. This is how to turn that into a show the venue's lights play, from what we learned doing the Teen Titans showcase. Everything up to the last section needs no programming.</p>
+        <h1>Lighting a piece at Revel</h1>
+        <p class="subtitle">You've been handed a song and a list of cues, in whatever shape they wrote it. This is how to turn that into a ShowXpress show that plays on Revel's lights, using the setup we already have from the Teen Titans showcase. Everything up to the last section needs no programming.</p>
         <nav class="toc">
-            <a class="btn small" href="#words">Words</a>
-            <a class="btn small" href="#before">Before you start</a>
+            <a class="btn small" href="#rig">Revel's lights</a>
+            <a class="btn small" href="#setup">Set up</a>
             <a class="btn small" href="#cuelist">Their cue list</a>
-            <a class="btn small" href="#setup">Set up the show</a>
             <a class="btn small" href="#scenes">Make the looks</a>
             <a class="btn small" href="#timeline">Put it on the song</a>
             <a class="btn small" href="#buttons">Or press GO by hand</a>
@@ -51,45 +57,50 @@
         </nav>
     </header>
 
-    <section class="section">
-        <div class="section-header"><h2>Where the facts come from</h2><div class="section-line"></div></div>
-        <p>ShowXpress is also sold as <b>The Lighting Controller</b>; it's the same program. Menu names here come from the <b>V9 manual</b> (in the <code>manual</code> folder of the ShowXpress download, cited as "V9 p12") and from what we saw on a Mac running 9.2.6. A few things neither the manual nor our testing settled; those are marked <b>Not confirmed</b>. The older V6 manual has a different layout, so don't follow it step by step.</p>
+    <section class="section" id="rig">
+        <div class="section-header"><h2>Revel's lights</h2><div class="section-line"></div></div>
+        <p>13 Chauvet SlimPAR 56 LED pars in 7-channel mode, patched by Revel. Each mixes any colour. The numbers match the stage map Revel gave us.</p>
+        <div class="map">
+            <svg id="map" viewBox="500 370 600 720" role="img" aria-label="Revel's stage map: lights 1 to 12, mirror at the top, backdrop along the bottom"></svg>
+            <div class="key">
+                <span style="--c:#ffd9a0"><b>3, 7</b> the poles</span>
+                <span style="--c:#ff8fc8"><b>10</b> the loops</span>
+                <span style="--c:#b79cff"><b>1, 2, 4, 5, 6, 8, 9, 12</b> floor</span>
+                <span style="--c:#00acee"><b>11</b> backdrop</span>
+                <span class="note">Top of the map is the mirror side.</span>
+            </div>
+        </div>
+        <div class="table-wrap"><table>
+            <tr><th>Light</th><th>Lights up</th><th>DMX address</th></tr>
+            <tr><td>CH1–CH12</td><td>As on the map</td><td>1, 33, 65, 97, 129, 161, 193, 225, 257, 289, 321, 353</td></tr>
+            <tr><td>CH13</td><td>Not on the map</td><td>385</td></tr>
+        </table></div>
+        <p>Each light has 7 channels, in this order: <b>red, green, blue, colour macro, shutter, mode, dimmer</b>. Colour is the red/green/blue mix (0–255 each). Brightness is the dimmer. Keep colour macro, shutter and mode at 0: anything else turns on the light's own built-in colours, strobe or effects, which won't be in time with the music.</p>
+        <p class="note">CH13 is in Revel's patch but not on the map. The starter's "find each light" scene lights it last, so you can see where it is.</p>
     </section>
 
-    <section class="section" id="words">
-        <div class="section-header"><h2>Words <span class="track">Everyone</span></h2><div class="section-line"></div></div>
-        <dl>
-            <div><dt>Fixture</dt><dd>One light. Ours were 13 SlimPAR 56s, LED pars that mix any colour.</dd></div>
-            <div><dt>Channel</dt><dd>One thing a fixture lets you set, as a number from 0 to 255. Our SlimPARs have 7: red, green, blue, colour macro, shutter, mode, dimmer. Colour is the red/green/blue mix; brightness is the dimmer.</dd></div>
-            <div><dt>DMX, address, patch</dt><dd>DMX is the signal on the cable. Each fixture listens from its <b>address</b> onward (ours: 1, 33, 65 …). The <b>patch</b> is the list of which fixture is at which address. The venue sets it; you copy it.</dd></div>
-            <div><dt>Scene and step</dt><dd>A scene is a saved look, or a sequence of looks. Each <b>step</b> in it sets every channel and has a duration. Each channel either <b>snaps</b> or <b>fades</b> into the step, and a fade takes the step's whole duration (V9 p1, p13).</dd></div>
-            <div><dt>TimeLine</dt><dd>Scenes laid out under the music, so the show plays itself (V9 p25).</dd></div>
-            <div><dt>Buttons</dt><dd>Scenes on a page of buttons, for someone to press on cue (V9 p20).</dd></div>
-            <div><dt>Cue</dt><dd>One change at one moment: "at 0:27.5, all lights fade to warm white over 2 seconds."</dd></div>
-        </dl>
-    </section>
-
-    <section class="section" id="before">
-        <div class="section-header"><h2>Before you start <span class="track">Everyone</span></h2><div class="section-line"></div></div>
-        <h3>Ask the venue tech</h3>
-        <ul>
-            <li>Does the show run from a laptop with ShowXpress, or does the tech run it on their own desk? If theirs, they may only want a cue sheet.</li>
-            <li>Can they send the ShowXpress show, or at least its <code>fixtures.ini</code> and fixture files? That saves patching by hand and guarantees the addresses match.</li>
-            <li>Which light on the stage map is which fixture in the patch? Ask about any light in the patch that's not on the map.</li>
-            <li>Which DMX adapter do they use, and will it be plugged into the laptop at the show?</li>
-            <li>Are strobes and fast flashing allowed? Does a warning need posting?</li>
-        </ul>
-        <h3>Get from the performer</h3>
-        <ul>
-            <li><b>The exact music file the show will play.</b> Every time is measured against that file. A re-export that starts a little later shifts every cue.</li>
-            <li>Their cue list, however it's written.</li>
-            <li>A video of them doing the piece, if they have one. It shows what needs lighting.</li>
-        </ul>
+    <section class="section" id="setup">
+        <div class="section-header"><h2>1. Set up <span class="track">Everyone</span></h2><div class="section-line"></div></div>
+        <p>Do this once per piece. It gives you a ShowXpress show with Revel's lights already patched and placed in the 3D view, so you don't patch anything by hand.</p>
+        <ol>
+            <li>Install ShowXpress (steps in the <a href="showxpress.html">ShowXpress guide</a>, section 1). ShowXpress is also sold as The Lighting Controller; it's the same program.</li>
+            <li>In ShowXpress, <b>File › New lightshow</b>, named after the piece. Then quit with <kbd>Cmd</kbd> + <kbd>Q</kbd>.</li>
+            <li>Download the starter:
+                <div class="get"><button id="getStarter" class="btn" type="button">Download Revel starter</button><span id="starterMsg" class="note"></span></div></li>
+            <li>Double-click the zip in Downloads. It makes a folder called <code>revel-showxpress-starter</code>.</li>
+            <li>Open Terminal (<kbd>Cmd</kbd> + <kbd>Space</kbd>, type Terminal, Enter) and paste this, with your show's name in the quotes:
+                <pre>bash ~/Downloads/revel-showxpress-starter/install.sh "Show name"</pre>
+                It finishes with <b>Done</b>. Run it without a name and it lists your shows.</li>
+            <li>Open ShowXpress, <b>File › Open lightshow</b>, pick the show. <b>Editor › Fixtures</b> should list CH1 to CH13.</li>
+        </ol>
+        <p>The starter adds four scenes to build from: <b>00 blackout</b>, <b>01 all warm white fade in</b>, <b>02 all white</b>, and <b>03 find each light</b> (each light alone in white for 2 s, in number order). It also adds a "Timing test" timeline (see <a href="#code">For programmers</a>). Running it again is safe: it puts back Revel's patch and 3D layout but never replaces a scene that's already there.</p>
+        <p class="note">Shows live in your home folder at <code>~/TheLightingController/LightShows</code>; <b>File › Open lightshow Folder</b> opens it. Not the <code>lightshows_bank</code> folder next to the app: files put there are ignored.</p>
     </section>
 
     <section class="section" id="cuelist">
-        <div class="section-header"><h2>Turn their cue list into times <span class="track">Everyone</span></h2><div class="section-line"></div></div>
-        <p>Cue lists arrive as lyrics ("blue when she sings 'falling'"), counts ("8 counts into the chorus"), bars, rough times, or a feeling. Whatever the shape, rewrite it as a table before you touch ShowXpress:</p>
+        <div class="section-header"><h2>2. Turn their cue list into times <span class="track">Everyone</span></h2><div class="section-line"></div></div>
+        <p>Get <b>the exact music file the show will play</b>. Every time is measured against that file; a re-export that starts a little later shifts every cue. A video of the piece helps too.</p>
+        <p>Cue lists arrive as lyrics ("blue when she sings 'falling'"), counts ("8 counts into the chorus"), bars, rough times, or a feeling. Whatever the shape, rewrite it as a table first, using Revel's light numbers:</p>
         <div class="table-wrap"><table>
             <tr><th>Time</th><th>Lights</th><th>Colour</th><th>Level</th><th>How</th><th>Until</th></tr>
             <tr><td>0:00.00</td><td>all</td><td>dark</td><td>0</td><td>—</td><td></td></tr>
@@ -108,81 +119,68 @@
         <ul>
             <li>"Fade": fade <i>in</i>, fade <i>out</i>, or blend from one colour to another? How long?</li>
             <li>When does it stop? "Chaos in the last section" turned out to mean two separate bursts.</li>
-            <li>Which lights? "Light her up" might mean her apparatus at full and everything else dimmed.</li>
+            <li>Which lights? "Light her up" might mean her pole at full and everything else dimmed.</li>
             <li>Read the rhythm back to them ("1, and 2, &amp;?"). People mis-say counts; we lost a round to it.</li>
         </ul>
         <p>Then show them something (a recording of the 3D view, below) as early as you can. Most of our big changes came from the performer seeing it.</p>
     </section>
 
-    <section class="section" id="setup">
-        <div class="section-header"><h2>1. Set up the show <span class="track">Everyone</span></h2><div class="section-line"></div></div>
-        <ol>
-            <li>Install ShowXpress (the <a href="showxpress.html">ShowXpress guide</a> covers the Mac install).</li>
-            <li><b>File › New lightshow</b>, named after the piece (V9 p4).</li>
-            <li>Shows live in your home folder at <code>~/TheLightingController/LightShows/&lt;show&gt;</code>; <b>File › Open lightshow Folder</b> opens it. Not the <code>lightshows_bank</code> folder next to the app: files put there are ignored.</li>
-        </ol>
-        <h3>If the venue sent their files</h3>
-        <p>Quit ShowXpress (<kbd>Cmd</kbd> + <kbd>Q</kbd>). Put their <code>fixtures.ini</code> in the show folder and their fixture files in its <code>fixtures/</code> folder. Reopen; <b>Editor › Fixtures</b> should list every light.</p>
-        <h3>If not, patch by hand</h3>
-        <ol>
-            <li><b>Editor › Fixtures</b>, then <b>Add fixtures</b> (or right-click the grid › Add fixture) (V9 p7–8).</li>
-            <li>Find the fixture model in the bank, in the mode the venue uses (ours: 7CH). Missing? <b>Import a fixture</b> from a file the venue or manufacturer gives you (V9 p8).</li>
-            <li>Type the starting address and how many, then <b>Patch</b>. For lights that aren't evenly spaced, patch them one at a time.</li>
-            <li><b>Save the dmx addressing</b> (V9 p7). Rename each fixture to its stage map number (right-click › Rename fixture). It saves confusion later.</li>
-        </ol>
-    </section>
-
     <section class="section" id="scenes">
-        <div class="section-header"><h2>2. Make the looks <span class="track">Everyone</span></h2><div class="section-line"></div></div>
-        <p>Go to <b>Editor › Steps</b>. Each fixture gets a row of faders, one per channel (V9 p12–13).</p>
+        <div class="section-header"><h2>3. Make the looks <span class="track">Everyone</span></h2><div class="section-line"></div></div>
+        <p>A <b>scene</b> is a saved look, or a sequence of them. Each <b>step</b> in a scene sets channels and has a duration; each channel either <b>snaps</b> or <b>fades</b> into the step, and a fade takes the step's whole duration (V9 manual p1, p13). Go to <b>Editor › Steps</b>: each light gets a row of 7 faders.</p>
         <h3>One look</h3>
         <ol>
-            <li><b>New scene</b>.</li>
-            <li>For each light, set red, green and blue for the colour and dimmer for brightness. Click a value to type it. Leave the other channels at 0: on ours, a non-zero shutter or mode turns on the fixture's built-in strobe and effects.</li>
+            <li><b>New scene</b>, or open <b>00 blackout</b> and <b>Save scene as</b> a new name, so you start with every light set to dark.</li>
+            <li>For each light in the look, set red, green and blue for the colour and the dimmer for brightness. Click a value to type it.</li>
             <li>Check the small <b>fade / snap</b> icon under each fader. Right-click a fader › <b>Set "fade" state of channel on all steps</b> does a whole column at once.</li>
             <li>Type the step's <b>Duration</b> in the step list. It's minutes:seconds.hundredths, so <code>00:02.00</code> is two seconds.</li>
-            <li><b>Save scene as</b>. Name it so it sorts in show order: <code>03 warm white fade</code>.</li>
+            <li><b>Save scene as</b>. Name it so it sorts in show order: <code>05 warm white fade</code>.</li>
         </ol>
-        <p>Set every light in every scene, even the dark ones (dimmer 0). A scene that leaves a light out lets whatever was there before carry through.</p>
+        <p><b>Scenes are instructions, not snapshots.</b> Revel's own programming notes put it this way: a channel the scene doesn't set keeps whatever value it had, so to turn a light off you have to set it to 0. Forgetting to zero something is the most common mistake. Starting every scene from <b>00 blackout</b> avoids it.</p>
+        <p>Revel's notes also say: keep each scene simple, and make more of them rather than fewer.</p>
         <h3>Fades</h3>
-        <p>A fade takes the whole step, so a 2-second fade is a 2-second step with its channels on <b>fade</b>. To fade and then stay, add a second step with the same values on <b>snap</b>, held as long as the look lasts.</p>
+        <p>A 2-second fade is a 2-second step with its channels on <b>fade</b>. To fade and then stay, add a second step with the same values on <b>snap</b>, held as long as the look lasts (<b>01 all warm white fade in</b> is built that way).</p>
         <p>Multi-step scenes loop (V9 p26, "Loop"). If the last step is too short, the scene starts over and runs its fade again. We hit this when a hold step meant to last minutes lasted 6 seconds.</p>
         <h3>Hits, pulses and strobes</h3>
         <ul>
             <li><b>Hit</b>: step 1 snaps on, held for the hit (say 0.05 s); step 2 fades to dark over 0.3 s.</li>
-            <li><b>Pulse or breathing</b>: steps alternate full and about 35%, all on fade, each a beat long.</li>
+            <li><b>Pulse or breathing</b>: steps alternate full and about 35% dimmer, all on fade, each a beat long.</li>
             <li><b>Strobe</b>: steps alternate on and off, on snap. ShowXpress plays steps in 0.05 s ticks and rounds each one up (we measured it: 40 steps of 0.07 s took 3.97 s, not 2.8 s). Make every step a multiple of 0.05 s, or fast runs drift off the beat.</li>
-            <li><b>Ripples and chases</b>: <b>Editor › Generator</b> draws a curve per channel with a delay between fixtures (V9 p15–16). Or make the steps by hand with each light a little later.</li>
+            <li><b>Ripples and chases</b>: <b>Editor › Generator</b> draws a curve per channel with a delay between lights (V9 p15–16). Or make the steps by hand with each light a little later.</li>
         </ul>
-        <p class="note">Flashing more than 3 times a second is the usual photosensitivity line (<a href="https://www.w3.org/WAI/WCAG22/Understanding/three-flashes-or-below-threshold.html">WCAG 2.3.1</a> is the web version). Check the venue's rules.</p>
-        <h3>Looks that worked for us</h3>
+        <p class="note">Flashing more than 3 times a second is the usual photosensitivity line (<a href="https://www.w3.org/WAI/WCAG22/Understanding/three-flashes-or-below-threshold.html">WCAG 2.3.1</a> is the web version).</p>
+        <h3>Looks that worked at Revel</h3>
         <ul>
-            <li>Solos: the soloist's apparatus warm white at full, the other dancer's dark, everything else about 55% in soft colours.</li>
-            <li>In busy sections, keep the dancer's light at full and the rest lower (we used 50%), so they don't disappear.</li>
+            <li>Solos: the soloist's apparatus (7 or 3 for pole, 10 for loops) warm white at full, the other apparatus dark, the floor at about 55% in soft colours.</li>
+            <li>In busy sections keep the dancer's light at full and the floor lower (we used 50%), so they don't disappear.</li>
             <li>Snaps for punchy intros. Hits that snap on and fade away. Crossfades for calm passages.</li>
-            <li>Pick a palette (ours was the five logo colours) and stay in it.</li>
+            <li>The backdrop (11) with the soloist's colour ties the picture together.</li>
+            <li>Pick a palette and stay in it. The Teen Titans logo's own lavender looked grey-blue on screen, so we used a bluer <code>#9b72ff</code>. Not yet checked on the real lights.</li>
         </ul>
     </section>
 
     <section class="section" id="timeline">
-        <div class="section-header"><h2>3. Put it on the song <span class="track">Everyone</span></h2><div class="section-line"></div></div>
+        <div class="section-header"><h2>4. Put it on the song <span class="track">Everyone</span></h2><div class="section-line"></div></div>
         <p>Use the TimeLine when the show should play itself with the music. Go to <b>Live › TimeLine</b>.</p>
         <ol>
             <li>Menu › <b>TimeLine settings</b>: set the duration longer than the song, and turn on <b>Media timelines</b> so there's a row for the music (V9 p25, p27).</li>
-            <li>Right-click the music row › <b>Add Media file</b>, and pick the song. Use a WAV to see the waveform; it only draws for WAV (V9 p25, p27). On a Mac, <code>afconvert -f WAVE -d LEI16 song.mp3 song.wav</code> in Terminal converts one.</li>
+            <li>Make the song a WAV: ShowXpress only draws the waveform for WAV (V9 p27), and the waveform is how you see where the hits are. In Terminal: <code>afconvert -f WAVE -d LEI16 song.mp3 song.wav</code>. Keep it in the show's folder, so everything for the piece is in one place.</li>
+            <li>Right-click the music row › <b>Add Media file</b>, and pick the WAV (V9 p25).</li>
             <li>Right-click a light row › <b>Add Steps scene</b>, and pick a scene (V9 p25).</li>
-            <li>Right-click the block › <b>Move to</b> › <b>specific time</b>, and type the cue time (V9 p26). Dragging isn't precise enough. The timeline works in tenths of a second.</li>
+            <li>Right-click the block › <b>Move to</b> › <b>specific time</b>, and type the cue time (V9 p26). Dragging isn't precise enough. The timeline works in tenths of a second. Zoom in and out with keypad <kbd>+</kbd>/<kbd>−</kbd>; <kbd>PgUp</kbd>/<kbd>PgDn</kbd> scroll.</li>
             <li>Make each block last until the next one starts.</li>
             <li><b>Save</b> the timeline (V9 p25).</li>
         </ol>
-        <p>To play: <b>Play</b> runs from the start. To start partway, double-click the top of the timeline to put the red marker there, then <b>Play from red marker</b> (V9 p25–26). Keypad <kbd>+</kbd>/<kbd>−</kbd> zoom, <kbd>PgUp</kbd>/<kbd>PgDn</kbd> scroll.</p>
-        <div class="unsure"><b>Not confirmed:</b> how to set a block's length in the app (dragging its edge is my best guess; the manual doesn't say). What happens when two rows set the same light at once. Whether lights go dark in a gap between blocks. We kept to one light row, blocks end to end, every scene setting every light, which sidesteps all three.</div>
-        <p>We saw lights blink at the joins between blocks, especially near snaps and short fades. What fixed it: joins inside a held look, at least a quarter second from any snap, with each scene starting by snapping to the exact look at that moment. Longer blocks (several looks each) blink less than one block per look.</p>
+        <p>To play: <b>Play</b> runs from the start. To start partway, double-click the top of the timeline to put the red marker there, then <b>Play from red marker</b> (V9 p25–26).</p>
+        <p><b>Starting partway, remember scenes are instructions.</b> Whatever was set before the red marker hasn't run, so a light can be in the wrong state until something sets it. If a look is wrong only when starting partway, play from earlier.</p>
+        <p><b>Layers.</b> A timeline can have several light rows, and Revel's notes use overlapping layers. Because a scene only changes what it sets, a scene on one row can change the floor while another row's scene runs the poles. Keep one job per row (say, poles on row 1, floor on row 2) so two rows never set the same light at once.</p>
+        <div class="unsure"><b>Not confirmed:</b> what happens if two rows do set the same channel at once. How to set a block's length in the app (dragging its edge is my best guess; the manual doesn't say).</div>
+        <p>We saw lights blink at the joins between blocks, especially near snaps and short fades. What fixed it: joins inside a held look, at least a quarter second from any snap.</p>
     </section>
 
     <section class="section" id="buttons">
         <div class="section-header"><h2>Or: press GO by hand <span class="track">Everyone</span></h2><div class="section-line"></div></div>
-        <p>For a tech who wants to cue live, or as a backup, put scenes on buttons in <b>Live › Buttons</b> (V9 p20–24).</p>
+        <p>To cue live, or as a backup, put scenes on buttons in <b>Live › Buttons</b> (V9 p20–24).</p>
         <ul>
             <li>Page menu › <b>Add Steps scene</b> for each look, in cue-list order.</li>
             <li>Page menu › <b>Solo buttons</b>, so pressing one look turns the last one off. Otherwise scenes stack.</li>
@@ -194,15 +192,15 @@
     </section>
 
     <section class="section" id="check">
-        <div class="section-header"><h2>4. Check it <span class="track">Everyone</span></h2><div class="section-line"></div></div>
+        <div class="section-header"><h2>5. Check it <span class="track">Everyone</span></h2><div class="section-line"></div></div>
         <ol>
             <li>Unplug the DMX adapter. The 3D view only drew for us with no adapter connected.</li>
-            <li><b>Windows › 3DView</b>. Right-click it › <b>Fixtures setting</b> to place each light where it hangs (V9 p32).</li>
+            <li><b>Windows › 3DView</b>. The starter already put each light where it is on Revel's map. Open <b>03 find each light</b> in the Editor and play it to check.</li>
             <li>In Live, top right, the <b>cube</b> is 3D output and the icon beside it is DMX. A green line under one means it's on.</li>
-            <li>In <b>Editor › Steps</b>, turn the DMX and 3D buttons <i>off</i>. The Editor overrides Live, so with them on the timeline seems to do nothing.</li>
+            <li>In <b>Editor › Steps</b>, turn the DMX and 3D buttons <i>off</i>. The Editor overrides Live, so with them on, the timeline seems to do nothing.</li>
             <li>Play it. <b>Windows › DMX Bargraph</b> shows the actual numbers going out, if the 3D view is confusing (V9 p4).</li>
             <li>Record the 3D view for the performer: <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>5</kbd> › Record Selected Portion. ShowXpress has no video export, and the Mac recorder doesn't capture the sound, so add the song afterwards.</li>
-            <li>At the venue: plug the adapter in, make sure DMX has its green line, play.</li>
+            <li>At Revel: plug the adapter in, make sure DMX has its green line, play.</li>
         </ol>
     </section>
 
@@ -210,27 +208,28 @@
         <div class="section-header"><h2>When it's wrong <span class="track">Everyone</span></h2><div class="section-line"></div></div>
         <div class="table-wrap"><table>
             <tr><th>What you see</th><th>What it was for us</th></tr>
+            <tr><td>A light stays on when it shouldn't.</td><td>No scene set it back to 0. Scenes are instructions.</td></tr>
             <tr><td>Music plays, lights don't.</td><td>3D output off, or the Editor's DMX/3D buttons on (they override Live).</td></tr>
-            <tr><td>Editor › Fixtures is an empty grid.</td><td>The show is in the wrong folder. It must be under <code>~/TheLightingController/LightShows</code>.</td></tr>
-            <tr><td>Your timeline isn't in the Open list.</td><td>A different show is open (check the title bar), or the files are in the wrong folder.</td></tr>
+            <tr><td>Editor › Fixtures is an empty grid.</td><td>The starter isn't installed in this show, or the show is in the wrong folder. Run the install again with the show's exact name.</td></tr>
+            <tr><td>Your timeline isn't in the Open list.</td><td>A different show is open (check the title bar).</td></tr>
+            <tr><td>Lights lag or drift from the music.</td><td>Play a bit, stop, then start over. Revel's notes say this refreshes it.</td></tr>
             <tr><td>Fades slam on.</td><td>The step duration is far shorter than meant. It's in hundredths: <code>00:02.00</code> is 2 s.</td></tr>
             <tr><td>A look keeps re-fading.</td><td>The scene looped. Make its last step long.</td></tr>
             <tr><td>Fast flashes drift off the beat, or one goes missing.</td><td>Step lengths not on the 0.05 s tick, or a block join in the middle of a run.</td></tr>
             <tr><td>Lights blink off for an instant.</td><td>A block join at a bad moment. Move it into a held look.</td></tr>
-            <tr><td>A light strobes or does something odd on its own.</td><td>A non-zero shutter or mode channel switched on the fixture's built-in effects.</td></tr>
-            <tr><td>Files you edited outside ShowXpress went back to the old version.</td><td>Quit ShowXpress before changing files by hand. My best guess is it saves over them when it closes.</td></tr>
+            <tr><td>A light strobes or changes colour on its own.</td><td>Colour macro, shutter or mode isn't 0.</td></tr>
+            <tr><td>The install script says ShowXpress is open.</td><td>Quit it with <kbd>Cmd</kbd> + <kbd>Q</kbd> (closing the window isn't enough).</td></tr>
         </table></div>
     </section>
 
     <section class="section" id="code">
         <div class="section-header"><h2>For programmers: generate the files <span class="track">Programmers</span></h2><div class="section-line"></div></div>
-        <p>Typing dozens of scenes is slow and error-prone. Everything ShowXpress reads is plain text, so for a long piece a script is faster. Quit ShowXpress before writing. A show folder:</p>
+        <p>Typing dozens of scenes is slow and error-prone. Everything ShowXpress reads is plain text, so for a long piece a script is faster. Quit ShowXpress before writing. After the starter, a show folder looks like:</p>
 <pre>~/TheLightingController/LightShows/&lt;show&gt;/
-  fixtures.ini                    the patch: [FixtureN] address, name, model, id
-  fixtures/&lt;model&gt;.txt            fixture profile: channel order and ranges
+  fixtures.ini                    Revel's patch: [FixtureN] address, name, model, id
+  fixtures/SlimPAR 56 (7CH).txt   channel order and ranges
   scenes/*.scex                   one XML file per scene
   Live/TimeLine/timelines/*.tml   ini, one [Event_N] per block
-  Live/music.wav                  the song
   3DView/fixtures.ini             where each light sits in the 3D view</pre>
         <h3>A scene</h3>
 <pre>&lt;Scene&gt;
@@ -248,7 +247,7 @@
   &lt;/Steps&gt;
 &lt;/Scene&gt;</pre>
         <ul>
-            <li>Fixture ids come from <code>fixtures.ini</code>. Channel indexes follow the profile's channel order (ours: 0 red … 6 dimmer).</li>
+            <li>Fixture ids come from <code>fixtures.ini</code> (<code>venue/fixtures.ini</code> in this folder). Channel index 0 is red, 6 is dimmer.</li>
             <li><code>length</code> is hundredths of a second. Playback rounds each step up to 0.05 s, so keep lengths multiples of 5.</li>
             <li><code>fade="1"</code> fades across the whole step; <code>0</code> snaps.</li>
         </ul>
@@ -273,11 +272,48 @@ Path = 001 at 4.3s.scex
 Length = 0:00:05.20
 Speed = 100
 SpeedType = 2</pre>
-        <p><code>Path</code> is just the scene's file name, looked up in <code>scenes/</code>. Start times work in tenths.</p>
+        <p><code>Path</code> is the scene's file name, looked up in <code>scenes/</code>. Start times work in tenths.</p>
         <h3>Or reuse this site's generator</h3>
-        <p><code>showxpress.js</code> in this folder already does all of this from a cue plan: blocks joined at safe moments, steps on the 0.05 s tick, a 3D layout and an install script, tested against the plan across the whole song (<code>test/showxpress.test.mjs</code>). To use it for another piece, write their cue list as a plan in this app's cue format (<code>README.md</code>, and <code>normalizeCue</code> in <code>cues.js</code>), put the venue's files in <code>venue/</code>, and update the light list (<code>GROUPS</code> in <code>cues.js</code>, <code>SHAPES</code> in <code>app.js</code>) and the channel order (<code>SLIMPAR</code> in <code>showxpress.js</code>). It's built for these 12 SlimPARs today, so a different rig needs those changes first.</p>
-        <p class="note">The download includes a "Timing test" timeline: 40 steps of 0.25 s, then 40 of 0.07 s. Run it after any ShowXpress update. If the second half takes 2.8 s instead of about 4 s, the tick has changed.</p>
+        <p><code>showxpress.js</code> already does all of this for Revel's rig from a cue plan: blocks joined at safe moments, steps on the 0.05 s tick, every scene setting every channel. It's tested against the plan across the whole song (<code>test/showxpress.test.mjs</code>). Write the piece's cues as a plan in this app's format (<code>README.md</code>, and <code>normalizeCue</code> in <code>cues.js</code>), open the page with <code>?edit</code>, import it, and use <b>Download for ShowXpress</b>. <code>SXP_SHOW</code> in <code>app.js</code> names the show it installs into.</p>
+        <p class="note">The starter's "Timing test" timeline flips the stage 40 times at 0.25 s, then 40 times at 0.07 s. Run it after any ShowXpress update. If the second half takes 2.8 s instead of about 4 s, the tick has changed.</p>
     </section>
 </div>
+<script type="module">
+import { SHAPES, DRAW_ORDER, POOLS, groupOf, APPARATUS } from './cues.js';
+import { starterPackage } from './showxpress.js';
+import { zip } from './xlsx.js';
+
+const ns = 'http://www.w3.org/2000/svg';
+const fill = (n) => (APPARATUS[n] === 'loops' ? '#ff8fc8' : { apparatus: '#ffd9a0', floor: '#b79cff', backdrop: '#00acee' }[groupOf(n)]);
+const map = document.getElementById('map');
+for (const n of DRAW_ORDER) {
+  const s = SHAPES[n];
+  const el = document.createElementNS(ns, s.rect ? 'rect' : 'ellipse');
+  const attrs = s.rect ? { x: s.x, y: s.y, width: s.w, height: s.h, rx: 10 }
+    : { cx: s.cx, cy: s.cy, rx: s.rx, ry: s.ry, transform: s.rot ? `rotate(${s.rot} ${s.cx} ${s.cy})` : '' };
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  el.setAttribute('fill', fill(n)); el.setAttribute('fill-opacity', '0.85'); el.setAttribute('stroke', '#1a1210'); el.setAttribute('stroke-width', '3');
+  const label = document.createElementNS(ns, 'text');
+  label.setAttribute('x', s.lx); label.setAttribute('y', s.ly); label.textContent = n;
+  map.append(el, label);
+}
+
+const msg = document.getElementById('starterMsg');
+document.getElementById('getStarter').onclick = async () => {
+  try {
+    const get = async (url) => { const r = await fetch(url, { cache: 'no-cache' }); if (!r.ok) throw new Error(url); return r.text(); };
+    const [fixturesIni, profile] = await Promise.all([get('venue/fixtures.ini'), get('venue/slimpar-56-7ch.txt')]);
+    const files = starterPackage({ fixturesIni, profile, profileName: 'SlimPAR 56 (7CH)', pools: POOLS });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([zip(files)], { type: 'application/zip' }));
+    a.download = 'revel-showxpress-starter.zip';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    msg.textContent = 'Downloaded. Next: unzip it and run the install line below.';
+  } catch {
+    msg.textContent = 'Couldn’t build it right now. Check your connection and try again.';
+  }
+};
+</script>
 </body>
 </html>
