@@ -177,3 +177,13 @@ test('block edges stay clear of snaps, so a flash never lands right at one', () 
   assert.equal(tight.length, 0, `edges close to a snap: ${tight.map(([t, r]) => `${t}s (${r.toFixed(2)})`).join(', ')}`);
   assert.ok(Math.max(...blocks.map((b) => b.length)) <= 16.5, 'no block longer than about 16 s');
 });
+
+import { timingTest } from '../showxpress.js';
+
+test('the timing test flips the stage 40 times, then turns it white on schedule', () => {
+  const files = timingTest(INI);
+  const slow = files.find((f) => f.name.endsWith('slow.scex')).data, fast = files.find((f) => f.name.endsWith('fast.scex')).data;
+  assert.equal((slow.match(/<Step length="25">/g) || []).length, 40, '40 × 0.25 s: white at 10.0 s');
+  assert.equal((fast.match(/<Step length="7">/g) || []).length, 40, '40 × 0.07 s: white 2.8 s in');
+  assert.match(files.find((f) => f.name.endsWith('.tml')).data, /StartTime = 0:00:13.00\r\nPath = timing test fast.scex/);
+});

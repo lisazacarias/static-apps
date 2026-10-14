@@ -279,7 +279,34 @@ export function showxpressPackage(plan, { fixturesIni, profile, profileName, poo
     ...[...scenes].map(([file, xml]) => ({ name: `${show}/scenes/${file}`, data: xml })),
   ];
   if (audio) files.push({ name: `${show}/Live/music.mp3`, data: audio });
+  files.push(...timingTest(fixturesIni).map((f) => ({ ...f, name: `${show}/${f.name}` })));
   return files;
+}
+
+/** A separate "Timing test" timeline for measuring how ShowXpress plays
+ *  steps. Two scenes flip the whole stage red/blue, then turn it white:
+ *  40 steps of 0.25 s (white due at 0:10.0) and 40 of 0.07 s (white due
+ *  2.8 s after its block starts at 0:13.0, so at 0:15.8). If white lands
+ *  late, the delay divided by 40 is what each step costs, and comparing
+ *  the two says whether it's a fixed cost per step or a rounding. */
+export function timingTest(fixturesIni) {
+  const all = parseFixturesIni(fixturesIni);
+  const fixtures = ALL_LIGHTS.map((l) => all.find((f) => f.light === l));
+  const fill = (rgb) => ALL_LIGHTS.map(() => [...rgb, 255]);
+  const flips = (ticks) => [
+    ...Array.from({ length: 40 }, (_, k) => ({ ticks, snap: fill(k % 2 ? [0, 0, 255] : [255, 0, 0]), fade: false })),
+    { ticks: HOLD * 100, snap: fill([255, 255, 255]), fade: false },
+  ];
+  const ini = ['', '[Params]', 'Version = 0.2', 'CommentTimeLine = 0', 'LightTimeLines = 1', 'MediaTimeLines = 1',
+    'ShowWaveForm = 0', 'Zoom = 1', 'MaxTime = 0:00:25',
+    'TimeLine_1 = V I D E O   P I C T U R E   T I M E L I N E', 'TimeLine_2 = music', 'TimeLine_3 = timing test',
+    '[Event_0]', 'TimeLineIndex = 3', 'StartTime = 0:00:00.00', 'Path = timing test slow.scex', 'Length = 0:00:12.00', 'Speed = 100', 'SpeedType = 2',
+    '[Event_1]', 'TimeLineIndex = 3', 'StartTime = 0:00:13.00', 'Path = timing test fast.scex', 'Length = 0:00:06.00', 'Speed = 100', 'SpeedType = 2', ''];
+  return [
+    { name: 'scenes/timing test slow.scex', data: sceneXml(fixtures, flips(25)) },
+    { name: 'scenes/timing test fast.scex', data: sceneXml(fixtures, flips(7)) },
+    { name: 'Live/TimeLine/timelines/Timing test.tml', data: ini.join('\r\n') },
+  ];
 }
 
 function installScript(showName) {
