@@ -93,8 +93,9 @@ export function pieces(cues, duration) {
     }
     // a hold that carries on the look before it just makes that block longer
     if (prev && holding && keyOf(prev.to) === keyOf(to)) { prev.end = end; continue; }
-    // a fade too short to see (the last 1/255 of a dimmer) is a snap
-    if (!holding && end - start < 0.05) {
+    // a fade too short to see (the last 1/255 of a dimmer) is a snap; a
+    // short piece that really moves (a crossfade's first 0.04 s) stays a fade
+    if (!holding && end - start < 0.05 && near(from, to)) {
       if (prev && keyOf(prev.to) === keyOf(to)) prev.end = end;
       else out.push({ start, end, from: to, to, fade: 0 });
       continue;
