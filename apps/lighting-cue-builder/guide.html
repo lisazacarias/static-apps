@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lighting How-To</title>
+    <link rel="stylesheet" href="../../shared/base.css">
+    <style>
+        .guide { max-width: 780px; }
+        .guide .section { margin-bottom: 40px; }
+        .guide p, .guide li, .guide td, .guide th { font-size: 15px; }
+        .guide p + p, .guide ul + p, .guide ol + p, .guide .table-wrap + p { margin-top: 12px; }
+        .guide ol, .guide ul { padding-left: 22px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin-top: 10px; }
+        .guide li ul, .guide li ol { margin-top: 6px; gap: 4px; }
+        .guide h3 { font-size: 16px; color: var(--text-bright); margin: 22px 0 4px; }
+        .guide b { color: var(--text-bright); font-weight: 600; }
+        .guide code, .guide kbd { font-family: var(--font-mono); font-size: 13px; background: var(--bg-elevated); border: 1px solid var(--border-bright); border-radius: 4px; padding: 1px 5px; color: var(--text-bright); overflow-wrap: anywhere; }
+        .guide pre { font-family: var(--font-mono); font-size: 13px; background: var(--bg-elevated); border: 1px solid var(--border-bright); border-radius: 6px; padding: 10px 12px; margin-top: 8px; overflow-x: auto; white-space: pre; color: var(--text-bright); }
+        .guide .note { font-size: 13px; color: var(--text-muted); }
+        .guide .toc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+        .guide .track { display: inline-block; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); border: 1px solid var(--border-bright); border-radius: 999px; padding: 2px 8px; margin-left: 6px; vertical-align: middle; }
+        .guide .table-wrap { overflow-x: auto; margin-top: 10px; }
+        .guide table { border-collapse: collapse; width: 100%; min-width: 520px; }
+        .guide th, .guide td { text-align: left; vertical-align: top; padding: 7px 10px 7px 0; border-top: 1px solid var(--border); }
+        .guide th { color: var(--text-bright); font-weight: 600; }
+        .guide dl { display: grid; gap: 10px; margin-top: 10px; }
+        .guide dt { color: var(--text-bright); font-weight: 600; font-size: 15px; }
+        .guide dd { margin: 2px 0 0; font-size: 15px; }
+        .guide .say { border-left: 3px solid var(--border-bright); padding: 6px 0 6px 12px; margin-top: 8px; font-style: italic; }
+        .back { display: inline-block; margin-bottom: 18px; font-size: 14px; }
+    </style>
+</head>
+<body>
+<div class="container guide">
+    <a class="back" href="./">← Back to the lighting plan</a>
+    <header>
+        <h1>How to light a piece with this</h1>
+        <p class="subtitle">Everything we learned lighting the Teen Titans showcase, written so you can help someone else with theirs. The first half needs no programming. The second half is for whoever changes the code.</p>
+        <nav class="toc">
+            <a class="btn small" href="#words">Words</a>
+            <a class="btn small" href="#steps">Step by step</a>
+            <a class="btn small" href="#asking">Asking Claude</a>
+            <a class="btn small" href="#editor">The editor</a>
+            <a class="btn small" href="#looks">Looks that worked</a>
+            <a class="btn small" href="#lessons">Lessons</a>
+            <a class="btn small" href="#code">For programmers</a>
+            <a class="btn small" href="#new-show">A new show</a>
+        </nav>
+    </header>
+
+    <section class="section">
+        <div class="section-header"><h2>What it is</h2><div class="section-line"></div></div>
+        <p>The page plays the song and draws the stage, so you can see what every light is doing at any moment. The plan is a list of <b>cues</b>: "at 0:27.54, lights 1 to 12 fade to warm white over 2 seconds."</p>
+        <p>From that one plan it makes everything the venue might want:</p>
+        <ul>
+            <li>a <b>video</b> of the stage with the song, to show the dancers or the tech;</li>
+            <li>a <b>spreadsheet</b>, one row per moment and one coloured column per light;</li>
+            <li>a <b>cue sheet</b>, plain text to paste into a submission form;</li>
+            <li>a <b>ShowXpress download</b> that plays the plan on real lights (see the <a href="showxpress.html">ShowXpress guide</a>).</li>
+        </ul>
+        <p>The published page is read-only. It always shows the plan that was last pushed. Add <code>?edit</code> to the address to get the editor.</p>
+    </section>
+
+    <section class="section" id="words">
+        <div class="section-header"><h2>Words you'll need <span class="track">Everyone</span></h2><div class="section-line"></div></div>
+        <dl>
+            <div><dt>Light (or fixture)</dt><dd>One lamp. Each has a number on the stage map. Here: 3 and 7 are on the poles, 10 on the loops, 11 is the backdrop, the rest are the floor.</dd></div>
+            <div><dt>Cue</dt><dd>One change at one moment: which lights, what colour, how bright, and how they get there.</dd></div>
+            <div><dt>Look</dt><dd>What the whole stage looks like between changes. The <b>Looks</b> view shows each one as a little stage picture.</dd></div>
+            <div><dt>Snap and fade</dt><dd>A snap changes instantly. A fade takes time (2 seconds by default). A fade from dark comes up in the new colour; a fade on a lit light blends colours, which is a <b>crossfade</b>.</dd></div>
+            <div><dt>Level</dt><dd>Brightness, 1 to 100%. To dim a light that's already on, cue it again lower.</dd></div>
+            <div><dt>All others off</dt><dd>Takes every light the cue doesn't name dark. With no lights named, it's a blackout.</dd></div>
+            <div><dt>Flash run</dt><dd>One cue that fires again and again on the beat: hits, pulses, strobes, chaos.</dd></div>
+            <div><dt>Section</dt><dd>A label for where each song in the mix starts. Purely for finding your way.</dd></div>
+            <div><dt>DMX, patch, address</dt><dd>DMX is the cable signal lights listen to. The <b>patch</b> is the venue's list of which light listens at which <b>address</b> (here 1, 33, 65 …). You get it from the venue tech; you don't choose it.</dd></div>
+            <div><dt>Controller</dt><dd>The program or desk that sends DMX. We used ShowXpress on a Mac. A venue might use a different one.</dd></div>
+        </dl>
+    </section>
+
+    <section class="section" id="steps">
+        <div class="section-header"><h2>Step by step <span class="track">Everyone</span></h2><div class="section-line"></div></div>
+
+        <h3>1. Talk to the venue tech first</h3>
+        <p>The answers decide what you can hand them. Ask early; it took us a few rounds.</p>
+        <ul>
+            <li>Who runs the lights on the night: you from a laptop, or the tech? Does the show run from a timeline that follows the music, or does someone press GO for each cue?</li>
+            <li>What controller do they use? If it's ShowXpress, ask for the show's <code>fixtures.ini</code> and the fixture file (ours was <code>SlimPAR 56 (7CH).txt</code>). Those are what make the download match their lights.</li>
+            <li>Which lights are which on their stage map? Is there a light in the patch that isn't on the map? (Ours had a 13th we never placed, so the show leaves it alone.)</li>
+            <li>Are strobes or fast flashing allowed, and do they need a warning posted?</li>
+            <li>What format do they want: cue sheet, spreadsheet, video, or show files?</li>
+        </ul>
+
+        <h3>2. Get the music and mark sections</h3>
+        <p>Use the exact file the show will play. Times only line up with that file. Mark where each song in the mix starts (<b>+ Section at playhead</b>, or <b>Paste a list…</b> with one <code>1:23.4 Name</code> per line).</p>
+
+        <h3>3. Find the moments</h3>
+        <p>Times are to the hundredth of a second. A hit at 0:57.66 that you light at 0:57.9 looks late.</p>
+        <ul>
+            <li>Arrow keys move 0.1 s (Shift for 1 s). <b>Loop here</b> (<kbd>L</kbd>) repeats a few seconds so you can hear one hit over and over.</li>
+            <li>The zoom strip shows 8 seconds of waveform around the playhead. Drums show as spikes.</li>
+            <li>For hits on a beat, make a flash run and use <b>Tap</b> (<kbd>T</kbd>) while it plays. It works out the tempo and the first hit.</li>
+            <li>If a passage repeats, find it once and say "same as 0:36.79". That's how we got Raven's drum fill exactly.</li>
+        </ul>
+
+        <h3>4. Write down what you want, in words</h3>
+        <p>Per section: who's the focus, what colours, snap or fade, how busy. Then turn it into cues, either by <a href="#asking">asking Claude</a> or in <a href="#editor">the editor</a>.</p>
+
+        <h3>5. Check it</h3>
+        <ul>
+            <li>Play it start to finish on the page. Then <b>Looks</b>: one picture per change makes repeats and mistakes jump out.</li>
+            <li><b>Download video</b> and watch it with the dancer. People notice things in a video they don't on the page.</li>
+            <li>Check on the real controller too. The page was right and ShowXpress was off more than once (see <a href="#lessons">Lessons</a>).</li>
+        </ul>
+
+        <h3>6. Hand it over</h3>
+        <p>Spreadsheet or cue sheet for a tech who'll program it themselves. Video so they see the intent. ShowXpress download if it'll run on ShowXpress; the <a href="showxpress.html">ShowXpress guide</a> covers installing and playing it.</p>
+    </section>
+
+    <section class="section" id="asking">
+        <div class="section-header"><h2>Asking Claude for changes <span class="track">Everyone</span></h2><div class="section-line"></div></div>
+        <p>Most of this show was built by describing changes to Claude in a session on this repo. Claude edits <code>starter-plan.json</code>, runs the tests, pushes, and merges when you say so. What made requests land first time:</p>
+        <ul>
+            <li><b>Times, to the hundredth, and light numbers.</b></li>
+            <li><b>Snap or fade, and which direction.</b> "Fade" got read as a crossfade when fade-<i>out</i> was meant. Say "snap on, fade out over 1 s".</li>
+            <li><b>Counts the way a dancer says them.</b> "1 and 2&amp;" is clear. Check you said the pattern you meant; we lost a round on that.</li>
+            <li><b>Where it stops.</b> "Chaos from 3:17 to 3:22, then normal, then chaos again from 3:40 to the end."</li>
+            <li><b>For a glitch: the time and the light.</b> "Light 4 blinks off around 2:14 in ShowXpress but not on the page." A screen recording helps a lot.</li>
+        </ul>
+        <div class="say">From 0:16, poles 3 and 7 switch to orange on each hit; dim everyone else to half.</div>
+        <div class="say">Raven's drums at 0:57.66 to 0:58.26 are the same figure as 0:36.79. One too many hits right now.</div>
+        <div class="say">For the strobing, can the lights that aren't 7 and 10 be dimmer?</div>
+    </section>
+
+    <section class="section" id="editor">
+        <div class="section-header"><h2>Making cues yourself <span class="track">Everyone</span></h2><div class="section-line"></div></div>
+        <p>Open the page with <code>?edit</code> on the end. Your edits save in your browser only, not on the published page.</p>
+        <ol>
+            <li>Load the song (or it loads the show's). Play to a moment and press <b>Add cue here</b> (<kbd>C</kbd>).</li>
+            <li>Pick lights by clicking them on the stage, or with Apparatus / Floor / Backdrop / All.</li>
+            <li>Choose On or Off, colour, level, Snap or Fade. Add an End if the lights should go out by themselves.</li>
+            <li>For hits: tick <b>Flash on the beat</b>, set the beat and count, then <b>Tap</b> along. <b>Soft pulse</b> sets up a gentle breathe.</li>
+            <li><b>Save cue</b>. The stage previews while you edit.</li>
+        </ol>
+        <p>Two cues at the same moment: the one entered later wins.</p>
+        <p>To share your work: <b>Export JSON</b> and send the file. Someone with repo access (or Claude) replaces <code>starter-plan.json</code> with it, and the published page updates. <b>Copy preview link</b> is a quicker read-only snapshot that lives in the link itself.</p>
+        <p class="note">A warning shows when a run flashes more than 3 times a second, the usual photosensitivity line (<a href="https://www.w3.org/WAI/WCAG22/Understanding/three-flashes-or-below-threshold.html">WCAG 2.3.1</a> is the web version). Stage rules vary; ask the venue.</p>
+    </section>
+
+    <section class="section" id="looks">
+        <div class="section-header"><h2>Looks that worked <span class="track">Everyone</span></h2><div class="section-line"></div></div>
+        <p>Taste, not rules. These are what the dancers liked after seeing videos.</p>
+        <ul>
+            <li><b>Solos:</b> the soloist's apparatus in warm white at full, the other apparatus dark, everyone else at about 55% in soft colours.</li>
+            <li><b>Keep the apparatus brightest in busy parts.</b> In the strobes the active pole or loops stays full and the floor flashes at 50%, so the dancer doesn't get lost.</li>
+            <li><b>Sharp switches for punchy intros; fade-outs for hits</b> (snap on, ease away). Crossfades for calm passages.</li>
+            <li><b>Breathing:</b> lights pulsing up and down, each slightly out of step and in a random order, not going round in a circle.</li>
+            <li><b>Chaos:</b> every light on its own shuffled run of the palette. Use it in short bursts; it stops meaning anything if it runs long.</li>
+            <li><b>Sweeps:</b> a colour change rippling across the stage once on a big moment. Once lands; repeated, it gets busy.</li>
+            <li>Pick a palette (ours was the five Teen Titans logo colours) and stay in it.</li>
+        </ul>
+    </section>
+
+    <section class="section" id="lessons">
+        <div class="section-header"><h2>Lessons <span class="track">Everyone</span></h2><div class="section-line"></div></div>
+        <ul>
+            <li><b>The page and the controller can disagree.</b> ShowXpress plays steps in 0.05 s ticks and rounded our timing, so strobes drifted off the beat. We measured it with a timing test and now line everything up to its ticks. Always check on the real thing.</li>
+            <li><b>Make changes on the page, never by hand in the controller.</b> The next install replaces whatever was changed in ShowXpress.</li>
+            <li><b>Quit ShowXpress before installing.</b> It saves over the new files when it closes.</li>
+            <li><b>Shows live in the home folder</b>, <code>~/TheLightingController/LightShows</code>, not next to the app.</li>
+            <li><b>The 3D view only draws with the DMX adapter unplugged</b>, and the Editor's output overrides Live.</li>
+            <li><b>Watch the video with the dancer early.</b> Every big change of direction came from them seeing it, not reading it.</li>
+            <li><b>Keep the song file fixed.</b> A re-export with a different start shifts every cue.</li>
+        </ul>
+    </section>
+
+    <section class="section" id="code">
+        <div class="section-header"><h2>How it's built <span class="track">Programmers</span></h2><div class="section-line"></div></div>
+        <p>Plain HTML, CSS and ES modules, no build step, served from GitHub Pages under a subpath (so every path is relative). Run <code>python3 -m http.server 8000</code> from the repo root and open <code>/apps/lighting-cue-builder/?edit</code>.</p>
+        <div class="table-wrap"><table>
+            <tr><th>File</th><th>What it holds</th></tr>
+            <tr><td><code>cues.js</code></td><td>The rig (<code>GROUPS</code>, <code>APPARATUS</code>, <code>LOGO_COLORS</code>), <code>normalizePlan</code>/<code>normalizeCue</code>, <code>stateAt(cues, t)</code> (every light's colour and level at a time), flash runs, cue sheet, spreadsheet rows. No DOM.</td></tr>
+            <tr><td><code>showxpress.js</code></td><td>Plan → ShowXpress scenes, timeline, 3D layout and install script. No DOM.</td></tr>
+            <tr><td><code>app.js</code></td><td>The page: stage drawing (<code>SHAPES</code>, <code>DRAW_ORDER</code>), transport, editor, merge review, exports, viewer vs <code>?edit</code>.</td></tr>
+            <tr><td><code>video.js</code>, <code>xlsx.js</code></td><td>Video recording; a tiny zip writer and the spreadsheet.</td></tr>
+            <tr><td><code>starter-plan.json</code></td><td>The show's plan. The published page shows exactly this.</td></tr>
+            <tr><td><code>show-audio.mp3</code></td><td>The show's track, loaded by default.</td></tr>
+            <tr><td><code>venue/</code></td><td>The venue tech's <code>fixtures.ini</code> and fixture profile.</td></tr>
+            <tr><td><code>test/</code></td><td>Node's built-in runner, <code>npm test</code>. Imports the shipped modules directly.</td></tr>
+        </table></div>
+
+        <h3>A cue</h3>
+<pre>{
+  "id": "example-strobe", "time": 150.2, "end": null, "outFade": null,
+  "lights": [7], "action": "on", "color": "#ffffff", "level": 100,
+  "transition": "sharp", "fade": 0.16, "othersOff": false, "note": "",
+  "repeat": {
+    "bpm": 165, "beats": 0.25, "count": 16, "onFrac": 0.5,
+    "altColor": null, "dimTo": 0, "keepColor": false,
+    "stagger": { "3": 0.1 },
+    "cycle": ["#ec1b24", "#00acee"]
+  },
+  "option": null
+}</pre>
+        <ul>
+            <li><code>end</code> takes the lights out with the same transition, or over <code>outFade</code> seconds if set (snap on, fade away).</li>
+            <li><code>repeat</code> makes a flash run: <code>count</code> flashes every <code>beats</code> at <code>bpm</code>, each lit for <code>onFrac</code> of the gap, dropping to <code>dimTo</code>% between. <code>altColor</code> alternates two colours; <code>cycle</code> steps through a list instead; <code>stagger</code> delays individual lights (seconds) so one cue can ripple; <code>keepColor</code> changes brightness only.</li>
+            <li><code>option</code> puts a cue in a named alternative (a plan and a backup); <code>optionPicks</code> on the plan picks one.</li>
+            <li>Later cues at the same time win. <code>normalizeCue</code> accepts every older shape, so saved plans keep loading. Keep it that way: a storage change needs a normalizer and a test with an old record.</li>
+        </ul>
+
+        <h3>The ShowXpress export</h3>
+        <ul>
+            <li>The timeline is a row of <b>blocks</b>, each a few seconds long (3 to 8, up to 16), with every change inside a block as a <b>step</b>. One scene per look made lights blink at every join; blocks fixed it.</li>
+            <li>Block edges go on tenths of a second, inside held looks, at least 0.25 s from any snap or short fade. A block opens with a snap to the exact state at that moment.</li>
+            <li>Step lengths are in hundredths of a second, but ShowXpress plays them in 0.05 s ticks, rounding each step up. Steps are placed on that tick grid (<code>TICK</code>) so nothing drifts. The download includes a "Timing test" timeline that proved this.</li>
+            <li>Every step writes all 7 channels of every light: colour on RGB, brightness on the dimmer (<code>SLIMPAR</code> in <code>showxpress.js</code>).</li>
+            <li><code>test/showxpress.test.mjs</code> plays the generated show back and checks it against <code>stateAt</code> across the whole song.</li>
+        </ul>
+    </section>
+
+    <section class="section" id="new-show">
+        <div class="section-header"><h2>Setting it up for someone else's show <span class="track">Programmers</span></h2><div class="section-line"></div></div>
+        <p>Not a programmer? Start a Claude session on this repo and ask it to "set up the lighting cue builder for [show]". Bring: the song, a picture of the venue's stage map, which lights are which, the venue's fixture files if they use ShowXpress, and a palette. Claude does the list below.</p>
+        <p>For a second show alongside this one, copy the folder to <code>apps/&lt;new-name&gt;/</code> and change:</p>
+        <ol>
+            <li><b>Storage keys.</b> Every app on the site shares one origin. Change <code>STORE_KEY</code>, <code>DB_NAME</code>, <code>VIEW_KEY</code>, <code>FOLD_KEY</code> and <code>SHOW_KEY</code> in <code>app.js</code> to a new prefix, or the two shows overwrite each other's saved plans.</li>
+            <li><b>The rig</b> in <code>cues.js</code>: <code>GROUPS</code>, <code>APPARATUS</code>, <code>LOGO_COLORS</code>.</li>
+            <li><b>The stage map</b> in <code>app.js</code>: <code>SHAPES</code> (an ellipse or rectangle per light, in the diagram's pixel space) and <code>DRAW_ORDER</code>.</li>
+            <li><b>The show</b>: a new <code>starter-plan.json</code> (export JSON from the editor works) and <code>show-audio.mp3</code>; <code>SHOW_AUDIO</code> in <code>app.js</code>.</li>
+            <li><b>ShowXpress</b>: the venue's files in <code>venue/</code>, then <code>VENUE</code> and <code>SXP_SHOW</code> in <code>app.js</code>. If their fixture isn't a 7-channel RGB + dimmer, change <code>SLIMPAR</code> to its channel order. The install script names the show folder from <code>SXP_SHOW</code>, and the guide's commands need to match.</li>
+            <li><b>Tests</b>: the "shipped show plan" test checks Teen Titans moments (the solos, the pole pulsing). Rewrite it for the new show rather than deleting it.</li>
+            <li><b>A card</b> in the repo's root <code>index.html</code>, and the copy in <code>showxpress.html</code> and this page.</li>
+        </ol>
+        <p>Venue doesn't use ShowXpress? The spreadsheet, cue sheet and video work anywhere. For another controller, <code>stateAt</code> and <code>changeTimes</code> give you every light's state at every change; a new exporter would sit beside <code>showxpress.js</code>.</p>
+        <p class="note">Facts about ShowXpress here come from its demo show, its manuals and tests on a real Mac. Other versions may differ; run the timing test after any update.</p>
+    </section>
+</div>
+</body>
+</html>
