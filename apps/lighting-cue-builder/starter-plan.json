@@ -2574,7 +2574,6 @@
         1,
         3,
         6,
-        8,
         12
       ],
       "action": "on",
@@ -2592,7 +2591,32 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791958592709
+      "updatedAt": 1791961737730
+    },
+    {
+      "id": "raven-solo-lime-bright",
+      "time": 37.52,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        8
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": {
+        "group": "solo-run",
+        "label": "Run into Raven's solo",
+        "choice": "Hits",
+        "primary": true
+      },
+      "updatedAt": 1791961737730
     },
     {
       "id": "raven-solo-lav",
@@ -2600,10 +2624,7 @@
       "end": null,
       "outFade": null,
       "lights": [
-        2,
         4,
-        5,
-        9,
         11
       ],
       "action": "on",
@@ -2621,7 +2642,34 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791958592709
+      "updatedAt": 1791961737730
+    },
+    {
+      "id": "raven-solo-lav-bright",
+      "time": 37.52,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        5,
+        9
+      ],
+      "action": "on",
+      "color": "#9b72ff",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "2, 5, 8 and 9 at full through the first part of the solo (to 0:54.47): Raven is around there too",
+      "repeat": null,
+      "option": {
+        "group": "solo-run",
+        "label": "Run into Raven's solo",
+        "choice": "Hits",
+        "primary": true
+      },
+      "updatedAt": 1791961737730
     },
     {
       "id": "raven-vocal1-x",
@@ -2629,10 +2677,7 @@
       "end": null,
       "outFade": null,
       "lights": [
-        2,
         4,
-        5,
-        9,
         11
       ],
       "action": "on",
@@ -2653,7 +2698,37 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791961737730
+    },
+    {
+      "id": "raven-vocal1-x-bright",
+      "time": 39.43,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        5,
+        9
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "fade",
+      "fade": 0.16,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#9b72ff",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791961737730
     },
     {
       "id": "raven-vocal1-y",
@@ -2664,7 +2739,6 @@
         1,
         3,
         6,
-        8,
         12
       ],
       "action": "on",
@@ -2685,7 +2759,35 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791961737730
+    },
+    {
+      "id": "raven-vocal1-y-bright",
+      "time": 39.43,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        8
+      ],
+      "action": "on",
+      "color": "#9b72ff",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "fade",
+      "fade": 0.16,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#c0d62d",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791961737730
     },
     {
       "id": "raven-vocal2-x",
@@ -2693,10 +2795,7 @@
       "end": null,
       "outFade": null,
       "lights": [
-        2,
         4,
-        5,
-        9,
         11
       ],
       "action": "on",
@@ -2717,7 +2816,37 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791961737730
+    },
+    {
+      "id": "raven-vocal2-x-bright",
+      "time": 44.44,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        5,
+        9
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "fade",
+      "fade": 0.16,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#9b72ff",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791961737730
     },
     {
       "id": "raven-vocal2-y",
@@ -2728,7 +2857,6 @@
         1,
         3,
         6,
-        8,
         12
       ],
       "action": "on",
@@ -2749,7 +2877,35 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791961737730
+    },
+    {
+      "id": "raven-vocal2-y-bright",
+      "time": 44.44,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        8
+      ],
+      "action": "on",
+      "color": "#9b72ff",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "fade",
+      "fade": 0.16,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#c0d62d",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791961737730
     },
     {
       "id": "raven-rap-x",
@@ -2757,10 +2913,7 @@
       "end": null,
       "outFade": null,
       "lights": [
-        2,
         4,
-        5,
-        9,
         11
       ],
       "action": "on",
@@ -2773,7 +2926,29 @@
       "note": "Raven starts rapping (0:47.57): lime and lavender swap",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791961737730
+    },
+    {
+      "id": "raven-rap-x-bright",
+      "time": 47.57,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        5,
+        9
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "fade",
+      "fade": 0.16,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791961737730
     },
     {
       "id": "raven-rap-y",
@@ -2784,7 +2959,6 @@
         1,
         3,
         6,
-        8,
         12
       ],
       "action": "on",
@@ -2797,7 +2971,27 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791961737730
+    },
+    {
+      "id": "raven-rap-y-bright",
+      "time": 47.57,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        8
+      ],
+      "action": "on",
+      "color": "#9b72ff",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "fade",
+      "fade": 0.16,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791961737730
     },
     {
       "id": "raven-vocal3-x",
@@ -2805,10 +2999,7 @@
       "end": null,
       "outFade": null,
       "lights": [
-        2,
         4,
-        5,
-        9,
         11
       ],
       "action": "on",
@@ -2829,7 +3020,37 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791961737730
+    },
+    {
+      "id": "raven-vocal3-x-bright",
+      "time": 49.45,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
+        5,
+        9
+      ],
+      "action": "on",
+      "color": "#9b72ff",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "fade",
+      "fade": 0.16,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#c0d62d",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791961737730
     },
     {
       "id": "raven-vocal3-y",
@@ -2840,7 +3061,6 @@
         1,
         3,
         6,
-        8,
         12
       ],
       "action": "on",
@@ -2861,7 +3081,35 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791961737730
+    },
+    {
+      "id": "raven-vocal3-y-bright",
+      "time": 49.45,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        8
+      ],
+      "action": "on",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
+      "level": 100,
+      "transition": "fade",
+      "fade": 0.16,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 95.77,
+        "beats": 1,
+        "count": 2,
+        "onFrac": 1,
+        "altColor": "#9b72ff",
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1791961737730
     },
     {
       "id": "raven-vocal4-x",
