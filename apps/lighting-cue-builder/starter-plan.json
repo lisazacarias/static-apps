@@ -3553,6 +3553,37 @@
       "updatedAt": 1791706000000
     },
     {
+      "id": "slade-orange",
+      "time": 120,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 60,
+      "transition": "fade",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Slade: the whole stage fades up together to a moody 60% orange as he starts talking (2:00)",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791956410939
+    },
+    {
       "id": "slade-breathe",
       "time": 120,
       "end": null,
@@ -3578,7 +3609,7 @@
       "transition": "fade",
       "fade": 2,
       "othersOff": false,
-      "note": "Slade breathes from his first word (2:00): each light fades up to 60% orange in a scattered order, then eases to 20% and back every 4.6s, out of step with its neighbours",
+      "note": "...then the lights breathe out of step in a scattered order, each easing to 20% and back every 4.6s; the first starts dimming as the fade-up lands",
       "repeat": {
         "bpm": 26,
         "beats": 2,
@@ -3602,7 +3633,7 @@
         }
       },
       "option": null,
-      "updatedAt": 1791956304380
+      "updatedAt": 1791956410939
     },
     {
       "id": "battle-in-on",
