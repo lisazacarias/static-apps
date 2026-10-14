@@ -4918,17 +4918,7 @@
       "end": null,
       "outFade": null,
       "lights": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        11,
-        12
+        7
       ],
       "action": "on",
       "color": "#fbb612",
@@ -4937,7 +4927,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle hits 1–8: everything but the loops strobes — short flashes for a stop-motion look on the pole (7)",
+      "note": "Battle hits 1–8: the pole (7) strobes at full for the stop-motion look; everything else but the loops strobes with it at 50%",
       "repeat": {
         "bpm": 96.37,
         "beats": 1,
@@ -4948,10 +4938,75 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791727000000
+      "updatedAt": 1792005933048
+    },
+    {
+      "id": "battle-hits-1-floor",
+      "time": 164.32,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        8,
+        9,
+        11,
+        12
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 50,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 96.37,
+        "beats": 1,
+        "count": 8,
+        "onFrac": 0.25,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1792005933048
     },
     {
       "id": "battle-hits-2",
+      "time": 169.3,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        10
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Battle hits 9–16: the loops (10) strobe at full; everything else but the pole strobes with them at 50%",
+      "repeat": {
+        "bpm": 96.37,
+        "beats": 1,
+        "count": 8,
+        "onFrac": 0.25,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1792005933048
+    },
+    {
+      "id": "battle-hits-2-floor",
       "time": 169.3,
       "end": null,
       "outFade": null,
@@ -4964,18 +5019,17 @@
         6,
         8,
         9,
-        10,
         11,
         12
       ],
       "action": "on",
       "color": "#fbb612",
       "colorName": "Titans orange",
-      "level": 100,
+      "level": 50,
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Battle hits 9–16: everything but the pole strobes — stop motion on the loops (10)",
+      "note": "",
       "repeat": {
         "bpm": 96.37,
         "beats": 1,
@@ -4986,7 +5040,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1791727000000
+      "updatedAt": 1792005933048
     },
     {
       "id": "battle-full-2",
