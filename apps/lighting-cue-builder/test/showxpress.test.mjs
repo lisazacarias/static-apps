@@ -49,13 +49,13 @@ test('a held look is one scene that sets all 7 channels on all 12 lights', () =>
 test('a fade becomes steps that fade over exactly its length', () => {
   const plan = normalizePlan({ cues: [cue({ time: 1, lights: [1], transition: 'fade', fade: 2.5 })] });
   const { scenes, blocks, timeline } = showxpressShow(plan, { fixturesIni: INI, duration: 10 });
-  // a new block starts inside the held look after the fade
-  assert.deepEqual(blocks.map((b) => [b.start, b.file]), [[0, '001 at 0.0s.scex'], [3.6, '002 at 3.6s.scex']]);
+  // a new block starts inside the held look after the fade, clear of the fade's end
+  assert.deepEqual(blocks.map((b) => [b.start, b.file]), [[0, '001 at 0.0s.scex'], [3.8, '002 at 3.8s.scex']]);
   // lengths are hundredths: dark for 1 s, fade 2.5 s, then held (padded so it never loops)
   const steps = [...scenes.get(blocks[0].file).matchAll(/<Step length="(\d+)">/g)].map((m) => Number(m[1]));
-  assert.deepEqual(steps, [100, 250, 10 + 60000]);
+  assert.deepEqual(steps, [100, 250, 30 + 60000]);
   assert.match(scenes.get(blocks[0].file), /fade="1"/);
-  assert.match(timeline, /\[Event_2\]\r\nTimeLineIndex = 3\r\nStartTime = 0:00:03.60\r\nPath = 002 at 3.6s.scex\r\nLength = 0:00:06.40/);
+  assert.match(timeline, /\[Event_2\]\r\nTimeLineIndex = 3\r\nStartTime = 0:00:03.80\r\nPath = 002 at 3.8s.scex\r\nLength = 0:00:06.20/);
   assert.match(timeline, /\[Event_0\]\r\nTimeLineIndex = 2\r\nStartTime = 0:00:00.00\r\nPath = Live\/music.wav/);
 });
 
@@ -163,4 +163,17 @@ test('a long fade split across blocks carries on without a jump', () => {
     const want = stateAt(cues, b.start).lights;
     assert.ok([1, 2].every((l) => Math.abs(after[l - 1] - want[l].level * 255) < 2), `matches the page at ${b.start}`);
   }
+});
+
+test('block edges stay clear of snaps, so a flash never lands right at one', () => {
+  const plan = normalizePlan(JSON.parse(readFileSync(new URL('../starter-plan.json', import.meta.url))));
+  const cues = activeCues(plan.cues, plan.optionPicks);
+  const { blocks } = showxpressShow(plan, { fixturesIni: INI, duration: 235.31 });
+  // a snap: the page jumps between two instants a hundredth apart
+  const rgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const jump = (t) => { const a = stateAt(cues, t - 0.003).lights, b = stateAt(cues, t + 0.003).lights; return [1,2,3,4,5,6,7,8,9,10,11,12].some((l) => Math.abs(a[l].level - b[l].level) > 0.2 || (a[l].level > 0.02 && rgb(a[l].color).some((v, i) => Math.abs(v - rgb(b[l].color)[i]) > 60))); };
+  const snaps = changeTimes(cues).filter(jump);
+  const tight = blocks.slice(1).map((b) => [b.start, Math.min(...snaps.map((c) => Math.abs(c - b.start)))]).filter(([, r]) => r < 0.25);
+  assert.equal(tight.length, 0, `edges close to a snap: ${tight.map(([t, r]) => `${t}s (${r.toFixed(2)})`).join(', ')}`);
+  assert.ok(Math.max(...blocks.map((b) => b.length)) <= 16.5, 'no block longer than about 16 s');
 });

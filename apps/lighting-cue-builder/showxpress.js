@@ -110,10 +110,10 @@ export function pieces(cues, duration) {
  *  fast runs came out uneven (eighths at 0.29 s played as 0.3, 0.3, 0.2…)
  *  and fades stepped at the joins. Steps are exact to the hundredth, so
  *  only block edges sit on tenths. Edges go inside a held look where one
- *  comes along (nothing changes there), else every 6 s, and each block's
+ *  comes along (nothing changes there), else every 8 s, and each block's
  *  first step snaps to exactly what the page shows at its edge, so the
  *  joins don't show. → [{ start, end, steps: [{ t, snap, fade }] }] */
-export function blocks(pieceList, duration, { every = 3, most = 6, grid = 0.1 } = {}) {
+export function blocks(pieceList, duration, { every = 3, most = 8, longest = 16, clear = 0.25, grid = 0.1 } = {}) {
   // pieces() folds a look held after a fade into the fade's piece; split it
   // back out so a fade step only ever covers the fade itself
   const ps = pieceList.flatMap((p) => (p.fade && p.end - p.start > p.fade + 1e-9
@@ -124,14 +124,31 @@ export function blocks(pieceList, duration, { every = 3, most = 6, grid = 0.1 } 
     const p = ps.find((q) => t >= q.start && t < q.end) || ps[ps.length - 1];
     return p.fade ? lerp(p.from, p.to, Math.min(1, (t - p.start) / p.fade)) : p.to;
   };
-  const holding = (t) => ps.some((p) => !p.fade && p.start <= t - 0.05 && p.end >= t + 0.05);
-  const changes = ps.map((p) => p.start);
+  // ShowXpress may take a moment to switch blocks, so an edge stays at
+  // least `clear` seconds from any snap (where the stage jumps): a flash
+  // right after an edge could get swallowed. Smooth fades hide an edge
+  // fine. Prefer a held look, looking up to `longest` ahead so a whole
+  // strobe or chaos run can sit in one block; failing that, the quietest
+  // tenth (most room either side).
+  // (quick fades count too: cutting one costs it a hundredth, a visible step)
+  const changes = [
+    ...ps.filter((p, i) => i > 0 && !looksSame(ps[i - 1].to, p.from)).map((p) => p.start),
+    ...ps.filter((p) => p.fade && p.fade < 1).flatMap((p) => [p.start, p.end]),
+  ];
+  const room = (t) => Math.min(...changes.map((c) => Math.abs(c - t)), Infinity);
+  const holding = (t) => ps.some((p) => !p.fade && p.start <= t - clear && p.end >= t + clear);
   const edges = [0];
-  for (let t = tenth(every); t < duration - grid / 2; t = tenth(t + grid)) {
+  for (;;) {
     const from = edges[edges.length - 1];
-    if (t - from < every - 1e-9) continue;
-    const busy = changes.some((c) => c > from + 1e-9 && c < t);
-    if (busy && (holding(t) || t - from >= most - 1e-9)) edges.push(Math.round(t * 1000) / 1000);
+    if (!ps.some((p) => p.start > from + every)) break; // nothing left to split for
+    let pick = null, best = null;
+    for (let t = tenth(from + every); t <= from + longest + 1e-9 && t < duration - every; t = tenth(t + grid)) {
+      if (room(t) >= clear && holding(t)) { pick = t; break; }
+      if (t <= from + most + 1e-9 && (!best || room(t) > room(best) + 1e-9)) best = t;
+    }
+    pick = pick ?? best;
+    if (pick === null) break;
+    edges.push(Math.round(pick * 1000) / 1000);
   }
   return edges.map((a, i) => {
     const b = i + 1 < edges.length ? edges[i + 1] : duration;
