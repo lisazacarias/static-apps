@@ -42,7 +42,8 @@ test('a held look is one scene that sets all 7 channels on all 12 lights', () =>
   assert.equal((xml.match(/<Channel /g) || []).length, 12 * 7);
   // light 1: lavender, macro/shutter/mode 0, dimmer full; light 3 dark
   assert.match(xml, /<Fixture id="1000">\r\n {8}<Channel index="0" value="155" fade="0"\/>\r\n {8}<Channel index="1" value="114" fade="0"\/>\r\n {8}<Channel index="2" value="255" fade="0"\/>\r\n {8}<Channel index="3" value="0" fade="0"\/>\r\n {8}<Channel index="4" value="0" fade="0"\/>\r\n {8}<Channel index="5" value="0" fade="0"\/>\r\n {8}<Channel index="6" value="255" fade="0"\/>/);
-  assert.match(xml, /<Fixture id="1002">(\r\n {8}<Channel index="\d" value="\d+" fade="0"\/>){6}\r\n {8}<Channel index="6" value="0"/);
+  // dark is red, green and blue at 0: Revel's lights ignore the dimmer
+  assert.match(xml, /<Fixture id="1002">(\r\n {8}<Channel index="\d" value="0" fade="0"\/>){6}\r\n {8}<Channel index="6" value="255"/);
   assert.ok(!xml.includes('id="1012"'), 'CH13 is not on the map, so scenes leave it alone');
 });
 
@@ -214,12 +215,43 @@ test('the Revel starter sets every channel of all 13 lights and never installs o
   const black = scene('00 blackout');
   assert.equal((black.match(/<Fixture id="\d+">/g) || []).length, 13, 'CH13 too');
   assert.equal((black.match(/<Channel /g) || []).length, 13 * 7);
-  assert.ok(!/value="[1-9]/.test(black), 'every channel at zero');
+  assert.ok(!/index="[0-5]" value="[1-9]/.test(black), 'red, green, blue, macro, shutter and mode at zero');
   const find = scene('03 find each light');
   assert.equal((find.match(/<Step length="200">/g) || []).length, 13, 'one light at a time, 2 s each');
-  assert.equal((find.match(/index="6" value="255"/g) || []).length, 13, 'one dimmer up per step');
+  assert.equal((find.match(/index="0" value="255"/g) || []).length, 13, 'one light lit per step');
   const sh = files.find((f) => f.name.endsWith('install.sh'));
   assert.ok(sh.executable);
   assert.match(sh.data, /\[ -e "\$DEST\/\$rel" \] \|\| cp/, 'starter scenes only fill gaps');
   assert.doesNotMatch(sh.data, /rm -rf/);
+});
+
+import { rgbOut } from '../showxpress.js';
+
+test('brightness goes out on red, green and blue, since Revel only listens to those', () => {
+  const plan = normalizePlan({ cues: [cue({ time: 0, lights: [1], color: '#ffd9a0', level: 55 })] });
+  const { scenes, blocks } = showxpressShow(plan, { fixturesIni: INI, duration: 10 });
+  const xml = scenes.get(blocks[0].file);
+  const ch = (id, i) => Number(xml.match(new RegExp(`<Fixture id="${id}">(?:\\r\\n {8}<Channel[^>]*>){${i}}\\r\\n {8}<Channel index="${i}" value="(\\d+)"`))[1]);
+  assert.deepEqual([0, 1, 2].map((i) => ch(1000, i)), [140, 119, 88], 'warm white at 55%');
+  assert.equal(ch(1000, 6), 255, 'dimmer held at full for rigs where it works');
+  assert.deepEqual(rgbOut([255, 217, 160, 0]), [0, 0, 0], 'a dark light sends no colour');
+});
+
+import { dimmerTest } from '../showxpress.js';
+
+test('the old dimmer behaviour is still there to switch back to', () => {
+  const plan = normalizePlan({ cues: [cue({ time: 0, lights: [1], color: '#ffd9a0', level: 55 })] });
+  const { scenes, blocks } = showxpressShow(plan, { fixturesIni: INI, duration: 10, brightness: 'dimmer' });
+  assert.match(scenes.get(blocks[0].file), /<Fixture id="1000">\r\n {8}<Channel index="0" value="255"[^]*?<Channel index="6" value="140"/);
+});
+
+test('the dimmer test fades the dimmer alone, then red, green and blue alone', () => {
+  const [scene, tml] = dimmerTest(INI);
+  const steps = scene.data.split('<Step ').slice(1);
+  assert.equal(steps.length, 6);
+  const first = (st, i) => Number(st.match(new RegExp(`index="${i}" value="(\\d+)"`))[1]);
+  assert.deepEqual([0, 6].map((i) => first(steps[1], i)), [255, 0], 'dimmer to 0, red left at full');
+  assert.deepEqual([0, 6].map((i) => first(steps[4], i)), [0, 255], 'red to 0, dimmer left at full');
+  assert.equal((steps[0].match(/<Fixture id=/g) || []).length, 13, 'CH13 too');
+  assert.match(tml.data, /Path = dimmer test.scex/);
 });

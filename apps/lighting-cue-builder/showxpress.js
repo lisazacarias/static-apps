@@ -12,6 +12,10 @@ import { ALL_LIGHTS, activeCues, changeTimes, hexToRgb, stateAt } from './cues.j
 // Channel order of the venue's SlimPAR 56 in 7-channel mode, from the
 // profile the venue sent: red, green, blue, colour macro, shutter, mode,
 // dimmer. Index 3–5 stay at 0: macro off, shutter open, plain RGB mode.
+// At Revel only red, green and blue respond (Quan: "only the RGB works,
+// there's no dimmer or any other channel"), so brightness goes out as the
+// colour scaled down, and the dimmer is held at full. A rig whose dimmer
+// does work gets the same look.
 const SLIMPAR = { red: 0, green: 1, blue: 2, dimmer: 6, channels: 7 };
 
 // Step lengths are whole hundredths of a second: the demo's 5 s fade-off
@@ -208,19 +212,33 @@ export function view3dIni(fixturesIni, pools, { scale = 85, height = 4.5 } = {})
 
 const safe = (name) => name.replace(/[^A-Za-z0-9 ._()%+-]+/g, '').replace(/\s+/g, ' ').trim();
 
-function sceneXml(fixtures, steps) {
+// How brightness goes out. 'rgb' (the default): the colour times the level
+// on red, green and blue, dimmer held at full. A fade between two steps then
+// dims the colour itself, the only way it can dim at Revel; a rig whose
+// dimmer works gets the same look. When colour and level change in the same
+// fade the middle differs a little from the page (a product of two straight
+// lines isn't one). 'dimmer': full colour, level on the dimmer, as before
+// Quan's note, kept so the dimmer test can be acted on either way.
+export const rgbOut = ([r, g, b, d]) => [r, g, b].map((v) => Math.round((v * d) / 255));
+const channelsOf = (snap, brightness) => {
+  const vals = new Array(SLIMPAR.channels).fill(0);
+  const [r, g, b] = brightness === 'dimmer' ? snap.slice(0, 3).map((v) => Math.round(v)) : rgbOut(snap);
+  vals[SLIMPAR.red] = r; vals[SLIMPAR.green] = g; vals[SLIMPAR.blue] = b;
+  vals[SLIMPAR.dimmer] = brightness === 'dimmer' ? Math.round(snap[3]) : 255;
+  return vals;
+};
+
+// steps: [{ ticks, fade, vals: [one 7-channel array per fixture] }]
+function rawSceneXml(fixtures, steps) {
   const lines = ['<?xml version="1.0" encoding="UTF-8"?>', '', '<Scene>', '  <Fixtures>'];
   for (const f of fixtures) lines.push(`    <Fixture id="${f.id}" name="${f.name}" model="${f.model}"/>`);
   lines.push('  </Fixtures>', '  <Steps>');
   for (const st of steps) {
     lines.push(`    <Step length="${st.ticks}">`);
     fixtures.forEach((f, i) => {
-      const [r, g, b, d] = st.snap[i].map((v) => Math.round(v));
-      const vals = new Array(SLIMPAR.channels).fill(0);
-      vals[SLIMPAR.red] = r; vals[SLIMPAR.green] = g; vals[SLIMPAR.blue] = b; vals[SLIMPAR.dimmer] = d;
       lines.push(`      <Fixture id="${f.id}">`);
       // Every channel is written, so a scene never leaves one over from the last.
-      vals.forEach((v, ch) => lines.push(`        <Channel index="${ch}" value="${v}" fade="${st.fade ? 1 : 0}"/>`));
+      st.vals[i].forEach((v, ch) => lines.push(`        <Channel index="${ch}" value="${v}" fade="${st.fade ? 1 : 0}"/>`));
       lines.push('      </Fixture>');
     });
     lines.push('    </Step>');
@@ -229,8 +247,12 @@ function sceneXml(fixtures, steps) {
   return lines.join('\r\n');
 }
 
+function sceneXml(fixtures, steps, brightness = 'rgb') {
+  return rawSceneXml(fixtures, steps.map((st) => ({ ...st, vals: st.snap.map((sn) => channelsOf(sn, brightness)) })));
+}
+
 /** → { scenes: Map(fileName → xml), timeline: ini text, blocks: [...] } */
-export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/music.wav', title = 'show' }) {
+export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/music.wav', title = 'show', brightness = 'rgb' }) {
   const all = parseFixturesIni(fixturesIni);
   const fixtures = ALL_LIGHTS.map((l) => all.find((f) => f.light === l));
   const missing = ALL_LIGHTS.filter((l, i) => !fixtures[i]);
@@ -259,7 +281,7 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
       const next = k + 1 < kept.length ? at[k + 1] : Math.max(tick(bl.end), at[k] + TICK * 100);
       return { ...st, ticks: Math.round(next - at[k] + (k + 1 === kept.length ? HOLD * 100 : 0)) };
     });
-    scenes.set(file, sceneXml(fixtures, steps));
+    scenes.set(file, sceneXml(fixtures, steps, brightness));
     return { start: bl.start, length: bl.end - bl.start, file, steps };
   });
 
@@ -282,11 +304,11 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
  *  ~/TheLightingController/LightShows/<show>, which is where ShowXpress 9
  *  on a Mac keeps its shows (File › Open lightshow Folder shows it).
  *  → [{ name, data }] for xlsx.js's zip() */
-export function showxpressPackage(plan, { fixturesIni, profile, profileName, pools, audio, duration, showName }) {
+export function showxpressPackage(plan, { fixturesIni, profile, profileName, pools, audio, duration, showName, brightness }) {
   // no spaces, so the install command needs no escaping: bash ~/Downloads/teen-titans-showxpress/install.sh
   const root = `${showName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-showxpress`;
   const show = `${root}/show`;
-  const { scenes, timeline } = showxpressShow(plan, { fixturesIni, duration, title: `${showName} lights`, audioPath: 'Live/music.wav' });
+  const { scenes, timeline } = showxpressShow(plan, { fixturesIni, duration, title: `${showName} lights`, audioPath: 'Live/music.wav', brightness });
   const files = [
     { name: `${root}/install.sh`, data: installScript(showName), executable: true },
     { name: `${show}/fixtures.ini`, data: fixturesIni },
@@ -296,7 +318,7 @@ export function showxpressPackage(plan, { fixturesIni, profile, profileName, poo
     ...[...scenes].map(([file, xml]) => ({ name: `${show}/scenes/${file}`, data: xml })),
   ];
   if (audio) files.push({ name: `${show}/Live/music.mp3`, data: audio });
-  files.push(...timingTest(fixturesIni).map((f) => ({ ...f, name: `${show}/${f.name}` })));
+  files.push(...[...timingTest(fixturesIni), ...dimmerTest(fixturesIni)].map((f) => ({ ...f, name: `${show}/${f.name}` })));
   return files;
 }
 
@@ -351,7 +373,7 @@ export function starterPackage({ fixturesIni, profile, profileName, pools }) {
     { name: `${root}/show/fixtures/${profileName}.txt`, data: profile },
     { name: `${root}/show/3DView/fixtures.ini`, data: view3dIni(fixturesIni, pools) },
     ...Object.entries(scenes).map(([n, steps]) => ({ name: `${root}/show/scenes/${n}.scex`, data: sceneXml(fixtures, steps) })),
-    ...timingTest(fixturesIni).map((f) => ({ ...f, name: `${root}/show/${f.name}` })),
+    ...[...timingTest(fixturesIni), ...dimmerTest(fixturesIni)].map((f) => ({ ...f, name: `${root}/show/${f.name}` })),
   ];
 }
 
@@ -412,6 +434,33 @@ find "$DEST/fixtures.ini" "$DEST/fixtures" "$DEST/3DView" -exec touch {} +
 echo "Done: $DEST"
 echo "Open ShowXpress, choose File > Open lightshow > $NAME. Editor > Fixtures should show CH1 to CH13."
 `;
+}
+
+/** A "Dimmer test" timeline, to see whether the dimmer channel does
+ *  anything: every light (CH13 too) white, then the dimmer alone fades to
+ *  0 over 3 s with red, green and blue left at full; back to white; then
+ *  red, green and blue alone fade to 0 with the dimmer left at full.
+ *  If the first fade goes dark, the dimmer works. Quan says it doesn't. */
+export function dimmerTest(fixturesIni) {
+  const fixtures = parseFixturesIni(fixturesIni).sort((a, b) => a.light - b.light);
+  const all = (rgb, d) => fixtures.map(() => [...rgb, 0, 0, 0, d]);
+  const white = all([255, 255, 255], 255);
+  const steps = [
+    { ticks: 200, fade: false, vals: white },                          // 0:00 white
+    { ticks: 300, fade: true, vals: all([255, 255, 255], 0) },         // 0:02 dimmer only → 0
+    { ticks: 200, fade: false, vals: all([255, 255, 255], 0) },        // 0:05 hold
+    { ticks: 200, fade: false, vals: white },                          // 0:07 white again
+    { ticks: 300, fade: true, vals: all([0, 0, 0], 255) },             // 0:09 red, green, blue only → 0
+    { ticks: HOLD * 100, fade: false, vals: all([0, 0, 0], 255) },     // 0:12 dark
+  ];
+  const ini = ['', '[Params]', 'Version = 0.2', 'CommentTimeLine = 0', 'LightTimeLines = 1', 'MediaTimeLines = 1',
+    'ShowWaveForm = 0', 'Zoom = 1', 'MaxTime = 0:00:20',
+    'TimeLine_1 = V I D E O   P I C T U R E   T I M E L I N E', 'TimeLine_2 = music', 'TimeLine_3 = dimmer test',
+    '[Event_0]', 'TimeLineIndex = 3', 'StartTime = 0:00:00.00', 'Path = dimmer test.scex', 'Length = 0:00:15.00', 'Speed = 100', 'SpeedType = 2', ''];
+  return [
+    { name: 'scenes/dimmer test.scex', data: rawSceneXml(fixtures, steps) },
+    { name: 'Live/TimeLine/timelines/Dimmer test.tml', data: ini.join('\r\n') },
+  ];
 }
 
 function installScript(showName) {

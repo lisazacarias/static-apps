@@ -14,6 +14,13 @@
 # name the same light.
 import csv, math, os, sys, wave
 
+# Revel's lights only respond to red, green and blue (Quan: "only the RGB
+# works, there's no dimmer or any other channel"), so brightness goes out
+# as the colour scaled down, with the dimmer held at full. Set this to
+# 'dimmer' for full colour with brightness on the dimmer instead, if the
+# starter's "Dimmer test" timeline shows the dimmer working.
+BRIGHTNESS = 'rgb'
+
 if len(sys.argv) != 3:
     sys.exit('Usage: python3 make_show.py "Show name" cues.csv')
 NAME, CUES = sys.argv[1], sys.argv[2]
@@ -72,8 +79,13 @@ for i, r in enumerate(rows, 1):
     lights = [int(x) for x in r['lights'].split()]
     hexc = r['color'].strip().lstrip('#')
     red, green, blue = (int(hexc[k:k + 2], 16) for k in (0, 2, 4))
+    level = float(r['level']) / 100
+    if BRIGHTNESS == 'rgb':
+        red, green, blue, dimmer = round(red * level), round(green * level), round(blue * level), 255
+    else:
+        dimmer = round(level * 255)
     # SlimPAR 56 (7CH): 0 red, 1 green, 2 blue, 3 colour macro, 4 shutter, 5 mode, 6 dimmer
-    look = {0: red, 1: green, 2: blue, 3: 0, 4: 0, 5: 0, 6: round(float(r['level']) * 2.55)}
+    look = {0: red, 1: green, 2: blue, 3: 0, 4: 0, 5: 0, 6: dimmer}
     fade = round(float(r['fade']) * 20) * 5  # hundredths, kept on the 0.05 s tick
     # fade in (if any), then hold for 10 minutes so the scene never loops
     steps = ([(fade, True, look)] if fade else []) + [(60000, False, look)]

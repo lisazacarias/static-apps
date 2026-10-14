@@ -1773,6 +1773,9 @@ $('exportGrid').onclick = () => {
 // show Lisa made in ShowXpress, so updates land in the same place.
 const VENUE = { ini: 'venue/fixtures.ini', profile: 'venue/slimpar-56-7ch.txt', profileName: 'SlimPAR 56 (7CH)' };
 const SXP_SHOW = 'Teen Titans';
+// 'rgb': brightness on red, green and blue, since Revel's lights ignore the
+// dimmer (Quan). 'dimmer' is the old way, for if the Dimmer test says otherwise.
+const SXP_BRIGHTNESS = 'rgb';
 $('exportShowxpress').onclick = async () => {
   if (!plan.cues.length) { notify('Add some cues first.'); return; }
   try {
@@ -1782,7 +1785,7 @@ $('exportShowxpress').onclick = async () => {
       get(SHOW_AUDIO.url, 'arrayBuffer').catch(() => null), // the song is a nicety; the show still works without it
     ]);
     const files = showxpressPackage(plan, { fixturesIni: ini, profile, profileName: VENUE.profileName, pools: POOLS,
-      audio: audio && new Uint8Array(audio), duration: duration() || undefined, showName: SXP_SHOW });
+      audio: audio && new Uint8Array(audio), duration: duration() || undefined, showName: SXP_SHOW, brightness: SXP_BRIGHTNESS });
     download(`${slug(SXP_SHOW)}-showxpress.zip`, zip(files), 'application/zip');
     notify('Downloaded. The ShowXpress guide (link next to the button) says how to put it in.');
   } catch {
