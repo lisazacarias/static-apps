@@ -1526,8 +1526,8 @@
     {
       "id": "rustage-hit1-lime",
       "time": 27.54,
-      "end": null,
-      "outFade": null,
+      "end": 27.62,
+      "outFade": 0.59,
       "lights": [
         1,
         3,
@@ -1542,16 +1542,56 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Rustage hit 1/14: every drum hit switches the look, lime and lavender trading places (odd hits: lavender 1, 3, 6, 8, 12 / lime 2, 4, 5, 9, 11; even hits the other way round); pole 7 stays warm white, loops 10 dark",
+      "note": "Rustage hit 1/14: every drum hit switches the look (lime and lavender trading places) and fades out again, as on the drums; pole 7 pulses with them, loops 10 dark",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791957829703
+      "updatedAt": 1791959336504
+    },
+    {
+      "id": "rustage-hit1-pole",
+      "time": 27.54,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "on",
+      "color": "#ffd9a0",
+      "colorName": "",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Pole (7) pulses with the hits: snaps to full warm white on each, eases to half as the others fade",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791959336504
+    },
+    {
+      "id": "rustage-hit1-pole-ease",
+      "time": 27.62,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "on",
+      "color": "#ffd9a0",
+      "colorName": "",
+      "level": 50,
+      "transition": "fade",
+      "fade": 0.59,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit1-lav",
       "time": 27.54,
-      "end": null,
-      "outFade": null,
+      "end": 27.62,
+      "outFade": 0.59,
       "lights": [
         2,
         4,
@@ -1569,7 +1609,7 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791957829703
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-pole-lime",
@@ -1614,8 +1654,8 @@
     {
       "id": "rustage-hit2-lime",
       "time": 28.46,
-      "end": null,
-      "outFade": null,
+      "end": 28.54,
+      "outFade": 0.6,
       "lights": [
         1,
         3,
@@ -1627,13 +1667,13 @@
       "color": "#c0d62d",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "Rustage hit 2/14",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit2-pole",
@@ -1646,20 +1686,40 @@
       "action": "on",
       "color": "#ffd9a0",
       "colorName": "",
-      "level": 50,
-      "transition": "fade",
+      "level": 100,
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
-      "note": "Pole (7) pulses with the hits: warm white throughout, full on odd hits, half on even, back to full for the solo",
+      "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958807256
+      "updatedAt": 1791959336504
+    },
+    {
+      "id": "rustage-hit2-pole-ease",
+      "time": 28.54,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "on",
+      "color": "#ffd9a0",
+      "colorName": "",
+      "level": 50,
+      "transition": "fade",
+      "fade": 0.6,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit2-lav",
       "time": 28.46,
-      "end": null,
-      "outFade": null,
+      "end": 28.54,
+      "outFade": 0.6,
       "lights": [
         2,
         4,
@@ -1671,19 +1731,19 @@
       "color": "#9b72ff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit3-lime",
       "time": 30.01,
-      "end": null,
-      "outFade": null,
+      "end": 30.09,
+      "outFade": 0.59,
       "lights": [
         1,
         3,
@@ -1695,13 +1755,13 @@
       "color": "#9b72ff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "Rustage hit 3/14",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit3-pole",
@@ -1715,19 +1775,39 @@
       "color": "#ffd9a0",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958807256
+      "updatedAt": 1791959336504
+    },
+    {
+      "id": "rustage-hit3-pole-ease",
+      "time": 30.09,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "on",
+      "color": "#ffd9a0",
+      "colorName": "",
+      "level": 50,
+      "transition": "fade",
+      "fade": 0.59,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit3-lav",
       "time": 30.01,
-      "end": null,
-      "outFade": null,
+      "end": 30.09,
+      "outFade": 0.59,
       "lights": [
         2,
         4,
@@ -1739,19 +1819,19 @@
       "color": "#c0d62d",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit4-lime",
       "time": 30.97,
-      "end": null,
-      "outFade": null,
+      "end": 31.05,
+      "outFade": 0.59,
       "lights": [
         1,
         3,
@@ -1763,13 +1843,13 @@
       "color": "#c0d62d",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "Rustage hit 4/14",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit4-pole",
@@ -1782,20 +1862,40 @@
       "action": "on",
       "color": "#ffd9a0",
       "colorName": "",
-      "level": 50,
-      "transition": "fade",
+      "level": 100,
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958807256
+      "updatedAt": 1791959336504
+    },
+    {
+      "id": "rustage-hit4-pole-ease",
+      "time": 31.05,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "on",
+      "color": "#ffd9a0",
+      "colorName": "",
+      "level": 50,
+      "transition": "fade",
+      "fade": 0.59,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit4-lav",
       "time": 30.97,
-      "end": null,
-      "outFade": null,
+      "end": 31.05,
+      "outFade": 0.59,
       "lights": [
         2,
         4,
@@ -1807,19 +1907,19 @@
       "color": "#9b72ff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit5-lime",
       "time": 31.87,
-      "end": null,
-      "outFade": null,
+      "end": 31.95,
+      "outFade": 0.31,
       "lights": [
         1,
         3,
@@ -1831,13 +1931,13 @@
       "color": "#9b72ff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "Rustage hit 5/14",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit5-pole",
@@ -1851,19 +1951,39 @@
       "color": "#ffd9a0",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958807256
+      "updatedAt": 1791959336504
+    },
+    {
+      "id": "rustage-hit5-pole-ease",
+      "time": 31.95,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "on",
+      "color": "#ffd9a0",
+      "colorName": "",
+      "level": 50,
+      "transition": "fade",
+      "fade": 0.31,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit5-lav",
       "time": 31.87,
-      "end": null,
-      "outFade": null,
+      "end": 31.95,
+      "outFade": 0.31,
       "lights": [
         2,
         4,
@@ -1875,19 +1995,19 @@
       "color": "#c0d62d",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit6-lime",
       "time": 32.52,
-      "end": null,
-      "outFade": null,
+      "end": 32.6,
+      "outFade": 0.59,
       "lights": [
         1,
         3,
@@ -1899,13 +2019,13 @@
       "color": "#c0d62d",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "Rustage hit 6/14",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit6-pole",
@@ -1918,20 +2038,40 @@
       "action": "on",
       "color": "#ffd9a0",
       "colorName": "",
-      "level": 50,
-      "transition": "fade",
+      "level": 100,
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958807256
+      "updatedAt": 1791959336504
+    },
+    {
+      "id": "rustage-hit6-pole-ease",
+      "time": 32.6,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "on",
+      "color": "#ffd9a0",
+      "colorName": "",
+      "level": 50,
+      "transition": "fade",
+      "fade": 0.59,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit6-lav",
       "time": 32.52,
-      "end": null,
-      "outFade": null,
+      "end": 32.6,
+      "outFade": 0.59,
       "lights": [
         2,
         4,
@@ -1943,19 +2083,19 @@
       "color": "#9b72ff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit7-lime",
       "time": 33.45,
-      "end": null,
-      "outFade": null,
+      "end": 33.53,
+      "outFade": 0.61,
       "lights": [
         1,
         3,
@@ -1967,13 +2107,13 @@
       "color": "#9b72ff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "Rustage hit 7/14",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit7-pole",
@@ -1987,19 +2127,39 @@
       "color": "#ffd9a0",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958807256
+      "updatedAt": 1791959336504
+    },
+    {
+      "id": "rustage-hit7-pole-ease",
+      "time": 33.53,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "on",
+      "color": "#ffd9a0",
+      "colorName": "",
+      "level": 50,
+      "transition": "fade",
+      "fade": 0.61,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit7-lav",
       "time": 33.45,
-      "end": null,
-      "outFade": null,
+      "end": 33.53,
+      "outFade": 0.61,
       "lights": [
         2,
         4,
@@ -2011,19 +2171,19 @@
       "color": "#c0d62d",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit8-lime",
       "time": 35.02,
-      "end": null,
-      "outFade": null,
+      "end": 35.1,
+      "outFade": 0.62,
       "lights": [
         1,
         3,
@@ -2035,13 +2195,13 @@
       "color": "#c0d62d",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "Rustage hit 8/14",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit8-pole",
@@ -2054,20 +2214,40 @@
       "action": "on",
       "color": "#ffd9a0",
       "colorName": "",
-      "level": 50,
-      "transition": "fade",
+      "level": 100,
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958807256
+      "updatedAt": 1791959336504
+    },
+    {
+      "id": "rustage-hit8-pole-ease",
+      "time": 35.1,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "on",
+      "color": "#ffd9a0",
+      "colorName": "",
+      "level": 50,
+      "transition": "fade",
+      "fade": 0.62,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit8-lav",
       "time": 35.02,
-      "end": null,
-      "outFade": null,
+      "end": 35.1,
+      "outFade": 0.62,
       "lights": [
         2,
         4,
@@ -2079,19 +2259,19 @@
       "color": "#9b72ff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit9-lime",
       "time": 35.95,
-      "end": null,
-      "outFade": null,
+      "end": 36.03,
+      "outFade": 0.59,
       "lights": [
         1,
         3,
@@ -2103,13 +2283,13 @@
       "color": "#9b72ff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "Rustage hit 9/14",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit9-pole",
@@ -2123,19 +2303,39 @@
       "color": "#ffd9a0",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958807256
+      "updatedAt": 1791959336504
+    },
+    {
+      "id": "rustage-hit9-pole-ease",
+      "time": 36.03,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "on",
+      "color": "#ffd9a0",
+      "colorName": "",
+      "level": 50,
+      "transition": "fade",
+      "fade": 0.59,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit9-lav",
       "time": 35.95,
-      "end": null,
-      "outFade": null,
+      "end": 36.03,
+      "outFade": 0.59,
       "lights": [
         2,
         4,
@@ -2147,13 +2347,13 @@
       "color": "#c0d62d",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "raven-solo-fade-lime",
@@ -2216,8 +2416,8 @@
     {
       "id": "rustage-hit10-lime",
       "time": 36.75,
-      "end": null,
-      "outFade": null,
+      "end": 36.79,
+      "outFade": 0.1,
       "lights": [
         1,
         3,
@@ -2229,7 +2429,7 @@
       "color": "#c0d62d",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "Rustage hit 10/14 (run into solo)",
@@ -2240,7 +2440,7 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit10-pole",
@@ -2253,8 +2453,8 @@
       "action": "on",
       "color": "#ffd9a0",
       "colorName": "",
-      "level": 50,
-      "transition": "fade",
+      "level": 100,
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
@@ -2265,13 +2465,38 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791958807256
+      "updatedAt": 1791959336504
+    },
+    {
+      "id": "rustage-hit10-pole-ease",
+      "time": 36.79,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "on",
+      "color": "#ffd9a0",
+      "colorName": "",
+      "level": 50,
+      "transition": "fade",
+      "fade": 0.1,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": {
+        "group": "solo-run",
+        "label": "Run into Raven's solo",
+        "choice": "Hits",
+        "primary": true
+      },
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit10-lav",
       "time": 36.75,
-      "end": null,
-      "outFade": null,
+      "end": 36.79,
+      "outFade": 0.1,
       "lights": [
         2,
         4,
@@ -2283,7 +2508,7 @@
       "color": "#9b72ff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
@@ -2294,13 +2519,13 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit11-lime",
       "time": 36.91,
-      "end": null,
-      "outFade": null,
+      "end": 36.95,
+      "outFade": 0.11,
       "lights": [
         1,
         3,
@@ -2312,7 +2537,7 @@
       "color": "#9b72ff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "Rustage hit 11/14 (run into solo)",
@@ -2323,7 +2548,7 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit11-pole",
@@ -2337,7 +2562,7 @@
       "color": "#ffd9a0",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
@@ -2348,13 +2573,38 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791958807256
+      "updatedAt": 1791959336504
+    },
+    {
+      "id": "rustage-hit11-pole-ease",
+      "time": 36.95,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "on",
+      "color": "#ffd9a0",
+      "colorName": "",
+      "level": 50,
+      "transition": "fade",
+      "fade": 0.11,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": {
+        "group": "solo-run",
+        "label": "Run into Raven's solo",
+        "choice": "Hits",
+        "primary": true
+      },
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit11-lav",
       "time": 36.91,
-      "end": null,
-      "outFade": null,
+      "end": 36.95,
+      "outFade": 0.11,
       "lights": [
         2,
         4,
@@ -2366,7 +2616,7 @@
       "color": "#c0d62d",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
@@ -2377,13 +2627,13 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit12-lime",
       "time": 37.08,
-      "end": null,
-      "outFade": null,
+      "end": 37.12,
+      "outFade": 0.06,
       "lights": [
         1,
         3,
@@ -2395,7 +2645,7 @@
       "color": "#c0d62d",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "Rustage hit 12/14 (run into solo)",
@@ -2406,7 +2656,7 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit12-pole",
@@ -2419,8 +2669,8 @@
       "action": "on",
       "color": "#ffd9a0",
       "colorName": "",
-      "level": 50,
-      "transition": "fade",
+      "level": 100,
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
@@ -2431,13 +2681,38 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791958807256
+      "updatedAt": 1791959336504
+    },
+    {
+      "id": "rustage-hit12-pole-ease",
+      "time": 37.12,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "on",
+      "color": "#ffd9a0",
+      "colorName": "",
+      "level": 50,
+      "transition": "fade",
+      "fade": 0.06,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": {
+        "group": "solo-run",
+        "label": "Run into Raven's solo",
+        "choice": "Hits",
+        "primary": true
+      },
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit12-lav",
       "time": 37.08,
-      "end": null,
-      "outFade": null,
+      "end": 37.12,
+      "outFade": 0.06,
       "lights": [
         2,
         4,
@@ -2449,7 +2724,7 @@
       "color": "#9b72ff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
@@ -2460,13 +2735,13 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit13-lime",
       "time": 37.2,
-      "end": null,
-      "outFade": null,
+      "end": 37.24,
+      "outFade": 0.26,
       "lights": [
         1,
         3,
@@ -2478,7 +2753,7 @@
       "color": "#9b72ff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "Rustage hit 13/14 (run into solo)",
@@ -2489,7 +2764,7 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit13-pole",
@@ -2503,7 +2778,7 @@
       "color": "#ffd9a0",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
@@ -2514,13 +2789,38 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791958807256
+      "updatedAt": 1791959336504
+    },
+    {
+      "id": "rustage-hit13-pole-ease",
+      "time": 37.24,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "on",
+      "color": "#ffd9a0",
+      "colorName": "",
+      "level": 50,
+      "transition": "fade",
+      "fade": 0.26,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": {
+        "group": "solo-run",
+        "label": "Run into Raven's solo",
+        "choice": "Hits",
+        "primary": true
+      },
+      "updatedAt": 1791959336504
     },
     {
       "id": "rustage-hit13-lav",
       "time": 37.2,
-      "end": null,
-      "outFade": null,
+      "end": 37.24,
+      "outFade": 0.26,
       "lights": [
         2,
         4,
@@ -2532,7 +2832,7 @@
       "color": "#c0d62d",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
+      "transition": "sharp",
       "fade": 0.16,
       "othersOff": false,
       "note": "",
@@ -2543,7 +2843,27 @@
         "choice": "Hits",
         "primary": true
       },
-      "updatedAt": 1791958592709
+      "updatedAt": 1791959336504
+    },
+    {
+      "id": "raven-solo-pole",
+      "time": 37.52,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "on",
+      "color": "#ffd9a0",
+      "colorName": "",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1791959336504
     },
     {
       "id": "raven-solo-lime",

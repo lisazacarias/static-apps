@@ -469,7 +469,7 @@ test('the shipped show plan loads cleanly', () => {
   assert.equal(new Set(p.cues.map((c) => c.id)).size, p.cues.length);
   assert.equal(p.sections[0].name, 'Theme song intro');
   // pole 7 stays warm white through the Rustage hits; only its own cues touch it
-  const hits = p.cues.filter((c) => c.id.startsWith('rustage-hit') && !c.id.endsWith('-pole'));
+  const hits = p.cues.filter((c) => c.id.startsWith('rustage-hit') && !c.id.includes('-pole'));
   assert.ok(hits.every((c) => !c.lights.includes(7)));
   // the solo handoff: pole lit through the solo, loops dark until she comes in,
   // pole faded out by then, black on the thunderclap
