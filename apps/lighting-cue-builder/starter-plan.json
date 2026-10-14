@@ -4154,325 +4154,296 @@
       "updatedAt": 1791729000000
     },
     {
-      "id": "victory-lavender",
+      "id": "victory-piano-1",
       "time": 179.25,
       "end": null,
-      "outFade": null,
+      "outFade": 1.6,
       "lights": [
-        1,
-        5,
-        10
+        1
       ],
       "action": "on",
       "color": "#9b72ff",
-      "colorName": "Titans lavender",
+      "colorName": "",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Victory: snaps in to intro look A on the first piano hit (2:59.25)",
-      "repeat": null,
+      "note": "Victory intro piano hits (2:59.25, 3:01.52, 3:03.78): each hit snaps the next look on full, then eases to half like a piano note decaying",
+      "repeat": {
+        "bpm": 105.88,
+        "beats": 4,
+        "count": 3,
+        "onFrac": 0.25,
+        "altColor": "#c0d62d",
+        "dimTo": 50,
+        "keepColor": false,
+        "stagger": null
+      },
       "option": null,
-      "updatedAt": 1791736000000
+      "updatedAt": 1791957241336
     },
     {
-      "id": "victory-lime",
+      "id": "victory-piano-2",
       "time": 179.25,
       "end": null,
-      "outFade": null,
+      "outFade": 1.6,
       "lights": [
         2,
         6
       ],
       "action": "on",
       "color": "#c0d62d",
-      "colorName": "Titans lime",
+      "colorName": "",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
       "note": "",
-      "repeat": null,
+      "repeat": {
+        "bpm": 105.88,
+        "beats": 4,
+        "count": 3,
+        "onFrac": 0.25,
+        "altColor": "#9b72ff",
+        "dimTo": 50,
+        "keepColor": false,
+        "stagger": null
+      },
       "option": null,
-      "updatedAt": 1791736000000
+      "updatedAt": 1791957241336
     },
     {
-      "id": "victory-orange",
+      "id": "victory-piano-3",
       "time": 179.25,
       "end": null,
-      "outFade": null,
+      "outFade": 1.6,
       "lights": [
-        3,
-        7,
-        11
+        3
       ],
       "action": "on",
       "color": "#fbb612",
-      "colorName": "Titans orange",
+      "colorName": "",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
       "note": "",
-      "repeat": null,
+      "repeat": {
+        "bpm": 105.88,
+        "beats": 4,
+        "count": 3,
+        "onFrac": 0.25,
+        "altColor": "#ec1b24",
+        "dimTo": 50,
+        "keepColor": false,
+        "stagger": null
+      },
       "option": null,
-      "updatedAt": 1791736000000
+      "updatedAt": 1791957241336
     },
     {
-      "id": "victory-red",
+      "id": "victory-piano-4",
       "time": 179.25,
       "end": null,
-      "outFade": null,
+      "outFade": 1.6,
       "lights": [
         4,
         9
       ],
       "action": "on",
       "color": "#ec1b24",
-      "colorName": "Titans red",
+      "colorName": "",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
       "note": "",
-      "repeat": null,
+      "repeat": {
+        "bpm": 105.88,
+        "beats": 4,
+        "count": 3,
+        "onFrac": 0.25,
+        "altColor": "#00acee",
+        "dimTo": 50,
+        "keepColor": false,
+        "stagger": null
+      },
       "option": null,
-      "updatedAt": 1791736000000
+      "updatedAt": 1791957241336
     },
     {
-      "id": "victory-blue",
+      "id": "victory-piano-5",
       "time": 179.25,
       "end": null,
-      "outFade": null,
+      "outFade": 1.6,
       "lights": [
-        8,
-        12
+        5
       ],
       "action": "on",
-      "color": "#00acee",
-      "colorName": "Titans blue",
+      "color": "#9b72ff",
+      "colorName": "",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
       "note": "",
-      "repeat": null,
+      "repeat": {
+        "bpm": 105.88,
+        "beats": 4,
+        "count": 3,
+        "onFrac": 0.25,
+        "altColor": "#ec1b24",
+        "dimTo": 50,
+        "keepColor": false,
+        "stagger": null
+      },
       "option": null,
-      "updatedAt": 1791736000000
+      "updatedAt": 1791957241336
     },
     {
-      "id": "victory-pianoB-lime",
-      "time": 181.52,
+      "id": "victory-piano-6",
+      "time": 179.25,
       "end": null,
-      "outFade": null,
+      "outFade": 1.6,
       "lights": [
-        1,
-        7,
+        7
+      ],
+      "action": "on",
+      "color": "#fbb612",
+      "colorName": "",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 105.88,
+        "beats": 4,
+        "count": 3,
+        "onFrac": 0.25,
+        "altColor": "#c0d62d",
+        "dimTo": 50,
+        "keepColor": false,
+        "stagger": null
+      },
+      "option": null,
+      "updatedAt": 1791957241336
+    },
+    {
+      "id": "victory-piano-7",
+      "time": 179.25,
+      "end": null,
+      "outFade": 1.6,
+      "lights": [
         8
       ],
       "action": "on",
-      "color": "#c0d62d",
-      "colorName": "Titans lime",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "Victory: piano hit 2 — intro look B",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791736000000
-    },
-    {
-      "id": "victory-pianoB-lavender",
-      "time": 181.52,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        2,
-        6,
-        11
-      ],
-      "action": "on",
-      "color": "#9b72ff",
-      "colorName": "Titans lavender",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791736000000
-    },
-    {
-      "id": "victory-pianoB-red",
-      "time": 181.52,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        3,
-        5,
-        12
-      ],
-      "action": "on",
-      "color": "#ec1b24",
-      "colorName": "Titans red",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791736000000
-    },
-    {
-      "id": "victory-pianoB-blue",
-      "time": 181.52,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        4,
-        9
-      ],
-      "action": "on",
       "color": "#00acee",
-      "colorName": "Titans blue",
+      "colorName": "",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
       "note": "",
-      "repeat": null,
+      "repeat": {
+        "bpm": 105.88,
+        "beats": 4,
+        "count": 3,
+        "onFrac": 0.25,
+        "altColor": "#c0d62d",
+        "dimTo": 50,
+        "keepColor": false,
+        "stagger": null
+      },
       "option": null,
-      "updatedAt": 1791736000000
+      "updatedAt": 1791957241336
     },
     {
-      "id": "victory-pianoB-orange",
-      "time": 181.52,
+      "id": "victory-piano-8",
+      "time": 179.25,
       "end": null,
-      "outFade": null,
+      "outFade": 1.6,
       "lights": [
         10
       ],
       "action": "on",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791736000000
-    },
-    {
-      "id": "victory-pianoC-lavender",
-      "time": 183.78,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        1,
-        5,
-        10
-      ],
-      "action": "on",
       "color": "#9b72ff",
-      "colorName": "Titans lavender",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "Victory: piano hit 3 — back to look A",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791736000000
-    },
-    {
-      "id": "victory-pianoC-lime",
-      "time": 183.78,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        2,
-        6
-      ],
-      "action": "on",
-      "color": "#c0d62d",
-      "colorName": "Titans lime",
+      "colorName": "",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
       "note": "",
-      "repeat": null,
+      "repeat": {
+        "bpm": 105.88,
+        "beats": 4,
+        "count": 3,
+        "onFrac": 0.25,
+        "altColor": "#fbb612",
+        "dimTo": 50,
+        "keepColor": false,
+        "stagger": null
+      },
       "option": null,
-      "updatedAt": 1791736000000
+      "updatedAt": 1791957241336
     },
     {
-      "id": "victory-pianoC-orange",
-      "time": 183.78,
+      "id": "victory-piano-9",
+      "time": 179.25,
       "end": null,
-      "outFade": null,
+      "outFade": 1.6,
       "lights": [
-        3,
-        7,
         11
       ],
       "action": "on",
       "color": "#fbb612",
-      "colorName": "Titans orange",
+      "colorName": "",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
       "note": "",
-      "repeat": null,
+      "repeat": {
+        "bpm": 105.88,
+        "beats": 4,
+        "count": 3,
+        "onFrac": 0.25,
+        "altColor": "#9b72ff",
+        "dimTo": 50,
+        "keepColor": false,
+        "stagger": null
+      },
       "option": null,
-      "updatedAt": 1791736000000
+      "updatedAt": 1791957241336
     },
     {
-      "id": "victory-pianoC-red",
-      "time": 183.78,
+      "id": "victory-piano-10",
+      "time": 179.25,
       "end": null,
-      "outFade": null,
+      "outFade": 1.6,
       "lights": [
-        4,
-        9
-      ],
-      "action": "on",
-      "color": "#ec1b24",
-      "colorName": "Titans red",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791736000000
-    },
-    {
-      "id": "victory-pianoC-blue",
-      "time": 183.78,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        8,
         12
       ],
       "action": "on",
       "color": "#00acee",
-      "colorName": "Titans blue",
+      "colorName": "",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
       "note": "",
-      "repeat": null,
+      "repeat": {
+        "bpm": 105.88,
+        "beats": 4,
+        "count": 3,
+        "onFrac": 0.25,
+        "altColor": "#ec1b24",
+        "dimTo": 50,
+        "keepColor": false,
+        "stagger": null
+      },
       "option": null,
-      "updatedAt": 1791736000000
+      "updatedAt": 1791957241336
     },
     {
       "id": "drums-a-lime",
