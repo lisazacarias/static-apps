@@ -94,7 +94,7 @@
             <li>A 3D layout matching the map above.</li>
             <li>The song as <code>Live/music.wav</code>, converted with macOS's <code>afconvert</code>. ShowXpress only draws the waveform for WAV.</li>
             <li>Four scenes: <code>00 blackout</code>, <code>01 all warm white fade in</code>, <code>02 all white</code>, and <code>03 find each light</code> (each light alone in white for 2 s, in number order).</li>
-            <li>A "Timing test" timeline (see <a href="#fixes">When it's wrong</a>).</li>
+            <li>A "Timing test" timeline (see <a href="#fixes">When it's wrong</a>). That's the only timeline until you run the script in step 5, which writes one named after the show.</li>
         </ul>
         <p>Running it again is safe: it puts back Revel's patch and 3D layout, but never replaces a scene that's already there. Leave the song off to keep the one you have.</p>
         <div class="unsure"><b>Not confirmed:</b> whether ShowXpress opens a show it didn't create itself. Ours was made in the app first. If it doesn't show up, make it in ShowXpress with <b>File › New lightshow</b> (same name), quit, and run the install again.</div>
@@ -327,7 +327,8 @@ Path = OFF</pre>
     <section class="section" id="script">
         <div class="section-header"><h2>5. The script</h2><div class="section-line"></div></div>
         <p><a href="revel/make_show.py" download>make_show.py</a> turns the CSV into scenes and a timeline in your show. Try it first with <a href="revel/cues-example.csv" download>cues-example.csv</a>. Quit ShowXpress, then:</p>
-<pre>python3 make_show.py "Show name" cues.csv</pre>
+<pre>python3 ~/Downloads/make_show.py "Show name" ~/Downloads/cues-example.csv</pre>
+        <p>Those paths assume both files are in Downloads; for your own cue list, use its path instead (drag the file into Terminal to paste it).</p>
         <p>It writes one scene per cue (fade in, then hold) and a timeline named after the show, with each block running until the next cue on its row. Cues at the same moment go on separate rows. Running it again rewrites them. Python 3 comes with macOS's developer tools; Terminal offers to install them the first time you run <code>python3</code>.</p>
         <p><b>Hits, strobes and pulses</b> aren't in the CSV. Write them as their own scenes (examples in step 3), put them in <code>scenes/</code>, and add a block for each on a light row of their own: copy one of the script's <code>[Event_N]</code> blocks, give it the next number, raise <code>LightTimeLines</code> by one and add a <code>TimeLine_N</code> name. Or extend the script; it's short.</p>
         <details>
