@@ -6,7 +6,7 @@ import {
   DEFAULT_TEMPO, normalizeTempo, parseStart, formatStart, normalizeSection,
   sectionStart, sortSections, sectionAt, parseSectionLines, timeToBar,
   diffPlans, applyMerge, planSignature, activeCues, optionGroups,
-  runSheet, cueGrid, cellColor, inkOn, shortColorName,
+  runSheet, cueGrid, cellColor, inkOn, shortColorName, SHAPES, DRAW_ORDER, POOLS,
 } from './cues.js';
 import { cueWorkbook, zip } from './xlsx.js';
 import { showxpressPackage } from './showxpress.js';
@@ -19,25 +19,6 @@ const ZOOM_WINDOW = 8; // seconds shown in the detail waveform
 const PEAKS_PER_SEC = 200;
 
 const $ = (id) => document.getElementById(id);
-
-/* ── stage geometry, traced from the venue diagram ───────────────────── */
-
-const SHAPES = {
-  1: { cx: 660, cy: 490, rx: 44, ry: 78, rot: 12, lx: 646, ly: 520 },
-  2: { cx: 727, cy: 632, rx: 78, ry: 70, lx: 721, ly: 636 },
-  3: { cx: 762, cy: 470, rx: 80, ry: 88, lx: 762, ly: 524 },
-  4: { cx: 868, cy: 495, rx: 52, ry: 86, rot: -28, lx: 880, ly: 512 },
-  5: { cx: 997, cy: 690, rx: 60, ry: 68, lx: 995, ly: 702 },
-  6: { cx: 995, cy: 557, rx: 62, ry: 64, lx: 997, ly: 565 },
-  7: { cx: 897, cy: 667, rx: 88, ry: 90, lx: 894, ly: 648 },
-  8: { cx: 912, cy: 830, rx: 50, ry: 68, lx: 903, ly: 830 },
-  9: { cx: 817, cy: 770, rx: 46, ry: 56, rot: -38, lx: 814, ly: 782 },
-  10: { cx: 729, cy: 865, rx: 98, ry: 82, lx: 727, ly: 824 },
-  11: { rect: true, x: 520, y: 972, w: 536, h: 84, lx: 788, ly: 1026 },
-  12: { cx: 637, cy: 748, rx: 50, ry: 80, lx: 633, ly: 761 },
-};
-// Painter's order: backdrop under floor under apparatus, as in the diagram.
-const DRAW_ORDER = [11, 1, 2, 4, 5, 6, 8, 9, 12, 3, 7, 10];
 
 /* ── state ───────────────────────────────────────────────────────────── */
 
@@ -1800,8 +1781,7 @@ $('exportShowxpress').onclick = async () => {
       get(VENUE.ini, 'text'), get(VENUE.profile, 'text'),
       get(SHOW_AUDIO.url, 'arrayBuffer').catch(() => null), // the song is a nicety; the show still works without it
     ]);
-    const pools = Object.fromEntries(Object.entries(SHAPES).map(([l, sh]) => [l, sh.rect ? [sh.x + sh.w / 2, sh.y + sh.h / 2] : [sh.cx, sh.cy]]));
-    const files = showxpressPackage(plan, { fixturesIni: ini, profile, profileName: VENUE.profileName, pools,
+    const files = showxpressPackage(plan, { fixturesIni: ini, profile, profileName: VENUE.profileName, pools: POOLS,
       audio: audio && new Uint8Array(audio), duration: duration() || undefined, showName: SXP_SHOW });
     download(`${slug(SXP_SHOW)}-showxpress.zip`, zip(files), 'application/zip');
     notify('Downloaded. The ShowXpress guide (link next to the button) says how to put it in.');

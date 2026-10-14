@@ -4,6 +4,10 @@ Plan a dance piece's lighting by listening to the track and adding cues as you
 go. The stage plot shows what every light is doing at the playhead, so you can
 scrub anywhere and check the plan.
 
+`guide.html` is a how-to for lighting someone else's piece in ShowXpress by
+hand, from their song and cue list. `showxpress.html` covers installing and
+playing this show's download.
+
 ## Using it
 
 1. Load the track (pick or drop the file). It stays in this browser — it's
