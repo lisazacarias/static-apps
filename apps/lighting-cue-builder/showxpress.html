@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShowXpress Guide</title>
+    <link rel="stylesheet" href="../../shared/base.css">
+    <style>
+        .guide { max-width: 760px; }
+        .guide .section { margin-bottom: 36px; }
+        .guide p, .guide li { font-size: 15px; }
+        .guide p + p { margin-top: 10px; }
+        .guide ol, .guide ul { padding-left: 22px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin-top: 10px; }
+        .guide code { overflow-wrap: anywhere; }
+        .guide li ul, .guide li ol { margin-top: 6px; gap: 4px; }
+        .guide h3 { font-size: 15px; color: var(--text-bright); margin: 18px 0 4px; }
+        .guide b { color: var(--text-bright); font-weight: 600; }
+        .guide code, .guide kbd { font-family: var(--font-mono); font-size: 13px; background: var(--bg-elevated); border: 1px solid var(--border-bright); border-radius: 4px; padding: 1px 5px; color: var(--text-bright); }
+        .guide pre { font-family: var(--font-mono); font-size: 13px; background: var(--bg-elevated); border: 1px solid var(--border-bright); border-radius: 6px; padding: 10px 12px; margin-top: 8px; overflow-x: auto; white-space: pre; color: var(--text-bright); }
+        .guide .fix { display: grid; gap: 4px; padding: 10px 0; border-top: 1px solid var(--border); }
+        .guide .fix:first-of-type { border-top: 0; }
+        .guide .fix .q { color: var(--text-bright); font-weight: 600; }
+        .guide .note { font-size: 13px; color: var(--text-muted); }
+        .back { display: inline-block; margin-bottom: 18px; font-size: 14px; }
+    </style>
+</head>
+<body>
+<div class="container guide">
+    <a class="back" href="./">← Back to the lighting plan</a>
+    <header>
+        <h1>Running the show in ShowXpress</h1>
+        <p class="subtitle">The lighting page is where the plan lives. ShowXpress is what plays it on the venue's lights. You never program ShowXpress by hand: you download the show from the page and install it. These steps are for a Mac.</p>
+    </header>
+
+    <section class="section">
+        <div class="section-header"><h2>The short version</h2><div class="section-line"></div></div>
+        <ol>
+            <li>Set up ShowXpress once (below).</li>
+            <li>Whenever the plan changes: on a laptop, open the lighting page and click <b>Download for ShowXpress</b>.</li>
+            <li>Quit ShowXpress, then run the install script from the download (one line in Terminal).</li>
+            <li>Open ShowXpress, open the <b>Teen Titans</b> timeline, press play.</li>
+        </ol>
+    </section>
+
+    <section class="section">
+        <div class="section-header"><h2>1. Install ShowXpress (once)</h2><div class="section-line"></div></div>
+        <ol>
+            <li>Download it from the <a href="https://forum.thelightingcontroller.com/viewtopic.php?t=114">ShowXpress download page</a>. On a newer Mac (M1 or later) pick the Apple Silicon build, <code>ShowXpress_Mac_arm.dmg</code>; on an older Intel Mac, the Intel one. Not sure? Apple menu › <b>About This Mac</b>: "Chip: Apple M…" means Apple Silicon.</li>
+            <li>Double-click the <code>.dmg</code>. A window opens with a <b>ShowXpress</b> folder in it.</li>
+            <li>Drag that whole <b>ShowXpress folder</b> (not just the app inside it) into <b>Applications</b>. The app needs the files next to it.</li>
+            <li>Open <code>Applications › ShowXpress › TheLightingController</code>. If the Mac says it can't be opened, go to <b>System Settings › Privacy &amp; Security</b>, scroll down, and click <b>Open Anyway</b>. You only do this once.</li>
+            <li>In ShowXpress, choose <b>File › New lightshow</b> and name it exactly <code>Teen Titans</code>. Then quit with <kbd>Cmd</kbd> + <kbd>Q</kbd>.</li>
+        </ol>
+        <p class="note">ShowXpress keeps its shows in your home folder, at <code>~/TheLightingController/LightShows</code>, not next to the app. <b>File › Open lightshow Folder</b> opens it.</p>
+    </section>
+
+    <section class="section">
+        <div class="section-header"><h2>2. Put the show in (every time the plan changes)</h2><div class="section-line"></div></div>
+        <ol>
+            <li>On a laptop, open the lighting page and click <b>Download for ShowXpress</b> (next to Download spreadsheet). You get <code>teen-titans-for-showxpress.zip</code> in Downloads.</li>
+            <li>Double-click the zip. It makes a folder called <b>Teen Titans for ShowXpress</b>.</li>
+            <li><b>Quit ShowXpress</b> (<kbd>Cmd</kbd> + <kbd>Q</kbd>). If it's open, it saves over the new files when it closes, so the script won't run while it's open.</li>
+            <li>Open Terminal: <kbd>Cmd</kbd> + <kbd>Space</kbd>, type <code>Terminal</code>, press Enter.</li>
+            <li>Type <code>bash</code> and a space, then drag <code>install.sh</code> from the unzipped folder into the Terminal window and press Enter. It should look like:
+                <pre>bash /Users/you/Downloads/Teen\ Titans\ for\ ShowXpress/install.sh</pre>
+                It finishes with <b>Done</b>.</li>
+        </ol>
+        <p>What the script does: replaces the show's scenes, timeline and 3D layout with the new ones, puts the venue's lights in, and the first time, adds the song. Anything you changed by hand inside ShowXpress gets replaced, so make changes on the lighting page instead.</p>
+        <p class="note">If you downloaded more than once, the newer folder may be called "Teen Titans for ShowXpress 2". Drag the install.sh from the newest one; the script always installs from its own folder.</p>
+    </section>
+
+    <section class="section">
+        <div class="section-header"><h2>3. Watch it</h2><div class="section-line"></div></div>
+        <ol>
+            <li>Open ShowXpress. Choose <b>File › Open lightshow › Teen Titans</b>. The title bar should say <b>ShowXpress - Teen Titans</b>.</li>
+            <li>Check the lights loaded: <b>Editor › Fixtures</b> should show CH1 to CH13.</li>
+            <li>Go to <b>Live › TimeLine</b>, click the open (folder) icon, and pick <b>Teen Titans</b>. You'll see the song on top and a row of blocks under it.</li>
+            <li>Unplug the DMX adapter. The 3D view only draws when no adapter is connected.</li>
+            <li>Open <b>Windows › 3DView</b>.</li>
+            <li>In the Live screen, top right, click the <b>cube icon</b> so the line under it turns green. That's the 3D output.</li>
+            <li>Press play. To start partway through, double-click the time ruler above the blocks to move the red marker, then use <b>Play from red marker</b>.</li>
+        </ol>
+        <h3>Recording a video of it</h3>
+        <p>ShowXpress can't export video. Press <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>5</kbd>, choose <b>Record Selected Portion</b>, and draw around the 3D view. The Mac's recorder doesn't capture the computer's sound, so add the song afterwards (both start at 0:00), or use <b>Download video</b> on the lighting page, which has the song built in.</p>
+        <h3>At the venue</h3>
+        <p>Plug in the DMX adapter, and in the Live screen make sure the <b>DMX</b> output icon (next to the cube) has a green line. Then play the timeline as above.</p>
+        <p class="note">Still to ask Quan: does the show run from your laptop at the venue, or should Quan get the files to run on theirs? And what's light 13 (it's in the patch but not on the map, so the show leaves it alone)?</p>
+    </section>
+
+    <section class="section">
+        <div class="section-header"><h2>When something's wrong</h2><div class="section-line"></div></div>
+        <div class="fix"><span class="q">The music plays but the 3D view stays dark.</span><span>Turn on the cube icon in the Live screen (green line). Also check <b>Editor › Steps</b>: if its DMX or 3D buttons are green, turn them off. The Editor overrides Live.</span></div>
+        <div class="fix"><span class="q">Editor › Fixtures is an empty grid.</span><span>The show's files aren't in the folder ShowXpress is reading. Run the install script again, then fully quit and reopen ShowXpress. <b>File › Open lightshow Folder</b> shows where it's looking; it should contain <code>Teen Titans</code>.</span></div>
+        <div class="fix"><span class="q">Teen Titans isn't in the TimeLine's Open list.</span><span>Make sure Teen Titans is the open show (title bar). Or, in the Open window, press <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>G</kbd> and paste <code>~/TheLightingController/LightShows/Teen Titans/Live/TimeLine/timelines/</code>.</span></div>
+        <div class="fix"><span class="q">The script says ShowXpress is open.</span><span>Quit it with <kbd>Cmd</kbd> + <kbd>Q</kbd> (closing the window isn't enough) and run the script again.</span></div>
+        <div class="fix"><span class="q">Terminal shows <code>quote&gt;</code> and waits.</span><span>Something you pasted had an unmatched quote or apostrophe. Press <kbd>Ctrl</kbd> + <kbd>C</kbd> and try again. Nothing ran.</span></div>
+        <div class="fix"><span class="q">Lights blink off for a moment, or fades snap on instantly.</span><span>Those were bugs in older downloads. Download again from the page and reinstall.</span></div>
+        <div class="fix"><span class="q">The lights drift out of time with the music.</span><span>Play a little, stop, then start again; ShowXpress sometimes lags the first time through. Every block starts on a tenth of a second (that's what ShowXpress works in), so cues can be up to 0.05 s off the page.</span></div>
+        <div class="fix"><span class="q">The 3D lights are in the wrong places.</span><span>Each install puts them back where the stage map has them. To move one, right-click the 3D view › <b>Fixtures setting</b>, but it moves back on the next install, so tell Claude instead and the layout gets fixed for good.</span></div>
+    </section>
+
+    <section class="section">
+        <div class="section-header"><h2>What's in the download</h2><div class="section-line"></div></div>
+        <ul>
+            <li><code>scenes/</code>: one scene per look or fade. Every scene sets all 7 channels of all 12 lights, so nothing is left over from the scene before.</li>
+            <li><code>Live/TimeLine/timelines/Teen Titans.tml</code>: the timeline, every block at its time.</li>
+            <li><code>fixtures.ini</code> and <code>fixtures/SlimPAR 56 (7CH).txt</code>: the venue's 13 SlimPAR 56 lights as Quan set them up (addresses 1, 33, 65… 385).</li>
+            <li><code>3DView/fixtures.ini</code>: where each light hangs in the 3D view.</li>
+            <li><code>Live/music.mp3</code>: the song; the script makes a WAV copy so ShowXpress can draw its waveform.</li>
+        </ul>
+    </section>
+</div>
+</body>
+</html>
