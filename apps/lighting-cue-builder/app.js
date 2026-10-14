@@ -740,7 +740,7 @@ function cueParts(c) {
     const on = r.onFrac >= 1 ? 'held' : `${Math.round(r.onFrac * 100)}% on${r.dimTo ? `, dims to ${r.dimTo}%` : ''}${c.transition === 'fade' ? ', fading' : ''}`;
     return {
       shared: `Flash ×${r.count} · ${r.bpm} BPM, every ${flashGap(r).toFixed(3)}s · ${on} · ${c.level}%`,
-      own: `${lights} · ${shortName(c, c.color)}${r.altColor ? ` ⇄ ${shortName(c, r.altColor)}` : ''}`,
+      own: `${lights} · ${r.cycle ? `${new Set(r.cycle).size} colours, shuffled` : `${shortName(c, c.color)}${r.altColor ? ` ⇄ ${shortName(c, r.altColor)}` : ''}`}`,
     };
   }
   const bits = [transitionLabel(c)];
@@ -832,7 +832,7 @@ function stageAfter(cues, t, next) {
 // A run in plain words, for the note on the row where it starts.
 function patternText(c) {
   const r = c.repeat;
-  const kind = r.altColor && r.onFrac >= 1 ? 'switches colours' : r.onFrac < 1 ? (r.dimTo ? 'pulses' : 'flashes') : 'repeats';
+  const kind = (r.altColor || r.cycle) && r.onFrac >= 1 ? 'switches colours' : r.onFrac < 1 ? (r.dimTo ? 'pulses' : 'flashes') : 'repeats';
   const spread = Math.max(0, ...Object.values(r.stagger || {}));
   const roll = spread ? `, rolling across the lights over ${spread.toFixed(1)}s` : '';
   return `Pattern: ${kind} every ${flashGap(r).toFixed(2)}s, ${r.count} times${roll}, through ${formatTime(flashTimes(c).at(-1) + spread)}`;
@@ -960,7 +960,10 @@ function renderCueList() {
         const sw = document.createElement('span');
         sw.className = 'cue-swatch';
         if (c.action === 'off') sw.classList.add('off');
-        else sw.style.background = c.repeat?.altColor ? `linear-gradient(90deg, ${c.color} 50%, ${c.repeat.altColor} 50%)` : c.color;
+        else if (c.repeat?.cycle) {
+          const cols = [...new Set(c.repeat.cycle)];
+          sw.style.background = `linear-gradient(90deg, ${cols.map((h, i) => `${h} ${(i / cols.length) * 100}% ${((i + 1) / cols.length) * 100}%`).join(', ')})`;
+        } else sw.style.background = c.repeat?.altColor ? `linear-gradient(90deg, ${c.color} 50%, ${c.repeat.altColor} 50%)` : c.color;
         const desc = document.createElement('span');
         desc.className = 'cue-desc';
         const p = cueParts(c);
@@ -1158,8 +1161,9 @@ function readForm() {
       onFrac: $('fOnFrac').value, altColor: $('fAlt').checked ? $('fAltColor').value : null,
       dimTo: $('fDimTo').value,
       keepColor: $('fKeepColor').checked,
-      // the form has no stagger control, so keep whatever the cue already had
+      // the form has no stagger or colour-cycle controls, so keep what the cue had
       stagger: d.repeat?.stagger,
+      cycle: d.repeat?.cycle,
     })
     : null;
   if (d.repeat) d.end = null;

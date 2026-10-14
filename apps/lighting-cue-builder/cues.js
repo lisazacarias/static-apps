@@ -167,7 +167,17 @@ export function normalizeRepeat(raw) {
     // Brightness only: each light keeps whatever colour it already has.
     keepColor: Boolean(raw.keepColor),
     stagger: normalizeStagger(raw.stagger),
+    // Colours to step through, one per flash, instead of colour ⇄ altColor:
+    // the victory section gives each light its own shuffled run of logo
+    // colours so the stage never settles into two looks.
+    cycle: normalizeCycle(raw.cycle),
   };
+}
+
+function normalizeCycle(raw) {
+  if (!Array.isArray(raw)) return null;
+  const out = raw.filter(isHex).map((h) => h.toLowerCase()).slice(0, 500);
+  return out.length >= 2 ? out : null;
 }
 
 // Per-light delay (seconds) added to every flash, so one cue can ripple
@@ -459,7 +469,9 @@ function pushFlashes(events, c, order, dur, level) {
     groups.set(o, [...(groups.get(o) || []), l]);
   }
   flashTimes(c).forEach((at, k) => {
-    const color = c.repeat.keepColor ? null : k % 2 === 1 && c.repeat.altColor ? c.repeat.altColor : c.color;
+    const color = c.repeat.keepColor ? null
+      : c.repeat.cycle ? c.repeat.cycle[k % c.repeat.cycle.length]
+        : k % 2 === 1 && c.repeat.altColor ? c.repeat.altColor : c.color;
     // "All others off" is a one-time clear at the start of the run.
     if (c.othersOff && k === 0) {
       const others = ALL_LIGHTS.filter((l) => !c.lights.includes(l)).map((l) => ({ light: l, level: 0, color: null }));

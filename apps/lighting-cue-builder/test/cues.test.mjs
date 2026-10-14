@@ -386,7 +386,7 @@ test('repeat normalises, drops End, and Off cues cannot flash', () => {
   assert.equal(normalizeRepeat({ bpm: 10, count: 4 }), null);
   assert.equal(normalizeRepeat({ bpm: 120, count: 1 }), null);
   assert.deepEqual(normalizeRepeat({ bpm: '96.4', count: '16', beats: 3, onFrac: 2, altColor: 'nope' }),
-    { bpm: 96.4, beats: 1, count: 16, onFrac: 0.5, altColor: null, dimTo: 0, keepColor: false, stagger: null });
+    { bpm: 96.4, beats: 1, count: 16, onFrac: 0.5, altColor: null, dimTo: 0, keepColor: false, stagger: null, cycle: null });
   const c = normalizeCue({ time: 1, end: 5, lights: [1], repeat: { bpm: 120, count: 4 } });
   assert.equal(c.end, null);
   assert.equal(normalizeCue({ time: 1, lights: [1], action: 'off', repeat: { bpm: 120, count: 4 } }).repeat, null);
@@ -579,4 +579,14 @@ test('a staggered run ripples: each light flashes on its own delay', () => {
   assert.deepEqual([lv(10.1, 1), stateAt([old], 10.1).lights[2].level], [1, 1]);
   const back = normalizePlan(JSON.parse(JSON.stringify(serializePlan(normalizePlan({ cues: [c] }))))).cues[0];
   assert.deepEqual(back.repeat.stagger, { 2: 0.3, 3: 0.6 }, 'survives save and load');
+});
+
+test('a colour cycle steps through its colours, one per flash', () => {
+  const c = normalizeCue({ time: 0, lights: [1], color: '#ff0000',
+    repeat: { bpm: 60, beats: 1, count: 4, onFrac: 1, altColor: '#00ff00', cycle: ['#C0D62D', 'nope', '#00acee', '#ec1b24'] } });
+  assert.deepEqual(c.repeat.cycle, ['#c0d62d', '#00acee', '#ec1b24'], 'bad colours dropped, case folded');
+  const col = (t) => stateAt([c], t).lights[1].color;
+  assert.deepEqual([0.1, 1.1, 2.1, 3.1].map(col), ['#c0d62d', '#00acee', '#ec1b24', '#c0d62d'], 'the cycle wins over colour ⇄ alt, and wraps');
+  assert.equal(normalizeCue({ time: 0, lights: [1], repeat: { bpm: 60, count: 2, cycle: ['#ffffff'] } }).repeat.cycle, null, 'one colour is not a cycle');
+  assert.equal(normalizeCue({ time: 0, lights: [1], repeat: { bpm: 60, count: 2 } }).repeat.cycle, null, 'older runs have none');
 });
