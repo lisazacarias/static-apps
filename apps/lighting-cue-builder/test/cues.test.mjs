@@ -507,6 +507,12 @@ test('the shipped show plan loads cleanly', () => {
   assert.equal(at(154.27 + 0.4)[1].level, 0, 'dark between flashes');
   const next = at(154.27 + 60 / 96.77 + 0.05);
   assert.ok(ALL_LIGHTS.every((l) => next[l].level === 1 && next[l].color !== freeze[l].color), 'every light a different colour from its last flash');
+  // the two punches strobe: white, dark between, then back to orange
+  for (const [w, dark] of [[159.3, 159.5], [161.82, 162.0]]) {
+    assert.ok(ALL_LIGHTS.every((l) => at(w)[l].level === 1 && at(w)[l].color === '#ffffff'), `white at ${w}`);
+    assert.ok(ALL_LIGHTS.every((l) => at(dark)[l].level === 0), `dark at ${dark}`);
+  }
+  assert.ok(ALL_LIGHTS.every((l) => at(160.8)[l].color === '#fbb612' && at(160.8)[l].level === 1), 'orange again after punch 1');
   // the battle hits follow the solo rule: Raven's side with the pole, then Starfire's with the loops
   const hit1 = at(164.4), hit2 = at(169.4);
   assert.equal(hit1[7].level, 1);

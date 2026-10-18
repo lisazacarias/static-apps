@@ -4737,10 +4737,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Villain punch 1 (2:39.26): the stutter hits three times, the whole stage flashing white on each (2:39.26, 2:39.62, 2:39.96)",
+      "note": "Villain punch 1 (2: the stutter hits three times as a strobe, the whole stage white with dark between, then eases back to orange",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791960727788
+      "updatedAt": 1792360604252
     },
     {
       "id": "punch1-back-1",
@@ -4761,17 +4761,17 @@
         11,
         12
       ],
-      "action": "on",
+      "action": "off",
       "color": "#fbb612",
       "colorName": "Titans orange",
       "level": 100,
-      "transition": "fade",
-      "fade": 0.2,
+      "transition": "sharp",
+      "fade": 2,
       "othersOff": false,
-      "note": "",
+      "note": "dark between flashes (a strobe)",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791960727788
+      "updatedAt": 1792360604252
     },
     {
       "id": "punch1-white-2",
@@ -4823,17 +4823,17 @@
         11,
         12
       ],
-      "action": "on",
+      "action": "off",
       "color": "#fbb612",
       "colorName": "Titans orange",
       "level": 100,
-      "transition": "fade",
-      "fade": 0.2,
+      "transition": "sharp",
+      "fade": 2,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791960727788
+      "updatedAt": 1792360604252
     },
     {
       "id": "punch1-white-3",
@@ -4885,6 +4885,37 @@
         11,
         12
       ],
+      "action": "off",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1792360604252
+    },
+    {
+      "id": "punch1-orange",
+      "time": 160.26,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
       "action": "on",
       "color": "#fbb612",
       "colorName": "Titans orange",
@@ -4892,10 +4923,10 @@
       "transition": "fade",
       "fade": 0.35,
       "othersOff": false,
-      "note": "…and eases back to orange",
+      "note": "...then eases back to orange",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791960727788
+      "updatedAt": 1792360604252
     },
     {
       "id": "punch2-white-1",
@@ -4923,10 +4954,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Villain punch 2 (2:41.78, Dorothy): the same three-hit stutter (2:41.78, 2:42.11, 2:42.44)",
+      "note": "Villain punch 2 (2: the stutter hits three times as a strobe, the whole stage white with dark between, then eases back to orange",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791960727788
+      "updatedAt": 1792360604252
     },
     {
       "id": "punch2-back-1",
@@ -4947,17 +4978,17 @@
         11,
         12
       ],
-      "action": "on",
+      "action": "off",
       "color": "#fbb612",
       "colorName": "Titans orange",
       "level": 100,
-      "transition": "fade",
-      "fade": 0.2,
+      "transition": "sharp",
+      "fade": 2,
       "othersOff": false,
-      "note": "",
+      "note": "dark between flashes (a strobe)",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791960727788
+      "updatedAt": 1792360604252
     },
     {
       "id": "punch2-white-2",
@@ -5009,17 +5040,17 @@
         11,
         12
       ],
-      "action": "on",
+      "action": "off",
       "color": "#fbb612",
       "colorName": "Titans orange",
       "level": 100,
-      "transition": "fade",
-      "fade": 0.2,
+      "transition": "sharp",
+      "fade": 2,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791960727788
+      "updatedAt": 1792360604252
     },
     {
       "id": "punch2-white-3",
@@ -5071,6 +5102,37 @@
         11,
         12
       ],
+      "action": "off",
+      "color": "#fbb612",
+      "colorName": "Titans orange",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1792360604252
+    },
+    {
+      "id": "punch2-orange",
+      "time": 162.74,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
       "action": "on",
       "color": "#fbb612",
       "colorName": "Titans orange",
@@ -5078,10 +5140,10 @@
       "transition": "fade",
       "fade": 0.35,
       "othersOff": false,
-      "note": "…and eases back to orange",
+      "note": "...then eases back to orange",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791960727788
+      "updatedAt": 1792360604252
     },
     {
       "id": "battle-hits-blackout",
