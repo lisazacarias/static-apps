@@ -354,6 +354,7 @@ Path = OFF</pre>
         <p><a href="revel/make_show.py" download>make_show.py</a> turns the CSV into scenes and a timeline in your show. Try it first with <a href="revel/cues-example.csv" download>cues-example.csv</a>. Quit ShowXpress, then:</p>
 <pre>python3 ~/Downloads/make_show.py "Show name" ~/Downloads/cues-example.csv</pre>
         <p>Those paths assume both files are in Downloads; for your own cue list, use its path instead (drag the file into Terminal to paste it).</p>
+        <p>Revel wants 5 s of blackout before the lighting starts (Quan), so the timeline opens with a blackout block and the song starts at 0:05. Your CSV times stay song times. <code>LEAD</code> at the top of the script sets it.</p>
         <p>It writes one scene per cue (fade in, then hold) and a timeline named after the show, with each block running until the next cue on its row. Cues at the same moment go on separate rows. Running it again rewrites them. Python 3 comes with macOS's developer tools; Terminal offers to install them the first time you run <code>python3</code>.</p>
         <p>If the Dimmer test shows the dimmer working after all, set <code>BRIGHTNESS = 'dimmer'</code> at the top of the script to send full colour with brightness on the dimmer.</p>
         <p><b>Hits, strobes and pulses</b> aren't in the CSV. Write them as their own scenes (examples in step 3), put them in <code>scenes/</code>, and add a block for each on a light row of their own: copy one of the script's <code>[Event_N]</code> blocks, give it the next number, raise <code>LightTimeLines</code> by one and add a <code>TimeLine_N</code> name. Or extend the script; it's short.</p>
@@ -396,6 +397,7 @@ Path = OFF</pre>
             <tr><td>A look keeps re-fading.</td><td>The scene looped. End it on a long hold step.</td></tr>
             <tr><td>Fast flashes drift off the beat.</td><td>Step lengths that aren't multiples of 5.</td></tr>
             <tr><td>Lights blink off for an instant.</td><td>A block starts right at a snap or a short fade. Start it a little earlier, inside a held look.</td></tr>
+            <tr><td>A light dims or blinks halfway through a colour change.</td><td>A straight fade between two saturated colours passes through a dim mix (purple to lime goes through about half brightness). Split the fade into two steps, with the halfway colour turned back up to full. This site's generator does it automatically; <code>make_show.py</code> doesn't.</td></tr>
             <tr><td>Colours look pastel or washed out.</td><td>All three channels lit, or too much green. Keep one at 0 and green low; see <a href="#colours">Colours</a>.</td></tr>
             <tr><td>A light strobes or changes colour on its own.</td><td>Channel 3, 4 or 5 isn't 0. Quan says they do nothing at Revel, but zero them anyway.</td></tr>
             <tr><td>The install script says ShowXpress is open.</td><td>Quit it with <kbd>Cmd</kbd> + <kbd>Q</kbd> (closing the window isn't enough).</td></tr>
