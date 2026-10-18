@@ -4163,18 +4163,18 @@
       "action": "on",
       "color": "#fbb612",
       "colorName": "Titans orange",
-      "level": 60,
+      "level": 100,
       "transition": "fade",
       "fade": 2,
       "othersOff": false,
-      "note": "...then the lights breathe out of step in a scattered order, each easing to 20% and back every 4.6s; the first starts dimming as the fade-up lands",
+      "note": "...then the lights breathe out of step in a scattered order, each swelling to full and fading to dark every 4.6s (full range, so it reads on the LEDs)",
       "repeat": {
         "bpm": 26,
         "beats": 2,
         "count": 5,
         "onFrac": 0.5,
         "altColor": null,
-        "dimTo": 20,
+        "dimTo": 0,
         "keepColor": false,
         "stagger": {
           "1": 1.92,
@@ -4191,7 +4191,7 @@
         }
       },
       "option": null,
-      "updatedAt": 1791956410939
+      "updatedAt": 1792358448564
     },
     {
       "id": "battle-in-on",
