@@ -75,6 +75,20 @@
         </table></div>
         <p>Each light has 7 channels, in this order: <b>red, green, blue, colour macro, shutter, mode, dimmer</b>. <b>At Revel only red, green and blue respond.</b> Quan: "only the RGB works, there's no dimmer or any other channel." So brightness is the colour itself: half-bright warm white (<code>255, 217, 160</code>) is <code>128, 109, 80</code>, and dark is <code>0, 0, 0</code>. Everything here keeps the dimmer at 255 and colour macro, shutter and mode at 0, so the same files also work on a rig where those channels do something.</p>
         <p class="note">To see for yourself, play the starter's "Dimmer test" timeline (15 s). Every light goes white, then fades out using the dimmer alone, comes back, then fades out using red, green and blue alone. If the first fade does nothing, Quan's right.</p>
+        <h3 id="colours">Colours</h3>
+        <p><b>Screen colours look washed out on these lights.</b> Anything with all three of red, green and blue lit comes out pastel, and green is strong, so even a little of it turns colours whitish. Quan's saturated scene keeps one channel at 0 and green low. These are the values the Teen Titans show uses:</p>
+        <div class="table-wrap"><table>
+            <tr><th>Colour</th><th>Red, green, blue</th><th>Hex</th><th>From</th></tr>
+            <tr><td>Purple</td><td><code>51, 0, 255</code></td><td><code>#3300ff</code></td><td>Quan (his 27, 0, 136, at full)</td></tr>
+            <tr><td>Orange</td><td><code>255, 114, 0</code></td><td><code>#ff7200</code></td><td>Quan</td></tr>
+            <tr><td>Red</td><td><code>255, 0, 0</code></td><td><code>#ff0000</code></td><td>guess</td></tr>
+            <tr><td>Blue</td><td><code>0, 100, 255</code></td><td><code>#0064ff</code></td><td>guess</td></tr>
+            <tr><td>Lime</td><td><code>100, 255, 0</code></td><td><code>#64ff00</code></td><td>guess</td></tr>
+            <tr><td>Light purple</td><td><code>130, 0, 255</code></td><td><code>#8200ff</code></td><td>guess</td></tr>
+            <tr><td>Pink</td><td><code>255, 0, 120</code></td><td><code>#ff0078</code></td><td>guess</td></tr>
+            <tr><td>Warm white</td><td><code>255, 217, 160</code></td><td><code>#ffd9a0</code></td><td>whites stay as they are</td></tr>
+        </table></div>
+        <p class="note">The starter's "Colour test" timeline (48 s) shows each colour for 3 s the way it looks on screen, then 3 s with these values. The step list names each one ("lavender: page", "lavender: Revel"). Use it to check the guesses on the real lights.</p>
         <p class="note">CH13 is in Revel's patch but not on the map. The starter's "find each light" scene lights it last, so you can see where it is.</p>
     </section>
 
@@ -95,7 +109,7 @@
             <li>A 3D layout matching the map above.</li>
             <li>The song as <code>Live/music.wav</code>, converted with macOS's <code>afconvert</code>. ShowXpress only draws the waveform for WAV.</li>
             <li>Four scenes: <code>00 blackout</code>, <code>01 all warm white fade in</code>, <code>02 all white</code>, and <code>03 find each light</code> (each light alone in white for 2 s, in number order).</li>
-            <li>"Timing test" and "Dimmer test" timelines (see <a href="#rig">Revel's lights</a> and <a href="#fixes">When it's wrong</a>). Those are the only timelines until you run the script in step 5, which writes one named after the show.</li>
+            <li>"Timing test", "Dimmer test" and "Colour test" timelines (see <a href="#rig">Revel's lights</a> and <a href="#fixes">When it's wrong</a>). Those are the only timelines until you run the script in step 5, which writes one named after the show.</li>
         </ul>
         <p>Running it again is safe: it puts back Revel's patch and 3D layout, but never replaces a scene that's already there. Leave the song off to keep the one you have.</p>
     </section>
@@ -150,11 +164,11 @@ id = 1685573664                    what scenes use to refer to this light</pre>
     &lt;Fixture id="1685573664" name="CH7: SlimPAR 56 (7CH) #7" model="SlimPAR 56 (7CH)"/&gt;
   &lt;/Fixtures&gt;
   &lt;Steps&gt;
-    &lt;Step length="60000"&gt;
+    &lt;Step name="pole warm white" length="60000"&gt;
       &lt;Fixture id="1685573664"&gt;
-        &lt;Channel index="0" value="255" fade="0"/&gt;
-        &lt;Channel index="1" value="217" fade="0"/&gt;
-        &lt;Channel index="2" value="160" fade="0"/&gt;
+        &lt;Channel index="0" name="red" value="255" fade="0"/&gt;
+        &lt;Channel index="1" name="green" value="217" fade="0"/&gt;
+        &lt;Channel index="2" name="blue" value="160" fade="0"/&gt;
       &lt;/Fixture&gt;
     &lt;/Step&gt;
   &lt;/Steps&gt;
@@ -164,6 +178,7 @@ id = 1685573664                    what scenes use to refer to this light</pre>
             <li><code>&lt;Fixtures&gt;</code> lists every light the scene touches, with <code>id</code>, <code>name</code> and <code>model</code> copied exactly from <code>fixtures.ini</code>.</li>
             <li><code>&lt;Step length="…"&gt;</code> is how long the step lasts, in <b>hundredths of a second</b>: 200 is 2 s, 60000 is 10 minutes. ShowXpress plays steps in 0.05 s ticks and rounds each one up, so keep lengths multiples of 5.</li>
             <li>Inside a step, one <code>&lt;Fixture id="…"&gt;</code> per light it changes.</li>
+            <li>The <code>name</code> on a step or channel is just a label, but name everything: Quan found unnamed files hard to read in ShowXpress. ShowXpress's own scenes name every channel; step names show in the Editor's step list. Name the file for what it does too: <code>05 floor purple 27.5s.scex</code>.</li>
             <li><code>&lt;Channel index value fade&gt;</code>: <code>index</code> is the channel, in the light's order: <b>0 red, 1 green, 2 blue, 3 colour macro, 4 shutter, 5 mode, 6 dimmer</b>. <code>value</code> is 0–255. At Revel, brightness is red, green and blue scaled together: multiply each by the level (0.55 for 55%). <code>fade="1"</code> glides from the current value over the whole step; <code>fade="0"</code> jumps at the start of it.</li>
             <li>Channels you leave out keep their value. Set 3, 4 and 5 to 0 and 6 to 255 once, in a blackout at the start (the starter's <code>00 blackout</code> does), in case they do something.</li>
             <li>The file can be called anything ending <code>.scex</code>; the timeline refers to it by file name. Our generated files use Windows line endings (<code>\r\n</code>), like ShowXpress's own. I haven't tested plain <code>\n</code>.</li>
@@ -294,18 +309,19 @@ Path = OFF</pre>
         <div class="section-header"><h2>4. Your cue list</h2><div class="section-line"></div></div>
         <p>Use <b>the exact music file the show will play</b>. Every time is measured against it; a re-export that starts a little later shifts every cue.</p>
         <p>Write the cues as a CSV, one row per change, with Revel's light numbers. This is what the script in step 5 reads:</p>
-<pre>time,lights,color,level,fade
-0,1 2 3 4 5 6 7 8 9 10 11 12 13,#000000,0,0
-4.3,1 2 4 5 6 8 9 12,#b79cff,100,0
-27.5,3 7 10,#ffd9a0,100,2
-27.5,1 2 4 5 6 8 9 12,#b79cff,55,2
-75.5,11,#00acee,100,1.5</pre>
+<pre>time,lights,color,level,fade,name
+0,1 2 3 4 5 6 7 8 9 10 11 12 13,#000000,0,0,blackout
+4.3,1 2 4 5 6 8 9 12,#3300ff,100,0,floor purple
+27.5,3 7 10,#ffd9a0,100,2,apparatus warm white
+27.5,1 2 4 5 6 8 9 12,#3300ff,55,2,floor purple dim
+75.5,11,#ff7200,100,1.5,backdrop orange</pre>
         <dl>
             <div><dt><code>time</code></dt><dd>Seconds into the song.</dd></div>
             <div><dt><code>lights</code></dt><dd>Light numbers, separated by spaces.</dd></div>
-            <div><dt><code>color</code></dt><dd>Hex colour. <code>#ffd9a0</code> is a warm white.</dd></div>
+            <div><dt><code>color</code></dt><dd>Hex colour, sent exactly as written. Use the saturated ones from <a href="#colours">Colours</a>: <code>#3300ff</code> purple, <code>#ff7200</code> orange; <code>#ffd9a0</code> is a warm white.</dd></div>
             <div><dt><code>level</code></dt><dd>Brightness, 0–100. 0 turns the lights off. The script scales the colour by it, since Revel ignores the dimmer.</dd></div>
             <div><dt><code>fade</code></dt><dd>Seconds to fade into the look. 0 snaps.</dd></div>
+            <div><dt><code>name</code></dt><dd>Optional. A few words for the scene's file and step names, so the files read well in Finder and ShowXpress.</dd></div>
         </dl>
         <p>A cue only changes the lights it names; the others keep what they had. Two cues at the same time can't name the same light.</p>
         <h3>Finding the times</h3>
@@ -324,10 +340,10 @@ Path = OFF</pre>
         </ul>
         <h3>Looks that worked at Revel</h3>
         <ul>
-            <li>Solos: the soloist's apparatus light warm white at full, the other apparatus lights dark, the floor at about 55% in soft colours.</li>
+            <li>Solos (Quan's layout): light only the soloist's side. For the pole on 7: 2 and 8–12 off. For the loops on 10: 1–7 off. The soloist's apparatus warm white at full, the rest of their side at about 55%.</li>
             <li>In busy sections keep your apparatus light at full and the floor lower (we used 50%), so you don't disappear.</li>
             <li>Snaps for punchy intros. Hits that snap on and fade away. Crossfades for calm passages.</li>
-            <li>Pick a palette and stay in it. The Teen Titans logo's lavender looked grey-blue on screen, so we used a bluer <code>#9b72ff</code>. Not yet checked on the real lights.</li>
+            <li>Pick a palette and stay in it, using saturated values (<a href="#colours">Colours</a>).</li>
             <li>Flashing more than 3 times a second is the usual photosensitivity line (<a href="https://www.w3.org/WAI/WCAG22/Understanding/three-flashes-or-below-threshold.html">WCAG 2.3.1</a> is the web version).</li>
         </ul>
     </section>
@@ -379,6 +395,7 @@ Path = OFF</pre>
             <tr><td>A look keeps re-fading.</td><td>The scene looped. End it on a long hold step.</td></tr>
             <tr><td>Fast flashes drift off the beat.</td><td>Step lengths that aren't multiples of 5.</td></tr>
             <tr><td>Lights blink off for an instant.</td><td>A block starts right at a snap or a short fade. Start it a little earlier, inside a held look.</td></tr>
+            <tr><td>Colours look pastel or washed out.</td><td>All three channels lit, or too much green. Keep one at 0 and green low; see <a href="#colours">Colours</a>.</td></tr>
             <tr><td>A light strobes or changes colour on its own.</td><td>Channel 3, 4 or 5 isn't 0. Quan says they do nothing at Revel, but zero them anyway.</td></tr>
             <tr><td>The install script says ShowXpress is open.</td><td>Quit it with <kbd>Cmd</kbd> + <kbd>Q</kbd> (closing the window isn't enough).</td></tr>
         </table></div>
