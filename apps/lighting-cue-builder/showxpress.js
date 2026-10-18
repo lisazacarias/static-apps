@@ -504,12 +504,12 @@ if [ -z "$NAME" ]; then
 fi
 DEST="$SHOWS/$NAME"
 if pgrep -f "TheLightingController.app/Contents/MacOS" >/dev/null; then
-  echo "ShowXpress is open. Quit it first (Cmd+Q), then run this again."
+  echo "TheLightingController (ShowXpress) is open. Quit it first (Cmd+Q), then run this again."
   exit 1
 fi
 if [ ! -d "$SHOWS" ]; then
-  echo "Couldn't find ShowXpress's show folder at $SHOWS."
-  echo "Open ShowXpress once, quit it, and run this again."
+  echo "Couldn't find TheLightingController's show folder at $SHOWS."
+  echo "Open TheLightingController once, quit it, and run this again."
   exit 1
 fi
 if [ -n "$SONG" ] && [ ! -f "$SONG" ]; then
@@ -539,7 +539,7 @@ fi
 find "$DEST/fixtures.ini" "$DEST/fixtures" "$DEST/3DView" -exec touch {} +
 
 echo "Done: $DEST"
-echo "Open ShowXpress, choose File > Open lightshow > $NAME. Editor > Fixtures should show CH1 to CH13."
+echo "Open TheLightingController, choose File > Open lightshow > $NAME. Editor > Fixtures should show CH1 to CH13."
 `;
 }
 
@@ -603,13 +603,13 @@ DEST="$SHOWS/${showName}"
 
 # match the app's own path: process names get cut short, and this script's path doesn't contain it
 if pgrep -f "TheLightingController.app/Contents/MacOS" >/dev/null; then
-  echo "ShowXpress is open. Quit it first (Cmd+Q), then run this again."
+  echo "TheLightingController (ShowXpress) is open. Quit it first (Cmd+Q), then run this again."
   echo "(If it's open while this runs, it saves over the new files when it closes.)"
   exit 1
 fi
 if [ ! -d "$SHOWS" ]; then
-  echo "Couldn't find ShowXpress's show folder at $SHOWS."
-  echo "Open ShowXpress once, quit it, and run this again."
+  echo "Couldn't find TheLightingController's show folder at $SHOWS."
+  echo "Open TheLightingController once, quit it, and run this again."
   exit 1
 fi
 
@@ -625,6 +625,6 @@ fi
 find "$DEST" -exec touch {} +
 
 echo "Done: $DEST"
-echo "Open ShowXpress, choose File > Open lightshow > ${showName}, then Live > TimeLine > Open > ${showName}."
+echo "Open TheLightingController, choose File > Open lightshow > ${showName}, then Live > TimeLine > Open > ${showName}."
 `;
 }
