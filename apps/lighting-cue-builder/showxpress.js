@@ -355,6 +355,11 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
     // up (the dark moment after a fade-out); one that changes something
     // (a 0.04 s flash) gets one tick, and the next ones catch up.
     const kept = bl.steps.filter((st, k, all) => {
+      // A snap overtaken by another snap in under half a tick can't be seen
+      // on the page either, but given its own tick it shows for 0.05 s: the
+      // battle's return to orange 0.02 s before the first punch flashed
+      // orange and cut that white flash to one tick.
+      if (k > 0 && k < all.length - 1 && !st.fade && !all[k + 1].fade && all[k + 1].t - st.t < TICK / 2) return false;
       if (k === 0 || k === all.length - 1 || !(!st.fade && looksSame(st.snap, all[k - 1].snap))) return true;
       const next = k + 1 < all.length ? all[k + 1].t : bl.end;
       return tick(next) > tick(st.t);

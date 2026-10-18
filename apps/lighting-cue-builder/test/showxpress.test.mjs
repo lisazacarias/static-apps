@@ -313,3 +313,17 @@ test('a lead-in puts that much blackout before the song and the lights', () => {
   assert.match(timeline, /MaxTime = 0:00:15/);
   assert.ok(!/name="(red|green|blue)" value="[1-9]/.test(scenes.get('000 blackout before the show.scex')), 'all dark');
 });
+
+test('a snap overtaken within half a tick is dropped rather than flashed', () => {
+  const plan = normalizePlan({ cues: [
+    cue({ time: 0, lights: [1], color: '#ffffff' }),
+    cue({ id: 'orange', time: 1.24, lights: [1], color: '#fbb612' }),
+    cue({ id: 'white', time: 1.26, lights: [1], color: '#ffffff', end: 1.36 }),
+  ] });
+  const { scenes } = showxpressShow(plan, { fixturesIni: INI, duration: 5 });
+  const xml = [...scenes.values()].join('');
+  assert.ok(!/0:01.24 snap: orange/.test(xml), 'no orange blip');
+  const steps = [...xml.matchAll(/<Step name="([^"]*)" length="(\d+)"/g)].map((m) => [m[1], +m[2]]);
+  const white = steps.find(([n]) => n.includes('white'));
+  assert.equal(white[1], 10, 'the white flash keeps its 0.1 s');
+});
