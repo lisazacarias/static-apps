@@ -9,7 +9,7 @@ import {
   runSheet, cueGrid, cellColor, inkOn, shortColorName, SHAPES, DRAW_ORDER, POOLS,
 } from './cues.js';
 import { cueWorkbook, zip } from './xlsx.js';
-import { showxpressPackage } from './showxpress.js';
+import { showxpressPackage, revelColor, REVEL_LEAD } from './showxpress.js';
 import { videoSupported, recorderType, videoExtension, stageBackground, drawFrame as drawVideoStage, recorder } from './video.js';
 
 // localStorage is shared by every app on the Pages origin — keep the prefix.
@@ -1776,6 +1776,11 @@ const SXP_SHOW = 'Teen Titans';
 // 'rgb': brightness on red, green and blue, since Revel's lights ignore the
 // dimmer (Quan). 'dimmer' is the old way, for if the Dimmer test says otherwise.
 const SXP_BRIGHTNESS = 'rgb';
+// Revel's lights wash out screen colours; revelColor saturates them (see
+// REVEL_COLORS in showxpress.js). hexToRgb would send the page's colours as they are.
+const SXP_COLOR = revelColor;
+// Seconds of blackout before the song starts on ShowXpress's timeline (Quan).
+const SXP_LEAD = REVEL_LEAD;
 $('exportShowxpress').onclick = async () => {
   if (!plan.cues.length) { notify('Add some cues first.'); return; }
   try {
@@ -1785,7 +1790,7 @@ $('exportShowxpress').onclick = async () => {
       get(SHOW_AUDIO.url, 'arrayBuffer').catch(() => null), // the song is a nicety; the show still works without it
     ]);
     const files = showxpressPackage(plan, { fixturesIni: ini, profile, profileName: VENUE.profileName, pools: POOLS,
-      audio: audio && new Uint8Array(audio), duration: duration() || undefined, showName: SXP_SHOW, brightness: SXP_BRIGHTNESS });
+      audio: audio && new Uint8Array(audio), duration: duration() || undefined, showName: SXP_SHOW, brightness: SXP_BRIGHTNESS, color: SXP_COLOR, lead: SXP_LEAD });
     download(`${slug(SXP_SHOW)}-showxpress.zip`, zip(files), 'application/zip');
     notify('Downloaded. The ShowXpress guide (link next to the button) says how to put it in.');
   } catch {

@@ -41,9 +41,9 @@ test('a held look is one scene that sets all 7 channels on all 12 lights', () =>
   const xml = scenes.get(blocks[0].file);
   assert.equal((xml.match(/<Channel /g) || []).length, 12 * 7);
   // light 1: lavender, macro/shutter/mode 0, dimmer full; light 3 dark
-  assert.match(xml, /<Fixture id="1000">\r\n {8}<Channel index="0" value="155" fade="0"\/>\r\n {8}<Channel index="1" value="114" fade="0"\/>\r\n {8}<Channel index="2" value="255" fade="0"\/>\r\n {8}<Channel index="3" value="0" fade="0"\/>\r\n {8}<Channel index="4" value="0" fade="0"\/>\r\n {8}<Channel index="5" value="0" fade="0"\/>\r\n {8}<Channel index="6" value="255" fade="0"\/>/);
+  assert.match(xml, /<Fixture id="1000">\r\n {8}<Channel index="0" name="[a-z_]+" value="155" fade="0"\/>\r\n {8}<Channel index="1" name="[a-z_]+" value="114" fade="0"\/>\r\n {8}<Channel index="2" name="[a-z_]+" value="255" fade="0"\/>\r\n {8}<Channel index="3" name="[a-z_]+" value="0" fade="0"\/>\r\n {8}<Channel index="4" name="[a-z_]+" value="0" fade="0"\/>\r\n {8}<Channel index="5" name="[a-z_]+" value="0" fade="0"\/>\r\n {8}<Channel index="6" name="[a-z_]+" value="255" fade="0"\/>/);
   // dark is red, green and blue at 0: Revel's lights ignore the dimmer
-  assert.match(xml, /<Fixture id="1002">(\r\n {8}<Channel index="\d" value="0" fade="0"\/>){6}\r\n {8}<Channel index="6" value="255"/);
+  assert.match(xml, /<Fixture id="1002">(\r\n {8}<Channel index="\d" name="[a-z_]+" value="0" fade="0"\/>){6}\r\n {8}<Channel index="6" name="[a-z_]+" value="255"/);
   assert.ok(!xml.includes('id="1012"'), 'CH13 is not on the map, so scenes leave it alone');
 });
 
@@ -51,12 +51,12 @@ test('a fade becomes steps that fade over exactly its length', () => {
   const plan = normalizePlan({ cues: [cue({ time: 1, lights: [1], transition: 'fade', fade: 2.5 })] });
   const { scenes, blocks, timeline } = showxpressShow(plan, { fixturesIni: INI, duration: 10 });
   // a new block starts inside the held look after the fade, clear of the fade's end
-  assert.deepEqual(blocks.map((b) => [b.start, b.file]), [[0, '001 at 0.0s.scex'], [3.8, '002 at 3.8s.scex']]);
+  assert.deepEqual(blocks.map((b) => [b.start, b.file]), [[0, '001 0.0s.scex'], [3.8, '002 3.8s.scex']]);
   // lengths are hundredths: dark for 1 s, fade 2.5 s, then held (padded so it never loops)
-  const steps = [...scenes.get(blocks[0].file).matchAll(/<Step length="(\d+)">/g)].map((m) => Number(m[1]));
+  const steps = [...scenes.get(blocks[0].file).matchAll(/<Step (?:name="[^"]*" )?length="(\d+)">/g)].map((m) => Number(m[1]));
   assert.deepEqual(steps, [100, 250, 30 + 60000]);
   assert.match(scenes.get(blocks[0].file), /fade="1"/);
-  assert.match(timeline, /\[Event_2\]\r\nTimeLineIndex = 3\r\nStartTime = 0:00:03.80\r\nPath = 002 at 3.8s.scex\r\nLength = 0:00:06.20/);
+  assert.match(timeline, /\[Event_2\]\r\nTimeLineIndex = 3\r\nStartTime = 0:00:03.80\r\nPath = 002 3.8s.scex\r\nLength = 0:00:06.20/);
   assert.match(timeline, /\[Event_0\]\r\nTimeLineIndex = 2\r\nStartTime = 0:00:00.00\r\nPath = Live\/music.wav/);
 });
 
@@ -137,7 +137,7 @@ test('the download is one folder: an install script and the show laid out for Sh
   const names = files.map((f) => f.name);
   assert.ok(names.every((n) => n.startsWith('teen-titans-showxpress/')));
   for (const n of ['install.sh', 'show/fixtures.ini', 'show/fixtures/SlimPAR 56 (7CH).txt', 'show/3DView/fixtures.ini',
-    'show/Live/TimeLine/timelines/Teen Titans.tml', 'show/Live/music.mp3', 'show/scenes/001 at 0.0s.scex']) {
+    'show/Live/TimeLine/timelines/Teen Titans.tml', 'show/Live/music.mp3', 'show/scenes/001 0.0s.scex']) {
     assert.ok(names.includes(`teen-titans-showxpress/${n}`), n);
   }
   const sh = files.find((f) => f.name.endsWith('install.sh')).data;
@@ -195,8 +195,8 @@ import { timingTest } from '../showxpress.js';
 test('the timing test flips the stage 40 times, then turns it white on schedule', () => {
   const files = timingTest(INI);
   const slow = files.find((f) => f.name.endsWith('slow.scex')).data, fast = files.find((f) => f.name.endsWith('fast.scex')).data;
-  assert.equal((slow.match(/<Step length="25">/g) || []).length, 40, '40 × 0.25 s: white at 10.0 s');
-  assert.equal((fast.match(/<Step length="7">/g) || []).length, 40, '40 × 0.07 s: white 2.8 s in');
+  assert.equal((slow.match(/<Step (?:name="[^"]*" )?length="25">/g) || []).length, 40, '40 × 0.25 s: white at 10.0 s');
+  assert.equal((fast.match(/<Step (?:name="[^"]*" )?length="7">/g) || []).length, 40, '40 × 0.07 s: white 2.8 s in');
   assert.match(files.find((f) => f.name.endsWith('.tml')).data, /StartTime = 0:00:13.00\r\nPath = timing test fast.scex/);
 });
 
@@ -215,10 +215,10 @@ test('the Revel starter sets every channel of all 13 lights and never installs o
   const black = scene('00 blackout');
   assert.equal((black.match(/<Fixture id="\d+">/g) || []).length, 13, 'CH13 too');
   assert.equal((black.match(/<Channel /g) || []).length, 13 * 7);
-  assert.ok(!/index="[0-5]" value="[1-9]/.test(black), 'red, green, blue, macro, shutter and mode at zero');
+  assert.ok(!/index="[0-5]" name="[a-z_]+" value="[1-9]/.test(black), 'red, green, blue, macro, shutter and mode at zero');
   const find = scene('03 find each light');
-  assert.equal((find.match(/<Step length="200">/g) || []).length, 13, 'one light at a time, 2 s each');
-  assert.equal((find.match(/index="0" value="255"/g) || []).length, 13, 'one light lit per step');
+  assert.equal((find.match(/<Step (?:name="[^"]*" )?length="200">/g) || []).length, 13, 'one light at a time, 2 s each');
+  assert.equal((find.match(/index="0" name="[a-z_]+" value="255"/g) || []).length, 13, 'one light lit per step');
   const sh = files.find((f) => f.name.endsWith('install.sh'));
   assert.ok(sh.executable);
   assert.match(sh.data, /\[ -e "\$DEST\/\$rel" \] \|\| cp/, 'starter scenes only fill gaps');
@@ -231,7 +231,7 @@ test('brightness goes out on red, green and blue, since Revel only listens to th
   const plan = normalizePlan({ cues: [cue({ time: 0, lights: [1], color: '#ffd9a0', level: 55 })] });
   const { scenes, blocks } = showxpressShow(plan, { fixturesIni: INI, duration: 10 });
   const xml = scenes.get(blocks[0].file);
-  const ch = (id, i) => Number(xml.match(new RegExp(`<Fixture id="${id}">(?:\\r\\n {8}<Channel[^>]*>){${i}}\\r\\n {8}<Channel index="${i}" value="(\\d+)"`))[1]);
+  const ch = (id, i) => Number(xml.match(new RegExp(`<Fixture id="${id}">(?:\\r\\n {8}<Channel[^>]*>){${i}}\\r\\n {8}<Channel index="${i}" name="[a-z_]+" value="(\\d+)"`))[1]);
   assert.deepEqual([0, 1, 2].map((i) => ch(1000, i)), [140, 119, 88], 'warm white at 55%');
   assert.equal(ch(1000, 6), 255, 'dimmer held at full for rigs where it works');
   assert.deepEqual(rgbOut([255, 217, 160, 0]), [0, 0, 0], 'a dark light sends no colour');
@@ -242,16 +242,103 @@ import { dimmerTest } from '../showxpress.js';
 test('the old dimmer behaviour is still there to switch back to', () => {
   const plan = normalizePlan({ cues: [cue({ time: 0, lights: [1], color: '#ffd9a0', level: 55 })] });
   const { scenes, blocks } = showxpressShow(plan, { fixturesIni: INI, duration: 10, brightness: 'dimmer' });
-  assert.match(scenes.get(blocks[0].file), /<Fixture id="1000">\r\n {8}<Channel index="0" value="255"[^]*?<Channel index="6" value="140"/);
+  assert.match(scenes.get(blocks[0].file), /<Fixture id="1000">\r\n {8}<Channel index="0" name="[a-z_]+" value="255"[^]*?<Channel index="6" name="[a-z_]+" value="140"/);
 });
 
 test('the dimmer test fades the dimmer alone, then red, green and blue alone', () => {
   const [scene, tml] = dimmerTest(INI);
   const steps = scene.data.split('<Step ').slice(1);
   assert.equal(steps.length, 6);
-  const first = (st, i) => Number(st.match(new RegExp(`index="${i}" value="(\\d+)"`))[1]);
+  const first = (st, i) => Number(st.match(new RegExp(`index="${i}" name="[a-z_]+" value="(\\d+)"`))[1]);
   assert.deepEqual([0, 6].map((i) => first(steps[1], i)), [255, 0], 'dimmer to 0, red left at full');
   assert.deepEqual([0, 6].map((i) => first(steps[4], i)), [0, 255], 'red to 0, dimmer left at full');
   assert.equal((steps[0].match(/<Fixture id=/g) || []).length, 13, 'CH13 too');
   assert.match(tml.data, /Path = dimmer test.scex/);
+});
+
+import { revelColor, colorTest } from '../showxpress.js';
+
+test('Revel gets saturated colours: Quan\'s purple and orange, whites left alone', () => {
+  assert.deepEqual(revelColor('#9b72ff'), [51, 0, 255], 'lavender is Quan\'s 27,0,136, at full');
+  assert.deepEqual(revelColor('#FBB612'), [255, 114, 0], 'orange is Quan\'s');
+  assert.deepEqual(revelColor('#ffd9a0'), [255, 217, 160], 'warm white stays white');
+  assert.deepEqual(revelColor('#ffffff'), [255, 255, 255]);
+  assert.deepEqual(revelColor('#2ad8ff'), [0, 208, 255], 'anything else: the white part taken out');
+});
+
+test('the export sends the venue colour, scaled by level', () => {
+  const plan = normalizePlan({ cues: [cue({ time: 0, lights: [1], color: '#fbb612', level: 50 })] });
+  const { scenes, blocks } = showxpressShow(plan, { fixturesIni: INI, duration: 10, color: revelColor });
+  assert.match(scenes.get(blocks[0].file), /<Fixture id="1000">\r\n {8}<Channel index="0" name="red" value="128"[^/]*\/>\r\n {8}<Channel index="1" name="green" value="57"[^/]*\/>\r\n {8}<Channel index="2" name="blue" value="0"/);
+});
+
+test('scenes are named for their section and steps for their cues', () => {
+  const plan = normalizePlan({
+    sections: [{ name: 'Intro', time: 0 }, { name: 'Raven solo', time: 3 }],
+    cues: [cue({ id: 'warm', time: 0, lights: [1] }), cue({ id: 'solo-pole', time: 3.8, lights: [7], color: '#ffd9a0' })],
+  });
+  const { scenes, blocks } = showxpressShow(plan, { fixturesIni: INI, duration: 10 });
+  assert.equal(blocks[0].file, '001 Intro 0.0s.scex');
+  assert.match(blocks[1].file, /^002 Raven solo \d+\.\ds\.scex$/);
+  assert.match([...scenes.values()].join(''), /<Step name="0:03.80 (snap|block starts): solo-pole" length=/);
+});
+
+test('the colour test shows each colour as the page has it, then as Revel gets it', () => {
+  const [scene, tml] = colorTest(INI);
+  assert.match(scene.data, /<Step name="lavender: page" length="300">[^]*?name="red" value="155"/);
+  assert.match(scene.data, /<Step name="lavender: Revel" length="300">[^]*?name="red" value="51"/);
+  assert.match(tml.data, /Path = colour test.scex/);
+  assert.match(scene.data, /<Step name="light purple: Revel"/, 'light purple has its own name');
+});
+
+test('a crossfade between saturated colours keeps its brightness halfway', () => {
+  const plan = normalizePlan({ cues: [
+    cue({ time: 0, lights: [1], color: '#9b72ff' }),
+    cue({ time: 1, lights: [1], color: '#c0d62d', transition: 'fade', fade: 0.4 }),
+  ] });
+  const { scenes, blocks } = showxpressShow(plan, { fixturesIni: INI, duration: 5, color: revelColor });
+  const xml = [...scenes.values()].join('');
+  // a halfway step lifted to full: lavender 51,0,255 and lime 100,255,0 meet near 76,128,128 → scaled to 255
+  const mids = [...xml.matchAll(/<Fixture id="1000">\r\n {8}<Channel index="0" name="red" value="(\d+)"[^>]*>\r\n {8}<Channel index="1" name="green" value="(\d+)"[^>]*>\r\n {8}<Channel index="2" name="blue" value="(\d+)"/g)]
+    .map((m) => m.slice(1).map(Number)).filter(([r, g, b]) => g > 0 && b > 0);
+  assert.ok(mids.length >= 1, 'a halfway step');
+  assert.ok(mids.every((v) => Math.max(...v) >= 240), `halfway at full brightness: ${JSON.stringify(mids)}`);
+});
+
+test('a lead-in puts that much blackout before the song and the lights', () => {
+  const plan = normalizePlan({ cues: [cue({ time: 0, lights: [1] }), cue({ time: 3.8, lights: [2] })] });
+  const { scenes, timeline } = showxpressShow(plan, { fixturesIni: INI, duration: 10, lead: 5 });
+  assert.match(timeline, /\[Event_0\]\r\nTimeLineIndex = 2\r\nStartTime = 0:00:05.00\r\nPath = Live\/music.wav/);
+  assert.match(timeline, /\[Event_1\]\r\nTimeLineIndex = 3\r\nStartTime = 0:00:00.00\r\nPath = 000 blackout before the show.scex\r\nLength = 0:00:05.00/);
+  assert.match(timeline, /\[Event_2\]\r\nTimeLineIndex = 3\r\nStartTime = 0:00:05.00\r\nPath = 001 0.0s.scex/);
+  assert.match(timeline, /MaxTime = 0:00:15/);
+  assert.ok(!/name="(red|green|blue)" value="[1-9]/.test(scenes.get('000 blackout before the show.scex')), 'all dark');
+});
+
+test('a snap overtaken within half a tick is dropped rather than flashed', () => {
+  const plan = normalizePlan({ cues: [
+    cue({ time: 0, lights: [1], color: '#ffffff' }),
+    cue({ id: 'orange', time: 1.24, lights: [1], color: '#fbb612' }),
+    cue({ id: 'white', time: 1.26, lights: [1], color: '#ffffff', end: 1.36 }),
+  ] });
+  const { scenes } = showxpressShow(plan, { fixturesIni: INI, duration: 5 });
+  const xml = [...scenes.values()].join('');
+  assert.ok(!/0:01.24 snap: orange/.test(xml), 'no orange blip');
+  const steps = [...xml.matchAll(/<Step name="([^"]*)" length="(\d+)"/g)].map((m) => [m[1], +m[2]]);
+  const white = steps.find(([n]) => n.includes('white'));
+  assert.equal(white[1], 10, 'the white flash keeps its 0.1 s');
+});
+
+test('a crossfade mixes the venue colours, never a pastel in between', () => {
+  // pink to light purple, with a second light changing a hundredth later so
+  // a step boundary lands mid-fade (as in Starfire's solo)
+  const plan = normalizePlan({ cues: [
+    cue({ time: 0, lights: [1, 2], color: '#ff8fc8', level: 55 }),
+    cue({ time: 1, lights: [1], color: '#b79cff', level: 55, transition: 'fade', fade: 0.16 }),
+    cue({ time: 1.01, lights: [2], color: '#b79cff', level: 55, transition: 'fade', fade: 0.16 }),
+  ] });
+  const { scenes } = showxpressShow(plan, { fixturesIni: INI, duration: 5, color: revelColor });
+  const greens = [...[...scenes.values()].join('').matchAll(/<Fixture id="100[01]">\r\n[^\n]*\n {8}<Channel index="1" name="green" value="(\d+)"/g)].map((m) => +m[1]);
+  assert.ok(greens.length > 2);
+  assert.deepEqual([...new Set(greens)], [0], 'pink and light purple have no green, nor does anything between them');
 });

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Running the Lights</title>
+    <link rel="stylesheet" href="../../shared/base.css">
+    <style>
+        .run { max-width: 720px; }
+        .run .section { margin-bottom: 34px; }
+        .run p, .run li, .run td, .run th { font-size: 16px; }
+        .run p + p { margin-top: 10px; }
+        .run b { color: var(--text-bright); font-weight: 600; }
+        .run code, .run kbd { font-family: var(--font-mono); font-size: 14px; background: var(--bg-elevated); border: 1px solid var(--border-bright); border-radius: 4px; padding: 1px 6px; color: var(--text-bright); overflow-wrap: anywhere; }
+        .run pre { font-family: var(--font-mono); font-size: 14px; background: var(--bg-elevated); border: 1px solid var(--border-bright); border-radius: 6px; padding: 10px 12px; margin-top: 8px; overflow-x: auto; white-space: pre; color: var(--text-bright); }
+        .run .note { font-size: 14px; color: var(--text-muted); }
+        .steps { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 10px; }
+        .steps li { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 12px; align-items: start; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+        .steps input[type="checkbox"] { width: 24px; height: 24px; margin: 2px 0 0; accent-color: var(--accent, #c9a96e); cursor: pointer; }
+        .steps li.done { opacity: 0.55; }
+        .steps .what { display: grid; gap: 4px; min-width: 0; }
+        .steps .look { font-size: 14px; color: var(--text-muted); }
+                .table-wrap { overflow-x: auto; margin-top: 10px; }
+        .run table { border-collapse: collapse; width: 100%; }
+        .run th, .run td { text-align: left; padding: 7px 12px 7px 0; border-top: 1px solid var(--border); vertical-align: top; }
+        .run th { color: var(--text-bright); font-weight: 600; }
+        .run h3 { font-size: 16px; color: var(--text-bright); margin: 20px 0 4px; }
+        .run td.t { font-family: var(--font-mono); font-size: 15px; color: var(--text-bright); white-space: nowrap; }
+        .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 8px; }
+        .fix { display: grid; gap: 3px; padding: 10px 0; border-top: 1px solid var(--border); }
+        .fix .q { color: var(--text-bright); font-weight: 600; }
+        .back { display: inline-block; margin-bottom: 18px; font-size: 14px; }
+    </style>
+</head>
+<body>
+<div class="container run">
+    <a class="back" href="./">← Back to the lighting plan</a>
+    <header>
+        <h1>Running the lights</h1>
+        <p class="subtitle">For whoever's at the laptop at Revel: put the show on once, then open it and press play. Tick each step as you go.</p>
+    </header>
+
+    <section class="section">
+        <div class="section-header"><h2>Put the show on the laptop</h2><div class="section-line"></div></div>
+        <p>Do this once, on the laptop at Revel (the one with TheLightingController on it), before playing anything.</p>
+        <ol class="steps">
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>On that laptop, open the <a href="./">lighting page</a>, scroll down past the stage map, and click <b>Download for ShowXpress</b> (in the row of buttons under <b>Cues</b>).</span><span class="look">It saves <code>teen-titans-showxpress.zip</code> in Downloads. The button isn't there on a phone.</span></div></li>
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>Open the <b>Downloads</b> folder. If there's already a folder called <code>teen-titans-showxpress</code>, drag it to the Bin. Then double-click the zip.</span><span class="look">You now have a <code>teen-titans-showxpress</code> folder.</span></div></li>
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>If TheLightingController is open, quit it: click it, then press <kbd>Cmd</kbd> + <kbd>Q</kbd>.</span></div></li>
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>Open <b>Terminal</b>: press <kbd>Cmd</kbd> + <kbd>Space</kbd>, type <b>Terminal</b>, press Enter.</span></div></li>
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>Click <b>Copy</b>, click in the Terminal window, paste with <kbd>Cmd</kbd> + <kbd>V</kbd>, and press Enter.</span>
+                <pre id="installLine">bash ~/Downloads/teen-titans-showxpress/install.sh</pre>
+                <div class="row"><button id="copyInstall" class="btn" type="button">Copy</button><span id="copiedInstall" class="note"></span></div>
+                <span class="look">After a few seconds it says <b>Done</b>. If it says TheLightingController is open, quit it (step 3) and paste again.</span></div></li>
+        </ol>
+        <p class="note">These steps are for a Mac. If the laptop is Windows, stop here and tell Lisa.</p>
+    </section>
+
+    <section class="section">
+        <div class="section-header"><h2>Get it going</h2><div class="section-line"></div></div>
+        <ol class="steps" id="setupSteps">
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>Plug the lights' <b>USB box</b> (the DMX adapter) into the laptop.</span></div></li>
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>Open <b>TheLightingController</b>.</span><span class="look">It's in the Dock, or in Applications. (It's also called ShowXpress; same program.)</span></div></li>
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>Top menu: <b>File › Open lightshow › Teen Titans</b>.</span><span class="look">The top of the window should now say "ShowXpress - Teen Titans".</span></div></li>
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>Click <b>Live</b> at the top, then <b>TimeLine</b>.</span></div></li>
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>Top right, find the small <b>DMX</b> icon. It needs a <b>green line</b> under it. If the line is red, click the icon once.</span><span class="look">This is what sends the show to the real lights.</span></div></li>
+        </ol>
+    </section>
+
+
+
+
+
+
+    <section class="section">
+        <div class="section-header"><h2>Play the show</h2><div class="section-line"></div></div>
+        <ol class="steps">
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>Click the <b>folder icon</b> (Open) at the top of the TimeLine and pick <b>Teen Titans</b>.</span></div></li>
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>Press <b>▶ play</b>.</span><span class="look">The first 5 seconds are dark on purpose, then the music and lights start together. The clock at the top left counts up, 5 seconds ahead of the song.</span></div></li>
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>To stop, press <b>■ stop</b>.</span></div></li>
+        </ol>
+        <h3>Starting from a part of the song</h3>
+        <p>Double-click the time ruler above the coloured blocks, near the clock time below. A red marker appears there. Then press <b>Play from red marker</b> (the button next to play).</p>
+        <div class="table-wrap"><table id="sectionTable">
+            <tr><th>Clock</th><th>Part of the song</th></tr>
+        </table></div>
+        <p class="note">Starting partway, the lights can be off for a moment until the next change. If it looks wrong right after starting, start a few seconds earlier.</p>
+        <p><b>Questions, or something looks off?</b> Text Lisa the clock time and what you saw.</p>
+    </section>
+
+    <section class="section">
+        <div class="section-header"><h2>Quick fixes</h2><div class="section-line"></div></div>
+        <div class="fix"><span class="q">The music plays but the lights don't.</span><span>Check the green line under the <b>DMX</b> icon (top right). Still nothing? Click <b>Editor</b> at the top, then <b>Steps</b>: if the DMX or 3D buttons there are green, click them off. Then go back to Live › TimeLine.</span></div>
+        <div class="fix"><span class="q">The lights are late, or lag behind the music.</span><span>Quit TheLightingController (<kbd>Cmd</kbd> + <kbd>Q</kbd>), open it again, and play from the start. That fixed it for Lisa. Pressing stop and playing again sometimes works too.</span></div>
+        <div class="fix"><span class="q">Teen Titans isn't in the list.</span><span>Check the top of the window says "ShowXpress - Teen Titans". If not, File › Open lightshow › Teen Titans.</span></div>
+        <div class="fix"><span class="q">When you're done.</span><span>Press stop, then quit with <kbd>Cmd</kbd> + <kbd>Q</kbd>.</span></div>
+    </section>
+</div>
+<script type="module">
+import { formatTime, normalizePlan, sortSections, sectionStart } from './cues.js';
+import { REVEL_LEAD } from './showxpress.js';
+
+// Ticks are a per-computer convenience; the page works without them.
+const KEY = 'lighting-cue-builder:run-checklist';
+const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private window */ } };
+
+const boxes = [...document.querySelectorAll('.steps input[type="checkbox"]')];
+const ticked = load(KEY, []);
+boxes.forEach((b, i) => {
+  b.checked = Boolean(ticked[i]);
+  b.closest('li').classList.toggle('done', b.checked);
+  b.onchange = () => { b.closest('li').classList.toggle('done', b.checked); save(KEY, boxes.map((x) => x.checked)); };
+});
+
+document.getElementById('copyInstall').onclick = async () => {
+  const msg = document.getElementById('copiedInstall');
+  try { await navigator.clipboard.writeText(document.getElementById('installLine').textContent); msg.textContent = 'Copied. Now paste it in Terminal.'; }
+  catch { msg.textContent = 'Select the line above and press Cmd + C.'; }
+};
+
+// whole seconds, rounded down, so starting there lands just before the part
+const clock = (sec) => formatTime(Math.floor(sec + 1e-6), 0);
+const row = (table, cells) => {
+  const tr = document.createElement('tr');
+  cells.forEach(([html, cls]) => { const td = document.createElement('td'); td.innerHTML = html; if (cls) td.className = cls; tr.append(td); });
+  document.getElementById(table).append(tr);
+};
+fetch('starter-plan.json', { cache: 'no-cache' }).then((r) => r.json()).then((raw) => {
+  const plan = normalizePlan(raw);
+  row('sectionTable', [['0:00', 't'], ['Dark (5 seconds)']]);
+  for (const s of sortSections(plan.sections, plan.tempo)) row('sectionTable', [[clock(sectionStart(s, plan.tempo) + REVEL_LEAD), 't'], [s.name]]);
+}).catch(() => row('sectionTable', [['', ''], ['Couldn’t load the song parts. The show still plays from the start.']]));
+</script>
+</body>
+</html>
