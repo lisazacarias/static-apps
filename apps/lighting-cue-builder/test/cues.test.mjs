@@ -498,10 +498,19 @@ test('the shipped show plan loads cleanly', () => {
   assert.equal(at(100)[10].color, '#ffd9a0', 'her loops in a warm white spotlight');
   assert.equal(at(100)[11].color, '#ffd9a0', 'backdrop warm white with her');
   assert.ok([8, 9, 12].every((l) => ['#b79cff', '#ff8fc8'].includes(at(100)[l].color)), 'the rest light purple or pink');
-  // the freeze ray strobes: blue on the beat, dark between, orange on the next
-  assert.equal(at(154.3)[1].color, '#00acee');
+  // the freeze ray strobes in cold colours, each light its own, dark between
+  const freeze = at(154.3);
+  assert.ok(ALL_LIGHTS.every((l) => freeze[l].level === 1), 'every light on the beat');
+  assert.ok(ALL_LIGHTS.every((l) => ['#2ad8ff', '#00acee', '#9b72ff', '#b79cff'].includes(freeze[l].color)), 'blues and purples');
+  assert.notEqual(freeze[2].color, freeze[7].color, 'neighbours differ');
   assert.equal(at(154.27 + 0.4)[1].level, 0, 'dark between flashes');
-  assert.equal(at(154.27 + 60 / 96.77 + 0.05)[1].color, '#fbb612');
+  assert.equal(at(154.27 + 60 / 96.77 + 0.05)[1].color, '#2ad8ff', 'a light keeps its colour');
+  // the battle hits follow the solo rule: Raven's side with the pole, then Starfire's with the loops
+  const hit1 = at(164.4), hit2 = at(169.4);
+  assert.equal(hit1[7].level, 1);
+  assert.ok([1, 3, 4, 5, 6].every((l) => hit1[l].level === 0.5) && [2, 8, 9, 10, 11, 12].every((l) => hit1[l].level === 0));
+  assert.equal(hit2[10].level, 1);
+  assert.ok([8, 9, 11, 12].every((l) => hit2[l].level === 0.5) && [1, 2, 3, 4, 5, 6, 7].every((l) => hit2[l].level === 0));
 });
 
 import { planSignature } from '../cues.js';

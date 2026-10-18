@@ -4225,23 +4225,44 @@
       "updatedAt": 1791729000000
     },
     {
-      "id": "battle-pulse",
+      "id": "battle-freeze-cyan",
       "time": 154.27,
       "end": null,
       "outFade": null,
       "lights": [
         1,
-        2,
-        3,
-        4,
         5,
+        9
+      ],
+      "action": "on",
+      "color": "#2ad8ff",
+      "colorName": "",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "Freeze ray (2:34.27): the whole stage strobes on every beat, a quarter beat on and dark between, each light in its own cold colour (cyan, blue, lavender, light purple), no two neighbours alike",
+      "repeat": {
+        "bpm": 96.77,
+        "beats": 1,
+        "count": 8,
+        "onFrac": 0.25,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1792358612061
+    },
+    {
+      "id": "battle-freeze-blue",
+      "time": 154.27,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2,
         6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
+        10
       ],
       "action": "on",
       "color": "#00acee",
@@ -4250,18 +4271,78 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Freeze ray (2:34.27): the whole stage strobes icy blue / orange on every beat, a quarter beat on and dark between, like the battle hits",
+      "note": "",
       "repeat": {
         "bpm": 96.77,
         "beats": 1,
         "count": 8,
         "onFrac": 0.25,
-        "altColor": "#fbb612",
+        "altColor": null,
         "dimTo": 0,
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1792357804964
+      "updatedAt": 1792358612061
+    },
+    {
+      "id": "battle-freeze-lavender",
+      "time": 154.27,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        3,
+        7,
+        11
+      ],
+      "action": "on",
+      "color": "#9b72ff",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 96.77,
+        "beats": 1,
+        "count": 8,
+        "onFrac": 0.25,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1792358612061
+    },
+    {
+      "id": "battle-freeze-light-purple",
+      "time": 154.27,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        4,
+        8,
+        12
+      ],
+      "action": "on",
+      "color": "#b79cff",
+      "colorName": "",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 96.77,
+        "beats": 1,
+        "count": 8,
+        "onFrac": 0.25,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false
+      },
+      "option": null,
+      "updatedAt": 1792358612061
     },
     {
       "id": "battle-full",
@@ -4732,15 +4813,10 @@
       "outFade": null,
       "lights": [
         1,
-        2,
         3,
         4,
         5,
-        6,
-        8,
-        9,
-        11,
-        12
+        6
       ],
       "action": "on",
       "color": "#fbb612",
@@ -4749,7 +4825,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "",
+      "note": "Raven's side only (the solo rule): 2 and 8–12 stay dark",
       "repeat": {
         "bpm": 96.37,
         "beats": 1,
@@ -4760,7 +4836,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1792005933048
+      "updatedAt": 1792358612061
     },
     {
       "id": "battle-hits-2",
@@ -4796,12 +4872,6 @@
       "end": null,
       "outFade": null,
       "lights": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
         8,
         9,
         11,
@@ -4814,7 +4884,7 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "",
+      "note": "Starfire's side only (the solo rule): 1–7 stay dark",
       "repeat": {
         "bpm": 96.37,
         "beats": 1,
@@ -4825,7 +4895,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1792005933048
+      "updatedAt": 1792358612061
     },
     {
       "id": "battle-full-2",
