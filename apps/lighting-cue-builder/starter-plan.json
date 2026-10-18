@@ -4233,34 +4233,34 @@
         1
       ],
       "action": "on",
-      "color": "#2ad8ff",
+      "color": "#b79cff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
-      "fade": 0.3,
+      "transition": "sharp",
+      "fade": 2,
       "othersOff": false,
-      "note": "Freeze ray (2:34.27): cold colours (cyan, blue, lavender, light purple) travel round the stage, one light along on every beat: the outer ring 1-3-4-6-5-8-10-12, the inner 2-7-9, the backdrop cycling",
+      "note": "Freeze ray (2:34.27): the whole stage strobes on every beat, a quarter beat on and dark between, in cold colours (cyan, blue, lavender, light purple) shuffled to new places on every flash; neighbours never match, and no light repeats its last colour",
       "repeat": {
         "bpm": 96.77,
         "beats": 1,
         "count": 8,
-        "onFrac": 1,
+        "onFrac": 0.25,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false,
         "cycle": [
-          "#2ad8ff",
           "#b79cff",
-          "#9b72ff",
+          "#2ad8ff",
+          "#00acee",
+          "#2ad8ff",
           "#00acee",
           "#2ad8ff",
           "#b79cff",
-          "#9b72ff",
-          "#00acee"
+          "#2ad8ff"
         ]
       },
       "option": null,
-      "updatedAt": 1792359581554
+      "updatedAt": 1792360222188
     },
     {
       "id": "battle-freeze-l3",
@@ -4271,34 +4271,34 @@
         3
       ],
       "action": "on",
-      "color": "#00acee",
+      "color": "#2ad8ff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
-      "fade": 0.3,
+      "transition": "sharp",
+      "fade": 2,
       "othersOff": false,
       "note": "",
       "repeat": {
         "bpm": 96.77,
         "beats": 1,
         "count": 8,
-        "onFrac": 1,
+        "onFrac": 0.25,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false,
         "cycle": [
-          "#00acee",
           "#2ad8ff",
+          "#00acee",
+          "#b79cff",
+          "#00acee",
           "#b79cff",
           "#9b72ff",
           "#00acee",
-          "#2ad8ff",
-          "#b79cff",
           "#9b72ff"
         ]
       },
       "option": null,
-      "updatedAt": 1792359581554
+      "updatedAt": 1792360222188
     },
     {
       "id": "battle-freeze-l4",
@@ -4309,34 +4309,34 @@
         4
       ],
       "action": "on",
-      "color": "#9b72ff",
+      "color": "#b79cff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
-      "fade": 0.3,
+      "transition": "sharp",
+      "fade": 2,
       "othersOff": false,
       "note": "",
       "repeat": {
         "bpm": 96.77,
         "beats": 1,
         "count": 8,
-        "onFrac": 1,
+        "onFrac": 0.25,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false,
         "cycle": [
-          "#9b72ff",
-          "#00acee",
-          "#2ad8ff",
           "#b79cff",
           "#9b72ff",
           "#00acee",
+          "#b79cff",
+          "#00acee",
+          "#b79cff",
           "#2ad8ff",
           "#b79cff"
         ]
       },
       "option": null,
-      "updatedAt": 1792359581554
+      "updatedAt": 1792360222188
     },
     {
       "id": "battle-freeze-l6",
@@ -4347,34 +4347,34 @@
         6
       ],
       "action": "on",
-      "color": "#b79cff",
+      "color": "#9b72ff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
-      "fade": 0.3,
+      "transition": "sharp",
+      "fade": 2,
       "othersOff": false,
       "note": "",
       "repeat": {
         "bpm": 96.77,
         "beats": 1,
         "count": 8,
-        "onFrac": 1,
+        "onFrac": 0.25,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false,
         "cycle": [
+          "#9b72ff",
           "#b79cff",
           "#9b72ff",
           "#00acee",
+          "#9b72ff",
           "#2ad8ff",
-          "#b79cff",
           "#9b72ff",
-          "#00acee",
           "#2ad8ff"
         ]
       },
       "option": null,
-      "updatedAt": 1792359581554
+      "updatedAt": 1792360222188
     },
     {
       "id": "battle-freeze-l5",
@@ -4385,34 +4385,34 @@
         5
       ],
       "action": "on",
-      "color": "#2ad8ff",
+      "color": "#b79cff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
-      "fade": 0.3,
+      "transition": "sharp",
+      "fade": 2,
       "othersOff": false,
       "note": "",
       "repeat": {
         "bpm": 96.77,
         "beats": 1,
         "count": 8,
-        "onFrac": 1,
+        "onFrac": 0.25,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false,
         "cycle": [
-          "#2ad8ff",
           "#b79cff",
           "#9b72ff",
+          "#2ad8ff",
+          "#b79cff",
+          "#2ad8ff",
+          "#b79cff",
           "#00acee",
-          "#2ad8ff",
-          "#b79cff",
-          "#9b72ff",
-          "#00acee"
+          "#9b72ff"
         ]
       },
       "option": null,
-      "updatedAt": 1792359581554
+      "updatedAt": 1792360222188
     },
     {
       "id": "battle-freeze-l8",
@@ -4423,34 +4423,34 @@
         8
       ],
       "action": "on",
-      "color": "#00acee",
+      "color": "#9b72ff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
-      "fade": 0.3,
+      "transition": "sharp",
+      "fade": 2,
       "othersOff": false,
       "note": "",
       "repeat": {
         "bpm": 96.77,
         "beats": 1,
         "count": 8,
-        "onFrac": 1,
+        "onFrac": 0.25,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false,
         "cycle": [
-          "#00acee",
-          "#2ad8ff",
+          "#9b72ff",
           "#b79cff",
           "#9b72ff",
           "#00acee",
-          "#2ad8ff",
-          "#b79cff",
-          "#9b72ff"
+          "#9b72ff",
+          "#00acee",
+          "#9b72ff",
+          "#b79cff"
         ]
       },
       "option": null,
-      "updatedAt": 1792359581554
+      "updatedAt": 1792360222188
     },
     {
       "id": "battle-freeze-l10",
@@ -4461,34 +4461,34 @@
         10
       ],
       "action": "on",
-      "color": "#9b72ff",
+      "color": "#b79cff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
-      "fade": 0.3,
+      "transition": "sharp",
+      "fade": 2,
       "othersOff": false,
       "note": "",
       "repeat": {
         "bpm": 96.77,
         "beats": 1,
         "count": 8,
-        "onFrac": 1,
+        "onFrac": 0.25,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false,
         "cycle": [
-          "#9b72ff",
-          "#00acee",
-          "#2ad8ff",
           "#b79cff",
-          "#9b72ff",
+          "#00acee",
+          "#b79cff",
           "#00acee",
           "#2ad8ff",
-          "#b79cff"
+          "#9b72ff",
+          "#b79cff",
+          "#9b72ff"
         ]
       },
       "option": null,
-      "updatedAt": 1792359581554
+      "updatedAt": 1792360222188
     },
     {
       "id": "battle-freeze-l12",
@@ -4499,34 +4499,34 @@
         12
       ],
       "action": "on",
-      "color": "#b79cff",
+      "color": "#2ad8ff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
-      "fade": 0.3,
+      "transition": "sharp",
+      "fade": 2,
       "othersOff": false,
       "note": "",
       "repeat": {
         "bpm": 96.77,
         "beats": 1,
         "count": 8,
-        "onFrac": 1,
+        "onFrac": 0.25,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false,
         "cycle": [
-          "#b79cff",
+          "#2ad8ff",
           "#9b72ff",
           "#00acee",
           "#2ad8ff",
           "#b79cff",
-          "#9b72ff",
+          "#2ad8ff",
           "#00acee",
           "#2ad8ff"
         ]
       },
       "option": null,
-      "updatedAt": 1792359581554
+      "updatedAt": 1792360222188
     },
     {
       "id": "battle-freeze-l2",
@@ -4537,34 +4537,34 @@
         2
       ],
       "action": "on",
-      "color": "#2ad8ff",
+      "color": "#9b72ff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
-      "fade": 0.3,
+      "transition": "sharp",
+      "fade": 2,
       "othersOff": false,
       "note": "",
       "repeat": {
         "bpm": 96.77,
         "beats": 1,
         "count": 8,
-        "onFrac": 1,
+        "onFrac": 0.25,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false,
         "cycle": [
-          "#2ad8ff",
+          "#9b72ff",
+          "#b79cff",
+          "#9b72ff",
           "#b79cff",
           "#9b72ff",
           "#00acee",
-          "#2ad8ff",
-          "#b79cff",
           "#9b72ff",
-          "#00acee"
+          "#b79cff"
         ]
       },
       "option": null,
-      "updatedAt": 1792359581554
+      "updatedAt": 1792360222188
     },
     {
       "id": "battle-freeze-l7",
@@ -4575,34 +4575,34 @@
         7
       ],
       "action": "on",
-      "color": "#00acee",
+      "color": "#2ad8ff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
-      "fade": 0.3,
+      "transition": "sharp",
+      "fade": 2,
       "othersOff": false,
       "note": "",
       "repeat": {
         "bpm": 96.77,
         "beats": 1,
         "count": 8,
-        "onFrac": 1,
+        "onFrac": 0.25,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false,
         "cycle": [
-          "#00acee",
           "#2ad8ff",
+          "#00acee",
           "#b79cff",
           "#9b72ff",
-          "#00acee",
-          "#2ad8ff",
           "#b79cff",
-          "#9b72ff"
+          "#9b72ff",
+          "#b79cff",
+          "#00acee"
         ]
       },
       "option": null,
-      "updatedAt": 1792359581554
+      "updatedAt": 1792360222188
     },
     {
       "id": "battle-freeze-l9",
@@ -4613,34 +4613,34 @@
         9
       ],
       "action": "on",
-      "color": "#9b72ff",
+      "color": "#00acee",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
-      "fade": 0.3,
+      "transition": "sharp",
+      "fade": 2,
       "othersOff": false,
       "note": "",
       "repeat": {
         "bpm": 96.77,
         "beats": 1,
         "count": 8,
-        "onFrac": 1,
+        "onFrac": 0.25,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false,
         "cycle": [
+          "#00acee",
           "#9b72ff",
           "#00acee",
           "#2ad8ff",
+          "#00acee",
           "#b79cff",
-          "#9b72ff",
           "#00acee",
-          "#2ad8ff",
-          "#b79cff"
+          "#2ad8ff"
         ]
       },
       "option": null,
-      "updatedAt": 1792359581554
+      "updatedAt": 1792360222188
     },
     {
       "id": "battle-freeze-l11",
@@ -4654,31 +4654,31 @@
       "color": "#2ad8ff",
       "colorName": "",
       "level": 100,
-      "transition": "fade",
-      "fade": 0.3,
+      "transition": "sharp",
+      "fade": 2,
       "othersOff": false,
       "note": "",
       "repeat": {
         "bpm": 96.77,
         "beats": 1,
         "count": 8,
-        "onFrac": 1,
+        "onFrac": 0.25,
         "altColor": null,
         "dimTo": 0,
         "keepColor": false,
         "cycle": [
           "#2ad8ff",
-          "#b79cff",
           "#9b72ff",
           "#00acee",
-          "#2ad8ff",
           "#b79cff",
+          "#9b72ff",
+          "#2ad8ff",
           "#9b72ff",
           "#00acee"
         ]
       },
       "option": null,
-      "updatedAt": 1792359581554
+      "updatedAt": 1792360222188
     },
     {
       "id": "battle-full",

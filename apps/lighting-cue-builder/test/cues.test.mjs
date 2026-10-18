@@ -499,14 +499,14 @@ test('the shipped show plan loads cleanly', () => {
   assert.equal(at(100)[11].color, '#ffd9a0', 'backdrop warm white with her');
   assert.ok([8, 9, 12].every((l) => ['#b79cff', '#ff8fc8'].includes(at(100)[l].color)), 'the rest light purple or pink');
   // the freeze ray: cold colours, each light its own, neighbours different
-  const freeze = at(154.6); // after the first 0.3 s glide
+  const freeze = at(154.3);
   assert.ok(ALL_LIGHTS.every((l) => freeze[l].level === 1), 'every light on the beat');
   assert.ok(ALL_LIGHTS.every((l) => ['#2ad8ff', '#00acee', '#9b72ff', '#b79cff'].includes(freeze[l].color)), 'blues and purples');
   assert.notEqual(freeze[2].color, freeze[7].color, 'neighbours differ');
-  // ...and they travel: on the next beat each light has its ring neighbour's colour
-  const beat = at(154.27 + 60 / 96.77 + 0.35);
-  assert.equal(beat[3].color, freeze[1].color, 'light 1\'s colour has moved on to 3');
-  assert.ok(ALL_LIGHTS.every((l) => beat[l].level === 1), 'no dark between beats');
+  // it strobes, dark between, and the colours land in new places each flash
+  assert.equal(at(154.27 + 0.4)[1].level, 0, 'dark between flashes');
+  const next = at(154.27 + 60 / 96.77 + 0.05);
+  assert.ok(ALL_LIGHTS.every((l) => next[l].level === 1 && next[l].color !== freeze[l].color), 'every light a different colour from its last flash');
   // the battle hits follow the solo rule: Raven's side with the pole, then Starfire's with the loops
   const hit1 = at(164.4), hit2 = at(169.4);
   assert.equal(hit1[7].level, 1);
