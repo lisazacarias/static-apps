@@ -4737,10 +4737,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Villain punch 1 (2: the stutter hits three times as a strobe, the whole stage white with dark between, then eases back to orange",
+      "note": "Villain punch 1 (2: the stutter hits three times as a strobe, the whole stage white with dark between the first three, then the third eases straight back to orange",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792360604252
+      "updatedAt": 1792362055457
     },
     {
       "id": "punch1-back-1",
@@ -4867,39 +4867,8 @@
       "updatedAt": 1791960727788
     },
     {
-      "id": "punch1-back-3",
-      "time": 160.11,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      "action": "off",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1792360604252
-    },
-    {
       "id": "punch1-orange",
-      "time": 160.26,
+      "time": 160.11,
       "end": null,
       "outFade": null,
       "lights": [
@@ -4923,10 +4892,10 @@
       "transition": "fade",
       "fade": 0.35,
       "othersOff": false,
-      "note": "...then eases back to orange",
+      "note": "...the third hit eases straight back to orange, no dark first",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792360604252
+      "updatedAt": 1792362055457
     },
     {
       "id": "punch2-white-1",
@@ -4954,10 +4923,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Villain punch 2 (2: the stutter hits three times as a strobe, the whole stage white with dark between, then eases back to orange",
+      "note": "Villain punch 2 (2: the stutter hits three times as a strobe, the whole stage white with dark between the first three, then the third eases straight back to orange",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792360604252
+      "updatedAt": 1792362055457
     },
     {
       "id": "punch2-back-1",
@@ -5084,39 +5053,8 @@
       "updatedAt": 1791960727788
     },
     {
-      "id": "punch2-back-3",
-      "time": 162.59,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12
-      ],
-      "action": "off",
-      "color": "#fbb612",
-      "colorName": "Titans orange",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1792360604252
-    },
-    {
       "id": "punch2-orange",
-      "time": 162.74,
+      "time": 162.59,
       "end": null,
       "outFade": null,
       "lights": [
@@ -5140,10 +5078,10 @@
       "transition": "fade",
       "fade": 0.35,
       "othersOff": false,
-      "note": "...then eases back to orange",
+      "note": "...the third hit eases straight back to orange, no dark first",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792360604252
+      "updatedAt": 1792362055457
     },
     {
       "id": "battle-hits-blackout",
