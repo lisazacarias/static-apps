@@ -498,13 +498,15 @@ test('the shipped show plan loads cleanly', () => {
   assert.equal(at(100)[10].color, '#ffd9a0', 'her loops in a warm white spotlight');
   assert.equal(at(100)[11].color, '#ffd9a0', 'backdrop warm white with her');
   assert.ok([8, 9, 12].every((l) => ['#b79cff', '#ff8fc8'].includes(at(100)[l].color)), 'the rest light purple or pink');
-  // the freeze ray strobes in cold colours, each light its own, dark between
-  const freeze = at(154.3);
+  // the freeze ray: cold colours, each light its own, neighbours different
+  const freeze = at(154.6); // after the first 0.3 s glide
   assert.ok(ALL_LIGHTS.every((l) => freeze[l].level === 1), 'every light on the beat');
   assert.ok(ALL_LIGHTS.every((l) => ['#2ad8ff', '#00acee', '#9b72ff', '#b79cff'].includes(freeze[l].color)), 'blues and purples');
   assert.notEqual(freeze[2].color, freeze[7].color, 'neighbours differ');
-  assert.equal(at(154.27 + 0.4)[1].level, 0, 'dark between flashes');
-  assert.equal(at(154.27 + 60 / 96.77 + 0.05)[1].color, '#2ad8ff', 'a light keeps its colour');
+  // ...and they travel: on the next beat each light has its ring neighbour's colour
+  const beat = at(154.27 + 60 / 96.77 + 0.35);
+  assert.equal(beat[3].color, freeze[1].color, 'light 1\'s colour has moved on to 3');
+  assert.ok(ALL_LIGHTS.every((l) => beat[l].level === 1), 'no dark between beats');
   // the battle hits follow the solo rule: Raven's side with the pole, then Starfire's with the loops
   const hit1 = at(164.4), hit2 = at(169.4);
   assert.equal(hit1[7].level, 1);
@@ -605,4 +607,15 @@ test('a colour cycle steps through its colours, one per flash', () => {
   assert.deepEqual([0.1, 1.1, 2.1, 3.1].map(col), ['#c0d62d', '#00acee', '#ec1b24', '#c0d62d'], 'the cycle wins over colour ⇄ alt, and wraps');
   assert.equal(normalizeCue({ time: 0, lights: [1], repeat: { bpm: 60, count: 2, cycle: ['#ffffff'] } }).repeat.cycle, null, 'one colour is not a cycle');
   assert.equal(normalizeCue({ time: 0, lights: [1], repeat: { bpm: 60, count: 2 } }).repeat.cycle, null, 'older runs have none');
+});
+
+test('the show ends on a rainbow flash that holds before fading out', () => {
+  const p = normalizePlan(JSON.parse(readFileSync(new URL('../starter-plan.json', import.meta.url), 'utf8')));
+  const at = (t) => stateAt(activeCues(p.cues, p.optionPicks), t).lights;
+  const flash = at(229.7);
+  assert.ok(ALL_LIGHTS.every((l) => flash[l].level === 1), 'every light full');
+  assert.ok(new Set(ALL_LIGHTS.map((l) => flash[l].color)).size >= 7, 'at least seven colours');
+  assert.ok(ALL_LIGHTS.every((l) => at(232)[l].level === 0), 'dark by the end');
+  // the piano hits ease further down than before
+  assert.ok(Math.abs(at(181.47)[1].level - 0.2) < 1e-9, "eased to 20% just before the next hit");
 });

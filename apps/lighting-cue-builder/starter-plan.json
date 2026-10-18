@@ -4225,124 +4225,460 @@
       "updatedAt": 1791729000000
     },
     {
-      "id": "battle-freeze-cyan",
+      "id": "battle-freeze-l1",
       "time": 154.27,
       "end": null,
       "outFade": null,
       "lights": [
-        1,
-        5,
-        9
+        1
       ],
       "action": "on",
       "color": "#2ad8ff",
       "colorName": "",
       "level": 100,
-      "transition": "sharp",
-      "fade": 2,
+      "transition": "fade",
+      "fade": 0.3,
       "othersOff": false,
-      "note": "Freeze ray (2:34.27): the whole stage strobes on every beat, a quarter beat on and dark between, each light in its own cold colour (cyan, blue, lavender, light purple), no two neighbours alike",
+      "note": "Freeze ray (2:34.27): cold colours (cyan, blue, lavender, light purple) travel round the stage, one light along on every beat: the outer ring 1-3-4-6-5-8-10-12, the inner 2-7-9, the backdrop cycling",
       "repeat": {
         "bpm": 96.77,
         "beats": 1,
         "count": 8,
-        "onFrac": 0.25,
+        "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
-        "keepColor": false
+        "keepColor": false,
+        "cycle": [
+          "#2ad8ff",
+          "#b79cff",
+          "#9b72ff",
+          "#00acee",
+          "#2ad8ff",
+          "#b79cff",
+          "#9b72ff",
+          "#00acee"
+        ]
       },
       "option": null,
-      "updatedAt": 1792358612061
+      "updatedAt": 1792359581554
     },
     {
-      "id": "battle-freeze-blue",
+      "id": "battle-freeze-l3",
       "time": 154.27,
       "end": null,
       "outFade": null,
       "lights": [
-        2,
-        6,
-        10
+        3
       ],
       "action": "on",
       "color": "#00acee",
-      "colorName": "Titans blue",
+      "colorName": "",
       "level": 100,
-      "transition": "sharp",
-      "fade": 2,
+      "transition": "fade",
+      "fade": 0.3,
       "othersOff": false,
       "note": "",
       "repeat": {
         "bpm": 96.77,
         "beats": 1,
         "count": 8,
-        "onFrac": 0.25,
+        "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
-        "keepColor": false
+        "keepColor": false,
+        "cycle": [
+          "#00acee",
+          "#2ad8ff",
+          "#b79cff",
+          "#9b72ff",
+          "#00acee",
+          "#2ad8ff",
+          "#b79cff",
+          "#9b72ff"
+        ]
       },
       "option": null,
-      "updatedAt": 1792358612061
+      "updatedAt": 1792359581554
     },
     {
-      "id": "battle-freeze-lavender",
+      "id": "battle-freeze-l4",
       "time": 154.27,
       "end": null,
       "outFade": null,
       "lights": [
-        3,
-        7,
-        11
+        4
       ],
       "action": "on",
       "color": "#9b72ff",
-      "colorName": "Titans lavender",
+      "colorName": "",
       "level": 100,
-      "transition": "sharp",
-      "fade": 2,
+      "transition": "fade",
+      "fade": 0.3,
       "othersOff": false,
       "note": "",
       "repeat": {
         "bpm": 96.77,
         "beats": 1,
         "count": 8,
-        "onFrac": 0.25,
+        "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
-        "keepColor": false
+        "keepColor": false,
+        "cycle": [
+          "#9b72ff",
+          "#00acee",
+          "#2ad8ff",
+          "#b79cff",
+          "#9b72ff",
+          "#00acee",
+          "#2ad8ff",
+          "#b79cff"
+        ]
       },
       "option": null,
-      "updatedAt": 1792358612061
+      "updatedAt": 1792359581554
     },
     {
-      "id": "battle-freeze-light-purple",
+      "id": "battle-freeze-l6",
       "time": 154.27,
       "end": null,
       "outFade": null,
       "lights": [
-        4,
-        8,
+        6
+      ],
+      "action": "on",
+      "color": "#b79cff",
+      "colorName": "",
+      "level": 100,
+      "transition": "fade",
+      "fade": 0.3,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 96.77,
+        "beats": 1,
+        "count": 8,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false,
+        "cycle": [
+          "#b79cff",
+          "#9b72ff",
+          "#00acee",
+          "#2ad8ff",
+          "#b79cff",
+          "#9b72ff",
+          "#00acee",
+          "#2ad8ff"
+        ]
+      },
+      "option": null,
+      "updatedAt": 1792359581554
+    },
+    {
+      "id": "battle-freeze-l5",
+      "time": 154.27,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        5
+      ],
+      "action": "on",
+      "color": "#2ad8ff",
+      "colorName": "",
+      "level": 100,
+      "transition": "fade",
+      "fade": 0.3,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 96.77,
+        "beats": 1,
+        "count": 8,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false,
+        "cycle": [
+          "#2ad8ff",
+          "#b79cff",
+          "#9b72ff",
+          "#00acee",
+          "#2ad8ff",
+          "#b79cff",
+          "#9b72ff",
+          "#00acee"
+        ]
+      },
+      "option": null,
+      "updatedAt": 1792359581554
+    },
+    {
+      "id": "battle-freeze-l8",
+      "time": 154.27,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        8
+      ],
+      "action": "on",
+      "color": "#00acee",
+      "colorName": "",
+      "level": 100,
+      "transition": "fade",
+      "fade": 0.3,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 96.77,
+        "beats": 1,
+        "count": 8,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false,
+        "cycle": [
+          "#00acee",
+          "#2ad8ff",
+          "#b79cff",
+          "#9b72ff",
+          "#00acee",
+          "#2ad8ff",
+          "#b79cff",
+          "#9b72ff"
+        ]
+      },
+      "option": null,
+      "updatedAt": 1792359581554
+    },
+    {
+      "id": "battle-freeze-l10",
+      "time": 154.27,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        10
+      ],
+      "action": "on",
+      "color": "#9b72ff",
+      "colorName": "",
+      "level": 100,
+      "transition": "fade",
+      "fade": 0.3,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 96.77,
+        "beats": 1,
+        "count": 8,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false,
+        "cycle": [
+          "#9b72ff",
+          "#00acee",
+          "#2ad8ff",
+          "#b79cff",
+          "#9b72ff",
+          "#00acee",
+          "#2ad8ff",
+          "#b79cff"
+        ]
+      },
+      "option": null,
+      "updatedAt": 1792359581554
+    },
+    {
+      "id": "battle-freeze-l12",
+      "time": 154.27,
+      "end": null,
+      "outFade": null,
+      "lights": [
         12
       ],
       "action": "on",
       "color": "#b79cff",
       "colorName": "",
       "level": 100,
-      "transition": "sharp",
-      "fade": 2,
+      "transition": "fade",
+      "fade": 0.3,
       "othersOff": false,
       "note": "",
       "repeat": {
         "bpm": 96.77,
         "beats": 1,
         "count": 8,
-        "onFrac": 0.25,
+        "onFrac": 1,
         "altColor": null,
         "dimTo": 0,
-        "keepColor": false
+        "keepColor": false,
+        "cycle": [
+          "#b79cff",
+          "#9b72ff",
+          "#00acee",
+          "#2ad8ff",
+          "#b79cff",
+          "#9b72ff",
+          "#00acee",
+          "#2ad8ff"
+        ]
       },
       "option": null,
-      "updatedAt": 1792358612061
+      "updatedAt": 1792359581554
+    },
+    {
+      "id": "battle-freeze-l2",
+      "time": 154.27,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2
+      ],
+      "action": "on",
+      "color": "#2ad8ff",
+      "colorName": "",
+      "level": 100,
+      "transition": "fade",
+      "fade": 0.3,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 96.77,
+        "beats": 1,
+        "count": 8,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false,
+        "cycle": [
+          "#2ad8ff",
+          "#b79cff",
+          "#9b72ff",
+          "#00acee",
+          "#2ad8ff",
+          "#b79cff",
+          "#9b72ff",
+          "#00acee"
+        ]
+      },
+      "option": null,
+      "updatedAt": 1792359581554
+    },
+    {
+      "id": "battle-freeze-l7",
+      "time": 154.27,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7
+      ],
+      "action": "on",
+      "color": "#00acee",
+      "colorName": "",
+      "level": 100,
+      "transition": "fade",
+      "fade": 0.3,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 96.77,
+        "beats": 1,
+        "count": 8,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false,
+        "cycle": [
+          "#00acee",
+          "#2ad8ff",
+          "#b79cff",
+          "#9b72ff",
+          "#00acee",
+          "#2ad8ff",
+          "#b79cff",
+          "#9b72ff"
+        ]
+      },
+      "option": null,
+      "updatedAt": 1792359581554
+    },
+    {
+      "id": "battle-freeze-l9",
+      "time": 154.27,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        9
+      ],
+      "action": "on",
+      "color": "#9b72ff",
+      "colorName": "",
+      "level": 100,
+      "transition": "fade",
+      "fade": 0.3,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 96.77,
+        "beats": 1,
+        "count": 8,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false,
+        "cycle": [
+          "#9b72ff",
+          "#00acee",
+          "#2ad8ff",
+          "#b79cff",
+          "#9b72ff",
+          "#00acee",
+          "#2ad8ff",
+          "#b79cff"
+        ]
+      },
+      "option": null,
+      "updatedAt": 1792359581554
+    },
+    {
+      "id": "battle-freeze-l11",
+      "time": 154.27,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        11
+      ],
+      "action": "on",
+      "color": "#2ad8ff",
+      "colorName": "",
+      "level": 100,
+      "transition": "fade",
+      "fade": 0.3,
+      "othersOff": false,
+      "note": "",
+      "repeat": {
+        "bpm": 96.77,
+        "beats": 1,
+        "count": 8,
+        "onFrac": 1,
+        "altColor": null,
+        "dimTo": 0,
+        "keepColor": false,
+        "cycle": [
+          "#2ad8ff",
+          "#b79cff",
+          "#9b72ff",
+          "#00acee",
+          "#2ad8ff",
+          "#b79cff",
+          "#9b72ff",
+          "#00acee"
+        ]
+      },
+      "option": null,
+      "updatedAt": 1792359581554
     },
     {
       "id": "battle-full",
@@ -5098,19 +5434,19 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Victory intro piano hits (2:59.25, 3:01.52, 3:03.78): each hit snaps the next look on full, then eases to half like a piano note decaying",
+      "note": "Victory intro piano hits (2:59.25, 3:01.52, 3:03.78): each hit snaps the next look on full, then eases down to 20% like a piano note decaying",
       "repeat": {
         "bpm": 105.88,
         "beats": 4,
         "count": 3,
         "onFrac": 0.25,
         "altColor": "#c0d62d",
-        "dimTo": 50,
+        "dimTo": 20,
         "keepColor": false,
         "stagger": null
       },
       "option": null,
-      "updatedAt": 1791957241336
+      "updatedAt": 1792359581554
     },
     {
       "id": "victory-piano-2",
@@ -5135,12 +5471,12 @@
         "count": 3,
         "onFrac": 0.25,
         "altColor": "#9b72ff",
-        "dimTo": 50,
+        "dimTo": 20,
         "keepColor": false,
         "stagger": null
       },
       "option": null,
-      "updatedAt": 1791957241336
+      "updatedAt": 1792359581554
     },
     {
       "id": "victory-piano-3",
@@ -5164,12 +5500,12 @@
         "count": 3,
         "onFrac": 0.25,
         "altColor": "#ec1b24",
-        "dimTo": 50,
+        "dimTo": 20,
         "keepColor": false,
         "stagger": null
       },
       "option": null,
-      "updatedAt": 1791957241336
+      "updatedAt": 1792359581554
     },
     {
       "id": "victory-piano-4",
@@ -5194,12 +5530,12 @@
         "count": 3,
         "onFrac": 0.25,
         "altColor": "#00acee",
-        "dimTo": 50,
+        "dimTo": 20,
         "keepColor": false,
         "stagger": null
       },
       "option": null,
-      "updatedAt": 1791957241336
+      "updatedAt": 1792359581554
     },
     {
       "id": "victory-piano-5",
@@ -5223,12 +5559,12 @@
         "count": 3,
         "onFrac": 0.25,
         "altColor": "#ec1b24",
-        "dimTo": 50,
+        "dimTo": 20,
         "keepColor": false,
         "stagger": null
       },
       "option": null,
-      "updatedAt": 1791957241336
+      "updatedAt": 1792359581554
     },
     {
       "id": "victory-piano-6",
@@ -5252,12 +5588,12 @@
         "count": 3,
         "onFrac": 0.25,
         "altColor": "#c0d62d",
-        "dimTo": 50,
+        "dimTo": 20,
         "keepColor": false,
         "stagger": null
       },
       "option": null,
-      "updatedAt": 1791957241336
+      "updatedAt": 1792359581554
     },
     {
       "id": "victory-piano-7",
@@ -5281,12 +5617,12 @@
         "count": 3,
         "onFrac": 0.25,
         "altColor": "#c0d62d",
-        "dimTo": 50,
+        "dimTo": 20,
         "keepColor": false,
         "stagger": null
       },
       "option": null,
-      "updatedAt": 1791957241336
+      "updatedAt": 1792359581554
     },
     {
       "id": "victory-piano-8",
@@ -5310,12 +5646,12 @@
         "count": 3,
         "onFrac": 0.25,
         "altColor": "#fbb612",
-        "dimTo": 50,
+        "dimTo": 20,
         "keepColor": false,
         "stagger": null
       },
       "option": null,
-      "updatedAt": 1791957241336
+      "updatedAt": 1792359581554
     },
     {
       "id": "victory-piano-9",
@@ -5339,12 +5675,12 @@
         "count": 3,
         "onFrac": 0.25,
         "altColor": "#9b72ff",
-        "dimTo": 50,
+        "dimTo": 20,
         "keepColor": false,
         "stagger": null
       },
       "option": null,
-      "updatedAt": 1791957241336
+      "updatedAt": 1792359581554
     },
     {
       "id": "victory-piano-10",
@@ -5368,12 +5704,12 @@
         "count": 3,
         "onFrac": 0.25,
         "altColor": "#ec1b24",
-        "dimTo": 50,
+        "dimTo": 20,
         "keepColor": false,
         "stagger": null
       },
       "option": null,
-      "updatedAt": 1791957241336
+      "updatedAt": 1792359581554
     },
     {
       "end": null,
@@ -8850,47 +9186,25 @@
       "updatedAt": 1791964813402
     },
     {
-      "id": "finale-last-lavender",
+      "id": "finale-last-red",
       "time": 229.49,
       "end": null,
       "outFade": null,
       "lights": [
         1,
-        5,
-        10
+        8
       ],
       "action": "on",
-      "color": "#9b72ff",
-      "colorName": "Titans lavender",
+      "color": "#ec1b24",
+      "colorName": "Titans red",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Finale: the last hit — intro look A at full",
+      "note": "Finale: the last hit, a bright rainbow flash, every light full in a different colour from its neighbours",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791736000000
-    },
-    {
-      "id": "finale-last-lime",
-      "time": 229.49,
-      "end": null,
-      "outFade": null,
-      "lights": [
-        2,
-        6
-      ],
-      "action": "on",
-      "color": "#c0d62d",
-      "colorName": "Titans lime",
-      "level": 100,
-      "transition": "sharp",
-      "fade": 2,
-      "othersOff": false,
-      "note": "",
-      "repeat": null,
-      "option": null,
-      "updatedAt": 1791736000000
+      "updatedAt": 1792359581554
     },
     {
       "id": "finale-last-orange",
@@ -8899,8 +9213,7 @@
       "outFade": null,
       "lights": [
         3,
-        7,
-        11
+        9
       ],
       "action": "on",
       "color": "#fbb612",
@@ -8912,20 +9225,20 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791736000000
+      "updatedAt": 1792359581554
     },
     {
-      "id": "finale-last-red",
+      "id": "finale-last-lime",
       "time": 229.49,
       "end": null,
       "outFade": null,
       "lights": [
         4,
-        9
+        12
       ],
       "action": "on",
-      "color": "#ec1b24",
-      "colorName": "Titans red",
+      "color": "#c0d62d",
+      "colorName": "Titans lime",
       "level": 100,
       "transition": "sharp",
       "fade": 2,
@@ -8933,7 +9246,28 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791736000000
+      "updatedAt": 1792359581554
+    },
+    {
+      "id": "finale-last-cyan",
+      "time": 229.49,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        6,
+        10
+      ],
+      "action": "on",
+      "color": "#2ad8ff",
+      "colorName": "",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1792359581554
     },
     {
       "id": "finale-last-blue",
@@ -8941,8 +9275,7 @@
       "end": null,
       "outFade": null,
       "lights": [
-        8,
-        12
+        5
       ],
       "action": "on",
       "color": "#00acee",
@@ -8954,11 +9287,52 @@
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791736000000
+      "updatedAt": 1792359581554
+    },
+    {
+      "id": "finale-last-purple",
+      "time": 229.49,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        7,
+        11
+      ],
+      "action": "on",
+      "color": "#9b72ff",
+      "colorName": "Titans lavender",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1792359581554
+    },
+    {
+      "id": "finale-last-pink",
+      "time": 229.49,
+      "end": null,
+      "outFade": null,
+      "lights": [
+        2
+      ],
+      "action": "on",
+      "color": "#ff8fc8",
+      "colorName": "",
+      "level": 100,
+      "transition": "sharp",
+      "fade": 2,
+      "othersOff": false,
+      "note": "",
+      "repeat": null,
+      "option": null,
+      "updatedAt": 1792359581554
     },
     {
       "id": "finale-out",
-      "time": 229.59,
+      "time": 229.9,
       "end": null,
       "outFade": null,
       "lights": [
@@ -8982,10 +9356,10 @@
       "transition": "fade",
       "fade": 2,
       "othersOff": false,
-      "note": "Fade to black with the music (silent by about 3:51.9)",
+      "note": "...held a moment, then fade to black with the music (silent by about 3:51.9)",
       "repeat": null,
       "option": null,
-      "updatedAt": 1791603000000
+      "updatedAt": 1792359581554
     }
   ]
 }
