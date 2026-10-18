@@ -288,6 +288,39 @@ function sceneXml(fixtures, steps, brightness = 'rgb') {
   return rawSceneXml(fixtures, steps.map((st) => ({ ...st, vals: st.snap.map((sn) => channelsOf(sn, brightness)) })));
 }
 
+// A fade between two saturated colours dims in the middle: ShowXpress
+// moves each channel in a straight line, so lavender (51,0,255) to lime
+// (100,255,0) passes through about 75,128,128, half as bright. With the
+// solos' 0.16 s swaps that read as a blink at every background vocal.
+// keepBright splits such a fade in two, the halfway colour lifted back to
+// the brightness the light should have there. A fade under 0.1 s (two
+// ticks) is left alone; it can't be split.
+const brightness = ([r, g, b, d]) => (Math.max(r, g, b) * d) / 255;
+function liftedMid(a, b) {
+  const m = a.map((v, i) => (v + b[i]) / 2);
+  const want = (brightness(a) + brightness(b)) / 2, have = brightness(m);
+  if (!(have > 0) || have >= want * 0.9) return null;
+  const k = Math.min(want / have, 255 / Math.max(m[0], m[1], m[2]));
+  return [m[0] * k, m[1] * k, m[2] * k, m[3]];
+}
+function keepBright(steps, end) {
+  const out = [];
+  steps.forEach((st, k) => {
+    const prev = out[out.length - 1];
+    const next = k + 1 < steps.length ? steps[k + 1].t : end;
+    if (st.fade && prev && next - st.t >= 2 * TICK - 1e-9) {
+      const mids = prev.snap.map((a, i) => liftedMid(a, st.snap[i]));
+      if (mids.some(Boolean)) {
+        const half = prev.snap.map((a, i) => mids[i] || a.map((v, j) => (v + st.snap[i][j]) / 2));
+        out.push({ ...st, snap: half }, { ...st, t: (st.t + next) / 2 });
+        return;
+      }
+    }
+    out.push(st);
+  });
+  return out;
+}
+
 /** → { scenes: Map(fileName → xml), timeline: ini text, blocks: [...] } */
 export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/music.wav', title = 'show', brightness = 'rgb', color = hexToRgb }) {
   const all = parseFixturesIni(fixturesIni);
@@ -323,11 +356,12 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
       const next = k + 1 < all.length ? all[k + 1].t : bl.end;
       return tick(next) > tick(st.t);
     });
+    const smooth = keepBright(kept, bl.end);
     const at = [];
-    kept.forEach((st, k) => at.push(k ? Math.max(tick(st.t), at[k - 1] + TICK * 100) : tick(st.t)));
-    const steps = kept.map((st, k) => {
-      const next = k + 1 < kept.length ? at[k + 1] : Math.max(tick(bl.end), at[k] + TICK * 100);
-      return { ...st, name: stepName(st, k), ticks: Math.round(next - at[k] + (k + 1 === kept.length ? HOLD * 100 : 0)) };
+    smooth.forEach((st, k) => at.push(k ? Math.max(tick(st.t), at[k - 1] + TICK * 100) : tick(st.t)));
+    const steps = smooth.map((st, k) => {
+      const next = k + 1 < smooth.length ? at[k + 1] : Math.max(tick(bl.end), at[k] + TICK * 100);
+      return { ...st, name: stepName(st, k), ticks: Math.round(next - at[k] + (k + 1 === smooth.length ? HOLD * 100 : 0)) };
     });
     scenes.set(file, sceneXml(fixtures, steps, brightness));
     return { start: bl.start, length: bl.end - bl.start, file, steps };

@@ -289,3 +289,17 @@ test('the colour test shows each colour as the page has it, then as Revel gets i
   assert.match(scene.data, /<Step name="lavender: Revel" length="300">[^]*?name="red" value="51"/);
   assert.match(tml.data, /Path = colour test.scex/);
 });
+
+test('a crossfade between saturated colours keeps its brightness halfway', () => {
+  const plan = normalizePlan({ cues: [
+    cue({ time: 0, lights: [1], color: '#9b72ff' }),
+    cue({ time: 1, lights: [1], color: '#c0d62d', transition: 'fade', fade: 0.4 }),
+  ] });
+  const { scenes, blocks } = showxpressShow(plan, { fixturesIni: INI, duration: 5, color: revelColor });
+  const xml = [...scenes.values()].join('');
+  // a halfway step lifted to full: lavender 51,0,255 and lime 100,255,0 meet near 76,128,128 → scaled to 255
+  const mids = [...xml.matchAll(/<Fixture id="1000">\r\n {8}<Channel index="0" name="red" value="(\d+)"[^>]*>\r\n {8}<Channel index="1" name="green" value="(\d+)"[^>]*>\r\n {8}<Channel index="2" name="blue" value="(\d+)"/g)]
+    .map((m) => m.slice(1).map(Number)).filter(([r, g, b]) => g > 0 && b > 0);
+  assert.ok(mids.length >= 1, 'a halfway step');
+  assert.ok(mids.every((v) => Math.max(...v) >= 240), `halfway at full brightness: ${JSON.stringify(mids)}`);
+});
