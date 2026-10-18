@@ -9,7 +9,7 @@ import {
   runSheet, cueGrid, cellColor, inkOn, shortColorName, SHAPES, DRAW_ORDER, POOLS,
 } from './cues.js';
 import { cueWorkbook, zip } from './xlsx.js';
-import { showxpressPackage, revelColor } from './showxpress.js';
+import { showxpressPackage, revelColor, REVEL_LEAD } from './showxpress.js';
 import { videoSupported, recorderType, videoExtension, stageBackground, drawFrame as drawVideoStage, recorder } from './video.js';
 
 // localStorage is shared by every app on the Pages origin — keep the prefix.
@@ -1780,7 +1780,7 @@ const SXP_BRIGHTNESS = 'rgb';
 // REVEL_COLORS in showxpress.js). hexToRgb would send the page's colours as they are.
 const SXP_COLOR = revelColor;
 // Seconds of blackout before the song starts on ShowXpress's timeline (Quan).
-const SXP_LEAD = 5;
+const SXP_LEAD = REVEL_LEAD;
 $('exportShowxpress').onclick = async () => {
   if (!plan.cues.length) { notify('Add some cues first.'); return; }
   try {

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Running the Lights</title>
+    <link rel="stylesheet" href="../../shared/base.css">
+    <style>
+        .run { max-width: 720px; }
+        .run .section { margin-bottom: 34px; }
+        .run p, .run li, .run td, .run th { font-size: 16px; }
+        .run p + p { margin-top: 10px; }
+        .run b { color: var(--text-bright); font-weight: 600; }
+        .run code, .run kbd { font-family: var(--font-mono); font-size: 14px; background: var(--bg-elevated); border: 1px solid var(--border-bright); border-radius: 4px; padding: 1px 6px; color: var(--text-bright); overflow-wrap: anywhere; }
+        .run pre { font-family: var(--font-mono); font-size: 14px; background: var(--bg-elevated); border: 1px solid var(--border-bright); border-radius: 6px; padding: 10px 12px; margin-top: 8px; overflow-x: auto; white-space: pre; color: var(--text-bright); }
+        .run .note { font-size: 14px; color: var(--text-muted); }
+        .steps { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 10px; }
+        .steps li { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 12px; align-items: start; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+        .steps input[type="checkbox"] { width: 24px; height: 24px; margin: 2px 0 0; accent-color: var(--accent, #c9a96e); cursor: pointer; }
+        .steps li.done { opacity: 0.55; }
+        .steps .what { display: grid; gap: 4px; min-width: 0; }
+        .steps .look { font-size: 14px; color: var(--text-muted); }
+                .table-wrap { overflow-x: auto; margin-top: 10px; }
+        .run table { border-collapse: collapse; width: 100%; }
+        .run th, .run td { text-align: left; padding: 7px 12px 7px 0; border-top: 1px solid var(--border); vertical-align: top; }
+        .run th { color: var(--text-bright); font-weight: 600; }
+        .run td.t { font-family: var(--font-mono); font-size: 15px; color: var(--text-bright); white-space: nowrap; }
+        .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 50%; margin-right: 8px; vertical-align: -2px; border: 1px solid var(--border-bright); }
+        .map { display: grid; grid-template-columns: minmax(0, 240px) minmax(0, 1fr); gap: 16px; align-items: center; margin-top: 10px; }
+        .map svg { width: 100%; height: auto; background: var(--bg-elevated); border: 1px solid var(--border-bright); border-radius: 8px; }
+        .map svg text { font-family: var(--font-mono); font-size: 30px; font-weight: 600; fill: #1a1210; text-anchor: middle; dominant-baseline: middle; }
+        textarea { width: 100%; min-height: 140px; margin-top: 8px; font: 15px var(--font-mono); background: var(--bg-elevated); color: var(--text-bright); border: 1px solid var(--border-bright); border-radius: 8px; padding: 10px; box-sizing: border-box; }
+        .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 8px; }
+        .fix { display: grid; gap: 3px; padding: 10px 0; border-top: 1px solid var(--border); }
+        .fix .q { color: var(--text-bright); font-weight: 600; }
+        @media (max-width: 560px) { .map { grid-template-columns: minmax(0, 1fr); } .map svg { max-width: 260px; } }
+        .back { display: inline-block; margin-bottom: 18px; font-size: 14px; }
+    </style>
+</head>
+<body>
+<div class="container run">
+    <a class="back" href="./">← Back to the lighting plan</a>
+    <header>
+        <h1>Running the lights</h1>
+        <p class="subtitle">For whoever's at the laptop at Revel. Put the show on (once), then open it, press play and watch. Tick each step as you go.</p>
+    </header>
+
+    <section class="section">
+        <div class="section-header"><h2>Put the show on the laptop</h2><div class="section-line"></div></div>
+        <p>Do this once, on the laptop at Revel (the one with ShowXpress on it), before playing anything.</p>
+        <ol class="steps">
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>On that laptop, open the <a href="./">lighting page</a> and scroll down past the stage map and click <b>Download for ShowXpress</b> (in the row of buttons under <b>Cues</b>).</span><span class="look">It saves <code>teen-titans-showxpress.zip</code> in Downloads. The button isn't there on a phone.</span></div></li>
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>Open the <b>Downloads</b> folder. If there's already a folder called <code>teen-titans-showxpress</code>, drag it to the Bin. Then double-click the zip.</span><span class="look">You now have a <code>teen-titans-showxpress</code> folder.</span></div></li>
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>If ShowXpress is open, quit it: click it, then press <kbd>Cmd</kbd> + <kbd>Q</kbd>.</span></div></li>
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>Open <b>Terminal</b>: press <kbd>Cmd</kbd> + <kbd>Space</kbd>, type <b>Terminal</b>, press Enter.</span></div></li>
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>Click <b>Copy</b>, click in the Terminal window, paste with <kbd>Cmd</kbd> + <kbd>V</kbd>, and press Enter.</span>
+                <pre id="installLine">bash ~/Downloads/teen-titans-showxpress/install.sh</pre>
+                <div class="row"><button id="copyInstall" class="btn" type="button">Copy</button><span id="copiedInstall" class="note"></span></div>
+                <span class="look">After a few seconds it says <b>Done</b>. If it says ShowXpress is open, quit it (step 3) and paste again.</span></div></li>
+        </ol>
+        <p class="note">These steps are for a Mac. If the laptop is Windows, stop here and tell Lisa.</p>
+    </section>
+
+    <section class="section">
+        <div class="section-header"><h2>Get it going</h2><div class="section-line"></div></div>
+        <ol class="steps" id="setupSteps">
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>Plug the lights' <b>USB box</b> (the DMX adapter) into the laptop.</span></div></li>
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>Open <b>ShowXpress</b>.</span><span class="look">It's in the Dock, or in Applications › ShowXpress.</span></div></li>
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>Top menu: <b>File › Open lightshow › Teen Titans</b>.</span><span class="look">The top of the window should now say "ShowXpress - Teen Titans".</span></div></li>
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>Click <b>Live</b> at the top, then <b>TimeLine</b>.</span></div></li>
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>Top right, find the small <b>DMX</b> icon. It needs a <b>green line</b> under it. If the line is red, click the icon once.</span><span class="look">This is what sends the show to the real lights.</span></div></li>
+        </ol>
+    </section>
+
+    <section class="section">
+        <div class="section-header"><h2>Play a timeline</h2><div class="section-line"></div></div>
+        <p>A timeline is one thing to play: a test, or the whole show. To play one:</p>
+        <ol class="steps">
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>Click the <b>folder icon</b> (Open) at the top of the TimeLine and pick the one you want.</span></div></li>
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>Press <b>▶ play</b>. The clock at the top left counts up.</span></div></li>
+            <li><input type="checkbox" aria-label="Done"><div class="what"><span>To stop, press <b>■ stop</b>.</span></div></li>
+        </ol>
+        <p class="note">Play them in this order: Colour test, Dimmer test, then Teen Titans.</p>
+    </section>
+
+    <section class="section">
+        <div class="section-header"><h2>1. Colour test (about 1 minute)</h2><div class="section-line"></div></div>
+        <p>Every light shows one colour at a time. Each colour comes up twice: first <b>as it looks on screen</b>, then <b>the version made for these lights</b>. For each colour, note whether the second version looks right (rich, not washed out, the colour you'd expect).</p>
+        <div class="table-wrap"><table id="colourTable">
+            <tr><th>Clock</th><th>Colour</th><th></th></tr>
+        </table></div>
+    </section>
+
+    <section class="section">
+        <div class="section-header"><h2>2. Dimmer test (15 seconds)</h2><div class="section-line"></div></div>
+        <div class="table-wrap"><table>
+            <tr><th>Clock</th><th>What happens</th><th>Note down</th></tr>
+            <tr><td class="t">0:00</td><td>Every light goes white.</td><td></td></tr>
+            <tr><td class="t">0:02 – 0:05</td><td>One kind of fade.</td><td><b>Did the lights get darker? Yes or no.</b></td></tr>
+            <tr><td class="t">0:07</td><td>White again.</td><td></td></tr>
+            <tr><td class="t">0:09 – 0:12</td><td>The other kind of fade.</td><td>This one should go dark.</td></tr>
+        </table></div>
+        <p class="note">Either answer to the first fade is fine. It just tells Lisa something about the lights.</p>
+    </section>
+
+    <section class="section">
+        <div class="section-header"><h2>3. The show</h2><div class="section-line"></div></div>
+        <p>Open <b>Teen Titans</b> and press play. <b>The first 5 seconds are dark on purpose</b>, then the music and lights start together. That's why the clock is 5 seconds ahead of the song.</p>
+        <p><b>To start from a part of the song:</b> double-click the time ruler above the coloured blocks, near the clock time below. A red marker appears there. Then press <b>Play from red marker</b> (the button next to play).</p>
+        <div class="table-wrap"><table id="sectionTable">
+            <tr><th>Clock</th><th>Part of the song</th></tr>
+        </table></div>
+        <p class="note">Starting partway, the lights can be off for a moment until the next change. If it looks wrong right after starting, start a few seconds earlier.</p>
+    </section>
+
+    <section class="section">
+        <div class="section-header"><h2>If something looks wrong</h2><div class="section-line"></div></div>
+        <p>Write down <b>the clock time</b> and <b>which lights</b> (numbers from the map), and what you saw: "1:42, lights 8 and 9, blinked off". You don't need to fix anything.</p>
+        <div class="map">
+            <svg id="map" viewBox="500 370 600 720" role="img" aria-label="Map of the lights by number, mirror at the top, backdrop along the bottom"></svg>
+            <p class="note">Top of the map is the mirror side. 3 and 7 are on the poles, 10 on the loops, 11 is the backdrop.</p>
+        </div>
+        <label for="notes"><b>Notes</b> <span class="note">(kept on this computer)</span></label>
+        <textarea id="notes" placeholder="1:42, lights 8 and 9, blinked off"></textarea>
+        <div class="row"><button id="copyNotes" class="btn" type="button">Copy notes to send Lisa</button><span id="copied" class="note"></span></div>
+    </section>
+
+    <section class="section">
+        <div class="section-header"><h2>Quick fixes</h2><div class="section-line"></div></div>
+        <div class="fix"><span class="q">The music plays but the lights don't.</span><span>Check the green line under the <b>DMX</b> icon (top right). Still nothing? Click <b>Editor</b> at the top, then <b>Steps</b>: if the DMX or 3D buttons there are green, click them off. Then go back to Live › TimeLine.</span></div>
+        <div class="fix"><span class="q">The lights lag behind the music.</span><span>Press stop, then play again from the start. It sometimes lags the first time through.</span></div>
+        <div class="fix"><span class="q">Teen Titans isn't in the list.</span><span>Check the top of the window says "ShowXpress - Teen Titans". If not, File › Open lightshow › Teen Titans.</span></div>
+        <div class="fix"><span class="q">When you're done.</span><span>Press stop, then quit with <kbd>Cmd</kbd> + <kbd>Q</kbd>.</span></div>
+    </section>
+</div>
+<script type="module">
+import { SHAPES, DRAW_ORDER, groupOf, formatTime, normalizePlan, sortSections, sectionStart, shortColorName, hexToRgb } from './cues.js';
+import { REVEL_COLORS, REVEL_COLOR_NAMES, REVEL_LEAD } from './showxpress.js';
+
+// Ticks and notes are per-computer conveniences; the page works without them.
+const KEY = 'lighting-cue-builder:run-checklist';
+const NOTES = 'lighting-cue-builder:run-notes';
+const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private window */ } };
+
+const boxes = [...document.querySelectorAll('.steps input[type="checkbox"]')];
+const ticked = load(KEY, []);
+boxes.forEach((b, i) => {
+  b.checked = Boolean(ticked[i]);
+  b.closest('li').classList.toggle('done', b.checked);
+  b.onchange = () => { b.closest('li').classList.toggle('done', b.checked); save(KEY, boxes.map((x) => x.checked)); };
+});
+
+const notes = document.getElementById('notes');
+notes.value = load(NOTES, '');
+notes.oninput = () => save(NOTES, notes.value);
+document.getElementById('copyInstall').onclick = async () => {
+  const msg = document.getElementById('copiedInstall');
+  try { await navigator.clipboard.writeText(document.getElementById('installLine').textContent); msg.textContent = 'Copied. Now paste it in Terminal.'; }
+  catch { msg.textContent = 'Select the line above and press Cmd + C.'; }
+};
+document.getElementById('copyNotes').onclick = async () => {
+  try { await navigator.clipboard.writeText(notes.value); document.getElementById('copied').textContent = 'Copied.'; }
+  catch { notes.select(); document.getElementById('copied').textContent = 'Press Cmd + C to copy.'; }
+};
+
+// whole seconds, rounded down, so starting there lands just before the part
+const clock = (sec) => formatTime(Math.floor(sec + 1e-6), 0);
+const row = (table, cells) => {
+  const tr = document.createElement('tr');
+  cells.forEach(([html, cls]) => { const td = document.createElement('td'); td.innerHTML = html; if (cls) td.className = cls; tr.append(td); });
+  document.getElementById(table).append(tr);
+};
+const dot = (rgb) => `<span class="swatch" style="background:rgb(${rgb.join(',')})"></span>`;
+// the Colour test timeline: each colour 3 s as on screen, then 3 s for Revel (colorTest in showxpress.js)
+Object.entries(REVEL_COLORS).forEach(([hex, rgb], i) => {
+  const name = REVEL_COLOR_NAMES[hex] || shortColorName(hex);
+  row('colourTable', [[clock(i * 6), 't'], [`${dot(hexToRgb(hex))}${name}, on screen`]]);
+  row('colourTable', [[clock(i * 6 + 3), 't'], [`${dot(rgb)}<b>${name}, for these lights</b>`], ['Looks right?']]);
+});
+row('colourTable', [[clock(Object.keys(REVEL_COLORS).length * 6), 't'], ['White, then it stays white.']]);
+
+fetch('starter-plan.json', { cache: 'no-cache' }).then((r) => r.json()).then((raw) => {
+  const plan = normalizePlan(raw);
+  row('sectionTable', [['0:00', 't'], ['Dark (5 seconds)']]);
+  for (const s of sortSections(plan.sections, plan.tempo)) row('sectionTable', [[clock(sectionStart(s, plan.tempo) + REVEL_LEAD), 't'], [s.name]]);
+}).catch(() => row('sectionTable', [['', ''], ['Couldn’t load the song parts. The show still plays from the start.']]));
+
+const ns = 'http://www.w3.org/2000/svg';
+const fill = (n) => ({ apparatus: '#ffd9a0', floor: '#b79cff', backdrop: '#00acee' }[groupOf(n)]);
+const map = document.getElementById('map');
+for (const n of DRAW_ORDER) {
+  const s = SHAPES[n];
+  const el = document.createElementNS(ns, s.rect ? 'rect' : 'ellipse');
+  const attrs = s.rect ? { x: s.x, y: s.y, width: s.w, height: s.h, rx: 10 }
+    : { cx: s.cx, cy: s.cy, rx: s.rx, ry: s.ry, transform: s.rot ? `rotate(${s.rot} ${s.cx} ${s.cy})` : '' };
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  el.setAttribute('fill', fill(n)); el.setAttribute('fill-opacity', '0.85'); el.setAttribute('stroke', '#1a1210'); el.setAttribute('stroke-width', '3');
+  const label = document.createElementNS(ns, 'text');
+  label.setAttribute('x', s.lx); label.setAttribute('y', s.ly); label.textContent = n;
+  map.append(el, label);
+}
+</script>
+</body>
+</html>

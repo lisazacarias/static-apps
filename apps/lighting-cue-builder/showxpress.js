@@ -28,6 +28,10 @@ const CHANNEL_NAMES = ['red', 'green', 'blue', 'color_macro', 'shutter', 'mode',
 // 27,0,136 and orange 255,114,0. Those two are his; the rest follow the
 // same idea and are guesses until the Colour test timeline is checked.
 // CHECK: blue, cyan, lime, red, light purple and pink on the real lights.
+// Seconds of blackout on Revel's timeline before the song (Quan: "we needed
+// 5s of blackout before the lighting starts").
+export const REVEL_LEAD = 5;
+
 export const REVEL_COLORS = {
   '#9b72ff': [51, 0, 255],   // Titans lavender: Quan's purple, at full
   '#fbb612': [255, 114, 0],  // Titans orange: Quan's orange
@@ -37,6 +41,13 @@ export const REVEL_COLORS = {
   '#c0d62d': [100, 255, 0],  // Titans lime
   '#b79cff': [130, 0, 255],  // light purple (Starfire's solo)
   '#ff8fc8': [255, 0, 120],  // pink (Starfire's solo)
+};
+
+// Names for the Colour test and the run page. The page's own names call
+// both #9b72ff and #b79cff "lavender".
+export const REVEL_COLOR_NAMES = {
+  '#9b72ff': 'lavender', '#fbb612': 'orange', '#ec1b24': 'red', '#00acee': 'blue',
+  '#2ad8ff': 'cyan', '#c0d62d': 'lime', '#b79cff': 'light purple', '#ff8fc8': 'pink',
 };
 
 /** A plan colour as Revel's lights should get it: from REVEL_COLORS, or
@@ -567,8 +578,8 @@ export function colorTest(fixturesIni) {
   const fixtures = parseFixturesIni(fixturesIni).sort((a, b) => a.light - b.light);
   const all = ([r, g, b]) => fixtures.map(() => [r, g, b, 0, 0, 0, 255]);
   const steps = Object.keys(REVEL_COLORS).flatMap((hex) => [
-    { name: `${shortColorName(hex)}: page`, ticks: 300, fade: false, vals: all(hexToRgb(hex)) },
-    { name: `${shortColorName(hex)}: Revel`, ticks: 300, fade: false, vals: all(revelColor(hex)) },
+    { name: `${REVEL_COLOR_NAMES[hex] || shortColorName(hex)}: page`, ticks: 300, fade: false, vals: all(hexToRgb(hex)) },
+    { name: `${REVEL_COLOR_NAMES[hex] || shortColorName(hex)}: Revel`, ticks: 300, fade: false, vals: all(revelColor(hex)) },
   ]);
   steps.push({ name: 'white', ticks: HOLD * 100, fade: false, vals: all([255, 255, 255]) });
   const ini = ['', '[Params]', 'Version = 0.2', 'CommentTimeLine = 0', 'LightTimeLines = 1', 'MediaTimeLines = 1',

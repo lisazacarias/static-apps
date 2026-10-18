@@ -288,6 +288,7 @@ test('the colour test shows each colour as the page has it, then as Revel gets i
   assert.match(scene.data, /<Step name="lavender: page" length="300">[^]*?name="red" value="155"/);
   assert.match(scene.data, /<Step name="lavender: Revel" length="300">[^]*?name="red" value="51"/);
   assert.match(tml.data, /Path = colour test.scex/);
+  assert.match(scene.data, /<Step name="light purple: Revel"/, 'light purple has its own name');
 });
 
 test('a crossfade between saturated colours keeps its brightness halfway', () => {
