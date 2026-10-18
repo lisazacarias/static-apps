@@ -322,7 +322,10 @@ function keepBright(steps, end) {
 }
 
 /** → { scenes: Map(fileName → xml), timeline: ini text, blocks: [...] } */
-export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/music.wav', title = 'show', brightness = 'rgb', color = hexToRgb }) {
+// lead: seconds of blackout on the timeline before the song and lights
+// start. Revel wants 5 (Quan: "we needed 5s of blackout before the lighting
+// starts"); the page and the plan's own times are unchanged.
+export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/music.wav', title = 'show', brightness = 'rgb', color = hexToRgb, lead = 0 }) {
   const all = parseFixturesIni(fixturesIni);
   const fixtures = ALL_LIGHTS.map((l) => all.find((f) => f.light === l));
   const missing = ALL_LIGHTS.filter((l, i) => !fixtures[i]);
@@ -368,13 +371,19 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
   });
 
   const ini = ['', '[Params]', 'Version = 0.2', 'CommentTimeLine = 0', 'LightTimeLines = 1', 'MediaTimeLines = 1',
-    'ShowWaveForm = 1', 'Zoom = 1', `MaxTime = ${fmt(Math.ceil(end)).replace(/\.\d+$/, '')}`,
+    'ShowWaveForm = 1', 'Zoom = 1', `MaxTime = ${fmt(Math.ceil(end + lead)).replace(/\.\d+$/, '')}`,
     'TimeLine_1 = V I D E O   P I C T U R E   T I M E L I N E', 'TimeLine_2 = music', `TimeLine_3 = ${safe(title)}`];
   const ev = (i, rows) => { ini.push(`[Event_${i}]`, ...rows); };
-  ev(0, ['TimeLineIndex = 2', 'StartTime = 0:00:00.00', `Path = ${audioPath}`, `Length = ${fmt(end)}`]);
+  ev(0, ['TimeLineIndex = 2', `StartTime = ${fmt(lead)}`, `Path = ${audioPath}`, `Length = ${fmt(end)}`]);
   // One light row: each block takes over from the last, and every scene sets
   // every channel, so nothing carries over between rows.
-  blockList.forEach((b, i) => ev(i + 1, ['TimeLineIndex = 3', `StartTime = ${fmt(b.start)}`, `Path = ${b.file}`,
+  const rows = blockList.map((b) => ({ start: b.start + lead, length: b.length, file: b.file }));
+  if (lead > 0) {
+    const black = fixtures.map(() => [0, 0, 0, 0]);
+    scenes.set('000 blackout before the show.scex', sceneXml(fixtures, [{ name: 'blackout before the show', ticks: HOLD * 100, snap: black, fade: false }], brightness));
+    rows.unshift({ start: 0, length: lead, file: '000 blackout before the show.scex' });
+  }
+  rows.forEach((b, i) => ev(i + 1, ['TimeLineIndex = 3', `StartTime = ${fmt(b.start)}`, `Path = ${b.file}`,
     `Length = ${fmt(b.length)}`, 'Speed = 100', 'SpeedType = 2']));
   ini.push('');
   return { scenes, timeline: ini.join('\r\n'), blocks: blockList };
@@ -386,11 +395,11 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
  *  ~/TheLightingController/LightShows/<show>, which is where ShowXpress 9
  *  on a Mac keeps its shows (File › Open lightshow Folder shows it).
  *  → [{ name, data }] for xlsx.js's zip() */
-export function showxpressPackage(plan, { fixturesIni, profile, profileName, pools, audio, duration, showName, brightness, color }) {
+export function showxpressPackage(plan, { fixturesIni, profile, profileName, pools, audio, duration, showName, brightness, color, lead }) {
   // no spaces, so the install command needs no escaping: bash ~/Downloads/teen-titans-showxpress/install.sh
   const root = `${showName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-showxpress`;
   const show = `${root}/show`;
-  const { scenes, timeline } = showxpressShow(plan, { fixturesIni, duration, title: `${showName} lights`, audioPath: 'Live/music.wav', brightness, color });
+  const { scenes, timeline } = showxpressShow(plan, { fixturesIni, duration, title: `${showName} lights`, audioPath: 'Live/music.wav', brightness, color, lead });
   const files = [
     { name: `${root}/install.sh`, data: installScript(showName), executable: true },
     { name: `${show}/fixtures.ini`, data: fixturesIni },

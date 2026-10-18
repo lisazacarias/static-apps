@@ -1779,6 +1779,8 @@ const SXP_BRIGHTNESS = 'rgb';
 // Revel's lights wash out screen colours; revelColor saturates them (see
 // REVEL_COLORS in showxpress.js). hexToRgb would send the page's colours as they are.
 const SXP_COLOR = revelColor;
+// Seconds of blackout before the song starts on ShowXpress's timeline (Quan).
+const SXP_LEAD = 5;
 $('exportShowxpress').onclick = async () => {
   if (!plan.cues.length) { notify('Add some cues first.'); return; }
   try {
@@ -1788,7 +1790,7 @@ $('exportShowxpress').onclick = async () => {
       get(SHOW_AUDIO.url, 'arrayBuffer').catch(() => null), // the song is a nicety; the show still works without it
     ]);
     const files = showxpressPackage(plan, { fixturesIni: ini, profile, profileName: VENUE.profileName, pools: POOLS,
-      audio: audio && new Uint8Array(audio), duration: duration() || undefined, showName: SXP_SHOW, brightness: SXP_BRIGHTNESS, color: SXP_COLOR });
+      audio: audio && new Uint8Array(audio), duration: duration() || undefined, showName: SXP_SHOW, brightness: SXP_BRIGHTNESS, color: SXP_COLOR, lead: SXP_LEAD });
     download(`${slug(SXP_SHOW)}-showxpress.zip`, zip(files), 'application/zip');
     notify('Downloaded. The ShowXpress guide (link next to the button) says how to put it in.');
   } catch {

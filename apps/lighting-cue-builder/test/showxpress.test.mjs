@@ -303,3 +303,13 @@ test('a crossfade between saturated colours keeps its brightness halfway', () =>
   assert.ok(mids.length >= 1, 'a halfway step');
   assert.ok(mids.every((v) => Math.max(...v) >= 240), `halfway at full brightness: ${JSON.stringify(mids)}`);
 });
+
+test('a lead-in puts that much blackout before the song and the lights', () => {
+  const plan = normalizePlan({ cues: [cue({ time: 0, lights: [1] }), cue({ time: 3.8, lights: [2] })] });
+  const { scenes, timeline } = showxpressShow(plan, { fixturesIni: INI, duration: 10, lead: 5 });
+  assert.match(timeline, /\[Event_0\]\r\nTimeLineIndex = 2\r\nStartTime = 0:00:05.00\r\nPath = Live\/music.wav/);
+  assert.match(timeline, /\[Event_1\]\r\nTimeLineIndex = 3\r\nStartTime = 0:00:00.00\r\nPath = 000 blackout before the show.scex\r\nLength = 0:00:05.00/);
+  assert.match(timeline, /\[Event_2\]\r\nTimeLineIndex = 3\r\nStartTime = 0:00:05.00\r\nPath = 001 0.0s.scex/);
+  assert.match(timeline, /MaxTime = 0:00:15/);
+  assert.ok(!/name="(red|green|blue)" value="[1-9]/.test(scenes.get('000 blackout before the show.scex')), 'all dark');
+});

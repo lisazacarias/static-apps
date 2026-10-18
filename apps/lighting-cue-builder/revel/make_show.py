@@ -24,6 +24,10 @@ from xml.sax.saxutils import escape
 # starter's "Dimmer test" timeline shows the dimmer working.
 BRIGHTNESS = 'rgb'
 
+# Seconds of blackout on the timeline before the song and lights start.
+# Revel wants 5 (Quan). Cue times in the CSV stay song times.
+LEAD = 5
+
 if len(sys.argv) != 3:
     sys.exit('Usage: python3 make_show.py "Show name" cues.csv')
 NAME, CUES = sys.argv[1], sys.argv[2]
@@ -77,8 +81,13 @@ rows = sorted(csv.DictReader(open(CUES, encoding='utf-8-sig')), key=lambda r: fl
 for i, r in enumerate(rows):
     r['row'] = sum(1 for q in rows[:i] if float(q['time']) == float(r['time']))
 row_count = max(r['row'] for r in rows) + 1
-events = ['[Event_0]', 'TimeLineIndex = 2', 'StartTime = 0:00:00.0', 'Path = Live/music.wav',
+events = ['[Event_0]', 'TimeLineIndex = 2', f'StartTime = {stamp(LEAD)}', 'Path = Live/music.wav',
           f'Length = {stamp(SONG_LENGTH)}']
+if LEAD:
+    dark = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 255}
+    write(f'{SHOW}/scenes/000 blackout before the show.scex', scene(sorted(FX), [('blackout before the show', 60000, False, dark)]))
+    events += ['[Event_1]', 'TimeLineIndex = 3', 'StartTime = 0:00:00.0', 'Path = 000 blackout before the show.scex',
+               f'Length = {stamp(LEAD)}', 'Speed = 100', 'SpeedType = 2']
 for i, r in enumerate(rows, 1):
     start = float(r['time'])
     lights = [int(x) for x in r['lights'].split()]
@@ -101,11 +110,11 @@ for i, r in enumerate(rows, 1):
     later = [float(q['time']) for q in rows[i:] if q['row'] == r['row'] and float(q['time']) > start]
     end = later[0] if later else SONG_LENGTH
     # rows 1 and 2 are video and music, so light row k is TimeLineIndex k + 3
-    events += [f'[Event_{i}]', f'TimeLineIndex = {r["row"] + 3}', f'StartTime = {stamp(start)}', f'Path = {name}',
+    events += [f'[Event_{i + (1 if LEAD else 0)}]', f'TimeLineIndex = {r["row"] + 3}', f'StartTime = {stamp(start + LEAD)}', f'Path = {name}',
                f'Length = {stamp(end - start)}', 'Speed = 100', 'SpeedType = 2']
 
 params = ['[Params]', 'Version = 0.2', 'CommentTimeLine = 0', f'LightTimeLines = {row_count}', 'MediaTimeLines = 1',
-          'ShowWaveForm = 1', 'Zoom = 1', f'MaxTime = {stamp(math.ceil(SONG_LENGTH))[:-2]}',
+          'ShowWaveForm = 1', 'Zoom = 1', f'MaxTime = {stamp(math.ceil(SONG_LENGTH + LEAD))[:-2]}',
           'TimeLine_1 = V I D E O   P I C T U R E   T I M E L I N E', 'TimeLine_2 = music',
           *(f'TimeLine_{k + 3} = lights {k + 1}' for k in range(row_count))]
 os.makedirs(f'{SHOW}/Live/TimeLine/timelines', exist_ok=True)
