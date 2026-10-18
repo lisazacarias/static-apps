@@ -27,12 +27,13 @@ const CHANNEL_NAMES = ['red', 'green', 'blue', 'color_macro', 'shutter', 'mode',
 // intermission scene keeps one channel at 0 and green low: purple
 // 27,0,136 and orange 255,114,0. Those two are his; the rest follow the
 // same idea and are guesses until the Colour test timeline is checked.
-// CHECK: blue, lime, red, light purple and pink on the real lights.
+// CHECK: blue, cyan, lime, red, light purple and pink on the real lights.
 export const REVEL_COLORS = {
   '#9b72ff': [51, 0, 255],   // Titans lavender: Quan's purple, at full
   '#fbb612': [255, 114, 0],  // Titans orange: Quan's orange
   '#ec1b24': [255, 0, 0],    // Titans red
   '#00acee': [0, 100, 255],  // Titans blue
+  '#2ad8ff': [0, 208, 255],  // cyan (the freeze ray)
   '#c0d62d': [100, 255, 0],  // Titans lime
   '#b79cff': [130, 0, 255],  // light purple (Starfire's solo)
   '#ff8fc8': [255, 0, 120],  // pink (Starfire's solo)
@@ -525,7 +526,7 @@ export function colorTest(fixturesIni) {
   const ini = ['', '[Params]', 'Version = 0.2', 'CommentTimeLine = 0', 'LightTimeLines = 1', 'MediaTimeLines = 1',
     'ShowWaveForm = 0', 'Zoom = 1', 'MaxTime = 0:01:00',
     'TimeLine_1 = V I D E O   P I C T U R E   T I M E L I N E', 'TimeLine_2 = music', 'TimeLine_3 = colour test',
-    '[Event_0]', 'TimeLineIndex = 3', 'StartTime = 0:00:00.00', 'Path = colour test.scex', 'Length = 0:00:48.00', 'Speed = 100', 'SpeedType = 2', ''];
+    '[Event_0]', 'TimeLineIndex = 3', 'StartTime = 0:00:00.00', 'Path = colour test.scex', `Length = ${fmt(Object.keys(REVEL_COLORS).length * 6 + 6)}`, 'Speed = 100', 'SpeedType = 2', ''];
   return [
     { name: 'scenes/colour test.scex', data: rawSceneXml(fixtures, steps) },
     { name: 'Live/TimeLine/timelines/Colour test.tml', data: ini.join('\r\n') },
