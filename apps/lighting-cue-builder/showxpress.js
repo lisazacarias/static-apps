@@ -7,7 +7,7 @@
 // timeline is an ini file (Live/TimeLine/timelines/*.tml), and the patch is
 // fixtures.ini. Things the demo show doesn't settle are marked CHECK.
 
-import { ALL_LIGHTS, activeCues, changeTimes, hexToRgb, stateAt } from './cues.js';
+import { ALL_LIGHTS, activeCues, changeTimes, hexToRgb, stateAt, flashTimes, formatTime, sectionAt, shortColorName } from './cues.js';
 
 // Channel order of the venue's SlimPAR 56 in 7-channel mode, from the
 // profile the venue sent: red, green, blue, colour macro, shutter, mode,
@@ -17,6 +17,39 @@ import { ALL_LIGHTS, activeCues, changeTimes, hexToRgb, stateAt } from './cues.j
 // colour scaled down, and the dimmer is held at full. A rig whose dimmer
 // does work gets the same look.
 const SLIMPAR = { red: 0, green: 1, blue: 2, dimmer: 6, channels: 7 };
+// Channel names from the profile, written into scenes so they read like
+// ShowXpress's own (Quan's intermission scene names each channel too).
+const CHANNEL_NAMES = ['red', 'green', 'blue', 'color_macro', 'shutter', 'mode', 'dimmer'];
+
+// How the plan's colours go out at Revel. The page's colours are screen
+// colours; on the SlimPARs anything with all three channels lit comes out
+// pastel (Lisa: "super washed out" at the studio). Quan's saturated
+// intermission scene keeps one channel at 0 and green low: purple
+// 27,0,136 and orange 255,114,0. Those two are his; the rest follow the
+// same idea and are guesses until the Colour test timeline is checked.
+// CHECK: blue, lime, red, light purple and pink on the real lights.
+export const REVEL_COLORS = {
+  '#9b72ff': [51, 0, 255],   // Titans lavender: Quan's purple, at full
+  '#fbb612': [255, 114, 0],  // Titans orange: Quan's orange
+  '#ec1b24': [255, 0, 0],    // Titans red
+  '#00acee': [0, 100, 255],  // Titans blue
+  '#c0d62d': [100, 255, 0],  // Titans lime
+  '#b79cff': [130, 0, 255],  // light purple (Starfire's solo)
+  '#ff8fc8': [255, 0, 120],  // pink (Starfire's solo)
+};
+
+/** A plan colour as Revel's lights should get it: from REVEL_COLORS, or
+ *  for anything else, the white part taken out (the smallest channel to
+ *  0) and scaled back to full, unless it's a white or near-white, which
+ *  stays as it is (warm white is meant to look white). */
+export function revelColor(hex) {
+  const h = hex.toLowerCase();
+  if (REVEL_COLORS[h]) return REVEL_COLORS[h];
+  const rgb = hexToRgb(h);
+  const max = Math.max(...rgb), min = Math.min(...rgb);
+  if (!max || (max - min) / max < 0.5) return rgb;
+  return rgb.map((v) => Math.round(((v - min) / (max - min)) * 255));
+}
 
 // Step lengths are whole hundredths of a second: the demo's 5 s fade-off
 // is length="500", and a step written as 600 showed as 00:06.00. That's
@@ -49,15 +82,16 @@ export function parseFixturesIni(text) {
   })).filter((f) => f.id && f.name);
 }
 
-// One light's output as DMX values: colour on RGB, brightness on the dimmer.
-function dmx(s) {
-  const [r, g, b] = hexToRgb(s.color);
+// One light as [r, g, b, level 0–255]; `color` turns a plan colour into
+// what goes out (the page's own colour unless told otherwise).
+function dmx(s, color) {
+  const [r, g, b] = color(s.color);
   return [r, g, b, Math.round(Math.min(1, Math.max(0, s.level)) * 255)];
 }
 
-function snapshot(cues, t) {
+function snapshot(cues, t, color) {
   const st = stateAt(cues, t).lights;
-  return ALL_LIGHTS.map((l) => dmx(st[l]));
+  return ALL_LIGHTS.map((l) => dmx(st[l], color));
 }
 
 // Within rounding: a colour fade sampled either side of an edge can differ by 1.
@@ -74,7 +108,7 @@ const keyOf = (snap) => snap.map(([r, g, b, d]) => (d > 2 ? `${r},${g},${b}@${d}
 
 /** The show as back-to-back pieces: each one either holds a look or fades
  *  straight from one to another. → [{ start, end, from, to }] */
-export function pieces(cues, duration) {
+export function pieces(cues, duration, color = hexToRgb) {
   const times = changeTimes(cues).filter((t) => t >= 0 && t < duration);
   const edges = [...new Set([0, ...times, duration])].sort((a, b) => a - b);
   const out = [];
@@ -83,8 +117,8 @@ export function pieces(cues, duration) {
     // a piece too short to matter (where two changes are a few thousandths
     // apart) just makes the block before it longer, so blocks stay back to back
     if (end - start < 0.005) { if (out.length) out[out.length - 1].end = end; continue; }
-    const from = snapshot(cues, start);
-    const to = snapshot(cues, end - 0.0001);
+    const from = snapshot(cues, start, color);
+    const to = snapshot(cues, end - 0.0001, color);
     const prev = out[out.length - 1];
     const holding = keyOf(from) === keyOf(to);
     // A sliver left over where two fades overlap (a hundredth of a second)
@@ -228,17 +262,19 @@ const channelsOf = (snap, brightness) => {
   return vals;
 };
 
-// steps: [{ ticks, fade, vals: [one 7-channel array per fixture] }]
+const xmlText = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+
+// steps: [{ ticks, fade, vals: [one 7-channel array per fixture], name? }]
 function rawSceneXml(fixtures, steps) {
   const lines = ['<?xml version="1.0" encoding="UTF-8"?>', '', '<Scene>', '  <Fixtures>'];
   for (const f of fixtures) lines.push(`    <Fixture id="${f.id}" name="${f.name}" model="${f.model}"/>`);
   lines.push('  </Fixtures>', '  <Steps>');
   for (const st of steps) {
-    lines.push(`    <Step length="${st.ticks}">`);
+    lines.push(st.name ? `    <Step name="${xmlText(st.name)}" length="${st.ticks}">` : `    <Step length="${st.ticks}">`);
     fixtures.forEach((f, i) => {
       lines.push(`      <Fixture id="${f.id}">`);
       // Every channel is written, so a scene never leaves one over from the last.
-      st.vals[i].forEach((v, ch) => lines.push(`        <Channel index="${ch}" value="${v}" fade="${st.fade ? 1 : 0}"/>`));
+      st.vals[i].forEach((v, ch) => lines.push(`        <Channel index="${ch}" name="${CHANNEL_NAMES[ch]}" value="${v}" fade="${st.fade ? 1 : 0}"/>`));
       lines.push('      </Fixture>');
     });
     lines.push('    </Step>');
@@ -252,7 +288,7 @@ function sceneXml(fixtures, steps, brightness = 'rgb') {
 }
 
 /** → { scenes: Map(fileName → xml), timeline: ini text, blocks: [...] } */
-export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/music.wav', title = 'show', brightness = 'rgb' }) {
+export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/music.wav', title = 'show', brightness = 'rgb', color = hexToRgb }) {
   const all = parseFixturesIni(fixturesIni);
   const fixtures = ALL_LIGHTS.map((l) => all.find((f) => f.light === l));
   const missing = ALL_LIGHTS.filter((l, i) => !fixtures[i]);
@@ -265,8 +301,19 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
   // so that's the block's own grid too); they add up exactly, in hundredths.
   const scenes = new Map();
   const tick = (t) => Math.round(t / TICK) * TICK * 100;
-  const blockList = blocks(pieces(cues, end), end).map((bl, i) => {
-    const file = `${String(i + 1).padStart(3, '0')} at ${(Math.round(bl.start * 10) / 10).toFixed(1)}s.scex`;
+  // "0:37.52 snap: raven-solo-pole, raven-solo-lime +3": when, how, and
+  // which cues start there, so a step can be traced back to the plan
+  const near = (a, b) => Math.abs(a - b) < 0.006;
+  const stepName = (st, k) => {
+    const ids = cues.filter((c) => flashTimes(c).some((t) => near(t, st.t)) || (c.end !== null && near(c.end, st.t))).map((c) => c.id);
+    const what = k === 0 ? 'block starts' : st.fade ? 'fade' : 'snap';
+    const list = ids.length > 2 ? `${ids.slice(0, 2).join(', ')} +${ids.length - 2}` : ids.join(', ');
+    return `${formatTime(st.t)} ${what}${list ? `: ${list}` : ''}`;
+  };
+  const blockList = blocks(pieces(cues, end, color), end).map((bl, i) => {
+    // "012 Raven solo 37.8s": readable in Finder and in ShowXpress's lists
+    const section = sectionAt(plan.sections || [], plan.tempo, bl.start + 0.001)?.name;
+    const file = `${String(i + 1).padStart(3, '0')} ${section ? `${safe(section)} ` : ''}${(Math.round(bl.start * 10) / 10).toFixed(1)}s.scex`;
     // A step that rounds to nothing goes if it only repeats what's already
     // up (the dark moment after a fade-out); one that changes something
     // (a 0.04 s flash) gets one tick, and the next ones catch up.
@@ -279,7 +326,7 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
     kept.forEach((st, k) => at.push(k ? Math.max(tick(st.t), at[k - 1] + TICK * 100) : tick(st.t)));
     const steps = kept.map((st, k) => {
       const next = k + 1 < kept.length ? at[k + 1] : Math.max(tick(bl.end), at[k] + TICK * 100);
-      return { ...st, ticks: Math.round(next - at[k] + (k + 1 === kept.length ? HOLD * 100 : 0)) };
+      return { ...st, name: stepName(st, k), ticks: Math.round(next - at[k] + (k + 1 === kept.length ? HOLD * 100 : 0)) };
     });
     scenes.set(file, sceneXml(fixtures, steps, brightness));
     return { start: bl.start, length: bl.end - bl.start, file, steps };
@@ -304,11 +351,11 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
  *  ~/TheLightingController/LightShows/<show>, which is where ShowXpress 9
  *  on a Mac keeps its shows (File › Open lightshow Folder shows it).
  *  → [{ name, data }] for xlsx.js's zip() */
-export function showxpressPackage(plan, { fixturesIni, profile, profileName, pools, audio, duration, showName, brightness }) {
+export function showxpressPackage(plan, { fixturesIni, profile, profileName, pools, audio, duration, showName, brightness, color }) {
   // no spaces, so the install command needs no escaping: bash ~/Downloads/teen-titans-showxpress/install.sh
   const root = `${showName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-showxpress`;
   const show = `${root}/show`;
-  const { scenes, timeline } = showxpressShow(plan, { fixturesIni, duration, title: `${showName} lights`, audioPath: 'Live/music.wav', brightness });
+  const { scenes, timeline } = showxpressShow(plan, { fixturesIni, duration, title: `${showName} lights`, audioPath: 'Live/music.wav', brightness, color });
   const files = [
     { name: `${root}/install.sh`, data: installScript(showName), executable: true },
     { name: `${show}/fixtures.ini`, data: fixturesIni },
@@ -318,7 +365,7 @@ export function showxpressPackage(plan, { fixturesIni, profile, profileName, poo
     ...[...scenes].map(([file, xml]) => ({ name: `${show}/scenes/${file}`, data: xml })),
   ];
   if (audio) files.push({ name: `${show}/Live/music.mp3`, data: audio });
-  files.push(...[...timingTest(fixturesIni), ...dimmerTest(fixturesIni)].map((f) => ({ ...f, name: `${show}/${f.name}` })));
+  files.push(...[...timingTest(fixturesIni), ...dimmerTest(fixturesIni), ...colorTest(fixturesIni)].map((f) => ({ ...f, name: `${show}/${f.name}` })));
   return files;
 }
 
@@ -365,7 +412,7 @@ export function starterPackage({ fixturesIni, profile, profileName, pools }) {
     '01 all warm white fade in': [{ ticks: 200, snap: all(warm, 255), fade: true }, { ticks: hold, snap: all(warm, 255), fade: false }],
     '02 all white': [{ ticks: hold, snap: all([255, 255, 255], 255), fade: false }],
     // one light at a time, in number order, 2 s each, to check which is which
-    '03 find each light': fixtures.map((_, k) => ({ ticks: 200, snap: fixtures.map((f, i) => (i === k ? [255, 255, 255, 255] : [0, 0, 0, 0])), fade: false })),
+    '03 find each light': fixtures.map((_, k) => ({ name: `light ${fixtures[k].light}`, ticks: 200, snap: fixtures.map((f, i) => (i === k ? [255, 255, 255, 255] : [0, 0, 0, 0])), fade: false })),
   };
   return [
     { name: `${root}/install.sh`, data: starterScript(), executable: true },
@@ -373,7 +420,7 @@ export function starterPackage({ fixturesIni, profile, profileName, pools }) {
     { name: `${root}/show/fixtures/${profileName}.txt`, data: profile },
     { name: `${root}/show/3DView/fixtures.ini`, data: view3dIni(fixturesIni, pools) },
     ...Object.entries(scenes).map(([n, steps]) => ({ name: `${root}/show/scenes/${n}.scex`, data: sceneXml(fixtures, steps) })),
-    ...[...timingTest(fixturesIni), ...dimmerTest(fixturesIni)].map((f) => ({ ...f, name: `${root}/show/${f.name}` })),
+    ...[...timingTest(fixturesIni), ...dimmerTest(fixturesIni), ...colorTest(fixturesIni)].map((f) => ({ ...f, name: `${root}/show/${f.name}` })),
   ];
 }
 
@@ -446,12 +493,12 @@ export function dimmerTest(fixturesIni) {
   const all = (rgb, d) => fixtures.map(() => [...rgb, 0, 0, 0, d]);
   const white = all([255, 255, 255], 255);
   const steps = [
-    { ticks: 200, fade: false, vals: white },                          // 0:00 white
-    { ticks: 300, fade: true, vals: all([255, 255, 255], 0) },         // 0:02 dimmer only → 0
-    { ticks: 200, fade: false, vals: all([255, 255, 255], 0) },        // 0:05 hold
-    { ticks: 200, fade: false, vals: white },                          // 0:07 white again
-    { ticks: 300, fade: true, vals: all([0, 0, 0], 255) },             // 0:09 red, green, blue only → 0
-    { ticks: HOLD * 100, fade: false, vals: all([0, 0, 0], 255) },     // 0:12 dark
+    { name: '0:00 white', ticks: 200, fade: false, vals: white },
+    { name: '0:02 dimmer only to 0', ticks: 300, fade: true, vals: all([255, 255, 255], 0) },
+    { name: '0:05 hold', ticks: 200, fade: false, vals: all([255, 255, 255], 0) },
+    { name: '0:07 white again', ticks: 200, fade: false, vals: white },
+    { name: '0:09 red green blue only to 0', ticks: 300, fade: true, vals: all([0, 0, 0], 255) },
+    { name: '0:12 dark', ticks: HOLD * 100, fade: false, vals: all([0, 0, 0], 255) },
   ];
   const ini = ['', '[Params]', 'Version = 0.2', 'CommentTimeLine = 0', 'LightTimeLines = 1', 'MediaTimeLines = 1',
     'ShowWaveForm = 0', 'Zoom = 1', 'MaxTime = 0:00:20',
@@ -460,6 +507,28 @@ export function dimmerTest(fixturesIni) {
   return [
     { name: 'scenes/dimmer test.scex', data: rawSceneXml(fixtures, steps) },
     { name: 'Live/TimeLine/timelines/Dimmer test.tml', data: ini.join('\r\n') },
+  ];
+}
+
+/** A "Colour test" timeline for tuning REVEL_COLORS at the studio: every
+ *  light shows each of the show's colours for 3 s as the page has it, then
+ *  3 s as it now goes out, named in the step list ("lavender: page",
+ *  "lavender: Revel"). Then white, for comparison. */
+export function colorTest(fixturesIni) {
+  const fixtures = parseFixturesIni(fixturesIni).sort((a, b) => a.light - b.light);
+  const all = ([r, g, b]) => fixtures.map(() => [r, g, b, 0, 0, 0, 255]);
+  const steps = Object.keys(REVEL_COLORS).flatMap((hex) => [
+    { name: `${shortColorName(hex)}: page`, ticks: 300, fade: false, vals: all(hexToRgb(hex)) },
+    { name: `${shortColorName(hex)}: Revel`, ticks: 300, fade: false, vals: all(revelColor(hex)) },
+  ]);
+  steps.push({ name: 'white', ticks: HOLD * 100, fade: false, vals: all([255, 255, 255]) });
+  const ini = ['', '[Params]', 'Version = 0.2', 'CommentTimeLine = 0', 'LightTimeLines = 1', 'MediaTimeLines = 1',
+    'ShowWaveForm = 0', 'Zoom = 1', 'MaxTime = 0:01:00',
+    'TimeLine_1 = V I D E O   P I C T U R E   T I M E L I N E', 'TimeLine_2 = music', 'TimeLine_3 = colour test',
+    '[Event_0]', 'TimeLineIndex = 3', 'StartTime = 0:00:00.00', 'Path = colour test.scex', 'Length = 0:00:48.00', 'Speed = 100', 'SpeedType = 2', ''];
+  return [
+    { name: 'scenes/colour test.scex', data: rawSceneXml(fixtures, steps) },
+    { name: 'Live/TimeLine/timelines/Colour test.tml', data: ini.join('\r\n') },
   ];
 }
 

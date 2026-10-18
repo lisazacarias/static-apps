@@ -9,10 +9,13 @@
 #   color   hex colour (#ffd9a0)
 #   level   brightness, 0-100
 #   fade    seconds to fade in; 0 snaps
+#   name    optional: a few words for the scene's file and step names
+#           ("floor lavender"), so the files read well in Finder and ShowXpress
 # Each cue changes only the lights it names. The others keep what they had,
 # so turn a light off with a row at level 0. Two cues at the same time can't
 # name the same light.
-import csv, math, os, sys, wave
+import csv, math, os, re, sys, wave
+from xml.sax.saxutils import escape
 
 # Revel's lights only respond to red, green and blue (Quan: "only the RGB
 # works, there's no dimmer or any other channel"), so brightness goes out
@@ -44,19 +47,21 @@ for line in open(f'{SHOW}/fixtures.ini', encoding='utf-8-sig'):
         if key == 'name':  # "CH7: SlimPAR 56 (7CH) #7" is light 7
             FX[int(value.split(':')[0][2:])] = cur
 
+CHANNEL_NAMES = ['red', 'green', 'blue', 'color_macro', 'shutter', 'mode', 'dimmer']
+
 def scene(lights, steps):
-    """steps: [(length in hundredths, fade?, {channel index: value})]"""
+    """steps: [(step name, length in hundredths, fade?, {channel index: value})]"""
     out = ['<?xml version="1.0" encoding="UTF-8"?>', '', '<Scene>', '  <Fixtures>']
     for l in lights:
         f = FX[l]
         out.append(f'    <Fixture id="{f["id"]}" name="{f["name"]}" model="{f["model"]}"/>')
     out += ['  </Fixtures>', '  <Steps>']
-    for length, fade, values in steps:
-        out.append(f'    <Step length="{length}">')
+    for step_name, length, fade, values in steps:
+        out.append(f'    <Step name="{escape(step_name, {chr(34): "&quot;"})}" length="{length}">')
         for l in lights:
             out.append(f'      <Fixture id="{FX[l]["id"]}">')
             for ch, v in sorted(values.items()):
-                out.append(f'        <Channel index="{ch}" value="{v}" fade="{int(fade)}"/>')
+                out.append(f'        <Channel index="{ch}" name="{CHANNEL_NAMES[ch]}" value="{v}" fade="{int(fade)}"/>')
             out.append('      </Fixture>')
         out.append('    </Step>')
     out += ['  </Steps>', '</Scene>', '']
@@ -87,9 +92,11 @@ for i, r in enumerate(rows, 1):
     # SlimPAR 56 (7CH): 0 red, 1 green, 2 blue, 3 colour macro, 4 shutter, 5 mode, 6 dimmer
     look = {0: red, 1: green, 2: blue, 3: 0, 4: 0, 5: 0, 6: dimmer}
     fade = round(float(r['fade']) * 20) * 5  # hundredths, kept on the 0.05 s tick
+    label = (r.get('name') or '').strip() or f"lights {r['lights'].strip()}"
     # fade in (if any), then hold for 10 minutes so the scene never loops
-    steps = ([(fade, True, look)] if fade else []) + [(60000, False, look)]
-    name = f'{i:03} at {start:.1f}s.scex'
+    steps = ([(f'{label}: fade in', fade, True, look)] if fade else []) + [(f'{label}: hold', 60000, False, look)]
+    # "003 floor lavender 27.5s.scex"; Finder and ShowXpress don't like / or :
+    name = f"{i:03} {re.sub(r'[^A-Za-z0-9 ._()%+-]+', '', label).strip()} {start:.1f}s.scex"
     write(f'{SHOW}/scenes/{name}', scene(lights, steps))
     later = [float(q['time']) for q in rows[i:] if q['row'] == r['row'] and float(q['time']) > start]
     end = later[0] if later else SONG_LENGTH
