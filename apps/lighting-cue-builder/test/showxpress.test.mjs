@@ -328,3 +328,17 @@ test('a snap overtaken within half a tick is dropped rather than flashed', () =>
   const white = steps.find(([n]) => n.includes('white'));
   assert.equal(white[1], 10, 'the white flash keeps its 0.1 s');
 });
+
+test('a crossfade mixes the venue colours, never a pastel in between', () => {
+  // pink to light purple, with a second light changing a hundredth later so
+  // a step boundary lands mid-fade (as in Starfire's solo)
+  const plan = normalizePlan({ cues: [
+    cue({ time: 0, lights: [1, 2], color: '#ff8fc8', level: 55 }),
+    cue({ time: 1, lights: [1], color: '#b79cff', level: 55, transition: 'fade', fade: 0.16 }),
+    cue({ time: 1.01, lights: [2], color: '#b79cff', level: 55, transition: 'fade', fade: 0.16 }),
+  ] });
+  const { scenes } = showxpressShow(plan, { fixturesIni: INI, duration: 5, color: revelColor });
+  const greens = [...[...scenes.values()].join('').matchAll(/<Fixture id="100[01]">\r\n[^\n]*\n {8}<Channel index="1" name="green" value="(\d+)"/g)].map((m) => +m[1]);
+  assert.ok(greens.length > 2);
+  assert.deepEqual([...new Set(greens)], [0], 'pink and light purple have no green, nor does anything between them');
+});

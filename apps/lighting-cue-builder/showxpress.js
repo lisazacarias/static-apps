@@ -7,7 +7,7 @@
 // timeline is an ini file (Live/TimeLine/timelines/*.tml), and the patch is
 // fixtures.ini. Things the demo show doesn't settle are marked CHECK.
 
-import { ALL_LIGHTS, activeCues, changeTimes, hexToRgb, stateAt, flashTimes, formatTime, sectionAt, shortColorName } from './cues.js';
+import { ALL_LIGHTS, activeCues, changeTimes, hexToRgb, rgbToHex, stateAt, flashTimes, formatTime, sectionAt, shortColorName } from './cues.js';
 
 // Channel order of the venue's SlimPAR 56 in 7-channel mode, from the
 // profile the venue sent: red, green, blue, colour macro, shutter, mode,
@@ -341,7 +341,21 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
   const fixtures = ALL_LIGHTS.map((l) => all.find((f) => f.light === l));
   const missing = ALL_LIGHTS.filter((l, i) => !fixtures[i]);
   if (missing.length) throw new Error(`fixtures.ini has no CH${missing.join(', CH')}`);
-  const cues = activeCues(plan.cues, plan.optionPicks);
+  // Colours go out as the venue's (`color`), so swap them into the cues
+  // themselves before anything is blended: a fade then mixes the two
+  // saturated colours. Mixing the page's screen colours first and mapping
+  // the blend gave pastel, greenish moments mid-fade (pink to light purple
+  // in Starfire's solo), since a blend isn't in REVEL_COLORS.
+  const recolor = (hex) => rgbToHex(color(hex));
+  const cues = activeCues(plan.cues, plan.optionPicks).map((c) => ({
+    ...c,
+    color: recolor(c.color),
+    repeat: c.repeat && {
+      ...c.repeat,
+      altColor: c.repeat.altColor && recolor(c.repeat.altColor),
+      cycle: c.repeat.cycle && c.repeat.cycle.map(recolor),
+    },
+  }));
   const end = duration ?? Math.max(0, ...cues.map((c) => (c.end ?? c.time) + 5));
 
   // One scene per block, named by where it starts. Step lengths come from
@@ -358,7 +372,7 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
     const list = ids.length > 2 ? `${ids.slice(0, 2).join(', ')} +${ids.length - 2}` : ids.join(', ');
     return `${formatTime(st.t)} ${what}${list ? `: ${list}` : ''}`;
   };
-  const blockList = blocks(pieces(cues, end, color), end).map((bl, i) => {
+  const blockList = blocks(pieces(cues, end), end).map((bl, i) => {
     // "012 Raven solo 37.8s": readable in Finder and in ShowXpress's lists
     const section = sectionAt(plan.sections || [], plan.tempo, bl.start + 0.001)?.name;
     const file = `${String(i + 1).padStart(3, '0')} ${section ? `${safe(section)} ` : ''}${(Math.round(bl.start * 10) / 10).toFixed(1)}s.scex`;
