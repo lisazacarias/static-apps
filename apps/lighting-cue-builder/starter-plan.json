@@ -3515,7 +3515,7 @@
       "transition": "fade",
       "fade": 2,
       "othersOff": false,
-      "note": "Starfire solo (Quan's layout): 1–7 fade out with the pole, so the light sits on her side",
+      "note": "Starfire solo (Quan's layout, plus 2): 1 and 3–7 fade out with the pole, so the light sits on her side",
       "repeat": null,
       "option": null,
       "updatedAt": 1792357804964
@@ -3526,6 +3526,7 @@
       "end": null,
       "outFade": null,
       "lights": [
+        2,
         9
       ],
       "action": "on",
@@ -3535,10 +3536,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Starfire solo: loops (10) and backdrop warm white at full, 8, 9 and 12 at 55%, 1–7 dark",
+      "note": "Starfire solo: loops (10) and backdrop warm white at full, 2, 8, 9 and 12 at 55%, the rest of 1–7 dark (2 on, Andy's suggestion)",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792357804964
+      "updatedAt": 1792391061574
     },
     {
       "id": "starfire-solo-lime",
@@ -3588,6 +3589,7 @@
       "end": null,
       "outFade": null,
       "lights": [
+        2,
         9
       ],
       "action": "on",
@@ -3608,7 +3610,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1792357804964
+      "updatedAt": 1792391061574
     },
     {
       "id": "starfire-vocal1-y",
@@ -3645,6 +3647,7 @@
       "end": null,
       "outFade": null,
       "lights": [
+        2,
         9
       ],
       "action": "on",
@@ -3665,7 +3668,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1792357804964
+      "updatedAt": 1792391061574
     },
     {
       "id": "starfire-vocal2-y",
@@ -3702,6 +3705,7 @@
       "end": null,
       "outFade": null,
       "lights": [
+        2,
         9
       ],
       "action": "on",
@@ -3714,7 +3718,7 @@
       "note": "Starfire starts rapping (1:27.67): purple and pink swap",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792357804964
+      "updatedAt": 1792391061574
     },
     {
       "id": "starfire-rap-y",
@@ -3743,6 +3747,7 @@
       "end": null,
       "outFade": null,
       "lights": [
+        2,
         9
       ],
       "action": "on",
@@ -3763,7 +3768,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1792357804964
+      "updatedAt": 1792391061574
     },
     {
       "id": "starfire-vocal3-y",
@@ -3800,6 +3805,7 @@
       "end": null,
       "outFade": null,
       "lights": [
+        2,
         9
       ],
       "action": "on",
@@ -3820,7 +3826,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1792357804964
+      "updatedAt": 1792391061574
     },
     {
       "id": "starfire-vocal4-y",
@@ -3857,6 +3863,7 @@
       "end": null,
       "outFade": null,
       "lights": [
+        2,
         9
       ],
       "action": "on",
@@ -3877,7 +3884,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1792357804964
+      "updatedAt": 1792391061574
     },
     {
       "id": "starfire-vocal5-y",
@@ -3914,6 +3921,7 @@
       "end": null,
       "outFade": null,
       "lights": [
+        2,
         9
       ],
       "action": "on",
@@ -3934,7 +3942,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1792357804964
+      "updatedAt": 1792391061574
     },
     {
       "id": "starfire-vocal6-y",
@@ -3971,6 +3979,7 @@
       "end": null,
       "outFade": null,
       "lights": [
+        2,
         9
       ],
       "action": "on",
@@ -3991,7 +4000,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1792357804964
+      "updatedAt": 1792391061574
     },
     {
       "id": "starfire-vocal7-y",
@@ -4028,6 +4037,7 @@
       "end": null,
       "outFade": null,
       "lights": [
+        2,
         9
       ],
       "action": "on",
@@ -4048,7 +4058,7 @@
         "keepColor": false
       },
       "option": null,
-      "updatedAt": 1792357804964
+      "updatedAt": 1792391061574
     },
     {
       "id": "starfire-vocal8-y",
