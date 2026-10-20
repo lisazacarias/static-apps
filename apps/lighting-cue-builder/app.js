@@ -1773,6 +1773,8 @@ $('exportGrid').onclick = () => {
 // show Lisa made in ShowXpress, so updates land in the same place.
 const VENUE = { ini: 'venue/fixtures.ini', profile: 'venue/slimpar-56-7ch.txt', profileName: 'SlimPAR 56 (7CH)' };
 const SXP_SHOW = 'Teen Titans';
+// The act's name in Revel's own file system (Quan): LisaDorothy_TeenTitans.tml and friends.
+const SXP_REVEL_ACT = 'LisaDorothy_TeenTitans';
 // 'rgb': brightness on red, green and blue, since Revel's lights ignore the
 // dimmer (Quan). 'dimmer' is the old way, for if the Dimmer test says otherwise.
 const SXP_BRIGHTNESS = 'rgb';
@@ -1790,7 +1792,7 @@ $('exportShowxpress').onclick = async () => {
       get(SHOW_AUDIO.url, 'arrayBuffer').catch(() => null), // the song is a nicety; the show still works without it
     ]);
     const files = showxpressPackage(plan, { fixturesIni: ini, profile, profileName: VENUE.profileName, pools: POOLS,
-      audio: audio && new Uint8Array(audio), duration: duration() || undefined, showName: SXP_SHOW, brightness: SXP_BRIGHTNESS, color: SXP_COLOR, lead: SXP_LEAD });
+      audio: audio && new Uint8Array(audio), duration: duration() || undefined, showName: SXP_SHOW, brightness: SXP_BRIGHTNESS, color: SXP_COLOR, lead: SXP_LEAD, revelAct: SXP_REVEL_ACT });
     download(`${slug(SXP_SHOW)}-showxpress.zip`, zip(files), 'application/zip');
     notify('Downloaded. The ShowXpress guide (link next to the button) says how to put it in.');
   } catch {

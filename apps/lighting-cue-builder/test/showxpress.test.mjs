@@ -342,3 +342,20 @@ test('a crossfade mixes the venue colours, never a pastel in between', () => {
   assert.ok(greens.length > 2);
   assert.deepEqual([...new Set(greens)], [0], 'pink and light purple have no green, nor does anything between them');
 });
+
+test('with a Revel act, install.sh files the show the way Revel does', () => {
+  const plan = normalizePlan({ cues: [cue({ time: 1, lights: [1] })] });
+  const files = showxpressPackage(plan, { fixturesIni: INI, profile: 'Channel = red', profileName: 'SlimPAR 56 (7CH)',
+    pools: { 1: [0, 0] }, audio: new Uint8Array([1]), duration: 5, showName: 'Teen Titans', lead: 5, revelAct: 'LisaDorothy_TeenTitans' });
+  const get = (n) => files.find((f) => f.name === `teen-titans-showxpress/${n}`);
+  const sh = get('install.sh').data, tml = get('revel/LisaDorothy_TeenTitans.tml').data;
+  assert.match(sh, /SHOW="\$HOME\/TheLightingController\/LightShows\/default"/);
+  assert.match(sh, /SCENES="\$SHOW\/scenes\/Heroes & Villains Scenes\/\$ACT"/);
+  assert.match(sh, /rm -rf "\$SCENES"/, 'only its own scene folder is replaced');
+  assert.doesNotMatch(sh, /(cp|ditto|>)[^\n]*(fixtures|3DView)/, "Revel's patch and layout are left alone");
+  assert.match(sh, /for ID in 1000 1001 [^\n]*1012; do grep -q "id = \$ID" "\$SHOW\/fixtures.ini"/, 'warns if the patch has other ids');
+  assert.ok(get('install-on-my-mac.sh').executable, 'the separate show is still there for home');
+  assert.match(tml, /Path = __HOME__\/Desktop\/Revel Room\/Heroes & Villains Music\/LisaDorothy_TeenTitans.wav/);
+  assert.match(tml, /Path = Heroes & Villains Scenes\/LisaDorothy_TeenTitans\/001 0.0s.scex/);
+  assert.match(tml, /Path = STOP\r\n$/);
+});
