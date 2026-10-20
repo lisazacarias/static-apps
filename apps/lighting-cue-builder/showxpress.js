@@ -336,7 +336,10 @@ function keepBright(steps, end) {
 // lead: seconds of blackout on the timeline before the song and lights
 // start. Revel wants 5 (Quan: "we needed 5s of blackout before the lighting
 // starts"); the page and the plan's own times are unchanged.
-export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/music.wav', title = 'show', brightness = 'rgb', color = hexToRgb, lead = 0 }) {
+// scenePrefix: the folder the scenes sit in, under the show's scenes/, as a
+// timeline's Path names them ("Heroes & Villains Scenes/AliceKutsyy/x.scex"
+// in Revel's own timelines). stop: end on a STOP block, as Revel's do.
+export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/music.wav', title = 'show', brightness = 'rgb', color = hexToRgb, lead = 0, scenePrefix = '', stop = false }) {
   const all = parseFixturesIni(fixturesIni);
   const fixtures = ALL_LIGHTS.map((l) => all.find((f) => f.light === l));
   const missing = ALL_LIGHTS.filter((l, i) => !fixtures[i]);
@@ -413,8 +416,9 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
     scenes.set('000 blackout before the show.scex', sceneXml(fixtures, [{ name: 'blackout before the show', ticks: HOLD * 100, snap: black, fade: false }], brightness));
     rows.unshift({ start: 0, length: lead, file: '000 blackout before the show.scex' });
   }
-  rows.forEach((b, i) => ev(i + 1, ['TimeLineIndex = 3', `StartTime = ${fmt(b.start)}`, `Path = ${b.file}`,
+  rows.forEach((b, i) => ev(i + 1, ['TimeLineIndex = 3', `StartTime = ${fmt(b.start)}`, `Path = ${scenePrefix}${b.file}`,
     `Length = ${fmt(b.length)}`, 'Speed = 100', 'SpeedType = 2']));
+  if (stop) ev(rows.length + 1, ['TimeLineIndex = 3', `StartTime = ${fmt(end + lead)}`, 'Path = STOP']);
   ini.push('');
   return { scenes, timeline: ini.join('\r\n'), blocks: blockList };
 }
@@ -425,7 +429,22 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
  *  ~/TheLightingController/LightShows/<show>, which is where ShowXpress 9
  *  on a Mac keeps its shows (File › Open lightshow Folder shows it).
  *  → [{ name, data }] for xlsx.js's zip() */
-export function showxpressPackage(plan, { fixturesIni, profile, profileName, pools, audio, duration, showName, brightness, color, lead }) {
+// How Revel's laptop keeps every act inside one light show, "default"
+// (from Quan, and his AliceKutsyy.tml): scenes in a folder per act under
+// scenes/Heroes & Villains Scenes/, timelines in timelines/Heroes &
+// Villains Timelines/<act>.tml, songs as <act>.wav on the Desktop, named
+// in the timeline by full path.
+export const REVEL_SYSTEM = {
+  show: 'default',
+  scenes: 'Heroes & Villains Scenes',
+  timelines: 'Heroes & Villains Timelines',
+  music: 'Desktop/Revel Room/Heroes & Villains Music',
+};
+
+// revelAct: the act's name in Revel's system ("LisaDorothy_TeenTitans").
+// With it, install.sh puts the show into Revel's "default" show, and
+// install-on-my-mac.sh keeps the separate show (showName) for testing at home.
+export function showxpressPackage(plan, { fixturesIni, profile, profileName, pools, audio, duration, showName, brightness, color, lead, revelAct }) {
   // no spaces, so the install command needs no escaping: bash ~/Downloads/teen-titans-showxpress/install.sh
   const root = `${showName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}-showxpress`;
   const show = `${root}/show`;
@@ -438,6 +457,15 @@ export function showxpressPackage(plan, { fixturesIni, profile, profileName, poo
     { name: `${show}/Live/TimeLine/timelines/${showName}.tml`, data: timeline },
     ...[...scenes].map(([file, xml]) => ({ name: `${show}/scenes/${file}`, data: xml })),
   ];
+  if (revelAct) {
+    // the same scenes, so the timeline just names them in their Revel folder;
+    // the song's full path depends on the laptop's home folder, so install.sh fills in __HOME__
+    const revel = showxpressShow(plan, { fixturesIni, duration, title: `${showName} lights`, brightness, color, lead,
+      scenePrefix: `${REVEL_SYSTEM.scenes}/${revelAct}/`, audioPath: `__HOME__/${REVEL_SYSTEM.music}/${revelAct}.wav`, stop: true });
+    files[0] = { name: `${root}/install.sh`, data: revelInstallScript(revelAct, fixturesIni), executable: true };
+    files.push({ name: `${root}/install-on-my-mac.sh`, data: installScript(showName), executable: true });
+    files.push({ name: `${root}/revel/${revelAct}.tml`, data: revel.timeline });
+  }
   if (audio) files.push({ name: `${show}/Live/music.mp3`, data: audio });
   files.push(...[...timingTest(fixturesIni), ...dimmerTest(fixturesIni), ...colorTest(fixturesIni)].map((f) => ({ ...f, name: `${show}/${f.name}` })));
   return files;
@@ -604,6 +632,55 @@ export function colorTest(fixturesIni) {
     { name: 'scenes/colour test.scex', data: rawSceneXml(fixtures, steps) },
     { name: 'Live/TimeLine/timelines/Colour test.tml', data: ini.join('\r\n') },
   ];
+}
+
+function revelInstallScript(act, fixturesIni) {
+  const R = REVEL_SYSTEM;
+  const ids = parseFixturesIni(fixturesIni).map((f) => f.id).join(' ');
+  return `#!/bin/bash
+# Puts this show into Revel's light show ("${R.show}"), the way Revel files
+# every act: scenes in their own folder, a timeline, and the song on the
+# Desktop. Nothing else there is touched. In Terminal, type "bash " (with
+# the space), drag this file into the window, and press Enter.
+set -e
+HERE="$(cd "$(dirname "$0")" && pwd)"
+ACT="${act}"
+SHOW="$HOME/TheLightingController/LightShows/${R.show}"
+SCENES="$SHOW/scenes/${R.scenes}/$ACT"
+TIMELINES="$SHOW/timelines/${R.timelines}"
+MUSIC="$HOME/${R.music}"
+
+if pgrep -f "TheLightingController.app/Contents/MacOS" >/dev/null; then
+  echo "TheLightingController (ShowXpress) is open. Quit it first (Cmd+Q), then run this again."
+  exit 1
+fi
+if [ ! -d "$SHOW" ]; then
+  echo "Couldn't find the \"${R.show}\" light show at $SHOW."
+  echo "This is for the laptop at Revel. On your own Mac, run install-on-my-mac.sh instead."
+  exit 1
+fi
+
+# only this act's own scene folder is replaced; every other act's stays
+[ -n "$ACT" ] && rm -rf "$SCENES"
+mkdir -p "$SCENES" "$TIMELINES" "$MUSIC"
+cp "$HERE/show/scenes/"[0-9][0-9][0-9]' '*.scex "$SCENES/"
+# the song is named by its full path, which needs this laptop's home folder
+sed "s|__HOME__|$HOME|g" "$HERE/revel/$ACT.tml" > "$TIMELINES/$ACT.tml"
+afconvert -f WAVE -d LEI16 "$HERE/show/Live/music.mp3" "$MUSIC/$ACT.wav"
+# zip files carry no real dates; give the new ones today's
+find "$SCENES" "$TIMELINES/$ACT.tml" "$MUSIC/$ACT.wav" -exec touch {} +
+
+# the scenes name each light by its id in the patch Quan sent; warn if this show's differs
+MISSING=""
+for ID in ${ids}; do grep -q "id = $ID" "$SHOW/fixtures.ini" 2>/dev/null || MISSING="$MISSING $ID"; done
+if [ -n "$MISSING" ]; then
+  echo "Warning: this light show's patch doesn't have every light the show uses (ids:$MISSING)."
+  echo "The lights may not come on. Tell Lisa."
+fi
+
+echo "Done."
+echo "Open TheLightingController (the ${R.show} light show), then Live > TimeLine > Open > ${R.timelines} > $ACT."
+`;
 }
 
 function installScript(showName) {
