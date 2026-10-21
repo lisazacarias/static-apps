@@ -431,8 +431,8 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
  *  → [{ name, data }] for xlsx.js's zip() */
 // How Revel's laptop keeps every act inside one light show, "default"
 // (from Quan, and his AliceKutsyy.tml): scenes in a folder per act under
-// scenes/Heroes & Villains Scenes/, timelines in timelines/Heroes &
-// Villains Timelines/<act>.tml, songs as <act>.wav on the Desktop, named
+// scenes/Heroes & Villains Scenes/, timelines in Live/TimeLine/timelines/
+// Heroes & Villains Timelines/<act>.tml, songs as <act>.wav on the Desktop, named
 // in the timeline by full path.
 export const REVEL_SYSTEM = {
   show: 'default',
@@ -647,7 +647,12 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 ACT="${act}"
 SHOW="$HOME/TheLightingController/LightShows/${R.show}"
 SCENES="$SHOW/scenes/${R.scenes}/$ACT"
-TIMELINES="$SHOW/timelines/${R.timelines}"
+# TheLightingController keeps timelines in Live/TimeLine/timelines/; Quan's
+# description left that out, and the first install wrote to timelines/ at
+# the top of the show, where it never looks (Lisa's screenshot of the Open
+# dialog: default > Live > TimeLine > timelines)
+TIMELINES="$SHOW/Live/TimeLine/timelines/${R.timelines}"
+STRAY="$SHOW/timelines/${R.timelines}"
 MUSIC="$HOME/${R.music}"
 
 if pgrep -f "TheLightingController.app/Contents/MacOS" >/dev/null; then
@@ -684,6 +689,12 @@ if ! grep -q "Path = STOP" "$TIMELINES/$ACT.tml"; then
   exit 1
 fi
 echo "Timeline: $TIMELINES/$ACT.tml"
+# tidy away the copy the first install left in the wrong place (only ours;
+# rmdir only removes folders that are then empty)
+if [ -f "$STRAY/$ACT.tml" ]; then
+  rm -f "$STRAY/$ACT.tml"
+  rmdir "$STRAY" "$SHOW/timelines" 2>/dev/null || true
+fi
 
 afconvert -f WAVE -d LEI16 "$HERE/show/Live/music.mp3" "$MUSIC/$ACT.wav" || { echo "Couldn't save the song to $MUSIC. Tell Lisa."; exit 1; }
 echo "Song: $MUSIC/$ACT.wav"
