@@ -10,7 +10,7 @@ import {
 } from './cues.js';
 import { cueWorkbook, zip } from './xlsx.js';
 import { showxpressPackage, revelColor, REVEL_LEAD } from './showxpress.js';
-import { videoSupported, recorderType, videoExtension, stageBackground, drawFrame as drawVideoStage, recorder } from './video.js';
+import { videoSupported, recorderType, videoExtension, stageBackground, drawFrame as drawVideoStage, recorder, beamOpacity } from './video.js';
 
 // localStorage is shared by every app on the Pages origin — keep the prefix.
 const STORE_KEY = 'lighting-cue-builder:plan';
@@ -507,7 +507,7 @@ function renderStage(state, selected) {
     const on = level > 0.002;
     el.beam.setAttribute('fill', color);
     el.halo.setAttribute('fill', color);
-    el.beam.setAttribute('opacity', on ? (0.2 + 0.65 * level).toFixed(3) : 0);
+    el.beam.setAttribute('opacity', on ? beamOpacity(level).toFixed(3) : 0);
     el.halo.setAttribute('opacity', on ? (0.85 * level).toFixed(3) : 0);
     el.halo.style.display = on ? '' : 'none';
     el.g.classList.toggle('is-on', on);
