@@ -4177,14 +4177,14 @@
       "transition": "fade",
       "fade": 2,
       "othersOff": false,
-      "note": "...then the lights breathe out of step in a scattered order, each swelling to full and fading to dark every 4.6s (full range, so it reads on the LEDs)",
+      "note": "...then the lights breathe out of step in a scattered order, each swelling to full and easing down to 20% every 4.6s. Down to 20%, not dark: breathing to 0 flickered hard on the real lights, most likely the bottom few RGB steps",
       "repeat": {
         "bpm": 26,
         "beats": 2,
         "count": 5,
         "onFrac": 0.5,
         "altColor": null,
-        "dimTo": 0,
+        "dimTo": 20,
         "keepColor": false,
         "stagger": {
           "1": 1.92,
@@ -4201,7 +4201,7 @@
         }
       },
       "option": null,
-      "updatedAt": 1792358448564
+      "updatedAt": 1792559693940
     },
     {
       "id": "battle-in-on",
