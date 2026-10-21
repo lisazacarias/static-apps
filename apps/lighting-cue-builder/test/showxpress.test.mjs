@@ -352,6 +352,7 @@ test('with a Revel act, install.sh files the show the way Revel does', () => {
   assert.match(sh, /SHOW="\$HOME\/TheLightingController\/LightShows\/default"/);
   assert.match(sh, /SCENES="\$SHOW\/scenes\/Heroes & Villains Scenes\/\$ACT"/);
   assert.match(sh, /rm -rf "\$SCENES"/, 'only its own scene folder is replaced');
+  assert.match(sh, /TIMELINES="\$SHOW\/Live\/TimeLine\/timelines\/Heroes & Villains Timelines"/, 'where TheLightingController looks for timelines');
   assert.doesNotMatch(sh, /(cp|ditto|>)[^\n]*(fixtures|3DView)/, "Revel's patch and layout are left alone");
   assert.match(sh, /for ID in 1000 1001 [^\n]*1012; do grep -q "id = \$ID" "\$SHOW\/fixtures.ini"/, 'warns if the patch has other ids');
   assert.ok(get('install-on-my-mac.sh').executable, 'the separate show is still there for home');
