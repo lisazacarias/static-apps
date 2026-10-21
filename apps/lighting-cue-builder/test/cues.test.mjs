@@ -623,7 +623,8 @@ test('the show ends on a rainbow flash that holds before fading out', () => {
   const flash = at(229.7);
   assert.ok(ALL_LIGHTS.every((l) => flash[l].level === 1), 'every light full');
   assert.ok(new Set(ALL_LIGHTS.map((l) => flash[l].color)).size >= 7, 'at least seven colours');
-  assert.ok(ALL_LIGHTS.every((l) => at(232)[l].level === 0), 'dark by the end');
+  assert.ok(ALL_LIGHTS.every((l) => at(232.4)[l].level === 1), 'still held 3 s after the hit');
+  assert.ok(ALL_LIGHTS.every((l) => at(234.6)[l].level === 0), 'dark by the end');
   // the piano hits ease further down than before
   assert.ok(Math.abs(at(181.47)[1].level - 0.2) < 1e-9, "eased to 20% just before the next hit");
 });

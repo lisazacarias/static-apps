@@ -9211,10 +9211,10 @@
       "transition": "sharp",
       "fade": 2,
       "othersOff": false,
-      "note": "Finale: the last hit, a bright rainbow flash, every light full in a different colour from its neighbours",
+      "note": "Finale: the last hit, a bright rainbow flash, every light full in a different colour from its neighbours, held 3 s",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792359581554
+      "updatedAt": 1792564921370
     },
     {
       "id": "finale-last-orange",
@@ -9342,7 +9342,7 @@
     },
     {
       "id": "finale-out",
-      "time": 229.9,
+      "time": 232.49,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9366,10 +9366,10 @@
       "transition": "fade",
       "fade": 2,
       "othersOff": false,
-      "note": "...held a moment, then fade to black with the music (silent by about 3:51.9)",
+      "note": "...held 3 s, then fade to black over 2 s",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792359581554
+      "updatedAt": 1792564921370
     }
   ]
 }
