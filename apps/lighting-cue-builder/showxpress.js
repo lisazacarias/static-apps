@@ -359,7 +359,10 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
       cycle: c.repeat.cycle && c.repeat.cycle.map(recolor),
     },
   }));
-  const end = duration ?? Math.max(0, ...cues.map((c) => (c.end ?? c.time) + 5));
+  // The song's length, unless the lights carry on past it: the final fade
+  // to black runs on after the song file ends (the music is silent by then).
+  const lastChange = Math.max(0, ...changeTimes(cues));
+  const end = Math.max(duration ?? 0, duration === undefined ? Math.max(0, ...cues.map((c) => (c.end ?? c.time) + 5)) : 0, lastChange + 0.5);
 
   // One scene per block, named by where it starts. Step lengths come from
   // putting each step's start on the 0.05 s grid (blocks start on tenths,
@@ -407,7 +410,7 @@ export function showxpressShow(plan, { fixturesIni, duration, audioPath = 'Live/
     'ShowWaveForm = 1', 'Zoom = 1', `MaxTime = ${fmt(Math.ceil(end + lead)).replace(/\.\d+$/, '')}`,
     'TimeLine_1 = V I D E O   P I C T U R E   T I M E L I N E', 'TimeLine_2 = music', `TimeLine_3 = ${safe(title)}`];
   const ev = (i, rows) => { ini.push(`[Event_${i}]`, ...rows); };
-  ev(0, ['TimeLineIndex = 2', `StartTime = ${fmt(lead)}`, `Path = ${audioPath}`, `Length = ${fmt(end)}`]);
+  ev(0, ['TimeLineIndex = 2', `StartTime = ${fmt(lead)}`, `Path = ${audioPath}`, `Length = ${fmt(duration ?? end)}`]);
   // One light row: each block takes over from the last, and every scene sets
   // every channel, so nothing carries over between rows.
   const rows = blockList.map((b) => ({ start: b.start + lead, length: b.length, file: b.file }));

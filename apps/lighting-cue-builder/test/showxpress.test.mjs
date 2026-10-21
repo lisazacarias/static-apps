@@ -364,3 +364,10 @@ test('with a Revel act, install.sh files the show the way Revel does', () => {
   assert.match(tml, /Path = Heroes & Villains Scenes\/LisaDorothy_TeenTitans\/001 0.0s.scex/);
   assert.match(tml, /Path = STOP\r\n$/);
 });
+
+test('lights that run on past the song keep going, the song block stays its own length', () => {
+  const plan = normalizePlan({ cues: [cue({ time: 0, lights: [1] }), cue({ time: 9, lights: [1], action: 'off', transition: 'fade', fade: 3 })] });
+  const { timeline, blocks } = showxpressShow(plan, { fixturesIni: INI, duration: 10 });
+  assert.match(timeline, /Path = Live\/music.wav\r\nLength = 0:00:10.00/);
+  assert.ok(blocks.at(-1).start + blocks.at(-1).length >= 12, 'the fade to black is not cut off at the song end');
+});
