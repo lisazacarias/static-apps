@@ -664,9 +664,29 @@ fi
 [ -n "$ACT" ] && rm -rf "$SCENES"
 mkdir -p "$SCENES" "$TIMELINES" "$MUSIC"
 cp "$HERE/show/scenes/"[0-9][0-9][0-9]' '*.scex "$SCENES/"
-# the song is named by its full path, which needs this laptop's home folder
-sed "s|__HOME__|$HOME|g" "$HERE/revel/$ACT.tml" > "$TIMELINES/$ACT.tml"
-afconvert -f WAVE -d LEI16 "$HERE/show/Live/music.mp3" "$MUSIC/$ACT.wav"
+echo "Scenes: $(ls "$SCENES" | wc -l | tr -d ' ') in $SCENES"
+
+# The song is named by its full path, which needs this laptop's home folder.
+# Written line by line in bash itself rather than with sed: on Revel's
+# laptop the sed version left no timeline behind, and this needs no other
+# program. Each line keeps its carriage return, so the file stays Windows-style.
+SRC="$HERE/revel/$ACT.tml"
+if [ ! -f "$SRC" ]; then
+  echo "Couldn't find the timeline in the download ($SRC). Download it again and re-run."
+  exit 1
+fi
+: > "$TIMELINES/$ACT.tml" || { echo "Couldn't write to $TIMELINES. Tell Lisa."; exit 1; }
+while IFS= read -r LINE || [ -n "$LINE" ]; do
+  printf '%s\\n' "\${LINE//__HOME__/$HOME}"
+done < "$SRC" > "$TIMELINES/$ACT.tml"
+if ! grep -q "Path = STOP" "$TIMELINES/$ACT.tml"; then
+  echo "The timeline didn't copy in full ($TIMELINES/$ACT.tml). Tell Lisa."
+  exit 1
+fi
+echo "Timeline: $TIMELINES/$ACT.tml"
+
+afconvert -f WAVE -d LEI16 "$HERE/show/Live/music.mp3" "$MUSIC/$ACT.wav" || { echo "Couldn't save the song to $MUSIC. Tell Lisa."; exit 1; }
+echo "Song: $MUSIC/$ACT.wav"
 # zip files carry no real dates; give the new ones today's
 find "$SCENES" "$TIMELINES/$ACT.tml" "$MUSIC/$ACT.wav" -exec touch {} +
 
