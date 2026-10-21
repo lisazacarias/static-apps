@@ -624,11 +624,11 @@ test('the show ends on a rainbow flash that holds before fading out', () => {
   assert.ok(ALL_LIGHTS.every((l) => flash[l].level === 1), 'every light full');
   assert.ok(new Set(ALL_LIGHTS.map((l) => flash[l].color)).size >= 7, 'at least seven colours');
   assert.ok(ALL_LIGHTS.every((l) => at(232.4)[l].level === 1), 'still held 3 s after the hit');
-  // a 6 s fade that looks even: fast at the top, slow near the bottom, no cliff
-  const fade = [233.49, 234.49, 235.49, 236.49, 237.49].map((t) => at(t)[1].level);
+  // a 3 s fade that looks even: fast at the top, slow near the bottom, no cliff
+  const fade = [232.99, 233.49, 233.99, 234.49, 234.99].map((t) => at(t)[1].level);
   assert.deepEqual(fade.map((v) => Math.round(v * 100)), [67, 41, 22, 9, 2]);
-  assert.ok(ALL_LIGHTS.every((l) => at(238.5)[l].level === 0), 'dark 6 s after the fade began');
-  assert.ok(ALL_LIGHTS.every((l) => at(236)[l].color === flash[l].color), 'each light keeps its colour as it fades');
+  assert.ok(ALL_LIGHTS.every((l) => at(235.5)[l].level === 0), 'dark 3 s after the fade began');
+  assert.ok(ALL_LIGHTS.every((l) => at(234)[l].color === flash[l].color), 'each light keeps its colour as it fades');
   // the piano hits ease further down than before
   assert.ok(Math.abs(at(181.47)[1].level - 0.2) < 1e-9, "eased to 20% just before the next hit");
 });
