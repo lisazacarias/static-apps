@@ -355,6 +355,10 @@ test('with a Revel act, install.sh files the show the way Revel does', () => {
   assert.doesNotMatch(sh, /(cp|ditto|>)[^\n]*(fixtures|3DView)/, "Revel's patch and layout are left alone");
   assert.match(sh, /for ID in 1000 1001 [^\n]*1012; do grep -q "id = \$ID" "\$SHOW\/fixtures.ini"/, 'warns if the patch has other ids');
   assert.ok(get('install-on-my-mac.sh').executable, 'the separate show is still there for home');
+  assert.doesNotMatch(sh, /^\s*sed /m, 'the timeline is written by bash itself (sed left none on the studio laptop)');
+  assert.match(sh, /printf '%s\\n' "\$\{LINE\/\/__HOME__\/\$HOME\}"/);
+  assert.match(sh, /grep -q "Path = STOP" "\$TIMELINES\/\$ACT.tml"/, 'checks the timeline landed in full');
+  assert.ok(!sh.includes('\r'), 'no stray carriage returns in the script');
   assert.match(tml, /Path = __HOME__\/Desktop\/Revel Room\/Heroes & Villains Music\/LisaDorothy_TeenTitans.wav/);
   assert.match(tml, /Path = Heroes & Villains Scenes\/LisaDorothy_TeenTitans\/001 0.0s.scex/);
   assert.match(tml, /Path = STOP\r\n$/);

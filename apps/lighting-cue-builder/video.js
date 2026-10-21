@@ -9,6 +9,11 @@ export const VIDEO_H = 900;
 const PANEL = 300; // info column on the right
 const VIEW = { x: 30, y: 70, w: 1560, h: 1030 }; // the stage SVG's viewBox
 
+// How solid a light's pool looks at a level. A lit light used to start at
+// 0.2, so a light breathing to dark (Slade) jumped between 0.2 and nothing
+// every time it crossed zero. The floor now fades in over the first 10%.
+export const beamOpacity = (level) => 0.2 * Math.min(1, level / 0.1) + 0.65 * level;
+
 // H.264 mp4 first: QuickTime and phones play it. Chrome and Safari record
 // it. Plain "video/mp4" goes last, because Chromium builds without H.264
 // accept it but fill it with VP9, which QuickTime can't open; webm is the
@@ -92,7 +97,7 @@ export function drawFrame(ctx, bg, state, { shapes, order, groupOf, apparatus, t
     ctx.fill();
     ctx.filter = 'none';
     ctx.shadowBlur = 0;
-    ctx.globalAlpha = 0.2 + 0.65 * level;
+    ctx.globalAlpha = beamOpacity(level);
     shapePath(ctx, s);
     ctx.fill();
     ctx.restore();
