@@ -9354,12 +9354,12 @@
       "colorName": "Titans red",
       "level": 67,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
-      "note": "Fade to black over 6 s in 1 s steps (67, 41, 22, 9, 2%, then off), even to the eye: a straight 2 s fade looked flat, then dropped off a cliff at the end",
+      "note": "Fade to black over 3 s in 0.5 s steps (67, 41, 22, 9, 2%, then off), even to the eye: a straight fade looks flat, then drops off a cliff at the end",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-1-orange",
@@ -9375,12 +9375,12 @@
       "colorName": "Titans orange",
       "level": 67,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-1-lime",
@@ -9396,12 +9396,12 @@
       "colorName": "Titans lime",
       "level": 67,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-1-cyan",
@@ -9417,12 +9417,12 @@
       "colorName": "",
       "level": 67,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-1-blue",
@@ -9437,12 +9437,12 @@
       "colorName": "Titans blue",
       "level": 67,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-1-purple",
@@ -9458,12 +9458,12 @@
       "colorName": "Titans lavender",
       "level": 67,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-1-pink",
@@ -9478,16 +9478,16 @@
       "colorName": "",
       "level": 67,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-2-red",
-      "time": 233.49,
+      "time": 232.99,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9499,16 +9499,16 @@
       "colorName": "Titans red",
       "level": 41,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-2-orange",
-      "time": 233.49,
+      "time": 232.99,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9520,16 +9520,16 @@
       "colorName": "Titans orange",
       "level": 41,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-2-lime",
-      "time": 233.49,
+      "time": 232.99,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9541,16 +9541,16 @@
       "colorName": "Titans lime",
       "level": 41,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-2-cyan",
-      "time": 233.49,
+      "time": 232.99,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9562,16 +9562,16 @@
       "colorName": "",
       "level": 41,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-2-blue",
-      "time": 233.49,
+      "time": 232.99,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9582,16 +9582,16 @@
       "colorName": "Titans blue",
       "level": 41,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-2-purple",
-      "time": 233.49,
+      "time": 232.99,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9603,16 +9603,16 @@
       "colorName": "Titans lavender",
       "level": 41,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-2-pink",
-      "time": 233.49,
+      "time": 232.99,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9623,16 +9623,16 @@
       "colorName": "",
       "level": 41,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-3-red",
-      "time": 234.49,
+      "time": 233.49,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9644,16 +9644,16 @@
       "colorName": "Titans red",
       "level": 22,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-3-orange",
-      "time": 234.49,
+      "time": 233.49,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9665,16 +9665,16 @@
       "colorName": "Titans orange",
       "level": 22,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-3-lime",
-      "time": 234.49,
+      "time": 233.49,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9686,16 +9686,16 @@
       "colorName": "Titans lime",
       "level": 22,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-3-cyan",
-      "time": 234.49,
+      "time": 233.49,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9707,16 +9707,16 @@
       "colorName": "",
       "level": 22,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-3-blue",
-      "time": 234.49,
+      "time": 233.49,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9727,16 +9727,16 @@
       "colorName": "Titans blue",
       "level": 22,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-3-purple",
-      "time": 234.49,
+      "time": 233.49,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9748,16 +9748,16 @@
       "colorName": "Titans lavender",
       "level": 22,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-3-pink",
-      "time": 234.49,
+      "time": 233.49,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9768,16 +9768,16 @@
       "colorName": "",
       "level": 22,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-4-red",
-      "time": 235.49,
+      "time": 233.99,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9789,16 +9789,16 @@
       "colorName": "Titans red",
       "level": 9,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-4-orange",
-      "time": 235.49,
+      "time": 233.99,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9810,16 +9810,16 @@
       "colorName": "Titans orange",
       "level": 9,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-4-lime",
-      "time": 235.49,
+      "time": 233.99,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9831,16 +9831,16 @@
       "colorName": "Titans lime",
       "level": 9,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-4-cyan",
-      "time": 235.49,
+      "time": 233.99,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9852,16 +9852,16 @@
       "colorName": "",
       "level": 9,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-4-blue",
-      "time": 235.49,
+      "time": 233.99,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9872,16 +9872,16 @@
       "colorName": "Titans blue",
       "level": 9,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-4-purple",
-      "time": 235.49,
+      "time": 233.99,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9893,16 +9893,16 @@
       "colorName": "Titans lavender",
       "level": 9,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-4-pink",
-      "time": 235.49,
+      "time": 233.99,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9913,16 +9913,16 @@
       "colorName": "",
       "level": 9,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-5-red",
-      "time": 236.49,
+      "time": 234.49,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9934,16 +9934,16 @@
       "colorName": "Titans red",
       "level": 2,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-5-orange",
-      "time": 236.49,
+      "time": 234.49,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9955,16 +9955,16 @@
       "colorName": "Titans orange",
       "level": 2,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-5-lime",
-      "time": 236.49,
+      "time": 234.49,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9976,16 +9976,16 @@
       "colorName": "Titans lime",
       "level": 2,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-5-cyan",
-      "time": 236.49,
+      "time": 234.49,
       "end": null,
       "outFade": null,
       "lights": [
@@ -9997,16 +9997,16 @@
       "colorName": "",
       "level": 2,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-5-blue",
-      "time": 236.49,
+      "time": 234.49,
       "end": null,
       "outFade": null,
       "lights": [
@@ -10017,16 +10017,16 @@
       "colorName": "Titans blue",
       "level": 2,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-5-purple",
-      "time": 236.49,
+      "time": 234.49,
       "end": null,
       "outFade": null,
       "lights": [
@@ -10038,16 +10038,16 @@
       "colorName": "Titans lavender",
       "level": 2,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-fade-5-pink",
-      "time": 236.49,
+      "time": 234.49,
       "end": null,
       "outFade": null,
       "lights": [
@@ -10058,16 +10058,16 @@
       "colorName": "",
       "level": 2,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
       "note": "",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     },
     {
       "id": "finale-out",
-      "time": 237.49,
+      "time": 234.99,
       "end": null,
       "outFade": null,
       "lights": [
@@ -10089,12 +10089,12 @@
       "colorName": "",
       "level": 100,
       "transition": "fade",
-      "fade": 1,
+      "fade": 0.5,
       "othersOff": false,
-      "note": "...and the last step to dark, 6 s after the fade began",
+      "note": "...and the last step to dark, 3 s after the fade began",
       "repeat": null,
       "option": null,
-      "updatedAt": 1792565104116
+      "updatedAt": 1792565995027
     }
   ]
 }
