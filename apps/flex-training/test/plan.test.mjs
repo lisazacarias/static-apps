@@ -6,6 +6,7 @@ import {
   normalizeLog, isEmptyEntry, describe, toIcs, foldLine, weekStart, ymd, fromYmd,
 } from '../plan.js';
 import ROUTINE from '../routine.js';
+import FORM from '../form.js';
 
 const IDS = ROUTINE.sessions.map((s) => s.id);
 const MONDAY = new Date(2026, 9, 19);
@@ -360,25 +361,24 @@ test('movement names match across spellings', () => {
   assert.equal(moveKey('Full bridge, depth focus'), 'full bridge');
 });
 
-test('the reference gathers a movement from every session it is in', () => {
+test('the reference lists each place a movement is used', () => {
   const index = movementIndex(ROUTINE);
   const couch = index.find((m) => m.key === 'couch stretch');
   assert.equal(couch.name, 'Couch stretch');
   assert.deepEqual(couch.sessions, ['Splits Intensive', 'Hips & Thoracic', 'Splits Snack']);
-  const camel = index.find((m) => m.key === 'camel at pole');
-  assert.deepEqual(camel.sessions, ['Shoulders & Bridge']);
-  assert.ok(camel.writeups.some((w) => !w.current && w.cues.length > 10), 'earlier long-form cues are kept');
+  assert.ok(couch.uses.some((u) => u.session === 'Splits Intensive' && u.version === '18-minute version'));
   assert.equal(new Set(index.map((m) => m.key)).size, index.length);
 });
 
-test('earlier write-ups whose loading changed are left out', () => {
-  const index = movementIndex(ROUTINE);
-  for (const key of ['shoulder hyperflexion on bench', 'full bridge']) {
-    const m = index.find((x) => x.key === key);
-    assert.ok(m.writeups.every((w) => w.current), key);
+test('every movement has one form description, and every description a movement', () => {
+  const keys = movementIndex(ROUTINE).map((m) => m.key);
+  for (const key of keys) {
+    const f = FORM[key];
+    assert.ok(f, `no form notes for ${key}`);
+    assert.ok(Array.isArray(f.steps) && f.steps.length, key);
+    for (const k of Object.keys(f)) assert.ok(['setup', 'steps', 'cues', 'avoid', 'guess', 'fromPlan'].includes(k), `${key}.${k}`);
   }
-  const keys = new Set(index.map((m) => m.key));
-  for (const key of Object.keys(ROUTINE.library)) assert.ok(keys.has(key), key);
+  for (const key of Object.keys(FORM)) assert.ok(keys.includes(key), `form notes for unknown movement ${key}`);
 });
 
 test('log normalizer keeps good entries and drops junk', () => {

@@ -476,28 +476,27 @@ export function moveKey(name) {
   return ALIASES[k] || k;
 }
 
-// One entry per movement in the plan: the sessions it's in, and every
-// write-up of it — from each session, then the library's older ones.
+// One entry per movement in the plan: the sessions it's in, and each
+// place it's used there (session, which version, the plan's time and
+// dose). How to do it lives in form.js.
+//   { key, name, sessions: [title], uses: [{ session, version, name,
+//     duration, detail, cues }] }
 export function movementIndex(routine) {
   const index = new Map();
-  const add = (key, item, session, current) => {
-    if (!index.has(key)) index.set(key, { key, name: item.name, sessions: [], writeups: [] });
+  const add = (item, session, version) => {
+    const key = moveKey(item.name);
+    if (!index.has(key)) index.set(key, { key, name: item.name, sessions: [], uses: [] });
     const entry = index.get(key);
     // Prefer the movement's own name over a variant ("Couch stretch", not
     // "Couch stretch, extended").
     if (rawKey(item.name) === key && rawKey(entry.name) !== key) entry.name = item.name;
-    if (current && !entry.sessions.includes(session)) entry.sessions.push(session);
-    const sig = JSON.stringify([item.name, item.duration, item.detail, item.cues]);
-    if (!entry.writeups.some((w) => w.sig === sig)) {
-      entry.writeups.push({ sig, session, current, name: item.name, duration: item.duration, detail: item.detail || '', cues: item.cues || [] });
-    }
+    if (!entry.sessions.includes(session)) entry.sessions.push(session);
+    const use = { session, version, name: item.name, duration: item.duration, detail: item.detail || '', cues: item.cues || [] };
+    if (!entry.uses.some((u) => JSON.stringify(u) === JSON.stringify(use))) entry.uses.push(use);
   };
   for (const s of routine.sessions) {
-    for (const item of [...s.sections.flatMap((sec) => sec.items), ...(s.versions || []).flatMap((v) => v.items)]) add(moveKey(item.name), item, s.title, true);
-  }
-  for (const [key, list] of Object.entries(routine.library || {})) {
-    if (!index.has(key)) continue;
-    for (const w of list) add(key, w, w.session, false);
+    for (const item of s.sections.flatMap((sec) => sec.items)) add(item, s.title, '');
+    for (const v of s.versions || []) for (const item of v.items) add(item, s.title, v.label);
   }
   return [...index.values()].sort((a, b) => a.name.localeCompare(b.name));
 }

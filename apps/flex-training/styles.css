@@ -224,10 +224,10 @@ a.ref { font-family: var(--font-mono); font-size: 0.8em; text-decoration: none; 
 .mdetail { font-size: 14px; color: var(--text); margin-top: 2px; }
 .cues { margin-top: 6px; }
 .cues summary { font-size: 12px; color: var(--text-muted); cursor: pointer; }
-.cues ul, .writeup ul { list-style: none; margin-top: 6px; }
-.cues li, .writeup li { font-size: 13.5px; padding: 2px 0 2px 14px; position: relative; }
-.cues li::before, .writeup li::before { content: '•'; position: absolute; left: 2px; color: var(--text-muted); }
-.cues li.sub, .writeup li.sub { margin-left: 16px; }
+.cues > ul, .uses li ul { list-style: none; margin-top: 6px; }
+.cues > ul > li, .uses li li { font-size: 13.5px; padding: 2px 0 2px 14px; position: relative; border: 0; }
+.cues > ul > li::before, .uses li li::before { content: '•'; position: absolute; left: 2px; color: var(--text-muted); }
+.cues > ul > li.sub, .uses li li.sub { margin-left: 16px; }
 .move-tools { margin-top: 8px; gap: 6px; }
 .move-tools .btn { padding: 4px 10px; font-size: 12px; }
 .move-tools a { font-size: 12px; }
@@ -266,9 +266,20 @@ a.ref { font-family: var(--font-mono); font-size: 0.8em; text-decoration: none; 
 .mlist a { display: block; text-decoration: none; color: var(--text); }
 .mlist .card { padding: 12px 16px; margin-bottom: 6px; }
 .mlist .card h2 { font-size: 18px; margin-bottom: 2px; }
-.writeup { margin-top: 12px; }
-.writeup .label { display: block; margin-bottom: 4px; }
-.writeup.earlier { border-style: dashed; }
+.form p { font-size: 14px; margin: 6px 0; }
+.form ol { margin: 6px 0 6px 20px; font-size: 14px; }
+.form ol li { margin: 3px 0; }
+.form ul { list-style: none; font-size: 13.5px; }
+.form ul li { padding: 1px 0 1px 14px; position: relative; }
+.form ul li::before { content: '•'; position: absolute; left: 2px; color: var(--text-muted); }
+.form ul.avoid li::before { content: '✕'; color: var(--accent); font-size: 11px; top: 3px; }
+.form .form-h { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-label); margin: 10px 0 2px; }
+.form .guess { font-size: 12.5px; color: var(--gold); background: var(--gold-dim); padding: 6px 10px; border-radius: 4px; }
+.cues .form { margin-top: 4px; }
+.uses ul { list-style: none; }
+.uses li { font-size: 14px; padding: 8px 0; border-top: 1px solid var(--border); }
+.uses li:first-child { border-top: 0; padding-top: 0; }
+.uses li ul { margin-top: 4px; }
 .mlist-link { display: block; text-decoration: none; color: var(--text); }
 .mlist-link .card { margin-bottom: 8px; }
 

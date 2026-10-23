@@ -4,6 +4,7 @@ import {
   normalizeLog, isEmptyEntry, toIcs, suggestWeek, ymd, fromYmd, addDays, weekStart,
 } from './plan.js';
 import ROUTINE from './routine.js';
+import FORM from './form.js';
 
 // localStorage is shared by every app on the Pages origin — keep the prefix.
 const LOG_KEY = 'flex-training:log';     // see normalizeLog in plan.js
@@ -357,12 +358,25 @@ function moveRow({ id, item }, checked) {
     <div>
       <label class="mname" for="c-${esc(id)}">${esc(item.name)}</label><span class="mdur">${esc(item.duration)}</span>
       ${item.detail ? `<div class="mdetail">${rich(item.detail)}</div>` : ''}
-      ${item.cues?.length ? `<details class="cues"><summary>Cues (${item.cues.length})</summary>${cueList(item.cues)}</details>` : ''}
+      ${item.cues?.length || FORM[mk] ? `<details class="cues"><summary>How to do it</summary>${item.cues?.length ? cueList(item.cues) : ''}${FORM[mk] ? formHtml(FORM[mk], true) : ''}</details>` : ''}
       <div class="row move-tools">
         ${timers.map((t) => `<button class="btn" type="button" data-timer="${t.seconds}" data-label="${esc(item.name)} · ${esc(t.label)}">⏱ ${esc(t.label)}</button>`).join('')}
         <a href="#m/${encodeURIComponent(mk)}">About this movement →</a>
       </div>
     </div>
+  </div>`;
+}
+
+// A movement's form notes. `compact` drops the source line, for inside a
+// session where the full page is one tap away.
+function formHtml(f, compact = false) {
+  return `<div class="form">
+    ${f.guess ? `<p class="guess">Best guess: ${esc(f.guess)}</p>` : ''}
+    ${f.setup ? `<p><b>Setup.</b> ${esc(f.setup)}</p>` : ''}
+    <ol>${f.steps.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>
+    ${f.cues?.length ? `<p class="form-h">Cues</p><ul>${f.cues.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+    ${f.avoid?.length ? `<p class="form-h">Avoid</p><ul class="avoid">${f.avoid.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+    ${compact ? '' : `<p class="tiny muted">${f.fromPlan ? 'Condensed from the cues in the earlier version of your plan.' : 'General form notes added in the app, not from your plan.'} The plan’s times and reps below are what to follow.</p>`}
   </div>`;
 }
 
@@ -494,7 +508,7 @@ const index = () => (indexCache ||= movementIndex(ROUTINE));
 
 function movesView() {
   return `<input id="moveSearch" class="search" type="search" placeholder="Search movements, e.g. couch, bridge, lats" aria-label="Search movements">
-    <div class="mlist" id="mlist">${index().map((m) => `<a href="#m/${encodeURIComponent(m.key)}" data-name="${esc(m.name.toLowerCase())} ${esc(m.writeups.map((w) => w.name).join(' ').toLowerCase())}">
+    <div class="mlist" id="mlist">${index().map((m) => `<a href="#m/${encodeURIComponent(m.key)}" data-name="${esc(m.name.toLowerCase())} ${esc(m.uses.map((w) => w.name).join(' ').toLowerCase())}">
       <div class="card"><h2>${esc(m.name)}</h2><p class="meta">${esc(m.sessions.join(' · '))}</p></div></a>`).join('')}</div>`;
 }
 
@@ -513,14 +527,12 @@ function moveView(key) {
     <h2 class="title">${esc(m.name)}</h2>
     <p class="meta" style="margin-top:4px">In: ${esc(m.sessions.join(' · '))}</p>
     <p class="muted tiny">${doneDates.length ? `Ticked off ${doneDates.length} time${doneDates.length === 1 ? '' : 's'} · last ${esc(fmtDay(fromYmd(doneDates.at(-1))))}` : 'Not ticked off yet.'}</p>`;
-  for (const w of m.writeups) {
-    html += `<div class="card writeup${w.current ? '' : ' earlier'}">
-      <span class="label">${w.current ? esc(w.session) : `Earlier plan · ${esc(w.session)}`}${w.name !== m.name ? ` — ${esc(w.name)}` : ''} · ${esc(w.duration)}</span>
-      ${w.current ? '' : '<p class="tiny muted">For setup and form. Use the current plan’s times and reps.</p>'}
-      ${w.detail ? `<p>${rich(w.detail)}</p>` : ''}
-      ${w.cues.length ? cueList(w.cues) : ''}
-    </div>`;
-  }
+  if (FORM[key]) html += `<h3 class="sec">How to do it</h3><div class="card">${formHtml(FORM[key])}</div>`;
+  html += `<h3 class="sec">In your sessions</h3><div class="card uses"><ul>${m.uses.map((u) => `<li>
+      <b>${esc(u.session)}</b>${u.version ? ` <span class="muted">· ${esc(u.version)}</span>` : ''}${u.name !== m.name ? ` <span class="muted">· ${esc(u.name)}</span>` : ''}
+      <span class="mdur">${esc(u.duration)}</span>${u.detail ? `<br>${rich(u.detail)}` : ''}
+      ${u.cues.length ? cueList(u.cues) : ''}
+    </li>`).join('')}</ul></div>`;
   return html;
 }
 
