@@ -47,8 +47,7 @@ export const SESSION_REGION = {
 /* ── stored weeks ────────────────────────────────────────────────────── */
 
 // { version: 1, weeks: { ['YYYY-MM-DD' of the Monday]: week } }
-//   week:    { deload, auto, days: [7 × { classes, sessions }] }; auto means
-//            the sessions are suggestWeek()'s and follow the classes
+//   week:    { deload, days: [7 × { classes, sessions }] }
 //   class:   { id, time 'HH:MM'|'', hours, load, double }; a bare id string
 //            is read as one with no time and the type's defaults
 //   session: { id, time 'HH:MM'|'' }
@@ -87,7 +86,7 @@ export function normalizeWeek(w, sessionIds = null) {
       .map((s) => ({ id: s.id, time: isTime(s.time) ? s.time : '' }));
     return { classes, sessions };
   });
-  return { deload: w?.deload === true, auto: w?.auto === true, days };
+  return { deload: w?.deload === true, days };
 }
 
 export const emptyWeek = () => normalizeWeek({});
@@ -107,6 +106,7 @@ export const isPlanned = (w) => !!w && w.days.some((d) => d.classes.length || d.
 const BIG = ['shoulders-bridge', 'splits-intensive', 'hips-thoracic'];
 const LOWER = ['splits-intensive', 'hips-thoracic', 'splits-snack'];
 const SHOULDER = ['shoulders-bridge', 'shoulder-recovery', 'shoulder-reset'];
+const DAYS7 = [0, 1, 2, 3, 4, 5, 6];
 
 // Places the weekly minimums around the week's classes: every arrangement
 // of the three big sessions (one per day), then the Splits Snack and
@@ -114,52 +114,70 @@ const SHOULDER = ['shoulders-bridge', 'shoulder-recovery', 'shoulder-reset'];
 // upper-body session goes first, as the plan's "how to build your week"
 // says. Shoulder Recovery goes after the first tricks class (the day after
 // a double night, which skips any session), or after pole dance if there's
-// no tricks. Class-day prep goes on any class day left empty. Sessions get
-// no times.
-//   score: a warning costs 1000, a reminder 10. Two splits or two shoulder
-//   sessions on one day cost 30, since the minimums are meant as separate
-//   exposures. Then small nudges against a session on a class day (rule 4),
-//   two sessions on one day, and lower-body sessions on back-to-back days.
-export function suggestWeek(routine, weeks, monday) {
+// no tricks. Class-day prep goes on any class day left empty. New sessions
+// get no times.
+//   keep: per day, sessions that stay where they are (ones you've done or
+//         started); they count toward the minimums and aren't placed again
+//   from: first day sessions can go on (today, in the current week)
+//   score: a warning costs 1000, a reminder 10, or 100 for a rule 1
+//   reminder: without times, two days either side of tricks could be under
+//   48 hours, so the suggestion leans towards three. A third session on one day
+//   costs 300, more than leaving a session out (250 for a big one, 150 for
+//   a short one), so a week with few days left gets fewer sessions rather
+//   than a pile-up; the plan says a skipped week costs little. Two splits
+//   or two shoulder sessions on one day cost 30, since the minimums are
+//   meant as separate exposures. Then small nudges against a session on a
+//   class day (rule 4), two sessions on one day, and lower-body sessions on
+//   back-to-back days.
+export function suggestWeek(routine, weeks, monday, { keep = [], from = 0 } = {}) {
   const key = ymd(monday);
   const base = normalizeWeek(weeks.weeks[key] || {});
-  const ids = new Set(routine.sessions.map((s) => s.id));
+  const kept = DAYS7.map((i) => (keep[i] || []).map((s) => ({ id: s.id, time: s.time || '' })));
+  const keptIds = new Set(kept.flat().map((s) => s.id));
+  const ids = new Set(routine.sessions.map((s) => s.id).filter((id) => !keptIds.has(id)));
   const days = base.days.map((d) => d.classes);
-  const doubleNight = (i) => days[i].some((c) => c.double && hardFor(CLASS[c.id] && c, 'upper'));
-  const open = [0, 1, 2, 3, 4, 5, 6].filter((i) => !doubleNight(i));
+  const doubleNight = (i) => days[i].some((c) => c.double && hardFor(c, 'upper'));
+  const open = DAYS7.filter((i) => i >= from && !doubleNight(i));
 
-  const fixed = Array.from({ length: 7 }, () => []);
-  const tricks = [0, 1, 2, 3, 4, 5, 6].find((i) => days[i].some((c) => hardFor(c, 'upper')));
-  const poleDance = [0, 1, 2, 3, 4, 5, 6].find((i) => days[i].some((c) => c.id === 'pole-dance'));
-  const recoveryDay = tricks != null ? (doubleNight(tricks) ? Math.min(tricks + 1, 6) : tricks) : poleDance;
+  const fixed = DAYS7.map(() => []);
+  const tricks = DAYS7.find((i) => days[i].some((c) => hardFor(c, 'upper')) && (doubleNight(i) ? i + 1 : i) >= from);
+  const poleDance = DAYS7.find((i) => i >= from && days[i].some((c) => c.id === 'pole-dance'));
+  let recoveryDay = tricks != null ? (doubleNight(tricks) ? tricks + 1 : tricks) : poleDance;
+  if (recoveryDay > 6) recoveryDay = null;
   if (ids.has('shoulder-recovery') && recoveryDay != null) fixed[recoveryDay].push('shoulder-recovery');
 
+  const SKIP = -1;
+  const skipCost = (placed) => (placed[SKIP] || []).reduce((n, id) => n + (BIG.includes(id) ? 250 : 150), 0);
   const build = (placed) => {
-    const w = normalizeWeek({ ...base, auto: true });
-    w.days.forEach((d, i) => { d.sessions = [...fixed[i], ...(placed[i] || [])].map((id) => ({ id, time: '' })); });
+    const w = normalizeWeek(base);
+    w.days.forEach((d, i) => {
+      d.sessions = [...kept[i], ...[...fixed[i], ...(placed[i] || [])].map((id) => ({ id, time: '' }))];
+    });
     return w;
   };
   const score = (w) => {
     const all = { ...weeks, weeks: { ...weeks.weeks, [key]: w } };
     let n = 0;
-    for (const f of checkWeek(routine, all, monday).flags) n += f.level === 'warn' ? 1000 : 10;
+    for (const f of checkWeek(routine, all, monday).flags) n += f.level === 'warn' ? 1000 : f.rule === 1 ? 100 : 10;
     w.days.forEach((d, i) => {
       const own = d.sessions.filter((s) => s.id !== 'class-prep' && !(s.id === 'shoulder-recovery' && i === recoveryDay));
       if (own.length && d.classes.length) n += 3 * own.length;
       if (d.sessions.length > 1) n += 2 * (d.sessions.length - 1);
-      if (d.sessions.length > 2) n += 50;
+      if (d.sessions.length > 2) n += 300 * (d.sessions.length - 2);
       for (const group of [LOWER, SHOULDER]) n += 30 * Math.max(0, d.sessions.filter((s) => group.includes(s.id)).length - 1);
       if (i < 6 && own.some((s) => LOWER.includes(s.id)) && w.days[i + 1].sessions.some((s) => LOWER.includes(s.id))) n += 1;
     });
     return n;
   };
+  if (!open.length) return build({});
 
+  // Each session goes on an open day, or is left out (SKIP) at a cost.
   const bigIds = BIG.filter((id) => ids.has(id));
   const bigPlans = [];
   const place = (k, used, placed) => {
-    if (k === bigIds.length) { const w = build(placed); bigPlans.push({ placed, score: score(w) }); return; }
-    for (const i of open) {
-      if (used.has(i)) continue;
+    if (k === bigIds.length) { bigPlans.push({ placed, score: score(build(placed)) + skipCost(placed) }); return; }
+    for (const i of [...open, SKIP]) {
+      if (i !== SKIP && used.has(i)) continue;
       place(k + 1, new Set([...used, i]), { ...placed, [i]: [...(placed[i] || []), bigIds[k]] });
     }
   };
@@ -174,16 +192,16 @@ export function suggestWeek(routine, weeks, monday) {
     const tryExtras = (k, p) => {
       if (k === extras.length) {
         const w = build(p);
-        const sc = score(w);
+        const sc = score(w) + skipCost(p);
         if (!best || sc < best.score) best = { w, score: sc };
         return;
       }
-      for (const i of open) tryExtras(k + 1, { ...p, [i]: [...(p[i] || []), extras[k]] });
+      for (const i of [...open, SKIP]) tryExtras(k + 1, { ...p, [i]: [...(p[i] || []), extras[k]] });
     };
     tryExtras(0, placed);
   }
-  const w = best ? best.w : build({});
-  if (ids.has('class-prep')) w.days.forEach((d) => { if (d.classes.length && !d.sessions.length) d.sessions.push({ id: 'class-prep', time: '' }); });
+  const w = best.w;
+  if (ids.has('class-prep')) w.days.forEach((d, i) => { if (i >= from && d.classes.length && !d.sessions.length) d.sessions.push({ id: 'class-prep', time: '' }); });
   return w;
 }
 

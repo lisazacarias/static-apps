@@ -207,9 +207,9 @@ test('rule 7: late big sessions are maintenance only', () => {
 
 /* ── suggested week ── */
 
-const suggested = (days) => {
+const suggested = (days, opts) => {
   const weeks = plan(days);
-  const w = suggestWeek(ROUTINE, weeks, MONDAY);
+  const w = suggestWeek(ROUTINE, weeks, MONDAY, opts);
   weeks.weeks[ymd(MONDAY)] = w;
   return { w, weeks, byDay: w.days.map((d) => d.sessions.map((x) => x.id)), flags: check(weeks) };
 };
@@ -222,8 +222,7 @@ test('a suggested week meets the minimums with no warnings', () => {
     {},
   ];
   for (const days of weeks) {
-    const { w, byDay, flags } = suggested(days);
-    assert.equal(w.auto, true);
+    const { byDay, flags } = suggested(days);
     for (const id of MINIMUMS) assert.ok(byDay.some((d) => d.includes(id)), `${id} in ${JSON.stringify(byDay)}`);
     assert.deepEqual(flags.filter((f) => f.level === 'warn'), [], JSON.stringify(byDay));
   }
@@ -249,10 +248,27 @@ test('the suggestion skips a double tricks night', () => {
   assert.ok(byDay[3].includes('shoulder-recovery'), 'Shoulder Recovery moves to the next day');
 });
 
-test('a week stays suggested only until you change a session', () => {
-  assert.equal(normalizeWeek({ auto: true }).auto, true);
-  assert.equal(normalizeWeek({}).auto, false);
-  assert.equal(weekFromExample(WEEK_A).auto, false);
+test('sessions you’ve done stay put and aren’t placed again', () => {
+  const keep = [[{ id: 'splits-intensive', time: '19:00' }], [], [{ id: 'shoulder-reset', time: '' }]];
+  const { w, byDay, flags } = suggested({ 1: { classes: ['pole-tricks'] } }, { keep });
+  assert.deepEqual(w.days[0].sessions[0], { id: 'splits-intensive', time: '19:00' });
+  assert.equal(byDay.flat().filter((x) => x === 'splits-intensive').length, 1);
+  assert.equal(byDay.flat().filter((x) => x === 'shoulder-reset').length, 1);
+  assert.ok(byDay[2].includes('shoulder-reset'));
+  for (const id of MINIMUMS) assert.ok(byDay.some((d) => d.includes(id)), id);
+  assert.deepEqual(flags.filter((f) => f.level === 'warn'), []);
+});
+
+test('nothing new goes on days that have passed', () => {
+  // Thursday, with tricks on Tuesday already gone: everything left fits in
+  // Thursday to Sunday, and Recovery is placed like a short session.
+  const { byDay } = suggested({ 1: { classes: ['pole-tricks'] }, 3: { classes: ['dance'] } }, { from: 3 });
+  assert.deepEqual(byDay.slice(0, 3), [[], [], []]);
+  for (const id of MINIMUMS) assert.ok(byDay.some((d) => d.includes(id)), `${id} in ${JSON.stringify(byDay)}`);
+  // Sunday only: two sessions, not a pile-up. The rest go unplanned.
+  const sunday = suggested({}, { from: 6 }).byDay;
+  assert.deepEqual(sunday.slice(0, 6), [[], [], [], [], [], []]);
+  assert.equal(sunday[6].length, 2, JSON.stringify(sunday[6]));
 });
 
 test('rules look across the week boundary', () => {

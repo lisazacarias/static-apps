@@ -112,6 +112,7 @@ function weekView(arg) {
   const planned = isPlanned(week);
   const edit = editing === mk || !planned;
   const thisWeek = mk === ymd(weekStart(now));
+  const past = addDays(monday, 7) <= now;
 
   let html = '';
   if (thisWeek) {
@@ -165,8 +166,7 @@ function weekView(arg) {
         ${planned ? `<button class="btn" type="button" id="exportBtn">Export .ics</button>` : ''}
       </span>
     </div>`;
-  if (week?.auto && planned) html += `<p class="auto-note tiny">✦ Sessions suggested from your classes. They move when you change a class; moving or timing a session yourself keeps them where you put them.</p>`;
-  else if (planned) html += `<p class="auto-note tiny"><button class="btn" type="button" id="suggestBtn">Suggest again</button> <span class="muted">Re-places this week’s sessions around its classes.</span></p>`;
+  if (planned && !past) html += `<p class="auto-note tiny"><button class="btn" type="button" id="suggestBtn">Suggest again</button> ✦ Sessions are re-suggested whenever a class changes. Ones you’ve done or started stay put${thisWeek ? ', and nothing goes on days that have passed' : ''}.</p>`;
   if (week?.deload) html += `<p class="info-box tiny">${rich(ROUTINE.guide.deload)}</p>`;
 
   for (let i = 0; i < 7; i++) {
@@ -217,23 +217,37 @@ function occRow(o, dayIndex, edit) {
   </div>`;
 }
 
-// A change to a day's classes or sessions. Changing classes in a suggested
-// (auto) week, or in a week with nothing in it yet, re-suggests its
-// sessions; changing a session yourself stops that.
+// A change to a day's classes or sessions. Changing a class re-suggests the
+// week's sessions; a session you change yourself stays until the next one.
 function changeWeek(dayIndex, f, what = 'sessions') {
   const monday = currentMonday();
-  const existing = weeks.weeks[monday];
-  const week = normalizeWeek(existing || { auto: true }, SESSION_IDS);
-  if (what === 'classes' && !isPlanned(existing)) week.auto = true;
+  const week = normalizeWeek(weeks.weeks[monday] || {}, SESSION_IDS);
   f(week.days[dayIndex], week);
-  if (what === 'sessions') week.auto = false;
   setWeek(monday, week);
-  if (week.auto) suggest(monday);
+  if (what === 'classes') suggest(monday);
   editing = monday;
   render(true);
 }
 
-const suggest = (monday) => setWeek(monday, suggestWeek(ROUTINE, weeks, fromYmd(monday)));
+// Re-suggests a week's sessions. What you've done or started that week —
+// planned or not — stays on its day, and in the current week nothing new
+// goes on a day that's passed. A past week is left alone.
+function suggest(monday) {
+  const start = fromYmd(monday);
+  const now = today();
+  if (addDays(start, 7) <= now) return;
+  const week = weeks.weeks[monday] || emptyWeek();
+  const keep = week.days.map((d, i) => {
+    const date = ymd(addDays(start, i));
+    const planned = d.sessions.filter((s) => status(`${date}|${s.id}`));
+    const logged = Object.keys(log.entries)
+      .filter((k) => k.startsWith(`${date}|`) && SESSION[k.slice(11)] && status(k) && !planned.some((s) => s.id === k.slice(11)))
+      .map((k) => ({ id: k.slice(11), time: '' }));
+    return [...planned, ...logged];
+  });
+  const from = monday === ymd(weekStart(now)) ? (now.getDay() + 6) % 7 : 0;
+  setWeek(monday, suggestWeek(ROUTINE, weeks, start, { keep, from }));
+}
 
 function currentMonday() {
   const [route, arg] = location.hash.slice(1).split('/');
@@ -436,7 +450,6 @@ $('view').addEventListener('click', (ev) => {
   }
   if (t.id === 'suggestBtn') {
     const monday = currentMonday();
-    if (weeks.weeks[monday]?.days.some((d) => d.sessions.length) && !confirm('Replace this week’s sessions with a suggestion?')) return;
     suggest(monday);
     editing = monday;
     render(true);
