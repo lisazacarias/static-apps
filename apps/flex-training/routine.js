@@ -8,7 +8,11 @@
 //             the section itself
 //   item      { name, duration, detail?, cues? }. [n] in any text cites
 //             guide.references
-//   versions  shorter versions: [{ id 'short'|'bridge', label, minutes, items, skip? }]
+//   versions  shorter versions: [{ id 'short'|'bridge'|'deload', label, minutes,
+//             items, skip?, deloadOnly? }]. Shoulders & Bridge's deload
+//             version isn't in the plan document as such: it's the plan's
+//             18-minute version with its deload rule applied ("passive round
+//             only, skip Round 2"); it shows only in deload weeks
 //   guide     what counts as hard, minimums, placement rules, example weeks,
 //             stop rules, deload, progress log, busy week, physio questions,
 //             references
@@ -1040,6 +1044,40 @@ export default {
               "duration": "1 min"
             }
           ]
+        },
+        {
+          "id": "deload",
+          "label": "Deload version",
+          "minutes": 13,
+          "deloadOnly": true,
+          "items": [
+            {
+              "name": "Theragun",
+              "duration": "3 min",
+              "detail": "upper traps and lats, quick pass (optional)."
+            },
+            {
+              "name": "Pole chest stretch",
+              "duration": "3 min",
+              "detail": "middle position only. Breathe 5 s in, 5 s out."
+            },
+            {
+              "name": "Lat stretch on roller",
+              "duration": "2 min",
+              "detail": "1 hold, ease into it."
+            },
+            {
+              "name": "Shoulder hyperflexion on bench",
+              "duration": "3 min",
+              "detail": "passive round only: hands empty, relax into the deepest position. No lift-off round in a deload week."
+            },
+            {
+              "name": "Cool down",
+              "duration": "2 min",
+              "detail": "child's pose and breathing."
+            }
+          ],
+          "skip": "full tissue prep, band CARs, shoulder extension, and the high and low chest stretch positions, and the lift-off round"
         }
       ],
       "notes": [

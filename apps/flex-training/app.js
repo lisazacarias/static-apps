@@ -125,7 +125,7 @@ function weekView(arg) {
       ? list.map((o) => `<div class="card today">
           <span class="label">Today${o.time ? ` · ${esc(fmtTime(o.time))}` : ''}${isDeload(now) ? ' · deload week' : ''}</span>
           <h2>${esc(o.session.title)}</h2>
-          <p class="muted">${esc(o.session.length)}${o.session.versions ? ` · ${o.session.versions.map((v) => `${v.minutes}-min`).join(' or ')} version available` : ''}</p>
+          <p class="muted">${esc(o.session.length)}${o.session.versions ? ` · ${o.session.versions.filter((v) => !v.deloadOnly).map((v) => `${v.minutes}-min`).join(' or ')} version available` : ''}</p>
           ${status(o.key) === 'done'
             ? `<a class="link-button" href="${sessionHref(now, o.session.id)}">Done ✓ — open</a>`
             : `<a class="link-button" href="#play/${encodeURIComponent(o.key)}">${log.entries[o.key]?.resume ? '▶ Resume' : '▶ Start'}</a> <a class="tiny" href="${sessionHref(now, o.session.id)}">See the whole session</a>`}
@@ -323,7 +323,7 @@ function sessionsView() {
       const key = `${ymd(now)}|${s.id}`;
       const st = status(key);
       return `<div class="card session-card">
-      <span class="label">${KIND_LABEL[s.kind]} · ${esc(s.length)}${(s.versions || []).map((v) => ` · ${v.minutes}-min ${v.id === 'short' ? '' : `${v.id} `}version`).join('')}</span>
+      <span class="label">${KIND_LABEL[s.kind]} · ${esc(s.length)}${(s.versions || []).filter((v) => !v.deloadOnly).map((v) => ` · ${v.minutes}-min ${v.id === 'short' ? '' : `${v.id} `}version`).join('')}</span>
       <h2><a href="${sessionHref(now, s.id)}">${esc(s.title)}</a></h2>
       ${s.about?.[0] ? `<p class="muted">${esc(s.about[0].replace(/\s*\[\d+\]/g, ''))}</p>` : ''}
       <div class="row">
@@ -337,7 +337,13 @@ function sessionsView() {
 /* ── session ─────────────────────────────────────────────────────────── */
 
 // In a deload week a session opens on its short version, as the plan says.
-const defaultVariant = (o) => (isDeload(o.date) && o.session.versions ? o.session.versions[0].id : 'full');
+// A deload-only version, where there is one, follows the deload rules more
+// closely than the ordinary short version.
+const defaultVariant = (o) => {
+  const vs = o.session.versions;
+  if (!isDeload(o.date) || !vs) return 'full';
+  return (vs.find((v) => v.deloadOnly) || vs.find((v) => !v.deloadOnly)).id;
+};
 
 function entryFor(o) {
   return log.entries[o.key] || { date: ymd(o.date), title: o.session.title, variant: defaultVariant(o), checked: [], notes: '', done: false, updated: 0 };
@@ -375,7 +381,7 @@ function sessionView(key) {
   if (s.versions) {
     html += `<div class="row variant" role="group" aria-label="Which version">
       <button class="btn${variant === 'full' ? ' on' : ''}" data-variant="full" type="button">Full · ${esc(s.length)}</button>
-      ${s.versions.map((v) => `<button class="btn${variant === v.id ? ' on' : ''}" data-variant="${v.id}" type="button">${esc(v.label.replace(/^(\d+)-minute/, '$1-min'))}</button>`).join('')}
+      ${s.versions.filter((v) => !v.deloadOnly || isDeload(o.date) || variant === v.id).map((v) => `<button class="btn${variant === v.id ? ' on' : ''}" data-variant="${v.id}" type="button">${esc(v.label.replace(/^(\d+)-minute/, '$1-min'))}</button>`).join('')}
     </div>`;
   }
   const r = e.resume;
@@ -537,7 +543,8 @@ $('view').addEventListener('click', (ev) => {
   if (t.id === 'acAdd') { addClasses(); return; }
   if (t.dataset.variant) {
     const o = currentOcc();
-    if (o) { updateEntry(o, { variant: t.dataset.variant }); render(true); }
+    // A resume point belongs to the old version's checklist.
+    if (o) { updateEntry(o, { variant: t.dataset.variant, resume: undefined }); render(true); }
     return;
   }
   if (t.dataset.unclass) { const [i, c] = t.dataset.unclass.split(':'); changeWeek(+i, (d) => { d.classes = d.classes.filter((x) => x.id !== c); }, 'classes'); return; }
@@ -600,7 +607,7 @@ function moveView(key) {
   const m = index().find((x) => x.key === key);
   if (!m) return `<a class="back" href="#moves">‹ Movements</a><p class="muted">That movement isn’t in the plan.</p>`;
   const doneDates = Object.values(log.entries)
-    .filter((e) => e.checked.some((c) => moveKey(c.split(' / ').pop()) === key))
+    .filter((e) => e.checked.some((c) => moveKeys(c.split(' / ').pop()).includes(key)))
     .map((e) => e.date).sort();
   let html = `<a class="back" href="#moves">‹ Movements</a>
     <h2 class="title">${esc(m.name)}</h2>
@@ -742,9 +749,14 @@ function openPlayer(key) {
   } else {
     play.left = play.phases[0].seconds;
   }
+  play.returnFocus = document.activeElement;
   $('player').hidden = false;
   document.body.classList.add('playing');
+  // The page behind is out of reach while the player is open.
+  document.querySelector('.container').inert = true;
+  $('timer').inert = true;
   paintPlayer();
+  $('playToggle').focus();
   if (!r) runPlayer(); // a fresh start counts straight in; a resume waits for you
   keepAwake(true);
 }
@@ -753,9 +765,13 @@ function closePlayer() {
   if (!play) return;
   pausePlayer();
   savePlayer();
+  const back = play.returnFocus;
   play = null;
   $('player').hidden = true;
   document.body.classList.remove('playing');
+  document.querySelector('.container').inert = false;
+  $('timer').inert = false;
+  if (back?.isConnected) back.focus();
   if (!timer.running) keepAwake(false);
 }
 
@@ -862,13 +878,20 @@ function paintPlayer() {
   $('playHead').textContent = `${o.session.title} · ${index + 1} of ${items.length}${section?.title ? ` · ${section.title}` : ''}`;
   $('playStep').textContent = step.ready ? 'Get ready' : step.label || (checked.has(id) ? 'Already ticked' : '');
   $('player').classList.toggle('ready', !!step.ready);
+  const s = o.session;
   $('playBody').innerHTML = `
+    ${isDeload(o.date) && s.deload ? `<div class="info-box tiny"><b>Deload week.</b> ${rich(s.deload)}</div>` : ''}
+    ${section?.note ? `<p class="sec-note">${rich(section.note)}</p>` : ''}
     <h2 class="title">${esc(item.name)}</h2>
     <p class="mdur">${esc(item.duration)}</p>
     ${item.detail ? `<p class="mdetail">${rich(item.detail)}</p>` : ''}
     ${item.cues?.length ? cueList(item.cues) : ''}
     ${moveKeys(item.name).some((k) => FORM[k]) ? `<h3 class="sec">How to do it</h3>${moveKeys(item.name).filter((k) => FORM[k]).map((k) => formHtml(FORM[k], true)).join('')}` : ''}
-    ${upNext >= 0 ? `<p class="up-next">Next: ${esc(items[upNext].item.name)}</p>` : ''}`;
+    ${upNext >= 0 ? `<p class="up-next">Next: ${esc(items[upNext].item.name)}</p>` : ''}
+    <details class="stop"><summary>${s.notes?.length ? 'Session notes and stop rules' : 'Stop rules'}</summary>
+      ${(s.notes || []).map((n) => `<p class="tiny"><b>${esc(n.label)}.</b> ${rich(n.text)}</p>`).join('')}
+      <ul>${ROUTINE.guide.stopRules.map((r) => `<li><b>${esc(r.area)}.</b> ${rich(r.text)}</li>`).join('')}</ul>
+    </details>`;
   $('playBody').scrollTop = 0;
   $('playBack').disabled = index === 0;
   tickPlayer();

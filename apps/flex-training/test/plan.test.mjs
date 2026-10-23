@@ -47,9 +47,14 @@ test('every session and version has a checklist with unique ids and timeable ite
   }
 });
 
-test('Shoulders & Bridge has an 18-minute and an 8-minute bridge version', () => {
+test('Shoulders & Bridge has an 18-minute, an 8-minute bridge and a deload version', () => {
   const s = ROUTINE.sessions.find((x) => x.id === 'shoulders-bridge');
-  assert.deepEqual(s.versions.map((v) => [v.id, v.minutes]), [['short', 18], ['bridge', 8]]);
+  assert.deepEqual(s.versions.map((v) => [v.id, v.minutes, !!v.deloadOnly]), [['short', 18, false], ['bridge', 8, false], ['deload', 13, true]]);
+  // The deload version follows the plan's deload rule: passive round only.
+  const bench = s.versions[2].items.find((i) => i.name === 'Shoulder hyperflexion on bench');
+  assert.equal(bench.duration, '3 min');
+  assert.doesNotMatch(bench.detail, /active lift-off round \(/);
+  assert.equal(s.versions[2].items.reduce((n, i) => n + parseDuration(i.duration), 0) / 60, 13);
   assert.ok(checklist(s, 'bridge').every((i) => i.id.startsWith('Bridge / ')));
   assert.ok(checklist(s, 'short').every((i) => i.id.startsWith('Short / ')));
   assert.equal(versionOf(s, 'nope'), null);
