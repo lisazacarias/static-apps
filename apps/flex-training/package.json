@@ -1,0 +1,10 @@
+{
+  "name": "flex-training",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Weekly flexibility plan: sessions, check-offs, hold timer and a movement reference.",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "serve": "cd ../.. && python3 -m http.server 8000"
+  }
+}

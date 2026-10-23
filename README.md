@@ -36,15 +36,23 @@ browser never needs a build — not that Node is banned from the workflow.
     │   ├── sw.js            # Offline cache (network-first)
     │   ├── package.json     # Dev-only: test runner scripts
     │   └── test/            # Node tests against a stub browser
-    └── lighting-cue-builder/ # Build a dance piece's lighting cues against its audio
-        ├── index.html       # Stage plot (inline SVG), player, cue editor
-        ├── app.js           # DOM, audio, waveform, storage, share links
-        ├── cues.js          # Pure cue logic: state-at-time, import/export, cue sheet, cue grid
-        ├── xlsx.js          # Tiny .xlsx writer for the spreadsheet export (no DOM)
-        ├── video.js         # Video export: canvas stage + MediaRecorder, real time
+    ├── lighting-cue-builder/ # Build a dance piece's lighting cues against its audio
+    │   ├── index.html       # Stage plot (inline SVG), player, cue editor
+    │   ├── app.js           # DOM, audio, waveform, storage, share links
+    │   ├── cues.js          # Pure cue logic: state-at-time, import/export, cue sheet, cue grid
+    │   ├── xlsx.js          # Tiny .xlsx writer for the spreadsheet export (no DOM)
+    │   ├── video.js         # Video export: canvas stage + MediaRecorder, real time
+    │   ├── styles.css
+    │   ├── package.json     # Dev-only: test runner scripts
+    │   └── test/            # Node tests for cues.js and xlsx.js
+    └── flex-training/       # Flexibility plan: week planner with rule checks, sessions, hold timer, movement reference
+        ├── index.html
+        ├── app.js           # DOM, routing, week/log storage, timer
+        ├── plan.js          # Pure logic: week planner, rule checks, checklists, movement index, .ics export
+        ├── routine.js       # The plan itself (sessions, rules, references) — edit this to change it
         ├── styles.css
         ├── package.json     # Dev-only: test runner scripts
-        └── test/            # Node tests for cues.js and xlsx.js
+        └── test/            # Node tests for plan.js against the real routine
 ```
 
 Not every app follows the same shape. The trackers are split into
@@ -70,10 +78,11 @@ Then open:
 - `http://localhost:8000/apps/algae-tracker/`
 - `http://localhost:8000/apps/piano-practice/`
 - `http://localhost:8000/apps/lighting-cue-builder/`
+- `http://localhost:8000/apps/flex-training/`
 
 ## Tests
 
-Piano practice and the lighting cue builder have suites. From either app's
+Piano practice, the lighting cue builder and flex training have suites. From either app's
 folder:
 
 ```
