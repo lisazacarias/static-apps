@@ -50,6 +50,8 @@ browser never needs a build — not that Node is banned from the workflow.
         ├── app.js           # DOM, routing, week/log storage, timer
         ├── plan.js          # Pure logic: week planner, rule checks, checklists, movement index, .ics export
         ├── routine.js       # The plan itself (sessions, rules, references) — edit this to change it
+        ├── form.js          # How to do each movement; `npm run form-doc` writes it out for checking
+        ├── scripts/         # Dev-only: form-doc.mjs
         ├── styles.css
         ├── package.json     # Dev-only: test runner scripts
         └── test/            # Node tests for plan.js against the real routine

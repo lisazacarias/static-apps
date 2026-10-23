@@ -1,9 +1,10 @@
 import {
-  CLASS_TYPES, LOADS, DAY_NAMES, versionOf, normalizeWeeks, normalizeWeek, emptyWeek, weekFromExample, copyWeek, isPlanned,
-  occurrences, checkWeek, checklist, timerOptions, movementIndex, moveKey, cueText, cueSub,
-  normalizeLog, isEmptyEntry, toIcs, suggestWeek, ymd, fromYmd, addDays, weekStart,
+  CLASS_TYPES, LOADS, DAY_NAMES, versionOf, deloadInfo, normalizeWeeks, normalizeWeek, emptyWeek, weekFromExample, copyWeek, isPlanned,
+  occurrences, checkWeek, checklist, timerOptions, movementIndex, moveKey, moveKeys, cueText, cueSub,
+  normalizeLog, isEmptyEntry, toIcs, suggestWeek, playPhases, nextToDo, ymd, fromYmd, addDays, weekStart,
 } from './plan.js';
 import ROUTINE from './routine.js';
+import FORM from './form.js';
 
 // localStorage is shared by every app on the Pages origin — keep the prefix.
 const LOG_KEY = 'flex-training:log';     // see normalizeLog in plan.js
@@ -65,7 +66,7 @@ function parseKey(key) {
 }
 
 const weekOf = (date) => weeks.weeks[ymd(weekStart(date))];
-const isDeload = (date) => weekOf(date)?.deload === true;
+const isDeload = (date) => deloadInfo(weeks, weekStart(date)).deload;
 
 function status(key) {
   const e = log.entries[key];
@@ -77,6 +78,7 @@ const STATUS_LABEL = { done: 'Done', started: 'Started', '': '' };
 
 const fmtTime = (hhmm) => { const [h, m] = hhmm.split(':').map(Number); return new Date(2000, 0, 1, h, m).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); };
 const fmtDay = (d, opts = {}) => d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', ...opts });
+const fmtClock = (sec) => { const n = Math.ceil(sec); return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`; };
 const fmtShort = (d) => d.toLocaleDateString([], { month: 'short', day: 'numeric' });
 const sessionHref = (date, id) => `#s/${encodeURIComponent(`${ymd(date)}|${id}`)}`;
 
@@ -87,11 +89,13 @@ window.addEventListener('hashchange', () => render());
 function render(keepScroll = false) {
   const [route, ...rest] = (location.hash.slice(1) || 'week').split('/');
   const arg = decodeURIComponent(rest.join('/'));
-  const tab = { s: 'week', m: 'moves' }[route] || route;
+  const tab = { s: 'week', play: 'week', m: 'moves' }[route] || route;
+  if (route !== 'play') closePlayer();
   document.querySelectorAll('.tabs a').forEach((a) => a.classList.toggle('on', a.dataset.tab === tab));
   const view = $('view');
   const y = window.scrollY;
-  if (route === 's') view.innerHTML = sessionView(arg);
+  if (route === 'play') { openPlayer(arg); view.innerHTML = sessionView(arg); }
+  else if (route === 's') view.innerHTML = sessionView(arg);
   else if (route === 'sessions') view.innerHTML = sessionsView();
   else if (route === 'moves') view.innerHTML = movesView();
   else if (route === 'm') view.innerHTML = moveView(arg);
@@ -121,8 +125,10 @@ function weekView(arg) {
       ? list.map((o) => `<div class="card today">
           <span class="label">Today${o.time ? ` · ${esc(fmtTime(o.time))}` : ''}${isDeload(now) ? ' · deload week' : ''}</span>
           <h2>${esc(o.session.title)}</h2>
-          <p class="muted">${esc(o.session.length)}${o.session.versions ? ` · ${o.session.versions.map((v) => `${v.minutes}-min`).join(' or ')} version available` : ''}</p>
-          <a class="link-button" href="${sessionHref(now, o.session.id)}">${status(o.key) === 'done' ? 'Done ✓ — open' : 'Start →'}</a>
+          <p class="muted">${esc(o.session.length)}${o.session.versions ? ` · ${o.session.versions.filter((v) => !v.deloadOnly).map((v) => `${v.minutes}-min`).join(' or ')} version available` : ''}</p>
+          ${status(o.key) === 'done'
+            ? `<a class="link-button" href="${sessionHref(now, o.session.id)}">Done ✓ — open</a>`
+            : `<a class="link-button" href="#play/${encodeURIComponent(o.key)}">${log.entries[o.key]?.resume ? '▶ Resume' : '▶ Start'}</a> <a class="tiny" href="${sessionHref(now, o.session.id)}">See the whole session</a>`}
         </div>`).join('')
       : `<div class="card today"><span class="label">Today</span><h2>${week?.days[(now.getDay() + 6) % 7].classes.length ? 'Class day' : 'Nothing planned'}</h2>
           <p class="muted">${week?.days[(now.getDay() + 6) % 7].classes.length ? `Before class, do <a href="${sessionHref(now, 'class-prep')}">Class-day prep</a>.` : `Any session is in the <a href="#sessions">Sessions</a> tab.`}</p></div>`;
@@ -148,6 +154,8 @@ function weekView(arg) {
     </div>`;
   }
 
+  if (!past) html += addClassCard();
+
   const { minimums, flags } = checkWeek(ROUTINE, weeks, monday);
   const doneIn = (id) => [0, 1, 2, 3, 4, 5, 6].filter((i) => status(`${ymd(addDays(monday, i))}|${id}`) === 'done').length;
   html += `<div class="minimums">
@@ -159,15 +167,22 @@ function weekView(arg) {
       }).join('')}</div>
     </div>`;
 
+  const dl = deloadInfo(weeks, monday);
   html += `<div class="spread week-tools">
-      <label class="deload"><input type="checkbox" id="deloadBox" ${week?.deload ? 'checked' : ''}> Deload week <span class="muted tiny">(every 4th week)</span></label>
+      <label class="deload">Deload
+        <select class="add" id="deloadSel" aria-label="Deload week">
+          <option value=""${dl.setting === '' ? ' selected' : ''}>Automatic · ${dl.setting === '' && dl.deload ? 'this week' : 'not this week'}</option>
+          <option value="on"${dl.setting === 'on' ? ' selected' : ''}>Deload this week</option>
+          <option value="off"${dl.setting === 'off' ? ' selected' : ''}>Not this week</option>
+        </select></label>
       <span class="row">
         ${planned ? `<button class="btn${edit ? ' on' : ''}" type="button" id="editBtn">${edit ? 'Done editing' : 'Edit week'}</button>` : ''}
         ${planned ? `<button class="btn" type="button" id="exportBtn">Export .ics</button>` : ''}
       </span>
     </div>`;
   if (planned && !past) html += `<p class="auto-note tiny"><button class="btn" type="button" id="suggestBtn">Suggest again</button> ✦ Sessions are re-suggested whenever a class changes. Ones you’ve done or started stay put${thisWeek ? ', and nothing goes on days that have passed' : ''}.</p>`;
-  if (week?.deload) html += `<p class="info-box tiny">${rich(ROUTINE.guide.deload)}</p>`;
+  if (dl.deload) html += `<p class="info-box tiny"><b>Deload week${dl.setting === 'on' ? '' : ', every 4th'}.</b> Sessions open on their short version. ${rich(ROUTINE.guide.deload)}</p>`;
+  else if (dl.next) html += `<p class="muted tiny deload-next">Next deload: week of ${esc(fmtShort(fromYmd(dl.next)))}.</p>`;
 
   for (let i = 0; i < 7; i++) {
     const date = addDays(monday, i);
@@ -206,11 +221,54 @@ function classChip(c, dayIndex, edit) {
     <button type="button" class="x" data-unclass="${key}" aria-label="Remove ${label}">×</button></span>`;
 }
 
+// One place to add a class on any days of the week: pick the class, tap
+// the days, optionally a time and length. Kept between renders so adding
+// the same class to more weeks is quick.
+const addForm = { type: CLASS_TYPES[0].id, days: new Set(), time: '', hours: '' };
+
+function addClassCard() {
+  const t = CLASS_TYPES.find((c) => c.id === addForm.type);
+  return `<div class="card add-class">
+    <h2>Add a class</h2>
+    <div class="row">
+      <select id="acType" class="add big" aria-label="Class">${CLASS_TYPES.map((c) => `<option value="${c.id}"${c.id === addForm.type ? ' selected' : ''}>${esc(c.label)}</option>`).join('')}</select>
+    </div>
+    <div class="day-picks" role="group" aria-label="Days">${DAY_NAMES.map((d, i) => `<button type="button" class="day-pick${addForm.days.has(i) ? ' on' : ''}" data-acday="${i}" aria-pressed="${addForm.days.has(i)}">${d.slice(0, 3)}</button>`).join('')}</div>
+    <div class="row">
+      <label class="tiny">Start <input id="acTime" type="time" class="time" value="${esc(addForm.time)}"></label>
+      <label class="tiny">Length <input id="acHours" type="number" class="hours" min="0.5" max="12" step="0.25" placeholder="${t.hours}" value="${esc(addForm.hours)}"> h</label>
+      <button id="acAdd" class="btn primary" type="button"${addForm.days.size ? '' : ' disabled'}>Add${addForm.days.size > 1 ? ` to ${addForm.days.size} days` : ''}</button>
+    </div>
+    <p class="tiny muted">Time and length are optional; with them the rules check exact hours. Sessions are re-suggested after.</p>
+  </div>`;
+}
+
+function addClasses() {
+  const monday = currentMonday();
+  const week = normalizeWeek(weeks.weeks[monday] || {}, SESSION_IDS);
+  const hours = parseFloat(addForm.hours);
+  for (const i of addForm.days) {
+    const day = week.days[i];
+    const existing = day.classes.find((c) => c.id === addForm.type);
+    const c = existing || { id: addForm.type };
+    if (addForm.time) c.time = addForm.time;
+    if (hours > 0) c.hours = hours;
+    if (!existing) day.classes.push(c);
+  }
+  setWeek(monday, week);
+  suggest(monday);
+  const n = addForm.days.size;
+  notify(`Added ${CLASS_TYPES.find((c) => c.id === addForm.type).label.toLowerCase()} on ${n} day${n === 1 ? '' : 's'}.`);
+  addForm.days.clear();
+  render(true);
+}
+
 function occRow(o, dayIndex, edit) {
   const st = status(o.key);
   const right = edit && !o.unplanned
     ? `<span class="row"><input type="time" class="time" value="${esc(o.time)}" data-time="${dayIndex}:${o.session.id}" aria-label="Start time"><button type="button" class="x" data-unplan="${dayIndex}:${o.session.id}" aria-label="Remove ${esc(o.session.title)}">×</button></span>`
-    : st ? `<span class="chip ${st}">${STATUS_LABEL[st]}</span>` : '';
+    : st === 'done' ? `<span class="chip done">${STATUS_LABEL[st]}</span>`
+    : `<span class="row">${st ? `<span class="chip ${st}">${STATUS_LABEL[st]}</span>` : ''}<a class="play-link" href="#play/${encodeURIComponent(o.key)}" aria-label="${log.entries[o.key]?.resume ? 'Resume' : 'Start'} ${esc(o.session.title)}">▶</a></span>`;
   return `<div class="occ">
     <a href="${sessionHref(o.date, o.session.id)}"><span class="name">${esc(o.session.title)}</span><br><span class="when">${o.time ? `${esc(fmtTime(o.time))} · ` : ''}${esc(o.session.length)}${o.unplanned ? ' · not planned' : ''}</span></a>
     ${right}
@@ -260,18 +318,35 @@ const KIND_LABEL = { big: 'Big session', short: 'Short session', prep: 'Before c
 
 function sessionsView() {
   const now = today();
-  return `<p class="muted tiny" style="margin-bottom:12px">Every session in the plan. Open one to do it today, planned or not.</p>
-    ${ROUTINE.sessions.map((s) => `<a class="mlist-link" href="${sessionHref(now, s.id)}"><div class="card">
-      <span class="label">${KIND_LABEL[s.kind]} · ${esc(s.length)}${(s.versions || []).map((v) => ` · ${v.minutes}-min ${v.id === 'short' ? '' : `${v.id} `}version`).join('')}</span>
-      <h2>${esc(s.title)}</h2>
+  return `<p class="muted tiny" style="margin-bottom:12px">Every session in the plan. Start one now, planned or not.</p>
+    ${ROUTINE.sessions.map((s) => {
+      const key = `${ymd(now)}|${s.id}`;
+      const st = status(key);
+      return `<div class="card session-card">
+      <span class="label">${KIND_LABEL[s.kind]} · ${esc(s.length)}${(s.versions || []).filter((v) => !v.deloadOnly).map((v) => ` · ${v.minutes}-min ${v.id === 'short' ? '' : `${v.id} `}version`).join('')}</span>
+      <h2><a href="${sessionHref(now, s.id)}">${esc(s.title)}</a></h2>
       ${s.about?.[0] ? `<p class="muted">${esc(s.about[0].replace(/\s*\[\d+\]/g, ''))}</p>` : ''}
-    </div></a>`).join('')}`;
+      <div class="row">
+        ${st === 'done' ? '<span class="chip done">Done today</span>' : `<a class="btn primary" href="#play/${encodeURIComponent(key)}">${log.entries[key]?.resume ? '▶ Resume' : '▶ Start'}</a>`}
+        <a class="btn" href="${sessionHref(now, s.id)}">See the session</a>
+      </div>
+    </div>`;
+    }).join('')}`;
 }
 
 /* ── session ─────────────────────────────────────────────────────────── */
 
+// In a deload week a session opens on its short version, as the plan says.
+// A deload-only version, where there is one, follows the deload rules more
+// closely than the ordinary short version.
+const defaultVariant = (o) => {
+  const vs = o.session.versions;
+  if (!isDeload(o.date) || !vs) return 'full';
+  return (vs.find((v) => v.deloadOnly) || vs.find((v) => !v.deloadOnly)).id;
+};
+
 function entryFor(o) {
-  return log.entries[o.key] || { date: ymd(o.date), title: o.session.title, variant: 'full', checked: [], notes: '', done: false, updated: 0 };
+  return log.entries[o.key] || { date: ymd(o.date), title: o.session.title, variant: defaultVariant(o), checked: [], notes: '', done: false, updated: 0 };
 }
 
 function sessionView(key) {
@@ -306,10 +381,14 @@ function sessionView(key) {
   if (s.versions) {
     html += `<div class="row variant" role="group" aria-label="Which version">
       <button class="btn${variant === 'full' ? ' on' : ''}" data-variant="full" type="button">Full · ${esc(s.length)}</button>
-      ${s.versions.map((v) => `<button class="btn${variant === v.id ? ' on' : ''}" data-variant="${v.id}" type="button">${esc(v.label.replace(/^(\d+)-minute/, '$1-min'))}</button>`).join('')}
+      ${s.versions.filter((v) => !v.deloadOnly || isDeload(o.date) || variant === v.id).map((v) => `<button class="btn${variant === v.id ? ' on' : ''}" data-variant="${v.id}" type="button">${esc(v.label.replace(/^(\d+)-minute/, '$1-min'))}</button>`).join('')}
     </div>`;
   }
-  html += `<p class="progress" id="progress" style="margin-top:12px">${count} of ${items.length} ticked</p>`;
+  const r = e.resume;
+  html += `<div class="row start-bar">
+      <a class="btn primary" href="#play/${encodeURIComponent(o.key)}">${r ? `▶ Resume · ${Math.min(r.index + 1, items.length)} of ${items.length}${r.left ? `, ${fmtClock(r.left)} left` : ''}` : count ? '▶ Continue' : '▶ Start'}</a>
+      <span class="progress" id="progress">${count} of ${items.length} ticked</span>
+    </div>`;
 
   if (version) {
     html += `<h3 class="sec">${esc(version.label)}</h3>${items.map((i) => moveRow(i, checked)).join('')}`;
@@ -342,12 +421,13 @@ function moveRow({ id, item }, checked) {
   const on = checked.has(id);
   const timers = timerOptions(item);
   const mk = moveKey(item.name);
+  const forms = moveKeys(item.name).map((k) => FORM[k]).filter(Boolean);
   return `<div class="move${on ? ' checked' : ''}">
     <input type="checkbox" data-check="${esc(id)}" id="c-${esc(id)}" ${on ? 'checked' : ''} aria-label="${esc(item.name)} done">
     <div>
       <label class="mname" for="c-${esc(id)}">${esc(item.name)}</label><span class="mdur">${esc(item.duration)}</span>
       ${item.detail ? `<div class="mdetail">${rich(item.detail)}</div>` : ''}
-      ${item.cues?.length ? `<details class="cues"><summary>Cues (${item.cues.length})</summary>${cueList(item.cues)}</details>` : ''}
+      ${item.cues?.length || forms.length ? `<details class="cues"><summary>How to do it</summary>${item.cues?.length ? cueList(item.cues) : ''}${forms.map((f) => formHtml(f, true)).join('')}</details>` : ''}
       <div class="row move-tools">
         ${timers.map((t) => `<button class="btn" type="button" data-timer="${t.seconds}" data-label="${esc(item.name)} · ${esc(t.label)}">⏱ ${esc(t.label)}</button>`).join('')}
         <a href="#m/${encodeURIComponent(mk)}">About this movement →</a>
@@ -356,24 +436,40 @@ function moveRow({ id, item }, checked) {
   </div>`;
 }
 
+// A movement's form notes. `compact` drops the source line, for inside a
+// session where the full page is one tap away.
+function formHtml(f, compact = false) {
+  return `<div class="form">
+    ${f.guess ? `<p class="guess"><b>Best guess.</b> ${esc(f.guess)}</p>` : ''}
+    ${f.note ? `<p class="guess">${esc(f.note)}</p>` : ''}
+    ${f.intro ? `<p><b>${esc(f.intro)}</b></p>` : ''}
+    ${f.setup ? `<p><b>Setup.</b> ${esc(f.setup)}</p>` : ''}
+    <ol>${f.steps.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>
+    ${f.cues?.length ? `<p class="form-h">Cues</p><ul>${f.cues.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+    ${f.avoid?.length ? `<p class="form-h">Avoid</p><ul class="avoid">${f.avoid.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+    ${compact ? '' : `<p class="tiny muted">${f.guess ? 'Best guess: your calendar only gives the name.' : f.fromPlan ? 'From the cues in your Flex Training calendar.' : 'Standard technique, not from your calendar.'} The plan’s times and reps below are what to follow.</p>`}
+  </div>`;
+}
+
 const cueList = (cues) => `<ul>${cues.map((c) => `<li${cueSub(c) ? ' class="sub"' : ''}>${rich(cueText(c))}</li>`).join('')}</ul>`;
 
 function updateEntry(o, change) {
   const e = { ...entryFor(o), ...change, title: o.session.title, date: ymd(o.date), updated: Date.now() };
-  if (isEmptyEntry(e) && e.variant === 'full') delete log.entries[o.key];
+  if (isEmptyEntry(e) && e.variant === defaultVariant(o)) delete log.entries[o.key];
   else log.entries[o.key] = e;
   saveLog();
 }
 
 function currentOcc() {
   const [route, ...rest] = location.hash.slice(1).split('/');
-  return route === 's' ? parseKey(decodeURIComponent(rest.join('/'))) : null;
+  return route === 's' || route === 'play' ? parseKey(decodeURIComponent(rest.join('/'))) : null;
 }
 
 /* ── events ──────────────────────────────────────────────────────────── */
 
 $('view').addEventListener('change', (ev) => {
   const t = ev.target;
+  if (t.id === 'acType') { addForm.type = t.value; render(true); return; }
   if (t.dataset.addclass) { const i = +t.dataset.addclass; changeWeek(i, (d) => d.classes.push({ id: t.value }), 'classes'); return; }
   const classKey = t.dataset.classtime || t.dataset.classhours || t.dataset.classload || t.dataset.classdouble;
   if (classKey) {
@@ -394,9 +490,9 @@ $('view').addEventListener('change', (ev) => {
     changeWeek(+i, (d) => { const p = d.sessions.find((x) => x.id === id); if (p) p.time = t.value; });
     return;
   }
-  if (t.id === 'deloadBox') {
+  if (t.id === 'deloadSel') {
     const monday = currentMonday();
-    setWeek(monday, { ...(weeks.weeks[monday] || emptyWeek()), deload: t.checked });
+    setWeek(monday, { ...(weeks.weeks[monday] || emptyWeek()), deload: t.value });
     render(true);
     return;
   }
@@ -420,6 +516,8 @@ $('view').addEventListener('change', (ev) => {
 // Notes save on every keystroke, so a re-render or closing the tab can't
 // drop what was just typed.
 $('view').addEventListener('input', (ev) => {
+  if (ev.target.id === 'acTime') { addForm.time = ev.target.value; return; }
+  if (ev.target.id === 'acHours') { addForm.hours = ev.target.value; return; }
   if (ev.target.id === 'notes') {
     const o = currentOcc();
     if (o) updateEntry(o, { notes: ev.target.value });
@@ -432,9 +530,21 @@ $('view').addEventListener('click', (ev) => {
   const t = ev.target.closest('button');
   if (!t) return;
   if (t.dataset.timer) { startTimer(+t.dataset.timer, t.dataset.label); return; }
+  if (t.dataset.acday) {
+    const i = +t.dataset.acday;
+    if (addForm.days.has(i)) addForm.days.delete(i); else addForm.days.add(i);
+    t.classList.toggle('on', addForm.days.has(i));
+    t.setAttribute('aria-pressed', addForm.days.has(i));
+    const add = $('acAdd');
+    add.disabled = !addForm.days.size;
+    add.textContent = addForm.days.size > 1 ? `Add to ${addForm.days.size} days` : 'Add';
+    return;
+  }
+  if (t.id === 'acAdd') { addClasses(); return; }
   if (t.dataset.variant) {
     const o = currentOcc();
-    if (o) { updateEntry(o, { variant: t.dataset.variant }); render(true); }
+    // A resume point belongs to the old version's checklist.
+    if (o) { updateEntry(o, { variant: t.dataset.variant, resume: undefined }); render(true); }
     return;
   }
   if (t.dataset.unclass) { const [i, c] = t.dataset.unclass.split(':'); changeWeek(+i, (d) => { d.classes = d.classes.filter((x) => x.id !== c); }, 'classes'); return; }
@@ -484,7 +594,7 @@ const index = () => (indexCache ||= movementIndex(ROUTINE));
 
 function movesView() {
   return `<input id="moveSearch" class="search" type="search" placeholder="Search movements, e.g. couch, bridge, lats" aria-label="Search movements">
-    <div class="mlist" id="mlist">${index().map((m) => `<a href="#m/${encodeURIComponent(m.key)}" data-name="${esc(m.name.toLowerCase())} ${esc(m.writeups.map((w) => w.name).join(' ').toLowerCase())}">
+    <div class="mlist" id="mlist">${index().map((m) => `<a href="#m/${encodeURIComponent(m.key)}" data-name="${esc(m.name.toLowerCase())} ${esc(m.uses.map((w) => w.name).join(' ').toLowerCase())}">
       <div class="card"><h2>${esc(m.name)}</h2><p class="meta">${esc(m.sessions.join(' · '))}</p></div></a>`).join('')}</div>`;
 }
 
@@ -497,20 +607,18 @@ function moveView(key) {
   const m = index().find((x) => x.key === key);
   if (!m) return `<a class="back" href="#moves">‹ Movements</a><p class="muted">That movement isn’t in the plan.</p>`;
   const doneDates = Object.values(log.entries)
-    .filter((e) => e.checked.some((c) => moveKey(c.split(' / ').pop()) === key))
+    .filter((e) => e.checked.some((c) => moveKeys(c.split(' / ').pop()).includes(key)))
     .map((e) => e.date).sort();
   let html = `<a class="back" href="#moves">‹ Movements</a>
     <h2 class="title">${esc(m.name)}</h2>
     <p class="meta" style="margin-top:4px">In: ${esc(m.sessions.join(' · '))}</p>
     <p class="muted tiny">${doneDates.length ? `Ticked off ${doneDates.length} time${doneDates.length === 1 ? '' : 's'} · last ${esc(fmtDay(fromYmd(doneDates.at(-1))))}` : 'Not ticked off yet.'}</p>`;
-  for (const w of m.writeups) {
-    html += `<div class="card writeup${w.current ? '' : ' earlier'}">
-      <span class="label">${w.current ? esc(w.session) : `Earlier plan · ${esc(w.session)}`}${w.name !== m.name ? ` — ${esc(w.name)}` : ''} · ${esc(w.duration)}</span>
-      ${w.current ? '' : '<p class="tiny muted">For setup and form. Use the current plan’s times and reps.</p>'}
-      ${w.detail ? `<p>${rich(w.detail)}</p>` : ''}
-      ${w.cues.length ? cueList(w.cues) : ''}
-    </div>`;
-  }
+  if (FORM[key]) html += `<h3 class="sec">How to do it</h3><div class="card">${formHtml(FORM[key])}</div>`;
+  html += `<h3 class="sec">In your sessions</h3><div class="card uses"><ul>${m.uses.map((u) => `<li>
+      <b>${esc(u.session)}</b>${u.version ? ` <span class="muted">· ${esc(u.version)}</span>` : ''}${u.name !== m.name ? ` <span class="muted">· ${esc(u.name)}</span>` : ''}
+      <span class="mdur">${esc(u.duration)}</span>${u.detail ? `<br>${rich(u.detail)}` : ''}
+      ${u.cues.length ? cueList(u.cues) : ''}
+    </li>`).join('')}</ul></div>`;
   return html;
 }
 
@@ -613,6 +721,204 @@ $('backupFile').addEventListener('change', async (ev) => {
     render();
   } catch { notify('That doesn’t look like a Flex Training backup.', true); }
 });
+
+/* ── guided player ───────────────────────────────────────────────────── */
+
+// Full-screen, one movement at a time: a "Get ready" countdown, then the
+// timer (split per side where the plan gives one). When it runs out the
+// movement is ticked and the next one starts. Where you are is saved to
+// the log entry (resume), so closing it or losing the page picks up there.
+let play = null; // { o, items, index, phases, phase, left, running, endAt, tick, saved }
+
+function openPlayer(key) {
+  if (play && play.o.key === key) { paintPlayer(); return; }
+  closePlayer();
+  const o = parseKey(key);
+  if (!o) return;
+  try { audioCtx ||= new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume(); } catch { /* silent */ }
+  const e = entryFor(o);
+  const items = checklist(o.session, e.variant);
+  const checked = new Set(e.checked);
+  const r = e.resume && e.resume.index < items.length ? e.resume : null;
+  const index = r ? r.index : Math.max(0, nextToDo(items, checked, -1));
+  play = { o, items, index, phases: playPhases(items[index].item), phase: 0, left: 0, running: false, endAt: 0, tick: null, saved: 0 };
+  if (r) {
+    play.phase = Math.min(r.phase, play.phases.length - 1);
+    // A resumed "Get ready" starts over; a resumed hold keeps its time.
+    play.left = play.phases[play.phase].ready ? play.phases[play.phase].seconds : r.left;
+  } else {
+    play.left = play.phases[0].seconds;
+  }
+  play.returnFocus = document.activeElement;
+  $('player').hidden = false;
+  document.body.classList.add('playing');
+  // The page behind is out of reach while the player is open.
+  document.querySelector('.container').inert = true;
+  $('timer').inert = true;
+  paintPlayer();
+  $('playToggle').focus();
+  if (!r) runPlayer(); // a fresh start counts straight in; a resume waits for you
+  keepAwake(true);
+}
+
+function closePlayer() {
+  if (!play) return;
+  pausePlayer();
+  savePlayer();
+  const back = play.returnFocus;
+  play = null;
+  $('player').hidden = true;
+  document.body.classList.remove('playing');
+  document.querySelector('.container').inert = false;
+  $('timer').inert = false;
+  if (back?.isConnected) back.focus();
+  if (!timer.running) keepAwake(false);
+}
+
+const playLeft = () => (play.running ? Math.max(0, (play.endAt - Date.now()) / 1000) : play.left);
+
+function savePlayer() {
+  if (!play || play.done) return;
+  play.saved = Date.now();
+  updateEntry(play.o, { resume: { index: play.index, phase: play.phase, left: Math.round(playLeft()) } });
+}
+
+function runPlayer() {
+  play.endAt = Date.now() + play.left * 1000;
+  play.running = true;
+  clearInterval(play.tick);
+  play.tick = setInterval(tickPlayer, 200);
+  tickPlayer();
+}
+
+function pausePlayer() {
+  if (!play || !play.running) return;
+  play.left = playLeft();
+  play.running = false;
+  clearInterval(play.tick);
+}
+
+function tickPlayer() {
+  if (!play) return;
+  const left = playLeft();
+  $('playTime').textContent = fmtClock(left);
+  $('playToggle').textContent = play.running ? 'Pause' : 'Resume';
+  if (play.running && Date.now() - play.saved > 5000) savePlayer();
+  if (play.running && left <= 0) {
+    if (play.phase < play.phases.length - 1) {
+      // Next step: "Get ready" → hold, or first side → second side.
+      if (!play.phases[play.phase].ready) chime();
+      play.phase++;
+      play.left = play.phases[play.phase].seconds;
+      // Start the new step's clock before repainting: the repaint reads it.
+      runPlayer();
+      paintPlayer();
+    } else {
+      chime();
+      finishMovement(true);
+    }
+  }
+}
+
+// Ticks the current movement (when `tick`) and moves on to the next one
+// not yet ticked, starting its countdown.
+function finishMovement(tick) {
+  pausePlayer();
+  const { o, items } = play;
+  const e = entryFor(o);
+  const checked = new Set(e.checked);
+  if (tick) checked.add(items[play.index].id);
+  const next = nextToDo(items, checked, play.index);
+  const all = items.every((i) => checked.has(i.id));
+  if (next < 0 && all) {
+    const { resume, ...rest } = e;
+    log.entries[o.key] = { ...rest, checked: [...checked], done: true, updated: Date.now(), title: o.session.title, date: ymd(o.date) };
+    saveLog();
+    showFinished();
+    return;
+  }
+  // Wrap round to anything skipped earlier.
+  const to = next >= 0 ? next : nextToDo(items, checked, -1);
+  updateEntry(o, { checked: [...checked] });
+  goTo(to, true);
+}
+
+function goTo(index, autostart) {
+  pausePlayer();
+  play.index = index;
+  play.phases = playPhases(play.items[index].item);
+  play.phase = 0;
+  play.left = play.phases[0].seconds;
+  paintPlayer();
+  savePlayer();
+  if (autostart) runPlayer();
+}
+
+function showFinished() {
+  const key = play.o.key;
+  clearInterval(play.tick);
+  $('playBody').innerHTML = `<div class="play-done">
+    <p class="label">${esc(play.o.session.title)}</p>
+    <h2 class="title">Session done ✓</h2>
+    <p class="muted">Everything’s ticked off. Add a note about how it went?</p>
+    <a class="btn primary" href="${sessionHref(play.o.date, play.o.session.id)}">Back to the session</a>
+  </div>`;
+  $('playTime').textContent = '';
+  play.running = false;
+  play.done = key;
+}
+
+function paintPlayer() {
+  if (!play) return;
+  const { o, items, index, phases, phase } = play;
+  const { item, section, id } = items[index];
+  const checked = new Set(entryFor(o).checked);
+  const step = phases[phase];
+  const upNext = nextToDo(items, new Set([...checked, id]), index);
+  $('playHead').textContent = `${o.session.title} · ${index + 1} of ${items.length}${section?.title ? ` · ${section.title}` : ''}`;
+  $('playStep').textContent = step.ready ? 'Get ready' : step.label || (checked.has(id) ? 'Already ticked' : '');
+  $('player').classList.toggle('ready', !!step.ready);
+  const s = o.session;
+  $('playBody').innerHTML = `
+    ${isDeload(o.date) && s.deload ? `<div class="info-box tiny"><b>Deload week.</b> ${rich(s.deload)}</div>` : ''}
+    ${section?.note ? `<p class="sec-note">${rich(section.note)}</p>` : ''}
+    <h2 class="title">${esc(item.name)}</h2>
+    <p class="mdur">${esc(item.duration)}</p>
+    ${item.detail ? `<p class="mdetail">${rich(item.detail)}</p>` : ''}
+    ${item.cues?.length ? cueList(item.cues) : ''}
+    ${moveKeys(item.name).some((k) => FORM[k]) ? `<h3 class="sec">How to do it</h3>${moveKeys(item.name).filter((k) => FORM[k]).map((k) => formHtml(FORM[k], true)).join('')}` : ''}
+    ${upNext >= 0 ? `<p class="up-next">Next: ${esc(items[upNext].item.name)}</p>` : ''}
+    <details class="stop"><summary>${s.notes?.length ? 'Session notes and stop rules' : 'Stop rules'}</summary>
+      ${(s.notes || []).map((n) => `<p class="tiny"><b>${esc(n.label)}.</b> ${rich(n.text)}</p>`).join('')}
+      <ul>${ROUTINE.guide.stopRules.map((r) => `<li><b>${esc(r.area)}.</b> ${rich(r.text)}</li>`).join('')}</ul>
+    </details>`;
+  $('playBody').scrollTop = 0;
+  $('playBack').disabled = index === 0;
+  tickPlayer();
+}
+
+$('playToggle').addEventListener('click', () => {
+  if (!play || play.done) return;
+  if (play.running) { pausePlayer(); savePlayer(); } else runPlayer();
+  tickPlayer();
+});
+$('playDone').addEventListener('click', () => { if (play && !play.done) finishMovement(true); });
+$('playSkip').addEventListener('click', () => {
+  if (!play || play.done) return;
+  // Skipping the last one goes back round to anything skipped earlier.
+  const checked = new Set(entryFor(play.o).checked);
+  let next = nextToDo(play.items, checked, play.index);
+  if (next < 0) next = nextToDo(play.items, checked, -1);
+  if (next >= 0 && next !== play.index) goTo(next, true);
+});
+$('playBack').addEventListener('click', () => { if (play && !play.done && play.index > 0) goTo(play.index - 1, false); });
+$('playClose').addEventListener('click', () => {
+  const key = play?.o.key;
+  location.hash = key ? `#s/${encodeURIComponent(key)}` : '#week';
+});
+// Save where you are if the page is hidden or closed mid-hold.
+document.addEventListener('visibilitychange', () => { if (document.hidden && play && !play.done) savePlayer(); });
+window.addEventListener('pagehide', () => { if (play && !play.done) savePlayer(); });
 
 /* ── notices ─────────────────────────────────────────────────────────── */
 

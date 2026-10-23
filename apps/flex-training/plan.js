@@ -48,6 +48,9 @@ export const SESSION_REGION = {
 
 // { version: 1, weeks: { ['YYYY-MM-DD' of the Monday]: week } }
 //   week:    { deload, days: [7 × { classes, sessions }] }
+//            deload: '' automatic (see deloadInfo), 'on' or 'off'. Older
+//            saves have true (kept as 'on') or false, which was written
+//            on every week, so it reads as automatic
 //   class:   { id, time 'HH:MM'|'', hours, load, double }; a bare id string
 //            is read as one with no time and the type's defaults
 //   session: { id, time 'HH:MM'|'' }
@@ -86,7 +89,8 @@ export function normalizeWeek(w, sessionIds = null) {
       .map((s) => ({ id: s.id, time: isTime(s.time) ? s.time : '' }));
     return { classes, sessions };
   });
-  return { deload: w?.deload === true, days };
+  const deload = w?.deload === true || w?.deload === 'on' ? 'on' : w?.deload === 'off' ? 'off' : '';
+  return { deload, days };
 }
 
 export const emptyWeek = () => normalizeWeek({});
@@ -100,6 +104,32 @@ export const weekFromExample = (example) => normalizeWeek({
 export const copyWeek = (w) => normalizeWeek({ days: w.days });
 
 export const isPlanned = (w) => !!w && w.days.some((d) => d.classes.length || d.sessions.length);
+
+/* ── deload weeks ────────────────────────────────────────────────────── */
+
+// The plan deloads every 4th week, and in any week with illness, poor
+// sleep or a performance, "moving the fixed deload rather than stacking
+// two". So weeks are counted from the first one you planned: after three
+// weeks without one, the next is a deload. A week you mark as a deload
+// restarts the count; one you mark "not this week" pushes it on a week.
+//   → { deload, setting '' | 'on' | 'off', next: Monday 'YYYY-MM-DD' of the
+//       next deload after this week }
+export function deloadInfo(weeks, monday) {
+  const target = ymd(weekStart(monday));
+  const known = Object.entries(weeks.weeks).filter(([, w]) => isPlanned(w) || w.deload).map(([k]) => k).sort();
+  let day = fromYmd(known[0] && known[0] < target ? known[0] : target);
+  let since = 0; // weeks since the last deload
+  let result = null;
+  for (let n = 0; n < 1000; n++, day = addDays(day, 7)) {
+    const key = ymd(day);
+    const setting = weeks.weeks[key]?.deload || '';
+    const deload = setting === 'on' || (setting !== 'off' && since >= 3);
+    since = deload ? 0 : since + 1;
+    if (key === target) result = { deload, setting };
+    else if (result && deload) return { ...result, next: key };
+  }
+  return { ...result, next: null };
+}
 
 /* ── suggested week ──────────────────────────────────────────────────── */
 
@@ -404,6 +434,41 @@ export function timerOptions(item) {
   return opts;
 }
 
+/* ── guided player ───────────────────────────────────────────────────── */
+
+export const READY_SECONDS = 10;
+const HALVES = {
+  side: ['First side', 'Second side'],
+  leg: ['First leg', 'Second leg'],
+  arm: ['First arm', 'Second arm'],
+  direction: ['One direction', 'Other direction'],
+};
+
+// The timer steps for one movement in the guided player: a short "Get
+// ready", then the block. When the notes give a per-side (or per-leg…)
+// time that adds up to the block, the block is split into the two halves
+// so there's a cue to switch.
+//   → [{ label, seconds, ready? }]
+export function playPhases(item) {
+  const total = parseDuration(item.duration) || 60;
+  const phases = [{ label: 'Get ready', seconds: READY_SECONDS, ready: true }];
+  const half = timerOptions(item).find((o) => o.label.includes('/'));
+  const names = half && HALVES[half.label.split('/')[1]];
+  if (names && Math.abs(half.seconds * 2 - total) <= total * 0.25) {
+    phases.push({ label: names[0], seconds: half.seconds }, { label: names[1], seconds: half.seconds });
+  } else {
+    phases.push({ label: '', seconds: total });
+  }
+  return phases;
+}
+
+// Where the player goes after index `from`: the next movement not yet
+// ticked, or -1 when there isn't one.
+export function nextToDo(items, checked, from) {
+  for (let i = from + 1; i < items.length; i++) if (!checked.has(items[i].id)) return i;
+  return -1;
+}
+
 /* ── movement reference ──────────────────────────────────────────────── */
 
 // Names the plan uses for the same movement in different sessions. A
@@ -413,7 +478,7 @@ const ALIASES = {
   'couch or kneeling hip flexor': 'couch stretch',
   'contract relax': 'contract relax hip flexor',
   'thoracic spine roll': 'thoracic roll',
-  'thoracic roll and arch backs': 'thoracic roll',
+  'thoracic roll and arch backs': 'foam roller arch backs',
   'lats roll': 'foam roll lats',
   'standing splits at pole': 'standing splits',
   'bridge prep or glute bridge': 'bridge prep',
@@ -434,40 +499,46 @@ const ALIASES = {
   'round 1 passive': 'shoulder hyperflexion on bench',
   'round 2 active': 'shoulder hyperflexion on bench',
   'round 3 unweighted': 'shoulder hyperflexion on bench',
-  'thread the needle and arm circles': 'thread the needle',
   'childs pose and deep breathing': 'childs pose',
 };
 
 const rawKey = (name) => name.toLowerCase().replace(/→/g, ' to ').replace(/&/g, ' and ').replace(/['’]/g, '')
   .replace(/[^a-z0-9]+/g, ' ').trim();
 
-export function moveKey(name) {
+// Plan items that are really two movements, each with its own page.
+const SPLIT = { 'thread the needle and arm circles': ['thread the needle', 'arm circles'] };
+// Display names for movements no plan item is named after exactly.
+const NAMES = { 'foam roller arch backs': 'Foam roller arch-backs', 'arm circles': 'Arm circles' };
+
+// Every movement a plan item counts as, usually one.
+export function moveKeys(name) {
   const k = rawKey(name);
-  return ALIASES[k] || k;
+  return SPLIT[k] || [ALIASES[k] || k];
 }
 
-// One entry per movement in the plan: the sessions it's in, and every
-// write-up of it — from each session, then the library's older ones.
+export const moveKey = (name) => moveKeys(name)[0];
+
+// One entry per movement in the plan: the sessions it's in, and each
+// place it's used there (session, which version, the plan's time and
+// dose). How to do it lives in form.js.
+//   { key, name, sessions: [title], uses: [{ session, version, name,
+//     duration, detail, cues }] }
 export function movementIndex(routine) {
   const index = new Map();
-  const add = (key, item, session, current) => {
-    if (!index.has(key)) index.set(key, { key, name: item.name, sessions: [], writeups: [] });
+  const add = (item, session, version) => { for (const key of moveKeys(item.name)) addTo(key, item, session, version); };
+  const addTo = (key, item, session, version) => {
+    if (!index.has(key)) index.set(key, { key, name: NAMES[key] || item.name, sessions: [], uses: [] });
     const entry = index.get(key);
     // Prefer the movement's own name over a variant ("Couch stretch", not
     // "Couch stretch, extended").
-    if (rawKey(item.name) === key && rawKey(entry.name) !== key) entry.name = item.name;
-    if (current && !entry.sessions.includes(session)) entry.sessions.push(session);
-    const sig = JSON.stringify([item.name, item.duration, item.detail, item.cues]);
-    if (!entry.writeups.some((w) => w.sig === sig)) {
-      entry.writeups.push({ sig, session, current, name: item.name, duration: item.duration, detail: item.detail || '', cues: item.cues || [] });
-    }
+    if (!NAMES[key] && rawKey(item.name) === key && rawKey(entry.name) !== key) entry.name = item.name;
+    if (!entry.sessions.includes(session)) entry.sessions.push(session);
+    const use = { session, version, name: item.name, duration: item.duration, detail: item.detail || '', cues: item.cues || [] };
+    if (!entry.uses.some((u) => JSON.stringify(u) === JSON.stringify(use))) entry.uses.push(use);
   };
   for (const s of routine.sessions) {
-    for (const item of [...s.sections.flatMap((sec) => sec.items), ...(s.versions || []).flatMap((v) => v.items)]) add(moveKey(item.name), item, s.title, true);
-  }
-  for (const [key, list] of Object.entries(routine.library || {})) {
-    if (!index.has(key)) continue;
-    for (const w of list) add(key, w, w.session, false);
+    for (const item of s.sections.flatMap((sec) => sec.items)) add(item, s.title, '');
+    for (const v of s.versions || []) for (const item of v.items) add(item, s.title, v.label);
   }
   return [...index.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
@@ -476,7 +547,9 @@ export function movementIndex(routine) {
 
 // { version: 1, entries: { ['YYYY-MM-DD|session id']: entry } }
 //   entry: { date 'YYYY-MM-DD', title, variant 'full' or a version id,
-//            checked: ['Section / Movement', …], notes, done, updated }
+//            checked: ['Section / Movement', …], notes, done, updated,
+//            resume? { index, phase, left } — where the guided player
+//            stopped: checklist index, timer step, seconds left }
 export function normalizeLog(raw) {
   const entries = {};
   const src = raw && typeof raw === 'object' && raw.entries && typeof raw.entries === 'object' ? raw.entries : {};
@@ -493,12 +566,16 @@ export function normalizeLog(raw) {
       done: e.done === true,
       updated: Number.isFinite(e.updated) ? e.updated : 0,
     };
+    const r = e.resume;
+    if (r && Number.isInteger(r.index) && r.index >= 0 && Number.isInteger(r.phase) && r.phase >= 0 && Number.isFinite(r.left) && r.left >= 0) {
+      entries[key].resume = { index: r.index, phase: r.phase, left: r.left };
+    }
   }
   return { version: 1, entries };
 }
 
 export function isEmptyEntry(e) {
-  return !e.done && !e.checked.length && !e.notes.trim();
+  return !e.done && !e.checked.length && !e.notes.trim() && !e.resume;
 }
 
 /* ── .ics export ─────────────────────────────────────────────────────── */

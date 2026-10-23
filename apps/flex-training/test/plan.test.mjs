@@ -1,11 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  normalizeWeeks, normalizeWeek, emptyWeek, weekFromExample, copyWeek, isPlanned,
-  occurrences, checkWeek, suggestWeek, checklist, versionOf, timerOptions, parseDuration, moveKey, movementIndex,
-  normalizeLog, isEmptyEntry, describe, toIcs, foldLine, weekStart, ymd,
+  normalizeWeeks, normalizeWeek, emptyWeek, deloadInfo, weekFromExample, copyWeek, isPlanned,
+  occurrences, checkWeek, suggestWeek, checklist, playPhases, nextToDo, READY_SECONDS, versionOf, timerOptions, parseDuration, moveKey, movementIndex,
+  normalizeLog, isEmptyEntry, describe, toIcs, foldLine, weekStart, ymd, fromYmd,
 } from '../plan.js';
 import ROUTINE from '../routine.js';
+import FORM from '../form.js';
 
 const IDS = ROUTINE.sessions.map((s) => s.id);
 const MONDAY = new Date(2026, 9, 19);
@@ -46,9 +47,14 @@ test('every session and version has a checklist with unique ids and timeable ite
   }
 });
 
-test('Shoulders & Bridge has an 18-minute and an 8-minute bridge version', () => {
+test('Shoulders & Bridge has an 18-minute, an 8-minute bridge and a deload version', () => {
   const s = ROUTINE.sessions.find((x) => x.id === 'shoulders-bridge');
-  assert.deepEqual(s.versions.map((v) => [v.id, v.minutes]), [['short', 18], ['bridge', 8]]);
+  assert.deepEqual(s.versions.map((v) => [v.id, v.minutes, !!v.deloadOnly]), [['short', 18, false], ['bridge', 8, false], ['deload', 13, true]]);
+  // The deload version follows the plan's deload rule: passive round only.
+  const bench = s.versions[2].items.find((i) => i.name === 'Shoulder hyperflexion on bench');
+  assert.equal(bench.duration, '3 min');
+  assert.doesNotMatch(bench.detail, /active lift-off round \(/);
+  assert.equal(s.versions[2].items.reduce((n, i) => n + parseDuration(i.duration), 0) / 60, 13);
   assert.ok(checklist(s, 'bridge').every((i) => i.id.startsWith('Bridge / ')));
   assert.ok(checklist(s, 'short').every((i) => i.id.startsWith('Short / ')));
   assert.equal(versionOf(s, 'nope'), null);
@@ -85,7 +91,7 @@ test('weeks normalizer keeps good days and drops junk', () => {
   }, IDS);
   assert.deepEqual(Object.keys(w.weeks), ['2026-10-19']);
   const week = w.weeks['2026-10-19'];
-  assert.equal(week.deload, true);
+  assert.equal(week.deload, 'on'); // an older save's true
   assert.equal(week.days.length, 7);
   // A bare id string (how classes were first stored) reads as one with no
   // time; the old plain "pole" class is pole tricks.
@@ -106,9 +112,42 @@ test('an example becomes a week, and copying a week drops deload', () => {
   const a = weekFromExample(WEEK_A);
   assert.deepEqual(a.days[2], { classes: [{ id: 'pole-tricks', time: '', hours: 1.5, load: 'upper', double: false }], sessions: [{ id: 'shoulder-recovery', time: '' }] });
   assert.ok(isPlanned(a));
-  const copy = copyWeek({ ...a, deload: true });
-  assert.equal(copy.deload, false);
+  const copy = copyWeek({ ...a, deload: 'on' });
+  assert.equal(copy.deload, '');
   assert.deepEqual(copy.days, a.days);
+});
+
+/* ── deload weeks ── */
+
+const mondays = (n) => Array.from({ length: n }, (_, i) => ymd(new Date(2026, 9, 5 + 7 * i)));
+const W = mondays(12); // Oct 5, 12, 19, 26, Nov 2, …
+const planned = { days: [{ classes: ['dance'] }] };
+const weeksOf = (settings) => normalizeWeeks({ weeks: Object.fromEntries(Object.entries(settings).map(([k, v]) => [k, { ...planned, ...v }])) });
+const deloadList = (weeks) => W.filter((k) => deloadInfo(weeks, fromYmd(k)).deload);
+
+test('every 4th week is a deload, counted from the first planned week', () => {
+  const weeks = weeksOf({ [W[0]]: {} });
+  assert.deepEqual(deloadList(weeks), [W[3], W[7], W[11]]);
+  assert.deepEqual(deloadInfo(weeks, fromYmd(W[0])), { deload: false, setting: '', next: W[3] });
+  assert.deepEqual(deloadInfo(weeks, fromYmd(W[3])), { deload: true, setting: '', next: W[7] });
+});
+
+test('marking a deload restarts the count; "not this week" pushes it on', () => {
+  // Ill in week 2: deload then, and the next one moves rather than stacking.
+  assert.deepEqual(deloadList(weeksOf({ [W[0]]: {}, [W[1]]: { deload: 'on' } })), [W[1], W[5], W[9]]);
+  // Performance in the deload week: push it to the week after.
+  assert.deepEqual(deloadList(weeksOf({ [W[0]]: {}, [W[3]]: { deload: 'off' } })), [W[4], W[8]]);
+});
+
+test('older saves read as automatic, except a deload that was ticked', () => {
+  const weeks = normalizeWeeks({ weeks: { [W[0]]: { ...planned, deload: false }, [W[2]]: { ...planned, deload: true } } });
+  assert.equal(weeks.weeks[W[0]].deload, '');
+  assert.equal(weeks.weeks[W[2]].deload, 'on');
+  assert.deepEqual(deloadList(weeks), [W[2], W[6], W[10]]);
+});
+
+test('with nothing planned, the count starts at the week asked about', () => {
+  assert.deepEqual(deloadInfo({ version: 1, weeks: {} }, fromYmd(W[4])), { deload: false, setting: '', next: W[7] });
 });
 
 test('occurrences list planned sessions in day order, keyed by date', () => {
@@ -302,6 +341,48 @@ test('minimums count the days each session is planned', () => {
 
 /* ── timer, movements, log ── */
 
+/* ── guided player ── */
+
+test('the player counts in, then splits per-side blocks into halves', () => {
+  const steps = (item) => playPhases(item).map((p) => [p.label, p.seconds]);
+  assert.deepEqual(steps({ name: 'Psoas lunge', duration: '4 min', detail: 'pelvis tucked, torso upright, 2 min per side.' }),
+    [['Get ready', READY_SECONDS], ['First side', 120], ['Second side', 120]]);
+  assert.deepEqual(steps({ name: '90/90', duration: '2 min', detail: '1 min each direction.' }),
+    [['Get ready', READY_SECONDS], ['One direction', 60], ['Other direction', 60]]);
+  // 60 s per leg inside a 4-minute block doesn't add up, so it stays whole.
+  assert.deepEqual(steps({ name: 'Standing splits', duration: '4 min', detail: 'hips square, 60 s per leg.' }),
+    [['Get ready', READY_SECONDS], ['', 240]]);
+  assert.deepEqual(steps({ name: 'Butterfly', duration: '2 min' }), [['Get ready', READY_SECONDS], ['', 120]]);
+});
+
+test('every movement in every session gets player steps', () => {
+  for (const s of ROUTINE.sessions) {
+    for (const variant of ['full', ...(s.versions || []).map((v) => v.id)]) {
+      for (const { item } of checklist(s, variant)) {
+        const p = playPhases(item);
+        assert.ok(p.length >= 2 && p.every((x) => x.seconds > 0), `${s.id}: ${item.name}`);
+      }
+    }
+  }
+});
+
+test('the player moves on to the next movement not yet ticked', () => {
+  const items = ['a', 'b', 'c', 'd'].map((id) => ({ id }));
+  assert.equal(nextToDo(items, new Set(), -1), 0);
+  assert.equal(nextToDo(items, new Set(['b', 'c']), 0), 3);
+  assert.equal(nextToDo(items, new Set(['d']), 2), -1);
+});
+
+test('the log keeps a valid resume point and drops a broken one', () => {
+  const log = normalizeLog({ entries: {
+    '2026-10-27|hips-thoracic': { date: '2026-10-27', resume: { index: 4, phase: 1, left: 83 } },
+    '2026-10-28|splits-snack': { date: '2026-10-28', resume: { index: -1, phase: 'x' } },
+  } });
+  assert.deepEqual(log.entries['2026-10-27|hips-thoracic'].resume, { index: 4, phase: 1, left: 83 });
+  assert.ok(!isEmptyEntry(log.entries['2026-10-27|hips-thoracic']), 'a resume point counts as started');
+  assert.equal(log.entries['2026-10-28|splits-snack'].resume, undefined);
+});
+
 test('durations read minutes, seconds and ranges', () => {
   assert.equal(parseDuration('4 min'), 240);
   assert.equal(parseDuration('90 s'), 90);
@@ -327,25 +408,35 @@ test('movement names match across spellings', () => {
   assert.equal(moveKey('Full bridge, depth focus'), 'full bridge');
 });
 
-test('the reference gathers a movement from every session it is in', () => {
+test('the reference lists each place a movement is used', () => {
   const index = movementIndex(ROUTINE);
   const couch = index.find((m) => m.key === 'couch stretch');
   assert.equal(couch.name, 'Couch stretch');
   assert.deepEqual(couch.sessions, ['Splits Intensive', 'Hips & Thoracic', 'Splits Snack']);
-  const camel = index.find((m) => m.key === 'camel at pole');
-  assert.deepEqual(camel.sessions, ['Shoulders & Bridge']);
-  assert.ok(camel.writeups.some((w) => !w.current && w.cues.length > 10), 'earlier long-form cues are kept');
+  assert.ok(couch.uses.some((u) => u.session === 'Splits Intensive' && u.version === '18-minute version'));
   assert.equal(new Set(index.map((m) => m.key)).size, index.length);
 });
 
-test('earlier write-ups whose loading changed are left out', () => {
+test('a combined plan item counts as each of its movements', () => {
   const index = movementIndex(ROUTINE);
-  for (const key of ['shoulder hyperflexion on bench', 'full bridge']) {
+  for (const key of ['thread the needle', 'arm circles']) {
     const m = index.find((x) => x.key === key);
-    assert.ok(m.writeups.every((w) => w.current), key);
+    assert.ok(m.uses.some((u) => u.name === 'Thread-the-needle and arm circles'), key);
   }
-  const keys = new Set(index.map((m) => m.key));
-  for (const key of Object.keys(ROUTINE.library)) assert.ok(keys.has(key), key);
+  assert.equal(index.find((x) => x.key === 'arm circles').name, 'Arm circles');
+  assert.equal(index.find((x) => x.key === 'foam roller arch backs').name, 'Foam roller arch-backs');
+  assert.equal(moveKey('Thoracic roll and arch-backs'), 'foam roller arch backs');
+});
+
+test('every movement has one form description, and every description a movement', () => {
+  const keys = movementIndex(ROUTINE).map((m) => m.key);
+  for (const key of keys) {
+    const f = FORM[key];
+    assert.ok(f, `no form notes for ${key}`);
+    assert.ok(Array.isArray(f.steps) && f.steps.length, key);
+    for (const k of Object.keys(f)) assert.ok(['guess', 'note', 'fromPlan', 'intro', 'setup', 'steps', 'cues', 'avoid'].includes(k), `${key}.${k}`);
+  }
+  for (const key of Object.keys(FORM)) assert.ok(keys.includes(key), `form notes for unknown movement ${key}`);
 });
 
 test('log normalizer keeps good entries and drops junk', () => {

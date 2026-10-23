@@ -35,6 +35,24 @@
     <button id="timerClose" class="btn" type="button" aria-label="Close timer">×</button>
 </div>
 
+<div id="player" class="player" hidden role="dialog" aria-label="Guided session">
+    <div class="play-top">
+        <span id="playHead" class="label"></span>
+        <button id="playClose" class="btn" type="button" aria-label="Close and save">×</button>
+    </div>
+    <div class="play-clock">
+        <div id="playStep" class="play-step"></div>
+        <div id="playTime" class="play-time">0:00</div>
+    </div>
+    <div class="play-controls">
+        <button id="playBack" class="btn" type="button">‹ Back</button>
+        <button id="playToggle" class="btn" type="button">Pause</button>
+        <button id="playDone" class="btn primary" type="button">✓ Done</button>
+        <button id="playSkip" class="btn" type="button">Skip ›</button>
+    </div>
+    <div id="playBody" class="play-body"></div>
+</div>
+
 <input id="backupFile" type="file" accept=".json,application/json" hidden>
 
 <script type="module" src="app.js"></script>
