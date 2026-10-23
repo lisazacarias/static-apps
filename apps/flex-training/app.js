@@ -267,7 +267,8 @@ function occRow(o, dayIndex, edit) {
   const st = status(o.key);
   const right = edit && !o.unplanned
     ? `<span class="row"><input type="time" class="time" value="${esc(o.time)}" data-time="${dayIndex}:${o.session.id}" aria-label="Start time"><button type="button" class="x" data-unplan="${dayIndex}:${o.session.id}" aria-label="Remove ${esc(o.session.title)}">×</button></span>`
-    : st ? `<span class="chip ${st}">${STATUS_LABEL[st]}</span>` : '';
+    : st === 'done' ? `<span class="chip done">${STATUS_LABEL[st]}</span>`
+    : `<span class="row">${st ? `<span class="chip ${st}">${STATUS_LABEL[st]}</span>` : ''}<a class="play-link" href="#play/${encodeURIComponent(o.key)}" aria-label="${log.entries[o.key]?.resume ? 'Resume' : 'Start'} ${esc(o.session.title)}">▶</a></span>`;
   return `<div class="occ">
     <a href="${sessionHref(o.date, o.session.id)}"><span class="name">${esc(o.session.title)}</span><br><span class="when">${o.time ? `${esc(fmtTime(o.time))} · ` : ''}${esc(o.session.length)}${o.unplanned ? ' · not planned' : ''}</span></a>
     ${right}
@@ -317,12 +318,20 @@ const KIND_LABEL = { big: 'Big session', short: 'Short session', prep: 'Before c
 
 function sessionsView() {
   const now = today();
-  return `<p class="muted tiny" style="margin-bottom:12px">Every session in the plan. Open one to do it today, planned or not.</p>
-    ${ROUTINE.sessions.map((s) => `<a class="mlist-link" href="${sessionHref(now, s.id)}"><div class="card">
+  return `<p class="muted tiny" style="margin-bottom:12px">Every session in the plan. Start one now, planned or not.</p>
+    ${ROUTINE.sessions.map((s) => {
+      const key = `${ymd(now)}|${s.id}`;
+      const st = status(key);
+      return `<div class="card session-card">
       <span class="label">${KIND_LABEL[s.kind]} · ${esc(s.length)}${(s.versions || []).map((v) => ` · ${v.minutes}-min ${v.id === 'short' ? '' : `${v.id} `}version`).join('')}</span>
-      <h2>${esc(s.title)}</h2>
+      <h2><a href="${sessionHref(now, s.id)}">${esc(s.title)}</a></h2>
       ${s.about?.[0] ? `<p class="muted">${esc(s.about[0].replace(/\s*\[\d+\]/g, ''))}</p>` : ''}
-    </div></a>`).join('')}`;
+      <div class="row">
+        ${st === 'done' ? '<span class="chip done">Done today</span>' : `<a class="btn primary" href="#play/${encodeURIComponent(key)}">${log.entries[key]?.resume ? '▶ Resume' : '▶ Start'}</a>`}
+        <a class="btn" href="${sessionHref(now, s.id)}">See the session</a>
+      </div>
+    </div>`;
+    }).join('')}`;
 }
 
 /* ── session ─────────────────────────────────────────────────────────── */

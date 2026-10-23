@@ -381,3 +381,12 @@ body.playing { overflow: hidden; }
     cursor: pointer;
 }
 .day-pick.on { border-color: var(--blue); background: var(--blue-dim); color: var(--text-bright); }
+
+.session-card h2 a { color: inherit; text-decoration: none; }
+.session-card .row { margin-top: 10px; }
+.play-link {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1px solid var(--accent); background: var(--accent-dim); color: var(--text-bright);
+    text-decoration: none; font-size: 13px;
+}
