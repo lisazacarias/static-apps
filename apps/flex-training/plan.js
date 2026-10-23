@@ -434,6 +434,41 @@ export function timerOptions(item) {
   return opts;
 }
 
+/* ── guided player ───────────────────────────────────────────────────── */
+
+export const READY_SECONDS = 10;
+const HALVES = {
+  side: ['First side', 'Second side'],
+  leg: ['First leg', 'Second leg'],
+  arm: ['First arm', 'Second arm'],
+  direction: ['One direction', 'Other direction'],
+};
+
+// The timer steps for one movement in the guided player: a short "Get
+// ready", then the block. When the notes give a per-side (or per-leg…)
+// time that adds up to the block, the block is split into the two halves
+// so there's a cue to switch.
+//   → [{ label, seconds, ready? }]
+export function playPhases(item) {
+  const total = parseDuration(item.duration) || 60;
+  const phases = [{ label: 'Get ready', seconds: READY_SECONDS, ready: true }];
+  const half = timerOptions(item).find((o) => o.label.includes('/'));
+  const names = half && HALVES[half.label.split('/')[1]];
+  if (names && Math.abs(half.seconds * 2 - total) <= total * 0.25) {
+    phases.push({ label: names[0], seconds: half.seconds }, { label: names[1], seconds: half.seconds });
+  } else {
+    phases.push({ label: '', seconds: total });
+  }
+  return phases;
+}
+
+// Where the player goes after index `from`: the next movement not yet
+// ticked, or -1 when there isn't one.
+export function nextToDo(items, checked, from) {
+  for (let i = from + 1; i < items.length; i++) if (!checked.has(items[i].id)) return i;
+  return -1;
+}
+
 /* ── movement reference ──────────────────────────────────────────────── */
 
 // Names the plan uses for the same movement in different sessions. A
@@ -505,7 +540,9 @@ export function movementIndex(routine) {
 
 // { version: 1, entries: { ['YYYY-MM-DD|session id']: entry } }
 //   entry: { date 'YYYY-MM-DD', title, variant 'full' or a version id,
-//            checked: ['Section / Movement', …], notes, done, updated }
+//            checked: ['Section / Movement', …], notes, done, updated,
+//            resume? { index, phase, left } — where the guided player
+//            stopped: checklist index, timer step, seconds left }
 export function normalizeLog(raw) {
   const entries = {};
   const src = raw && typeof raw === 'object' && raw.entries && typeof raw.entries === 'object' ? raw.entries : {};
@@ -522,12 +559,16 @@ export function normalizeLog(raw) {
       done: e.done === true,
       updated: Number.isFinite(e.updated) ? e.updated : 0,
     };
+    const r = e.resume;
+    if (r && Number.isInteger(r.index) && r.index >= 0 && Number.isInteger(r.phase) && r.phase >= 0 && Number.isFinite(r.left) && r.left >= 0) {
+      entries[key].resume = { index: r.index, phase: r.phase, left: r.left };
+    }
   }
   return { version: 1, entries };
 }
 
 export function isEmptyEntry(e) {
-  return !e.done && !e.checked.length && !e.notes.trim();
+  return !e.done && !e.checked.length && !e.notes.trim() && !e.resume;
 }
 
 /* ── .ics export ─────────────────────────────────────────────────────── */

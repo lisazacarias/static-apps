@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   normalizeWeeks, normalizeWeek, emptyWeek, deloadInfo, weekFromExample, copyWeek, isPlanned,
-  occurrences, checkWeek, suggestWeek, checklist, versionOf, timerOptions, parseDuration, moveKey, movementIndex,
+  occurrences, checkWeek, suggestWeek, checklist, playPhases, nextToDo, READY_SECONDS, versionOf, timerOptions, parseDuration, moveKey, movementIndex,
   normalizeLog, isEmptyEntry, describe, toIcs, foldLine, weekStart, ymd, fromYmd,
 } from '../plan.js';
 import ROUTINE from '../routine.js';
@@ -335,6 +335,48 @@ test('minimums count the days each session is planned', () => {
 });
 
 /* ── timer, movements, log ── */
+
+/* ── guided player ── */
+
+test('the player counts in, then splits per-side blocks into halves', () => {
+  const steps = (item) => playPhases(item).map((p) => [p.label, p.seconds]);
+  assert.deepEqual(steps({ name: 'Psoas lunge', duration: '4 min', detail: 'pelvis tucked, torso upright, 2 min per side.' }),
+    [['Get ready', READY_SECONDS], ['First side', 120], ['Second side', 120]]);
+  assert.deepEqual(steps({ name: '90/90', duration: '2 min', detail: '1 min each direction.' }),
+    [['Get ready', READY_SECONDS], ['One direction', 60], ['Other direction', 60]]);
+  // 60 s per leg inside a 4-minute block doesn't add up, so it stays whole.
+  assert.deepEqual(steps({ name: 'Standing splits', duration: '4 min', detail: 'hips square, 60 s per leg.' }),
+    [['Get ready', READY_SECONDS], ['', 240]]);
+  assert.deepEqual(steps({ name: 'Butterfly', duration: '2 min' }), [['Get ready', READY_SECONDS], ['', 120]]);
+});
+
+test('every movement in every session gets player steps', () => {
+  for (const s of ROUTINE.sessions) {
+    for (const variant of ['full', ...(s.versions || []).map((v) => v.id)]) {
+      for (const { item } of checklist(s, variant)) {
+        const p = playPhases(item);
+        assert.ok(p.length >= 2 && p.every((x) => x.seconds > 0), `${s.id}: ${item.name}`);
+      }
+    }
+  }
+});
+
+test('the player moves on to the next movement not yet ticked', () => {
+  const items = ['a', 'b', 'c', 'd'].map((id) => ({ id }));
+  assert.equal(nextToDo(items, new Set(), -1), 0);
+  assert.equal(nextToDo(items, new Set(['b', 'c']), 0), 3);
+  assert.equal(nextToDo(items, new Set(['d']), 2), -1);
+});
+
+test('the log keeps a valid resume point and drops a broken one', () => {
+  const log = normalizeLog({ entries: {
+    '2026-10-27|hips-thoracic': { date: '2026-10-27', resume: { index: 4, phase: 1, left: 83 } },
+    '2026-10-28|splits-snack': { date: '2026-10-28', resume: { index: -1, phase: 'x' } },
+  } });
+  assert.deepEqual(log.entries['2026-10-27|hips-thoracic'].resume, { index: 4, phase: 1, left: 83 });
+  assert.ok(!isEmptyEntry(log.entries['2026-10-27|hips-thoracic']), 'a resume point counts as started');
+  assert.equal(log.entries['2026-10-28|splits-snack'].resume, undefined);
+});
 
 test('durations read minutes, seconds and ranges', () => {
   assert.equal(parseDuration('4 min'), 240);

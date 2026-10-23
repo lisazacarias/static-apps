@@ -1,7 +1,7 @@
 import {
   CLASS_TYPES, LOADS, DAY_NAMES, versionOf, deloadInfo, normalizeWeeks, normalizeWeek, emptyWeek, weekFromExample, copyWeek, isPlanned,
   occurrences, checkWeek, checklist, timerOptions, movementIndex, moveKey, cueText, cueSub,
-  normalizeLog, isEmptyEntry, toIcs, suggestWeek, ymd, fromYmd, addDays, weekStart,
+  normalizeLog, isEmptyEntry, toIcs, suggestWeek, playPhases, nextToDo, ymd, fromYmd, addDays, weekStart,
 } from './plan.js';
 import ROUTINE from './routine.js';
 import FORM from './form.js';
@@ -78,6 +78,7 @@ const STATUS_LABEL = { done: 'Done', started: 'Started', '': '' };
 
 const fmtTime = (hhmm) => { const [h, m] = hhmm.split(':').map(Number); return new Date(2000, 0, 1, h, m).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); };
 const fmtDay = (d, opts = {}) => d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', ...opts });
+const fmtClock = (sec) => { const n = Math.ceil(sec); return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`; };
 const fmtShort = (d) => d.toLocaleDateString([], { month: 'short', day: 'numeric' });
 const sessionHref = (date, id) => `#s/${encodeURIComponent(`${ymd(date)}|${id}`)}`;
 
@@ -88,11 +89,13 @@ window.addEventListener('hashchange', () => render());
 function render(keepScroll = false) {
   const [route, ...rest] = (location.hash.slice(1) || 'week').split('/');
   const arg = decodeURIComponent(rest.join('/'));
-  const tab = { s: 'week', m: 'moves' }[route] || route;
+  const tab = { s: 'week', play: 'week', m: 'moves' }[route] || route;
+  if (route !== 'play') closePlayer();
   document.querySelectorAll('.tabs a').forEach((a) => a.classList.toggle('on', a.dataset.tab === tab));
   const view = $('view');
   const y = window.scrollY;
-  if (route === 's') view.innerHTML = sessionView(arg);
+  if (route === 'play') { openPlayer(arg); view.innerHTML = sessionView(arg); }
+  else if (route === 's') view.innerHTML = sessionView(arg);
   else if (route === 'sessions') view.innerHTML = sessionsView();
   else if (route === 'moves') view.innerHTML = movesView();
   else if (route === 'm') view.innerHTML = moveView(arg);
@@ -123,7 +126,9 @@ function weekView(arg) {
           <span class="label">Today${o.time ? ` · ${esc(fmtTime(o.time))}` : ''}${isDeload(now) ? ' · deload week' : ''}</span>
           <h2>${esc(o.session.title)}</h2>
           <p class="muted">${esc(o.session.length)}${o.session.versions ? ` · ${o.session.versions.map((v) => `${v.minutes}-min`).join(' or ')} version available` : ''}</p>
-          <a class="link-button" href="${sessionHref(now, o.session.id)}">${status(o.key) === 'done' ? 'Done ✓ — open' : 'Start →'}</a>
+          ${status(o.key) === 'done'
+            ? `<a class="link-button" href="${sessionHref(now, o.session.id)}">Done ✓ — open</a>`
+            : `<a class="link-button" href="#play/${encodeURIComponent(o.key)}">${log.entries[o.key]?.resume ? '▶ Resume' : '▶ Start'}</a> <a class="tiny" href="${sessionHref(now, o.session.id)}">See the whole session</a>`}
         </div>`).join('')
       : `<div class="card today"><span class="label">Today</span><h2>${week?.days[(now.getDay() + 6) % 7].classes.length ? 'Class day' : 'Nothing planned'}</h2>
           <p class="muted">${week?.days[(now.getDay() + 6) % 7].classes.length ? `Before class, do <a href="${sessionHref(now, 'class-prep')}">Class-day prep</a>.` : `Any session is in the <a href="#sessions">Sessions</a> tab.`}</p></div>`;
@@ -320,7 +325,11 @@ function sessionView(key) {
       ${s.versions.map((v) => `<button class="btn${variant === v.id ? ' on' : ''}" data-variant="${v.id}" type="button">${esc(v.label.replace(/^(\d+)-minute/, '$1-min'))}</button>`).join('')}
     </div>`;
   }
-  html += `<p class="progress" id="progress" style="margin-top:12px">${count} of ${items.length} ticked</p>`;
+  const r = e.resume;
+  html += `<div class="row start-bar">
+      <a class="btn primary" href="#play/${encodeURIComponent(o.key)}">${r ? `▶ Resume · ${Math.min(r.index + 1, items.length)} of ${items.length}${r.left ? `, ${fmtClock(r.left)} left` : ''}` : count ? '▶ Continue' : '▶ Start'}</a>
+      <span class="progress" id="progress">${count} of ${items.length} ticked</span>
+    </div>`;
 
   if (version) {
     html += `<h3 class="sec">${esc(version.label)}</h3>${items.map((i) => moveRow(i, checked)).join('')}`;
@@ -391,7 +400,7 @@ function updateEntry(o, change) {
 
 function currentOcc() {
   const [route, ...rest] = location.hash.slice(1).split('/');
-  return route === 's' ? parseKey(decodeURIComponent(rest.join('/'))) : null;
+  return route === 's' || route === 'play' ? parseKey(decodeURIComponent(rest.join('/'))) : null;
 }
 
 /* ── events ──────────────────────────────────────────────────────────── */
@@ -635,6 +644,189 @@ $('backupFile').addEventListener('change', async (ev) => {
     render();
   } catch { notify('That doesn’t look like a Flex Training backup.', true); }
 });
+
+/* ── guided player ───────────────────────────────────────────────────── */
+
+// Full-screen, one movement at a time: a "Get ready" countdown, then the
+// timer (split per side where the plan gives one). When it runs out the
+// movement is ticked and the next one starts. Where you are is saved to
+// the log entry (resume), so closing it or losing the page picks up there.
+let play = null; // { o, items, index, phases, phase, left, running, endAt, tick, saved }
+
+function openPlayer(key) {
+  if (play && play.o.key === key) { paintPlayer(); return; }
+  closePlayer();
+  const o = parseKey(key);
+  if (!o) return;
+  try { audioCtx ||= new (window.AudioContext || window.webkitAudioContext)(); audioCtx.resume(); } catch { /* silent */ }
+  const e = entryFor(o);
+  const items = checklist(o.session, e.variant);
+  const checked = new Set(e.checked);
+  const r = e.resume && e.resume.index < items.length ? e.resume : null;
+  const index = r ? r.index : Math.max(0, nextToDo(items, checked, -1));
+  play = { o, items, index, phases: playPhases(items[index].item), phase: 0, left: 0, running: false, endAt: 0, tick: null, saved: 0 };
+  if (r) {
+    play.phase = Math.min(r.phase, play.phases.length - 1);
+    // A resumed "Get ready" starts over; a resumed hold keeps its time.
+    play.left = play.phases[play.phase].ready ? play.phases[play.phase].seconds : r.left;
+  } else {
+    play.left = play.phases[0].seconds;
+  }
+  $('player').hidden = false;
+  document.body.classList.add('playing');
+  paintPlayer();
+  if (!r) runPlayer(); // a fresh start counts straight in; a resume waits for you
+  keepAwake(true);
+}
+
+function closePlayer() {
+  if (!play) return;
+  pausePlayer();
+  savePlayer();
+  play = null;
+  $('player').hidden = true;
+  document.body.classList.remove('playing');
+  if (!timer.running) keepAwake(false);
+}
+
+const playLeft = () => (play.running ? Math.max(0, (play.endAt - Date.now()) / 1000) : play.left);
+
+function savePlayer() {
+  if (!play || play.done) return;
+  play.saved = Date.now();
+  updateEntry(play.o, { resume: { index: play.index, phase: play.phase, left: Math.round(playLeft()) } });
+}
+
+function runPlayer() {
+  play.endAt = Date.now() + play.left * 1000;
+  play.running = true;
+  clearInterval(play.tick);
+  play.tick = setInterval(tickPlayer, 200);
+  tickPlayer();
+}
+
+function pausePlayer() {
+  if (!play || !play.running) return;
+  play.left = playLeft();
+  play.running = false;
+  clearInterval(play.tick);
+}
+
+function tickPlayer() {
+  if (!play) return;
+  const left = playLeft();
+  $('playTime').textContent = fmtClock(left);
+  $('playToggle').textContent = play.running ? 'Pause' : 'Resume';
+  if (play.running && Date.now() - play.saved > 5000) savePlayer();
+  if (play.running && left <= 0) {
+    if (play.phase < play.phases.length - 1) {
+      // Next step: "Get ready" → hold, or first side → second side.
+      if (!play.phases[play.phase].ready) chime();
+      play.phase++;
+      play.left = play.phases[play.phase].seconds;
+      // Start the new step's clock before repainting: the repaint reads it.
+      runPlayer();
+      paintPlayer();
+    } else {
+      chime();
+      finishMovement(true);
+    }
+  }
+}
+
+// Ticks the current movement (when `tick`) and moves on to the next one
+// not yet ticked, starting its countdown.
+function finishMovement(tick) {
+  pausePlayer();
+  const { o, items } = play;
+  const e = entryFor(o);
+  const checked = new Set(e.checked);
+  if (tick) checked.add(items[play.index].id);
+  const next = nextToDo(items, checked, play.index);
+  const all = items.every((i) => checked.has(i.id));
+  if (next < 0 && all) {
+    const { resume, ...rest } = e;
+    log.entries[o.key] = { ...rest, checked: [...checked], done: true, updated: Date.now(), title: o.session.title, date: ymd(o.date) };
+    saveLog();
+    showFinished();
+    return;
+  }
+  // Wrap round to anything skipped earlier.
+  const to = next >= 0 ? next : nextToDo(items, checked, -1);
+  updateEntry(o, { checked: [...checked] });
+  goTo(to, true);
+}
+
+function goTo(index, autostart) {
+  pausePlayer();
+  play.index = index;
+  play.phases = playPhases(play.items[index].item);
+  play.phase = 0;
+  play.left = play.phases[0].seconds;
+  paintPlayer();
+  savePlayer();
+  if (autostart) runPlayer();
+}
+
+function showFinished() {
+  const key = play.o.key;
+  clearInterval(play.tick);
+  $('playBody').innerHTML = `<div class="play-done">
+    <p class="label">${esc(play.o.session.title)}</p>
+    <h2 class="title">Session done ✓</h2>
+    <p class="muted">Everything’s ticked off. Add a note about how it went?</p>
+    <a class="btn primary" href="${sessionHref(play.o.date, play.o.session.id)}">Back to the session</a>
+  </div>`;
+  $('playTime').textContent = '';
+  play.running = false;
+  play.done = key;
+}
+
+function paintPlayer() {
+  if (!play) return;
+  const { o, items, index, phases, phase } = play;
+  const { item, section, id } = items[index];
+  const checked = new Set(entryFor(o).checked);
+  const step = phases[phase];
+  const mk = moveKey(item.name);
+  const upNext = nextToDo(items, new Set([...checked, id]), index);
+  $('playHead').textContent = `${o.session.title} · ${index + 1} of ${items.length}${section?.title ? ` · ${section.title}` : ''}`;
+  $('playStep').textContent = step.ready ? 'Get ready' : step.label || (checked.has(id) ? 'Already ticked' : '');
+  $('player').classList.toggle('ready', !!step.ready);
+  $('playBody').innerHTML = `
+    <h2 class="title">${esc(item.name)}</h2>
+    <p class="mdur">${esc(item.duration)}</p>
+    ${item.detail ? `<p class="mdetail">${rich(item.detail)}</p>` : ''}
+    ${item.cues?.length ? cueList(item.cues) : ''}
+    ${FORM[mk] ? `<h3 class="sec">How to do it</h3>${formHtml(FORM[mk], true)}` : ''}
+    ${upNext >= 0 ? `<p class="up-next">Next: ${esc(items[upNext].item.name)}</p>` : ''}`;
+  $('playBody').scrollTop = 0;
+  $('playBack').disabled = index === 0;
+  tickPlayer();
+}
+
+$('playToggle').addEventListener('click', () => {
+  if (!play || play.done) return;
+  if (play.running) { pausePlayer(); savePlayer(); } else runPlayer();
+  tickPlayer();
+});
+$('playDone').addEventListener('click', () => { if (play && !play.done) finishMovement(true); });
+$('playSkip').addEventListener('click', () => {
+  if (!play || play.done) return;
+  // Skipping the last one goes back round to anything skipped earlier.
+  const checked = new Set(entryFor(play.o).checked);
+  let next = nextToDo(play.items, checked, play.index);
+  if (next < 0) next = nextToDo(play.items, checked, -1);
+  if (next >= 0 && next !== play.index) goTo(next, true);
+});
+$('playBack').addEventListener('click', () => { if (play && !play.done && play.index > 0) goTo(play.index - 1, false); });
+$('playClose').addEventListener('click', () => {
+  const key = play?.o.key;
+  location.hash = key ? `#s/${encodeURIComponent(key)}` : '#week';
+});
+// Save where you are if the page is hidden or closed mid-hold.
+document.addEventListener('visibilitychange', () => { if (document.hidden && play && !play.done) savePlayer(); });
+window.addEventListener('pagehide', () => { if (play && !play.done) savePlayer(); });
 
 /* ── notices ─────────────────────────────────────────────────────────── */
 
