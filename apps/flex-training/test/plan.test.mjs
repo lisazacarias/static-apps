@@ -178,6 +178,14 @@ test('rule 3: lower-body sessions can go the day after tricks', () => {
   assert.deepEqual(flagsOf(plan({ 4: { sessions: ['splits-intensive'] }, 6: { classes: ['dance'] } })), []);
 });
 
+test('rule 3 counts a hard class later the same day', () => {
+  // Splits Intensive 10:00–11:30, dance marked hard for the lower body at 18:00.
+  assert.deepEqual(textsOf(plan({ 2: { classes: [cls('dance', '18:00', { load: 'lower' })], sessions: [ses('splits-intensive', '10:00')] } })),
+    ['warn 3: Only 7 hours before Wednesday’s dance, marked hard for the lower body. Keep Splits Intensive 48 hours before it.']);
+  // After that class it's fine.
+  assert.deepEqual(textsOf(plan({ 2: { classes: [cls('dance', '08:00', { load: 'lower' })], sessions: [ses('splits-intensive', '14:00')] } })), []);
+});
+
 test('rule 4: long holds stay off the hour or two before a class that uses them', () => {
   const day = (sessionTime, classId = 'dance', session = 'hips-thoracic') => plan({ 3: { classes: [cls(classId, '18:00')], sessions: [ses(session, sessionTime)] } });
   // Hips & Thoracic 16:30–17:16, dance 18:00.
@@ -193,6 +201,13 @@ test('rule 4: long holds stay off the hour or two before a class that uses them'
   assert.deepEqual(textsOf(day('16:30', 'skating')), []);
   // Without times it's a reminder.
   assert.deepEqual(flagsOf(plan({ 3: { classes: ['dance'], sessions: ['splits-snack'] } })), [[3, 'splits-snack', 'info', 4]]);
+});
+
+test('rule 4: Shoulder Recovery’s chest holds stay off the hour before tricks', () => {
+  const day = (time) => plan({ 1: { classes: [cls('pole-tricks', '18:00')], sessions: [ses('shoulder-recovery', time)] } });
+  assert.deepEqual(textsOf(day('17:00')), ['warn 4: Ends 40 minutes before pole tricks. Keep long shoulder, lat and chest holds off the hour or two before class.']);
+  assert.deepEqual(textsOf(day('19:45')), []); // after class, as intended
+  assert.deepEqual(textsOf(day('')), []); // untimed: assumed after class
 });
 
 test('rule 5: the day after tricks is gentle for the upper body', () => {
@@ -383,6 +398,10 @@ test('export text escapes and keeps the session layout', () => {
   assert.match(text, /18-MINUTE VERSION \(NO BRIDGES\)/);
   assert.match(text, /8-MINUTE BRIDGE VERSION/);
   assert.match(text, /Deload week: /);
+  // Drills kept only as cues make it into the export too.
+  const hips = describe(ROUTINE.sessions.find((x) => x.id === 'hips-thoracic'));
+  assert.match(hips, /HIP EXTENSION END-RANGE STRENGTH — 4 min\n• Kneeling lunge with the back knee down/);
+  assert.match(hips, /• Front-split back-leg lifts at the pole, 2 x 8 per side/);
   const flat = unfold(toIcs(ROUTINE, weeksWith(weekFromExample(WEEK_A)), MONDAY, new Date(2026, 9, 26)));
   const desc = flat.split('\r\n').find((l) => l.startsWith('DESCRIPTION:⏱ ~90'));
   assert.ok(desc.includes('pelvis tucked\\, torso upright') && desc.includes('\\n') && !/[^\\],/.test(desc));

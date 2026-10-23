@@ -285,7 +285,16 @@ function sessionView(key) {
   const checked = new Set(e.checked);
   const count = items.filter((i) => checked.has(i.id)).length;
   const monday = weekStart(o.date);
-  const flags = checkWeek(ROUTINE, weeks, monday).flags.filter((f) => f.session === s.id && f.day === (o.date.getDay() + 6) % 7);
+  const dayIndex = (o.date.getDay() + 6) % 7;
+  // A session opened from the Sessions tab isn't in the plan, so check the
+  // week as if it were.
+  let weeksToCheck = weeks;
+  if (o.unplanned) {
+    const week = normalizeWeek(weeks.weeks[ymd(monday)] || {}, SESSION_IDS);
+    week.days[dayIndex].sessions.push({ id: s.id, time: '' });
+    weeksToCheck = { ...weeks, weeks: { ...weeks.weeks, [ymd(monday)]: week } };
+  }
+  const flags = checkWeek(ROUTINE, weeksToCheck, monday).flags.filter((f) => f.session === s.id && f.day === dayIndex);
 
   let html = `<a class="back" href="#week/${ymd(monday)}">‹ Week</a>
     <span class="label">${esc(fmtDay(o.date, { weekday: 'long' }))}${o.time ? ` · ${esc(fmtTime(o.time))}` : ''} · ${esc(s.length)}</span>
@@ -408,14 +417,12 @@ $('view').addEventListener('change', (ev) => {
   else $('progress').textContent = `${items.filter((i) => set.has(i.id)).length} of ${items.length} ticked`;
 });
 
-let notesTimer = null;
+// Notes save on every keystroke, so a re-render or closing the tab can't
+// drop what was just typed.
 $('view').addEventListener('input', (ev) => {
   if (ev.target.id === 'notes') {
     const o = currentOcc();
-    if (!o) return;
-    const value = ev.target.value;
-    clearTimeout(notesTimer);
-    notesTimer = setTimeout(() => updateEntry(o, { notes: value }), 300);
+    if (o) updateEntry(o, { notes: ev.target.value });
   } else if (ev.target.id === 'moveSearch') {
     filterMoves();
   }
@@ -463,7 +470,7 @@ $('view').addEventListener('click', (ev) => {
   }
   if (t.id === 'doneBtn') {
     const o = currentOcc();
-    if (o) { clearTimeout(notesTimer); updateEntry(o, { done: !entryFor(o).done, notes: $('notes').value }); render(true); }
+    if (o) { updateEntry(o, { done: !entryFor(o).done, notes: $('notes').value }); render(true); }
     return;
   }
   if (t.id === 'backupBtn') downloadBackup();

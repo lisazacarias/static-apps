@@ -315,20 +315,27 @@ export function checkWeek(routine, weeks, monday) {
       }
 
       if (id === 'splits-intensive') {
-        const hard = after.find((c) => hardFor(c, 'lower') && until(c) < 48);
+        // A class later the same day counts too, as does one on the same
+        // day with no time to say it's already over.
+        const ahead = [...today.filter((c) => !timed(c) || until(c) >= 0), ...after];
+        const hard = ahead.find((c) => hardFor(c, 'lower') && until(c) < 48);
         const kicks = after.find((c) => !hardFor(c, 'lower') && usesRegion(c, 'lower') && until(c) < 48);
         if (hard) flag(d, id, 'warn', 3, `Only ${timed(hard) ? fmtHours(until(hard)) : 'a day'} before ${named(hard)}, marked hard for the lower body. Keep Splits Intensive 48 hours before it.`);
         else if (kicks) flag(d, id, 'info', 3, `${timed(kicks) ? fmtHours(until(kicks)) : 'Less than 48 hours'} before ${named(kicks)}. Fine unless big splits or kicks matter in that class.`);
       }
 
       // Rule 4: long holds for a region stay off the hour or two before a
-      // class that uses it.
-      if (region === 'upper' || region === 'lower') {
-        const users = today.filter((c) => usesRegion(c, region) && !(region === 'upper' && hardFor(c, 'upper')));
+      // class that uses it. Shoulder Recovery is gentle but has 2-minute
+      // chest holds, so it counts as upper body here; it's meant for after
+      // class, so it's only flagged when timed shortly before one.
+      // Shoulders & Bridge on a tricks day is rule 1's to flag.
+      const holds = id === 'shoulder-recovery' ? 'upper' : region;
+      if (holds === 'upper' || holds === 'lower') {
+        const users = today.filter((c) => usesRegion(c, holds) && !(id === 'shoulders-bridge' && hardFor(c, 'upper')));
         if (users.length) {
           const soon = users.filter((c) => laterToday.includes(c) && until(c) < 2);
-          if (soon.length) flag(d, id, 'warn', 4, `Ends ${until(soon[0]) < 1 ? `${Math.max(0, Math.round(until(soon[0]) * 60))} minutes` : `${until(soon[0]).toFixed(1).replace(/\.0$/, '')} hours`} before ${listed(soon)}. Keep long ${HOLDS[region]} holds off the hour or two before class.`);
-          else if (users.some((c) => !timed(c))) flag(d, id, 'info', 4, `Class day: keep long ${HOLDS[region]} holds off the hour or two before ${listed(users)}.`);
+          if (soon.length) flag(d, id, 'warn', 4, `Ends ${until(soon[0]) < 1 ? `${Math.max(0, Math.round(until(soon[0]) * 60))} minutes` : `${until(soon[0]).toFixed(1).replace(/\.0$/, '')} hours`} before ${listed(soon)}. Keep long ${HOLDS[holds]} holds off the hour or two before class.`);
+          else if (id !== 'shoulder-recovery' && users.some((c) => !timed(c))) flag(d, id, 'info', 4, `Class day: keep long ${HOLDS[holds]} holds off the hour or two before ${listed(users)}.`);
         }
       }
 
@@ -502,16 +509,20 @@ export function describe(s) {
   const out = [`⏱ ${s.length}`];
   for (const p of s.about || []) out.push(p);
   for (const n of s.notes || []) out.push(`${n.label}: ${n.text}`);
-  const itemLine = (it) => `• ${it.name}, ${it.duration}${it.detail ? `: ${it.detail}` : ''}`;
+  const cueLines = (it, indent) => (it.cues || []).map((c) => `${indent}${cueSub(c) ? '- ' : ''}${cueText(c)}`);
+  const itemLines = (it) => [`• ${it.name}, ${it.duration}${it.detail ? `: ${it.detail}` : ''}`, ...cueLines(it, '   ')];
   for (const sec of s.sections) {
     out.push('');
     if (sec.title) out.push(`${sec.title.toUpperCase()}${sec.minutes ? ` — ${sec.minutes} min` : ''}${sec.note ? `. ${sec.note}` : ''}`);
-    for (const it of sec.items) out.push(it.whole ? (it.detail || '') : itemLine(it));
+    for (const it of sec.items) {
+      if (it.whole) out.push(...(it.detail ? [it.detail] : []), ...cueLines(it, '• '));
+      else out.push(...itemLines(it));
+    }
   }
   for (const p of s.after || []) out.push('', p);
   if (s.deload) out.push('', `Deload week: ${s.deload}`);
   for (const v of s.versions || []) {
-    out.push('', v.label.toUpperCase(), ...v.items.map(itemLine));
+    out.push('', v.label.toUpperCase(), ...v.items.flatMap(itemLines));
     if (v.skip) out.push(`Skip ${v.skip}.`);
   }
   return out.join('\n').trim();
