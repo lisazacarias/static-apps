@@ -1,5 +1,5 @@
 import {
-  CLASS_TYPES, LOADS, DAY_NAMES, versionOf, normalizeWeeks, normalizeWeek, emptyWeek, weekFromExample, copyWeek, isPlanned,
+  CLASS_TYPES, LOADS, DAY_NAMES, versionOf, deloadInfo, normalizeWeeks, normalizeWeek, emptyWeek, weekFromExample, copyWeek, isPlanned,
   occurrences, checkWeek, checklist, timerOptions, movementIndex, moveKey, cueText, cueSub,
   normalizeLog, isEmptyEntry, toIcs, suggestWeek, ymd, fromYmd, addDays, weekStart,
 } from './plan.js';
@@ -65,7 +65,7 @@ function parseKey(key) {
 }
 
 const weekOf = (date) => weeks.weeks[ymd(weekStart(date))];
-const isDeload = (date) => weekOf(date)?.deload === true;
+const isDeload = (date) => deloadInfo(weeks, weekStart(date)).deload;
 
 function status(key) {
   const e = log.entries[key];
@@ -159,15 +159,22 @@ function weekView(arg) {
       }).join('')}</div>
     </div>`;
 
+  const dl = deloadInfo(weeks, monday);
   html += `<div class="spread week-tools">
-      <label class="deload"><input type="checkbox" id="deloadBox" ${week?.deload ? 'checked' : ''}> Deload week <span class="muted tiny">(every 4th week)</span></label>
+      <label class="deload">Deload
+        <select class="add" id="deloadSel" aria-label="Deload week">
+          <option value=""${dl.setting === '' ? ' selected' : ''}>Automatic · ${dl.setting === '' && dl.deload ? 'this week' : 'not this week'}</option>
+          <option value="on"${dl.setting === 'on' ? ' selected' : ''}>Deload this week</option>
+          <option value="off"${dl.setting === 'off' ? ' selected' : ''}>Not this week</option>
+        </select></label>
       <span class="row">
         ${planned ? `<button class="btn${edit ? ' on' : ''}" type="button" id="editBtn">${edit ? 'Done editing' : 'Edit week'}</button>` : ''}
         ${planned ? `<button class="btn" type="button" id="exportBtn">Export .ics</button>` : ''}
       </span>
     </div>`;
   if (planned && !past) html += `<p class="auto-note tiny"><button class="btn" type="button" id="suggestBtn">Suggest again</button> ✦ Sessions are re-suggested whenever a class changes. Ones you’ve done or started stay put${thisWeek ? ', and nothing goes on days that have passed' : ''}.</p>`;
-  if (week?.deload) html += `<p class="info-box tiny">${rich(ROUTINE.guide.deload)}</p>`;
+  if (dl.deload) html += `<p class="info-box tiny"><b>Deload week${dl.setting === 'on' ? '' : ', every 4th'}.</b> Sessions open on their short version. ${rich(ROUTINE.guide.deload)}</p>`;
+  else if (dl.next) html += `<p class="muted tiny deload-next">Next deload: week of ${esc(fmtShort(fromYmd(dl.next)))}.</p>`;
 
   for (let i = 0; i < 7; i++) {
     const date = addDays(monday, i);
@@ -270,8 +277,11 @@ function sessionsView() {
 
 /* ── session ─────────────────────────────────────────────────────────── */
 
+// In a deload week a session opens on its short version, as the plan says.
+const defaultVariant = (o) => (isDeload(o.date) && o.session.versions ? o.session.versions[0].id : 'full');
+
 function entryFor(o) {
-  return log.entries[o.key] || { date: ymd(o.date), title: o.session.title, variant: 'full', checked: [], notes: '', done: false, updated: 0 };
+  return log.entries[o.key] || { date: ymd(o.date), title: o.session.title, variant: defaultVariant(o), checked: [], notes: '', done: false, updated: 0 };
 }
 
 function sessionView(key) {
@@ -360,7 +370,7 @@ const cueList = (cues) => `<ul>${cues.map((c) => `<li${cueSub(c) ? ' class="sub"
 
 function updateEntry(o, change) {
   const e = { ...entryFor(o), ...change, title: o.session.title, date: ymd(o.date), updated: Date.now() };
-  if (isEmptyEntry(e) && e.variant === 'full') delete log.entries[o.key];
+  if (isEmptyEntry(e) && e.variant === defaultVariant(o)) delete log.entries[o.key];
   else log.entries[o.key] = e;
   saveLog();
 }
@@ -394,9 +404,9 @@ $('view').addEventListener('change', (ev) => {
     changeWeek(+i, (d) => { const p = d.sessions.find((x) => x.id === id); if (p) p.time = t.value; });
     return;
   }
-  if (t.id === 'deloadBox') {
+  if (t.id === 'deloadSel') {
     const monday = currentMonday();
-    setWeek(monday, { ...(weeks.weeks[monday] || emptyWeek()), deload: t.checked });
+    setWeek(monday, { ...(weeks.weeks[monday] || emptyWeek()), deload: t.value });
     render(true);
     return;
   }

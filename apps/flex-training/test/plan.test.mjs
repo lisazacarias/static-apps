@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  normalizeWeeks, normalizeWeek, emptyWeek, weekFromExample, copyWeek, isPlanned,
+  normalizeWeeks, normalizeWeek, emptyWeek, deloadInfo, weekFromExample, copyWeek, isPlanned,
   occurrences, checkWeek, suggestWeek, checklist, versionOf, timerOptions, parseDuration, moveKey, movementIndex,
-  normalizeLog, isEmptyEntry, describe, toIcs, foldLine, weekStart, ymd,
+  normalizeLog, isEmptyEntry, describe, toIcs, foldLine, weekStart, ymd, fromYmd,
 } from '../plan.js';
 import ROUTINE from '../routine.js';
 
@@ -85,7 +85,7 @@ test('weeks normalizer keeps good days and drops junk', () => {
   }, IDS);
   assert.deepEqual(Object.keys(w.weeks), ['2026-10-19']);
   const week = w.weeks['2026-10-19'];
-  assert.equal(week.deload, true);
+  assert.equal(week.deload, 'on'); // an older save's true
   assert.equal(week.days.length, 7);
   // A bare id string (how classes were first stored) reads as one with no
   // time; the old plain "pole" class is pole tricks.
@@ -106,9 +106,42 @@ test('an example becomes a week, and copying a week drops deload', () => {
   const a = weekFromExample(WEEK_A);
   assert.deepEqual(a.days[2], { classes: [{ id: 'pole-tricks', time: '', hours: 1.5, load: 'upper', double: false }], sessions: [{ id: 'shoulder-recovery', time: '' }] });
   assert.ok(isPlanned(a));
-  const copy = copyWeek({ ...a, deload: true });
-  assert.equal(copy.deload, false);
+  const copy = copyWeek({ ...a, deload: 'on' });
+  assert.equal(copy.deload, '');
   assert.deepEqual(copy.days, a.days);
+});
+
+/* ── deload weeks ── */
+
+const mondays = (n) => Array.from({ length: n }, (_, i) => ymd(new Date(2026, 9, 5 + 7 * i)));
+const W = mondays(12); // Oct 5, 12, 19, 26, Nov 2, …
+const planned = { days: [{ classes: ['dance'] }] };
+const weeksOf = (settings) => normalizeWeeks({ weeks: Object.fromEntries(Object.entries(settings).map(([k, v]) => [k, { ...planned, ...v }])) });
+const deloadList = (weeks) => W.filter((k) => deloadInfo(weeks, fromYmd(k)).deload);
+
+test('every 4th week is a deload, counted from the first planned week', () => {
+  const weeks = weeksOf({ [W[0]]: {} });
+  assert.deepEqual(deloadList(weeks), [W[3], W[7], W[11]]);
+  assert.deepEqual(deloadInfo(weeks, fromYmd(W[0])), { deload: false, setting: '', next: W[3] });
+  assert.deepEqual(deloadInfo(weeks, fromYmd(W[3])), { deload: true, setting: '', next: W[7] });
+});
+
+test('marking a deload restarts the count; "not this week" pushes it on', () => {
+  // Ill in week 2: deload then, and the next one moves rather than stacking.
+  assert.deepEqual(deloadList(weeksOf({ [W[0]]: {}, [W[1]]: { deload: 'on' } })), [W[1], W[5], W[9]]);
+  // Performance in the deload week: push it to the week after.
+  assert.deepEqual(deloadList(weeksOf({ [W[0]]: {}, [W[3]]: { deload: 'off' } })), [W[4], W[8]]);
+});
+
+test('older saves read as automatic, except a deload that was ticked', () => {
+  const weeks = normalizeWeeks({ weeks: { [W[0]]: { ...planned, deload: false }, [W[2]]: { ...planned, deload: true } } });
+  assert.equal(weeks.weeks[W[0]].deload, '');
+  assert.equal(weeks.weeks[W[2]].deload, 'on');
+  assert.deepEqual(deloadList(weeks), [W[2], W[6], W[10]]);
+});
+
+test('with nothing planned, the count starts at the week asked about', () => {
+  assert.deepEqual(deloadInfo({ version: 1, weeks: {} }, fromYmd(W[4])), { deload: false, setting: '', next: W[7] });
 });
 
 test('occurrences list planned sessions in day order, keyed by date', () => {

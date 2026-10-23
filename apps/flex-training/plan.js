@@ -48,6 +48,9 @@ export const SESSION_REGION = {
 
 // { version: 1, weeks: { ['YYYY-MM-DD' of the Monday]: week } }
 //   week:    { deload, days: [7 × { classes, sessions }] }
+//            deload: '' automatic (see deloadInfo), 'on' or 'off'. Older
+//            saves have true (kept as 'on') or false, which was written
+//            on every week, so it reads as automatic
 //   class:   { id, time 'HH:MM'|'', hours, load, double }; a bare id string
 //            is read as one with no time and the type's defaults
 //   session: { id, time 'HH:MM'|'' }
@@ -86,7 +89,8 @@ export function normalizeWeek(w, sessionIds = null) {
       .map((s) => ({ id: s.id, time: isTime(s.time) ? s.time : '' }));
     return { classes, sessions };
   });
-  return { deload: w?.deload === true, days };
+  const deload = w?.deload === true || w?.deload === 'on' ? 'on' : w?.deload === 'off' ? 'off' : '';
+  return { deload, days };
 }
 
 export const emptyWeek = () => normalizeWeek({});
@@ -100,6 +104,32 @@ export const weekFromExample = (example) => normalizeWeek({
 export const copyWeek = (w) => normalizeWeek({ days: w.days });
 
 export const isPlanned = (w) => !!w && w.days.some((d) => d.classes.length || d.sessions.length);
+
+/* ── deload weeks ────────────────────────────────────────────────────── */
+
+// The plan deloads every 4th week, and in any week with illness, poor
+// sleep or a performance, "moving the fixed deload rather than stacking
+// two". So weeks are counted from the first one you planned: after three
+// weeks without one, the next is a deload. A week you mark as a deload
+// restarts the count; one you mark "not this week" pushes it on a week.
+//   → { deload, setting '' | 'on' | 'off', next: Monday 'YYYY-MM-DD' of the
+//       next deload after this week }
+export function deloadInfo(weeks, monday) {
+  const target = ymd(weekStart(monday));
+  const known = Object.entries(weeks.weeks).filter(([, w]) => isPlanned(w) || w.deload).map(([k]) => k).sort();
+  let day = fromYmd(known[0] && known[0] < target ? known[0] : target);
+  let since = 0; // weeks since the last deload
+  let result = null;
+  for (let n = 0; n < 1000; n++, day = addDays(day, 7)) {
+    const key = ymd(day);
+    const setting = weeks.weeks[key]?.deload || '';
+    const deload = setting === 'on' || (setting !== 'off' && since >= 3);
+    since = deload ? 0 : since + 1;
+    if (key === target) result = { deload, setting };
+    else if (result && deload) return { ...result, next: key };
+  }
+  return { ...result, next: null };
+}
 
 /* ── suggested week ──────────────────────────────────────────────────── */
 
