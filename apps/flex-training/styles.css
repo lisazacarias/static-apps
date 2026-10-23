@@ -360,3 +360,24 @@ body.playing { overflow: hidden; }
 .play-done .btn { margin-top: 16px; }
 .start-bar { margin-top: 14px; gap: 12px; }
 @media (min-width: 700px) { .player { padding: 24px max(24px, calc(50% - 360px)); } }
+
+/* ── add a class ── */
+.add-class { border-color: var(--blue); margin: 4px 0 16px; }
+.add-class h2 { font-size: 18px; margin-bottom: 8px; }
+.add-class .row { margin: 8px 0; }
+.add-class select.big { font-size: 15px; padding: 8px 10px; min-width: 60%; }
+.add-class label { display: inline-flex; align-items: center; gap: 6px; color: var(--text-label); }
+.add-class #acAdd { margin-left: auto; padding: 9px 18px; font-size: 14px; }
+.day-picks { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 10px 0; }
+.day-pick {
+    padding: 11px 0;
+    border-radius: 6px;
+    border: 1px solid var(--border-bright);
+    background: var(--bg-elevated);
+    color: var(--text-label);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.day-pick.on { border-color: var(--blue); background: var(--blue-dim); color: var(--text-bright); }

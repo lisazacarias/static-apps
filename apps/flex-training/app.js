@@ -154,6 +154,8 @@ function weekView(arg) {
     </div>`;
   }
 
+  if (!past) html += addClassCard();
+
   const { minimums, flags } = checkWeek(ROUTINE, weeks, monday);
   const doneIn = (id) => [0, 1, 2, 3, 4, 5, 6].filter((i) => status(`${ymd(addDays(monday, i))}|${id}`) === 'done').length;
   html += `<div class="minimums">
@@ -217,6 +219,48 @@ function classChip(c, dayIndex, edit) {
     <select class="add" data-classload="${key}" aria-label="${label} load">${Object.entries(LOADS).map(([k, v]) => `<option value="${k}"${k === c.load ? ' selected' : ''}>${esc(v)}</option>`).join('')}</select>
     <label class="tiny dbl"><input type="checkbox" data-classdouble="${key}"${c.double ? ' checked' : ''}> double</label>
     <button type="button" class="x" data-unclass="${key}" aria-label="Remove ${label}">×</button></span>`;
+}
+
+// One place to add a class on any days of the week: pick the class, tap
+// the days, optionally a time and length. Kept between renders so adding
+// the same class to more weeks is quick.
+const addForm = { type: CLASS_TYPES[0].id, days: new Set(), time: '', hours: '' };
+
+function addClassCard() {
+  const t = CLASS_TYPES.find((c) => c.id === addForm.type);
+  return `<div class="card add-class">
+    <h2>Add a class</h2>
+    <div class="row">
+      <select id="acType" class="add big" aria-label="Class">${CLASS_TYPES.map((c) => `<option value="${c.id}"${c.id === addForm.type ? ' selected' : ''}>${esc(c.label)}</option>`).join('')}</select>
+    </div>
+    <div class="day-picks" role="group" aria-label="Days">${DAY_NAMES.map((d, i) => `<button type="button" class="day-pick${addForm.days.has(i) ? ' on' : ''}" data-acday="${i}" aria-pressed="${addForm.days.has(i)}">${d.slice(0, 3)}</button>`).join('')}</div>
+    <div class="row">
+      <label class="tiny">Start <input id="acTime" type="time" class="time" value="${esc(addForm.time)}"></label>
+      <label class="tiny">Length <input id="acHours" type="number" class="hours" min="0.5" max="12" step="0.25" placeholder="${t.hours}" value="${esc(addForm.hours)}"> h</label>
+      <button id="acAdd" class="btn primary" type="button"${addForm.days.size ? '' : ' disabled'}>Add${addForm.days.size > 1 ? ` to ${addForm.days.size} days` : ''}</button>
+    </div>
+    <p class="tiny muted">Time and length are optional; with them the rules check exact hours. Sessions are re-suggested after.</p>
+  </div>`;
+}
+
+function addClasses() {
+  const monday = currentMonday();
+  const week = normalizeWeek(weeks.weeks[monday] || {}, SESSION_IDS);
+  const hours = parseFloat(addForm.hours);
+  for (const i of addForm.days) {
+    const day = week.days[i];
+    const existing = day.classes.find((c) => c.id === addForm.type);
+    const c = existing || { id: addForm.type };
+    if (addForm.time) c.time = addForm.time;
+    if (hours > 0) c.hours = hours;
+    if (!existing) day.classes.push(c);
+  }
+  setWeek(monday, week);
+  suggest(monday);
+  const n = addForm.days.size;
+  notify(`Added ${CLASS_TYPES.find((c) => c.id === addForm.type).label.toLowerCase()} on ${n} day${n === 1 ? '' : 's'}.`);
+  addForm.days.clear();
+  render(true);
 }
 
 function occRow(o, dayIndex, edit) {
@@ -407,6 +451,7 @@ function currentOcc() {
 
 $('view').addEventListener('change', (ev) => {
   const t = ev.target;
+  if (t.id === 'acType') { addForm.type = t.value; render(true); return; }
   if (t.dataset.addclass) { const i = +t.dataset.addclass; changeWeek(i, (d) => d.classes.push({ id: t.value }), 'classes'); return; }
   const classKey = t.dataset.classtime || t.dataset.classhours || t.dataset.classload || t.dataset.classdouble;
   if (classKey) {
@@ -453,6 +498,8 @@ $('view').addEventListener('change', (ev) => {
 // Notes save on every keystroke, so a re-render or closing the tab can't
 // drop what was just typed.
 $('view').addEventListener('input', (ev) => {
+  if (ev.target.id === 'acTime') { addForm.time = ev.target.value; return; }
+  if (ev.target.id === 'acHours') { addForm.hours = ev.target.value; return; }
   if (ev.target.id === 'notes') {
     const o = currentOcc();
     if (o) updateEntry(o, { notes: ev.target.value });
@@ -465,6 +512,17 @@ $('view').addEventListener('click', (ev) => {
   const t = ev.target.closest('button');
   if (!t) return;
   if (t.dataset.timer) { startTimer(+t.dataset.timer, t.dataset.label); return; }
+  if (t.dataset.acday) {
+    const i = +t.dataset.acday;
+    if (addForm.days.has(i)) addForm.days.delete(i); else addForm.days.add(i);
+    t.classList.toggle('on', addForm.days.has(i));
+    t.setAttribute('aria-pressed', addForm.days.has(i));
+    const add = $('acAdd');
+    add.disabled = !addForm.days.size;
+    add.textContent = addForm.days.size > 1 ? `Add to ${addForm.days.size} days` : 'Add';
+    return;
+  }
+  if (t.id === 'acAdd') { addClasses(); return; }
   if (t.dataset.variant) {
     const o = currentOcc();
     if (o) { updateEntry(o, { variant: t.dataset.variant }); render(true); }
