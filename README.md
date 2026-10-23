@@ -45,11 +45,11 @@ browser never needs a build — not that Node is banned from the workflow.
     │   ├── styles.css
     │   ├── package.json     # Dev-only: test runner scripts
     │   └── test/            # Node tests for cues.js and xlsx.js
-    └── flex-training/       # Weekly flexibility routine: sessions, tick-offs, hold timer, movement reference
+    └── flex-training/       # Flexibility plan: week planner with rule checks, sessions, hold timer, movement reference
         ├── index.html
-        ├── app.js           # DOM, routing, log storage, timer
-        ├── plan.js          # Pure logic: schedule, checklists, movement index, .ics export
-        ├── routine.js       # The routine itself — edit this to change the plan
+        ├── app.js           # DOM, routing, week/log storage, timer
+        ├── plan.js          # Pure logic: week planner, rule checks, checklists, movement index, .ics export
+        ├── routine.js       # The plan itself (sessions, rules, references) — edit this to change it
         ├── styles.css
         ├── package.json     # Dev-only: test runner scripts
         └── test/            # Node tests for plan.js against the real routine

@@ -1,284 +1,721 @@
-// The weekly routine: what the app shows, and what Export .ics writes.
-// Converted once from the Flex Training calendar; edit here from now on.
+// The flexibility plan: the session menu, the weekly rules, and what the
+// app's Guide shows. Converted from "Flexibility Plan: Session Menu and
+// Weekly Rules" (updated 2026-10-23); edit here from now on.
 //
-//   sessions  day 0 = Monday … 6 = Sunday; start/end are the calendar block,
-//             total is the session's own minute count
-//   sections  [{ title, minutes, note?, items }]; an item marked whole is the
-//             section itself (its notes are all cues, no named movements)
-//   item      { name, duration, detail?, cues? } — a cue is a string, or
-//             { text, sub: true } for a line under a step
-//   short     the short-on-time version, when there is one
-//   library   longer write-ups from earlier versions of the plan, keyed by
-//             moveKey() in plan.js; the Movements tab shows them too
+//   sessions  { id, title, kind 'big'|'short'|'prep', length, minutes, about?,
+//             notes?, sections, after?, deload?, short? }
+//   sections  [{ title?, minutes?, note?, items }]; an item marked whole is
+//             the section itself
+//   item      { name, duration, detail?, cues? }. [n] in any text cites
+//             guide.references
+//   guide     minimums, placement rules, example weeks, stop rules, deload,
+//             progress log, busy week, physio questions, references
+//   library   longer write-ups from the earlier calendar plan, keyed by
+//             moveKey() in plan.js — kept for setup and form; the session's
+//             own times and reps win
 export default {
-  "sessions": [
-    {
-      "id": "shoulder-maintenance",
-      "title": "Shoulder Maintenance",
-      "day": 0,
-      "start": "21:15",
-      "end": "21:30",
-      "total": 15,
-      "intro": [
-        "⚠️ SKIP if exhausted — listen to your body"
-      ],
-      "short": {
-        "minutes": 5,
-        "items": [
-          {
-            "name": "Foam roll lats",
-            "duration": "2 min",
-            "detail": "roller under armpit, slow passes, stop on tender spots; 1 min/side"
-          },
-          {
-            "name": "Shoulder CARs",
-            "duration": "3 min",
-            "detail": "5 reps each direction per arm, big controlled circles, torso still"
-          }
-        ],
-        "skip": "wall clocks"
+  "guide": {
+    "updated": "2026-10-23",
+    "intro": "Updated October 23, 2026. This plan is built from a menu of sessions and a few placement rules, so you can build each week around whatever pole, dance, rehearsal and climbing sessions you have. Numbers in square brackets point to the reference list at the end. Placement rules marked \"coaching judgment\" come from clinical and coaching sources and from reasoning about recovery. No study compares weekly schedules directly.",
+    "howTo": [
+      "Write down the week's classes first: pole (including pole tricks), dance, any rehearsal or run-through, and any climbing or skating.",
+      "Check that the week has every item in the weekly minimums below.",
+      "Place the three big sessions using the placement rules. Fill the gaps with the short sessions.",
+      "If you are sore, tired or short of time, use a session's short version. Do not skip the week's minimums entirely."
+    ],
+    "minimumsNote": "These give you three exposures a week to each of your priority areas. In the one maintenance trial I found, three sessions a week held range of motion and one a week did not, though confidence in that finding is low [37].",
+    "minimums": [
+      {
+        "session": "splits-intensive",
+        "count": 1,
+        "serves": "Front splits (goal 1), middle split (goal 3)"
       },
-      "sections": [
-        {
-          "title": "Foam roll lats",
-          "minutes": 4,
-          "items": [
-            {
-              "name": "Foam roll lats",
-              "duration": "4 min",
-              "cues": [
-                "Roller under armpit, slow passes",
-                "Stop on tender spots, 2 min each side"
-              ],
-              "whole": true
-            }
-          ]
-        },
-        {
-          "title": "Shoulder CARs",
-          "minutes": 3,
-          "items": [
-            {
-              "name": "Shoulder CARs",
-              "duration": "3 min",
-              "cues": [
-                "5 reps each direction per arm",
-                "Big controlled circles, torso still"
-              ],
-              "whole": true
-            }
-          ]
-        },
-        {
-          "title": "Wall clocks",
-          "minutes": 8,
-          "note": "(skip if exhausted)",
-          "items": [
-            {
-              "name": "Wall clocks",
-              "duration": "8 min",
-              "cues": [
-                "12/3/6/9 o'clock positions, 30s each",
-                "Press firmly, reverse direction",
-                "Switch arms, repeat"
-              ],
-              "whole": true
-            }
-          ]
-        }
+      {
+        "session": "shoulder-hyperflexion",
+        "count": 1,
+        "serves": "Shoulder hyperflexion (goal 2)"
+      },
+      {
+        "session": "hips-backbend",
+        "count": 1,
+        "serves": "Backbend (goal 4), plus a lighter front-split and middle-split exposure"
+      },
+      {
+        "session": "splits-snack",
+        "count": 1,
+        "serves": "Third front-split and middle-split exposure"
+      },
+      {
+        "session": "shoulder-recovery",
+        "count": 1,
+        "serves": "Second shoulder exposure"
+      },
+      {
+        "session": "shoulder-reset",
+        "count": 1,
+        "serves": "Third shoulder exposure"
+      }
+    ],
+    "rules": [
+      {
+        "rule": "Splits Intensive goes on the free day with the most recovery before your next hard class.",
+        "why": "Aim for at least 48 hours, and 72 if you can. It includes eccentric hamstring work, and soreness from eccentric work typically peaks 24 to 72 hours later [39].",
+        "evidence": "coaching judgment, consistent with the clinical literature on lengthened-state eccentric training [40]"
+      },
+      {
+        "rule": "Shoulder Hyperflexion goes on a free day, at least 48 hours before pole and 24 hours after it.",
+        "why": "Never on a pole or pole-tricks day. Shoulders are the most common pole injury site [12][13].",
+        "evidence": "coaching judgment"
+      },
+      {
+        "rule": "Hips & Backbend goes on a free evening, never on a pole day.",
+        "why": "If pole is the next day, stop bridging at 2 reps and about 80% of your usual depth.",
+        "evidence": "coaching judgment"
+      },
+      {
+        "rule": "Do not do loaded end-range work for the same region on consecutive days.",
+        "why": "That covers eccentric hamstring work, bridge depth and hyperflexion lift-offs.",
+        "evidence": "coaching judgment"
+      },
+      {
+        "rule": "Class days get dynamic prep only.",
+        "why": "Use the Class-day prep module below, with any static holds kept under 60 seconds per muscle group. Short holds cost only about 1 to 2% of strength and power [34], and the 2024 meta-analysis found holds over 60 seconds impair isolated maximal strength while jumping and sprinting were not significantly reduced [35]. In one extreme study, about 30 minutes of calf stretching left a 9% strength deficit an hour later [34]. Keep long passive work for a non-class day, or at least a few hours before class.",
+        "evidence": "research-backed"
+      },
+      {
+        "rule": "After class, stretching is optional.",
+        "why": "It is not a proven recovery tool [3]. If you do stretch, stay at your usual depth and never chase new depth when tired.",
+        "evidence": "research-backed (recovery) and coaching judgment (depth)"
+      },
+      {
+        "rule": "Late sessions are maintenance only.",
+        "why": "Gentle stretching at 9 to 10 PM does not harm sleep [21], but strenuous exercise within about 4 hours of sleep can [22]. Rehearsal and pole are the likelier culprits than stretching.",
+        "evidence": "research-backed"
+      },
+      {
+        "rule": "Fill the gaps with the short sessions.",
+        "why": "The Splits Snack, Shoulder Reset and Shoulder Recovery are low-risk and keep your weekly exposures up.",
+        "evidence": "research-backed for exposure counts (low confidence), coaching judgment for placement"
+      },
+      {
+        "rule": "If a session is cut, use its short version.",
+        "why": "A skipped week costs little, because range gains stay above baseline for 2 to 6 weeks after stretching stops, with a small decline [37].",
+        "evidence": "research-backed"
+      }
+    ],
+    "busyWeek": {
+      "intro": "Keep three exposures to your top two goals and skip the rest.",
+      "items": [
+        "Splits Intensive, 18-minute version, once.",
+        "Splits Snack, once or twice.",
+        "Shoulder Hyperflexion, 18-minute version, once.",
+        "Shoulder Reset, 5-minute version, once or twice.",
+        "Skip Hips & Backbend if you must. Do its 20-minute version if you can."
       ]
     },
-    {
-      "id": "backbend-intensive",
-      "title": "Backbend Intensive",
-      "day": 1,
-      "start": "19:00",
-      "end": "20:30",
-      "total": 90,
-      "intro": [
-        "🎯 BACKBEND OVERHAUL — ANTERIOR CHAIN FOCUS"
-      ],
-      "short": {
-        "minutes": 20,
-        "items": [
-          {
-            "name": "Cardio",
-            "duration": "2 min",
-            "cues": [
-              "Mopping/sweeping or light movement, get heart rate up"
-            ]
-          },
-          {
-            "name": "Cat-cow",
-            "duration": "1 min",
-            "cues": [
-              "Hands under shoulders, knees under hips. Round on exhale, arch on inhale"
-            ]
-          },
-          {
-            "name": "Couch/kneeling hip flexor",
-            "duration": "2 min",
-            "cues": [
-              "Back foot up behind you, front knee 90°, tuck pelvis, press hips forward. 1 min/side"
-            ]
-          },
-          {
-            "name": "Sphinx → cobra pulses",
-            "duration": "2 min",
-            "cues": [
-              "Forearms down → press up to hands. Lead with chest, shoulders down"
-            ]
-          },
-          {
-            "name": "Locust",
-            "duration": "2 min",
-            "cues": [
-              "Face down, lift chest + legs together, squeeze glutes/back. Short holds"
-            ]
-          },
-          {
-            "name": "Camel at pole",
-            "duration": "2 min",
-            "cues": [
-              "Kneeling, hold pole, lean back and open chest FROM BETWEEN THE SHOULDER BLADES first, hips follow after. 1x90s hold, rise slowly"
-            ]
-          },
-          {
-            "name": "Full bridge, depth focus",
-            "duration": "7 min",
-            "cues": [
-              "Hands by ears, feet hip-width, press up evenly. Push the chest/upper back open before letting the lower back take the depth. 2 reps x 45-60s, ease deeper on exhales"
-            ]
-          },
-          {
-            "name": "Cool down",
-            "duration": "2 min",
-            "cues": [
-              "Child's pose, then slow breaths"
-            ]
-          }
-        ],
-        "skip": "thoracic roll/arch-backs, extensor block, strength/endurance, theragun recovery"
+    "deload": "Every 4th week, use short versions of every session, drop depth chasing, skip the eccentric lowering in Splits Intensive and Round 2 in Shoulder Hyperflexion, and keep bridges to 2 reps at 80% depth. Also deload in any week with illness, poor sleep or a performance, and move the fixed deload rather than stacking two. This is standard coaching practice. I found no flexibility-specific trial testing deload timing.",
+    "progressLog": "Every 4 weeks, measure cold and at the same time of day: front-split height from the floor (each side), middle-split width, bridge hand-to-heel distance, and supine shoulder flexion with the lower back flat [31]. This shows whether the plan is working, which matters more when your schedule changes from week to week.",
+    "stopIntro": "These apply in every session. Stop the drill and drop to an easier version if you notice any of the following.",
+    "stopRules": [
+      {
+        "area": "Shoulder",
+        "text": "A deep or front-of-shoulder pinch (rather than a lat or armpit stretch), clicking or clunking, a dead-arm feeling, tingling or numbness into the arm, or shoulder ache still present the next morning [20]."
       },
+      {
+        "area": "Wrist",
+        "text": "Pinching at the back of the wrist in weight-bearing, or wrist pain lasting into the next day [19]."
+      },
+      {
+        "area": "Low back",
+        "text": "Sharp or one-sided low-back pain when arching, pain when standing on one leg and leaning back, or low-back pain that lasts more than a few days or returns after backbend days. See a physio or sports doctor if it lasts 1 to 2 weeks, because standard X-rays can miss pars stress injuries [16][17][18]."
+      },
+      {
+        "area": "Hamstring",
+        "text": "Sharp pain or a pop high at the sit bone during front splits, or bruising afterward. All hamstring injuries in one pole cohort came from front-split moves [12]."
+      }
+    ],
+    "questions": [
+      "A filmed side view of your bridge, plus a hip extension measurement, to see whether the bend is shared across hips, thoracic spine and shoulders or hinges in the lower back [15].",
+      "Whether your age and back history change how much lumbar extension volume suits you.",
+      "Optional: a shoulder stability exam before adding any external load at end-range shoulder flexion. Since you are not hypermobile, this is lower priority than it would be otherwise, but the benefit of passive loading is unsupported either way [33].",
+      "Whether your eccentric hamstring volume suits your history, if you have ever strained a hamstring [40]."
+    ],
+    "caveat": "I am not a physio, and this plan is not a substitute for one. Evidence for the specific combination of methods in advanced pole and dance athletes is thin. Most dose-response data come from ordinary adults and from the hamstrings and calves. The safety concerns about loaded passive shoulder hyperflexion rest on mechanisms and clinical opinion, not on injury-outcome trials. Pole injury figures come mostly from self-reported surveys.",
+    "examples": [
+      {
+        "title": "Week A: pole Wednesday, dance Thursday, pole dance Friday",
+        "days": [
+          {
+            "day": 0,
+            "classes": [],
+            "sessions": [
+              "splits-snack",
+              "shoulder-reset"
+            ],
+            "why": "Friday has no free slot, so the snack moves here"
+          },
+          {
+            "day": 1,
+            "classes": [],
+            "sessions": [
+              "hips-backbend"
+            ],
+            "why": "Pole is tomorrow, so bridge reps stay submaximal"
+          },
+          {
+            "day": 2,
+            "classes": [
+              "pole"
+            ],
+            "sessions": [
+              "shoulder-recovery"
+            ],
+            "why": "Class-day rule 6"
+          },
+          {
+            "day": 3,
+            "classes": [
+              "dance"
+            ],
+            "sessions": [
+              "class-prep"
+            ],
+            "why": "Class-day rule 5"
+          },
+          {
+            "day": 4,
+            "classes": [
+              "pole-dance"
+            ],
+            "sessions": [],
+            "why": "Class day"
+          },
+          {
+            "day": 5,
+            "classes": [],
+            "sessions": [
+              "splits-intensive"
+            ],
+            "why": "4 days before the next pole class. Do it at about 70% volume if Friday left you tired."
+          },
+          {
+            "day": 6,
+            "classes": [],
+            "sessions": [
+              "shoulder-hyperflexion"
+            ],
+            "why": "72 hours before pole. If there is an evening rehearsal, finish at least 3 to 4 hours before it."
+          }
+        ]
+      },
+      {
+        "title": "Week B: pole Tuesday, dance Thursday, no Friday class, Sunday evening rehearsal",
+        "days": [
+          {
+            "day": 0,
+            "classes": [],
+            "sessions": [
+              "shoulder-reset"
+            ],
+            "why": "Light, and a day before pole"
+          },
+          {
+            "day": 1,
+            "classes": [
+              "pole"
+            ],
+            "sessions": [
+              "shoulder-recovery"
+            ],
+            "why": "Class-day rule 6"
+          },
+          {
+            "day": 2,
+            "classes": [],
+            "sessions": [
+              "hips-backbend"
+            ],
+            "why": "A free evening. Keep bridge reps submaximal the day after pole."
+          },
+          {
+            "day": 3,
+            "classes": [
+              "dance"
+            ],
+            "sessions": [
+              "class-prep"
+            ],
+            "why": "Class-day rule 5"
+          },
+          {
+            "day": 4,
+            "classes": [],
+            "sessions": [
+              "splits-snack"
+            ],
+            "why": "Usual depth, the day before the intensive"
+          },
+          {
+            "day": 5,
+            "classes": [],
+            "sessions": [
+              "splits-intensive"
+            ],
+            "why": "Most recovery before the next hard class"
+          },
+          {
+            "day": 6,
+            "classes": [
+              "rehearsal"
+            ],
+            "sessions": [
+              "shoulder-hyperflexion"
+            ],
+            "why": "48 hours before pole. Done 3 to 4 hours before rehearsal."
+          }
+        ]
+      }
+    ],
+    "references": [
+      {
+        "n": 1,
+        "kind": "R",
+        "text": "Ingram et al., Optimising the dose of static stretching to improve flexibility: a systematic review, meta-analysis and multivariate meta-regression. Sports Medicine",
+        "site": "Semantic Scholar record",
+        "url": "https://www.semanticscholar.org/paper/Optimising-the-Dose-of-Static-Stretching-to-Improve-Ingram-Tomkinson/9b555dbcf0dc27858cfe40d38681aee001f19a77"
+      },
+      {
+        "n": 2,
+        "kind": "R",
+        "text": "Konrad et al., Chronic effects of stretching on range of motion with consideration of potential moderating variables: a systematic review with meta-analysis. Journal of Sport and Health Science, 2024",
+        "site": "ScienceDirect",
+        "url": "https://www.sciencedirect.com/science/article/pii/S2095254623000571"
+      },
+      {
+        "n": 3,
+        "kind": "C",
+        "text": "Warneke et al., Practical recommendations on stretching exercise: a Delphi consensus statement of international research experts, 2025",
+        "site": "PubMed Central",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12305623/"
+      },
+      {
+        "n": 4,
+        "kind": "R",
+        "text": "Warneke et al., Foam rolling and stretching do not provide superior acute flexibility and stiffness improvements compared to any other warm-up intervention: a systematic review with meta-analysis. Journal of Sport and Health Science, 2024",
+        "site": "ScienceDirect",
+        "url": "https://www.sciencedirect.com/science/article/pii/S2095254624000061"
+      },
+      {
+        "n": 5,
+        "kind": "R",
+        "text": "Alizadeh et al., Resistance training induces improvements in range of motion: a systematic review and meta-analysis. Sports Medicine, 2023",
+        "site": "ResearchGate",
+        "url": "https://www.researchgate.net/publication/366977328_Resistance_Training_Induces_Improvements_in_Range_of_Motion_A_Systematic_Review_and_Meta-Analysis"
+      },
+      {
+        "n": 6,
+        "kind": "R",
+        "text": "Afonso et al., Strength training versus stretching for improving range of motion: a systematic review and meta-analysis. Healthcare, 2021",
+        "site": "MDPI",
+        "url": "https://www.mdpi.com/2227-9032/9/4/427"
+      },
+      {
+        "n": 7,
+        "kind": "R",
+        "text": "Eight weeks of eccentric training at long muscle length increases fascicle length independently of adaptations in passive mechanical properties. Journal of Applied Physiology, 2025",
+        "site": "American Physiological Society",
+        "url": "https://journals.physiology.org/doi/full/10.1152/japplphysiol.00859.2024"
+      },
+      {
+        "n": 8,
+        "kind": "R",
+        "text": "Mechanisms underlying range of motion improvements following acute and chronic static stretching: a systematic review, meta-analysis and multivariate meta-regression",
+        "site": "PubMed Central",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12152101/"
+      },
+      {
+        "n": 9,
+        "kind": "R",
+        "text": "What is the optimal contraction intensity and duration in the performance of relaxation techniques for maximal increase of range of motion? PNF and Movement",
+        "site": "Korea Science",
+        "url": "https://www.koreascience.or.kr/article/JAKO201617559404415.page"
+      },
+      {
+        "n": 10,
+        "kind": "R",
+        "text": "Bonnar, Deivert and Gould, 2004, hold-relax contraction durations of 3, 6 and 10 seconds",
+        "site": "PubMed",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/15756164/"
+      },
+      {
+        "n": 11,
+        "kind": "R",
+        "text": "Optimal stretching dose for improving range of motion in non-athletes and athletes with hamstring shortening: a dose-response meta-analysis",
+        "site": "PubMed",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/42551249/"
+      },
+      {
+        "n": 12,
+        "kind": "R",
+        "text": "Incidence, mechanisms, and characteristics of injuries in pole dancers: a prospective cohort study",
+        "site": "PubMed",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/36053493/"
+      },
+      {
+        "n": 13,
+        "kind": "R",
+        "text": "Lee et al., Prevalence of pole dance injuries from a global online survey, 2020",
+        "site": "PubMed",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/31663312/"
+      },
+      {
+        "n": 14,
+        "kind": "C",
+        "text": "The Pole Physio, Anatomy of a backbend, part 2",
+        "site": "thepolephysio.com",
+        "url": "https://www.thepolephysio.com/post/anatomy-of-a-backbend-part-2"
+      },
+      {
+        "n": 15,
+        "kind": "R",
+        "text": "The impact of lower back pain on hip extension and lumbosacral lateral flexion in junior gymnasts during back-bending, 2025",
+        "site": "PubMed Central",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12612811/"
+      },
+      {
+        "n": 16,
+        "kind": "C",
+        "text": "Gymnastics Medicine, Spine injuries",
+        "site": "gymnasticsmedicine.org",
+        "url": "https://gymnasticsmedicine.org/spine/"
+      },
+      {
+        "n": 17,
+        "kind": "C",
+        "text": "Physiopedia, Lumbar spondylolysis in extension related sport",
+        "site": "Physiopedia",
+        "url": "https://www.physio-pedia.com/Lumbar_Spondylolysis_in_Extension_Related_Sport"
+      },
+      {
+        "n": 18,
+        "kind": "C",
+        "text": "Low back pain in dancers. Medscape",
+        "site": "Medscape",
+        "url": "https://www.medscape.com/viewarticle/717393_4"
+      },
+      {
+        "n": 19,
+        "kind": "C",
+        "text": "Wrist pain in gymnastics. Warringah Physiotherapy",
+        "site": "warringahphysio.com.au",
+        "url": "https://www.warringahphysio.com.au/single-post/2020/06/22/wrist-pain-in-gymnastics"
+      },
+      {
+        "n": 20,
+        "kind": "C",
+        "text": "Physiopedia, Anterior shoulder instability",
+        "site": "Physiopedia",
+        "url": "https://www.physio-pedia.com/Anterior_Shoulder_Instability"
+      },
+      {
+        "n": 21,
+        "kind": "R",
+        "text": "Stutz, Eiholzer and Spengler, Effects of evening exercise on sleep in healthy participants: a systematic review and meta-analysis. Sports Medicine, 2019",
+        "site": "Springer",
+        "url": "https://link.springer.com/article/10.1007/s40279-018-1015-0"
+      },
+      {
+        "n": 22,
+        "kind": "R",
+        "text": "Dose-response relationship between evening exercise and sleep. Nature Communications, 2025",
+        "site": "Nature",
+        "url": "https://www.nature.com/articles/s41467-025-58271-x"
+      },
+      {
+        "n": 23,
+        "kind": "R",
+        "text": "Effects of active and passive warm-ups on range of motion, strength, and muscle passive properties in ankle plantarflexor muscles",
+        "site": "PubMed",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/29933358"
+      },
+      {
+        "n": 24,
+        "kind": "R",
+        "text": "Passive vs. active warm-up combined with stretching on hamstring flexibility and maximal voluntary contractions",
+        "site": "PubMed",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/40333835/"
+      },
+      {
+        "n": 25,
+        "kind": "R",
+        "text": "The effects of massage guns on performance and recovery: a systematic review",
+        "site": "ResearchGate",
+        "url": "https://www.researchgate.net/publication/374006054_The_Effects_of_Massage_Guns_on_Performance_and_Recovery_A_Systematic_Review"
+      },
+      {
+        "n": 26,
+        "kind": "R",
+        "text": "Leabeater et al., Under the gun: percussive massage therapy and physical and perceptual recovery in active adults, 2024",
+        "site": "PubMed Central",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10976339/"
+      },
+      {
+        "n": 27,
+        "kind": "R",
+        "text": "Foam rolling training effects on range of motion: a systematic review and meta-analysis. Sports Medicine",
+        "site": "Springer",
+        "url": "https://link.springer.com/article/10.1007/s40279-022-01699-8"
+      },
+      {
+        "n": 28,
+        "kind": "R",
+        "text": "Static stretch training versus foam rolling training effects on range of motion: a systematic review and meta-analysis. Sports Medicine",
+        "site": "Springer",
+        "url": "https://link.springer.com/article/10.1007/s40279-024-02041-0"
+      },
+      {
+        "n": 29,
+        "kind": "R",
+        "text": "Effects of latissimus dorsi length on shoulder flexion in canoeists, swimmers, rugby players, and controls. Journal of Sport and Health Science, 2013",
+        "site": "ScienceDirect",
+        "url": "https://www.sciencedirect.com/science/article/pii/S2095254613000215"
+      },
+      {
+        "n": 30,
+        "kind": "C",
+        "text": "The Prehab Guys, How to assess and improve shoulder overhead mobility",
+        "site": "theprehabguys.com",
+        "url": "https://landing.theprehabguys.com/shoulder-mobility/"
+      },
+      {
+        "n": 31,
+        "kind": "C",
+        "text": "Lattice Training, Flexibility, climbing and performance, part 3",
+        "site": "latticetraining.com",
+        "url": "https://latticetraining.com/2021/06/22/flexibility-climbing-and-performance-what-why-and-how-part-3/"
+      },
+      {
+        "n": 32,
+        "kind": "R",
+        "text": "Warneke et al., Effects of a home-based stretching program on bench press maximum strength and shoulder flexibility",
+        "site": "ResearchGate",
+        "url": "https://www.researchgate.net/profile/David-Behm/publication/373717155_Effects_of_a_Home-Based_Stretching_Program_on_Bench_Press_Maximum_Strength_and_Shoulder_Flexibility/links/65155b874aa1fe04700e77ea/Effects-of-a-Home-Based-Stretching-Program-on-Bench-Press-Maximum-Strength-and-Shoulder-Flexibility.pdf"
+      },
+      {
+        "n": 33,
+        "kind": "R",
+        "text": "Hypermobility and dance: a review",
+        "site": "PubMed",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/21695667/"
+      },
+      {
+        "n": 34,
+        "kind": "R",
+        "text": "Chaabene et al., Acute effects of static stretching on muscle strength and power: an attempt to clarify previous caveats. Frontiers in Physiology, 2019",
+        "site": "PubMed Central",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6895680/"
+      },
+      {
+        "n": 35,
+        "kind": "R",
+        "text": "Revisiting the stretch-induced force deficit: a systematic review with multilevel meta-analysis of acute effects. Journal of Sport and Health Science, 2024",
+        "site": "PubMed Central",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11336295/"
+      },
+      {
+        "n": 36,
+        "kind": "R",
+        "text": "Behm and Chaouachi, A review of the acute effects of static and dynamic stretching on performance, 2011",
+        "site": "PubMed",
+        "url": "https://pubmed.ncbi.nlm.nih.gov/21373870/"
+      },
+      {
+        "n": 37,
+        "kind": "R",
+        "text": "Detraining effects following chronic stretching training on range of motion: a systematic review and meta-analysis. Sports Medicine Open, 2025",
+        "site": "Springer",
+        "url": "https://link.springer.com/article/10.1186/s40798-025-00935-5"
+      },
+      {
+        "n": 38,
+        "kind": "R",
+        "text": "Effects of low-volume static stretching and full range-of-motion resistance training on flexibility in physically active young adults: a randomized controlled trial",
+        "site": "DOI",
+        "url": "https://doi.org/10.3390/jcm15155783"
+      },
+      {
+        "n": 39,
+        "kind": "C",
+        "text": "Pliability, Eccentric hamstring exercises for strength and recovery (coaching source on soreness time course)",
+        "site": "pliability.com",
+        "url": "https://pliability.com/stories/eccentric-hamstring-exercises"
+      },
+      {
+        "n": 40,
+        "kind": "C",
+        "text": "Schmitt, Tyler and McHugh, Hamstring injury rehabilitation and prevention of reinjury using lengthened state eccentric training: a new concept. International Journal of Sports Physical Therapy, 2012",
+        "site": "PubMed Central",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3362981/"
+      }
+    ]
+  },
+  "sessions": [
+    {
+      "id": "splits-intensive",
+      "title": "Splits Intensive",
+      "kind": "big",
+      "minutes": 90,
+      "about": [
+        "Your top-priority session. Place it using rules 1 and 4. Active work comes before passive work [5][7]."
+      ],
       "sections": [
         {
           "title": "Warm-up",
-          "minutes": 8,
+          "minutes": 10,
           "items": [
             {
               "name": "Cardio",
-              "duration": "4 min",
-              "detail": "dance/jump rope/jumping jacks, OR mopping/sweeping floors counts"
-            },
-            {
-              "name": "Cat-cow",
-              "duration": "2 min",
-              "detail": "15 slow reps, thoracic bias — do this regardless of cardio choice, it's spine-specific prep"
-            },
-            {
-              "name": "Segmental spinal waves",
-              "duration": "2 min"
-            }
-          ]
-        },
-        {
-          "title": "Open the restrictors",
-          "minutes": 16,
-          "items": [
-            {
-              "name": "Couch/kneeling hip flexor",
-              "duration": "3 min",
-              "detail": "90s/side, pelvis tucked"
-            },
-            {
-              "name": "Half-kneeling hip flexor w/ reach-over",
-              "duration": "2 min",
-              "detail": "60s/side"
-            },
-            {
-              "name": "Supported anterior-chain opener on roller",
-              "duration": "2 min"
-            },
-            {
-              "name": "Thoracic roll + arch-backs",
-              "duration": "6 min",
-              "detail": "4 positions, 30s each"
-            },
-            {
-              "name": "Sphinx → cobra pulses",
-              "duration": "3 min",
-              "detail": "~9 slow reps"
-            }
-          ]
-        },
-        {
-          "title": "Activate the extensors",
-          "minutes": 8,
-          "items": [
-            {
-              "name": "Locust",
-              "duration": "3 min",
-              "detail": "3x20s hold/20s rest"
-            },
-            {
-              "name": "Bridge prep/glute bridge",
-              "duration": "2.5 min",
-              "detail": "10 reps"
-            },
-            {
-              "name": "Thoracic bridge w/ block squeeze",
-              "duration": "2.5 min",
-              "detail": "3x30s"
-            }
-          ]
-        },
-        {
-          "title": "Depth & skill work",
-          "minutes": 22,
-          "note": "(fresh, before fatigue) ⚠️ UPPER BACK CUE: your lower back is bendier than your upper back, so it'll try to do all the work here. Actively lift/open from between the shoulder blades BEFORE letting the hips or lower back add depth",
-          "items": [
-            {
-              "name": "Camel at pole",
-              "duration": "4 min",
-              "detail": "2x90s hold — chest opens first, hips follow"
-            },
-            {
-              "name": "Diagnostic bridge breathing test",
-              "duration": "3 min",
-              "detail": "does soft-belly exhale open depth?"
-            },
-            {
-              "name": "Full bridge depth focus",
-              "duration": "15 min",
-              "detail": "3 reps x 45-60s, press the upper back/chest open before sinking into the lower back — today's depth is the right depth"
-            }
-          ]
-        },
-        {
-          "title": "Strength & endurance",
-          "minutes": 16,
-          "note": "(fatigue OK)",
-          "items": [
-            {
-              "name": "Bridge shoulder flossing",
               "duration": "8 min",
-              "detail": "3 sets of 15-20 rocks — this one directly loads thoracic extension, good for the upper back gap"
+              "detail": "choreo run-through, or mopping and sweeping. Get sweaty and raise the heart rate [4][24]."
             },
             {
-              "name": "End-range ab strength",
-              "duration": "5 min",
-              "detail": "3x5 slow eccentric lowers"
+              "name": "Transition",
+              "duration": "2 min",
+              "detail": "water, clear space."
+            }
+          ]
+        },
+        {
+          "title": "Active flexibility",
+          "minutes": 14,
+          "items": [
+            {
+              "name": "Standing splits at pole",
+              "duration": "4 min",
+              "detail": "hinge forward 20 to 30 degrees, hips square, 60 s per leg."
             },
             {
-              "name": "Endurance bridge",
+              "name": "Leg lifts at pole",
+              "duration": "4 min",
+              "detail": "front, side and back, 10 reps each leg."
+            },
+            {
+              "name": "Supported split descents",
+              "duration": "4 min",
+              "detail": "slow slide to near the floor, 3 to 4 reps per side."
+            },
+            {
+              "name": "Seated pike compression lifts",
+              "duration": "2 min",
+              "detail": "legs straight, hands beside the knees, lift one heel 2 to 5 cm, hold 3 s, 6 reps per leg."
+            }
+          ]
+        },
+        {
+          "title": "Hip flexor block",
+          "minutes": 20,
+          "note": "Priority",
+          "items": [
+            {
+              "name": "Psoas lunge",
+              "duration": "4 min",
+              "detail": "pelvis tucked, torso upright, 2 min per side."
+            },
+            {
+              "name": "Hip extension end-range strength",
+              "duration": "4 min",
+              "detail": "kneeling lunge with the back knee down. Squeeze the back-leg glute and lift the back knee 1 to 2 cm off the floor, hold 5 s, 5 reps per side. Then front-split back-leg lifts at the pole, 2 x 8 per side [5][15]."
+            },
+            {
+              "name": "Couch stretch, extended",
+              "duration": "6 min",
+              "detail": "3 min per side. Don't force."
+            },
+            {
+              "name": "90/90 hip rotations",
+              "duration": "2 min",
+              "detail": "1 min each direction."
+            },
+            {
+              "name": "Contract-relax hip flexor",
+              "duration": "4 min",
+              "detail": "press at about 30 to 50% effort for 5 to 10 s, sink for 20 s, 2 min per side [9][10]."
+            }
+          ]
+        },
+        {
+          "title": "Hamstring block",
+          "minutes": 11,
+          "items": [
+            {
+              "name": "Half splits, active",
+              "duration": "4 min",
+              "detail": "flat back, hinge from the hips, 2 min per side."
+            },
+            {
+              "name": "Banded hamstring curls at pole",
               "duration": "3 min",
-              "detail": "1x60s steady hold"
+              "detail": "band looped at the pole base, 4-second lowering, 3 sets of 8 to 10 reps."
+            },
+            {
+              "name": "PNF hamstring",
+              "duration": "4 min",
+              "detail": "press at about 30 to 50% effort for 5 to 10 s, fold deeper for 20 s, 2 min per side [9][10][11]."
+            }
+          ],
+          "note": "Start the eccentric lowering conservatively: 2 sets of 6 to 8 for the first few weeks, then build. Skip the lowering if you are still sore from a previous session [39][40]."
+        },
+        {
+          "title": "Split work",
+          "minutes": 28,
+          "items": [
+            {
+              "name": "Supported split right",
+              "duration": "8 min",
+              "detail": "square hips, ease deeper in the second half."
+            },
+            {
+              "name": "Supported split left",
+              "duration": "8 min",
+              "detail": "same protocol."
+            },
+            {
+              "name": "Middle split",
+              "duration": "8 min",
+              "detail": "breathe, ease wider on the exhale if it's there."
+            },
+            {
+              "name": "Wide straddle fold",
+              "duration": "2 min"
+            },
+            {
+              "name": "Active middle-split strength",
+              "duration": "2 min",
+              "detail": "horse-stance or Cossack-squat slow lowers, 1 x 6 per side, or side-lying top-leg lifts at end range, 10 per side [5][6]."
+            }
+          ]
+        },
+        {
+          "title": "Ankle mobility",
+          "minutes": 3,
+          "items": [
+            {
+              "name": "Ankle circles",
+              "duration": "1 min"
+            },
+            {
+              "name": "Point and flex",
+              "duration": "1 min"
+            },
+            {
+              "name": "Top-of-foot stretch",
+              "duration": "1 min"
             }
           ]
         },
         {
           "title": "Cool down",
-          "minutes": 6,
+          "minutes": 5,
           "items": [
             {
               "name": "Child's pose",
@@ -289,212 +726,59 @@ export default {
               "duration": "2 min"
             },
             {
-              "name": "Constructive rest + breathing",
-              "duration": "2 min"
-            }
-          ]
-        },
-        {
-          "title": "Theragun recovery",
-          "minutes": 3,
-          "items": [
-            {
-              "name": "Theragun recovery",
-              "duration": "3 min",
-              "cues": [
-                "Upper back, shoulders, lats — low setting"
-              ],
-              "whole": true
+              "name": "Deep breathing",
+              "duration": "1 min"
             }
           ]
         }
       ],
-      "footer": [
-        "EVERY 4TH WEEK: deload — no depth chasing, just move through and breathe."
-      ]
-    },
-    {
-      "id": "splits-shoulder",
-      "title": "Splits & Shoulder Maintenance",
-      "day": 2,
-      "start": "21:15",
-      "end": "22:15",
-      "total": 70,
-      "intro": [
-        "🎯 Splits maintenance, shoulder recovery post-pole, thoracic extension focus"
-      ],
+      "deload": "No depth chasing. Skip the eccentric lowering or use a light band only.",
       "short": {
         "minutes": 18,
         "items": [
           {
-            "name": "Hip flexor quick hits",
-            "duration": "4 min",
-            "cues": [
-              "Couch stretch, don't force; 2 min/side"
-            ]
+            "name": "Cardio",
+            "duration": "3 min",
+            "detail": "mopping, sweeping or quick movement to raise the heart rate."
           },
           {
-            "name": "Split maintenance",
+            "name": "Couch stretch",
             "duration": "4 min",
-            "cues": [
-              "Hold and breathe, don't push; quick per side"
-            ]
+            "detail": "shin vertical against the wall, torso upright, 2 min per side. Don't force."
           },
           {
-            "name": "Theragun",
-            "duration": "5 min",
-            "cues": [
-              "Upper traps, lats — quick pass"
-            ]
+            "name": "Contract-relax hip flexor",
+            "duration": "2 min",
+            "detail": "press the back shin down 5 to 10 s, relax deeper for 20 s, 1 min per side."
           },
           {
-            "name": "Pole chest stretch, middle position only",
-            "duration": "4 min",
-            "cues": [
-              "Breathe 5s in/5s out; 2 min/side"
-            ]
+            "name": "Supported split, right and left",
+            "duration": "6 min",
+            "detail": "4 to 6 inch support, square hips, front heel down and toes up, back knee down. Ease slightly deeper, 3 min per side."
+          },
+          {
+            "name": "Middle split",
+            "duration": "2 min",
+            "detail": "knees pointing up, breathe, ease wider on exhales if it's there."
           },
           {
             "name": "Cool down",
-            "duration": "1 min",
-            "cues": [
-              "A few deep breaths"
-            ]
+            "duration": "2 min",
+            "detail": "child's pose and deep breathing."
           }
         ],
-        "skip": "full warm-up, wide straddle/butterfly, high/low chest stretch positions, light mobility block, thoracic extension"
+        "skip": "hamstring block, active flexibility and ankle mobility"
       },
-      "sections": [
-        {
-          "title": "Splits maintenance",
-          "minutes": 25,
-          "items": [
-            {
-              "name": "Warm-up",
-              "duration": "5 min",
-              "detail": "leg swings, hip circles, walk around"
-            },
-            {
-              "name": "Hip flexor quick hits",
-              "duration": "8 min",
-              "detail": "couch stretch 3 min/side, contract-relax 1 min/side"
-            },
-            {
-              "name": "Split maintenance",
-              "duration": "10 min",
-              "detail": "less support than Saturday or same + relax deeper — right/left/middle. Just hold and breathe, don't push"
-            },
-            {
-              "name": "Transition",
-              "duration": "2 min",
-              "detail": "water, Theragun ready"
-            }
-          ]
-        },
-        {
-          "title": "Shoulder recovery post-pole",
-          "minutes": 35,
-          "items": [
-            {
-              "name": "Theragun",
-              "duration": "10 min",
-              "detail": "upper traps, rear delts, lats, between shoulder blades"
-            },
-            {
-              "name": "Pole chest stretches",
-              "duration": "12 min",
-              "detail": "high/middle/low position, 2 min/side each"
-            },
-            {
-              "name": "Light mobility",
-              "duration": "8 min",
-              "detail": "arm circles, thread-the-needle, child's pose w/ arm reaches"
-            },
-            {
-              "name": "Final cool down",
-              "duration": "5 min",
-              "detail": "child's pose (3 min), deep breathing (2 min)"
-            }
-          ]
-        },
-        {
-          "title": "Thoracic extension focus",
-          "minutes": 10,
-          "note": "⚡ NEW — targets upper back specifically, since it's noticeably less mobile than your lower back",
-          "items": [
-            {
-              "name": "Thoracic extension over roller",
-              "duration": "3 min",
-              "cues": [
-                "Lie perpendicular over foam roller at mid-back, hands behind head or arms overhead. Gently extend backward over the roller. Walk the roller up/down 2-3 segments, hold each 20-30s. Keep chin tucked slightly so the neck doesn't take over"
-              ]
-            },
-            {
-              "name": "Wall slides / thoracic extension",
-              "duration": "3 min",
-              "cues": [
-                "Stand with back flat against wall, arms in \"goal post\" position (elbows/wrists touching wall). Slide arms up overhead and back down, keeping lower back pressed flat — the movement should come from the upper back/shoulders, not the lumbar arching away from the wall"
-              ]
-            },
-            {
-              "name": "Segmental cat-cow",
-              "duration": "2 min",
-              "cues": [
-                "On hands and knees, exaggerate rounding and arching through the upper back specifically — try to keep the lower back more neutral/still while the movement happens between the shoulder blades. This is about teaching your spine to move in sections instead of one big arch"
-              ]
-            },
-            {
-              "name": "Prone thoracic extension",
-              "duration": "2 min",
-              "cues": [
-                "Lie face down, hands behind head or by sides. Lift the chest by squeezing the upper back/between the shoulder blades — not by overarching the lower back. Should feel like effort between the shoulder blades, not a lower-back crunch"
-              ]
-            }
-          ]
-        }
-      ]
+      "length": "~90 min"
     },
     {
       "id": "shoulder-hyperflexion",
       "title": "Shoulder Hyperflexion",
-      "day": 4,
-      "start": "20:00",
-      "end": "20:52",
-      "total": 52,
-      "intro": [
-        "🎯 HYPERFLEXION PAST 180° FOCUSED"
+      "kind": "big",
+      "minutes": 55,
+      "about": [
+        "Your second-priority session. Place it using rules 2 and 4. This session works on shoulder hyperflexion past 180 degrees. The bench block is the key exercise."
       ],
-      "short": {
-        "minutes": 18,
-        "items": [
-          {
-            "name": "Theragun",
-            "duration": "3 min",
-            "detail": "upper traps/lats — quick pass"
-          },
-          {
-            "name": "Pole chest stretch, middle position only",
-            "duration": "3 min",
-            "detail": "breathe 5s in/5s out, ease in"
-          },
-          {
-            "name": "Lat stretch on roller",
-            "duration": "2 min",
-            "detail": "1 hold, ease into it"
-          },
-          {
-            "name": "Shoulder hyperflexion on bench",
-            "duration": "8 min",
-            "detail": "passive round (3 min, hands empty, relax into deepest position) + loaded round (3 min, whatever weight feels right today) + short rest — skip round 3"
-          },
-          {
-            "name": "Cool down",
-            "duration": "2 min",
-            "detail": "child's pose + breathing"
-          }
-        ],
-        "skip": "full tissue prep, band CARs, shoulder extension, high/low chest stretch positions"
-      },
       "sections": [
         {
           "title": "Tissue prep",
@@ -520,14 +804,13 @@ export default {
         },
         {
           "title": "Theragun",
-          "minutes": 5,
+          "minutes": 2,
+          "note": "Optional",
           "items": [
             {
               "name": "Theragun",
-              "duration": "5 min",
-              "cues": [
-                "Upper traps, rear delts, lats, mid-back"
-              ],
+              "duration": "2 min",
+              "detail": "Upper traps, rear delts, lats. A small, short-lived range gain at best [4][25].",
               "whole": true
             }
           ]
@@ -539,10 +822,7 @@ export default {
             {
               "name": "Hyperflexion CARs with band",
               "duration": "5 min",
-              "cues": [
-                "Giant circles overhead",
-                "10 clockwise + 10 counter-clockwise per arm"
-              ],
+              "detail": "Giant circles overhead, 10 clockwise and 10 counter-clockwise per arm.",
               "whole": true
             }
           ]
@@ -554,10 +834,7 @@ export default {
             {
               "name": "Pole chest stretches",
               "duration": "12 min",
-              "cues": [
-                "High/middle/low position, 2 min/side each",
-                "Breathe 5s in/5s out"
-              ],
+              "detail": "High, middle and low positions, 2 min per side each. Breathe 5 s in, 5 s out.",
               "whole": true
             }
           ]
@@ -569,13 +846,7 @@ export default {
             {
               "name": "Lat stretch on roller",
               "duration": "4 min",
-              "cues": [
-                "Hold 1 (2 min), rest (30s), hold 2 (1.5 min)",
-                {
-                  "text": "Ease a bit deeper on round 2 if it's there",
-                  "sub": true
-                }
-              ],
+              "detail": "Hold 1 for 2 min, rest 30 s, hold 2 for 1.5 min. Ease a bit deeper on round 2 if it's there. Lat length limits overhead range [29].",
               "whole": true
             }
           ]
@@ -587,33 +858,30 @@ export default {
             {
               "name": "Shoulder extension",
               "duration": "4 min",
-              "cues": [
-                "Hold 1 (2 min), rest (30s), hold 2 (1.5 min)",
-                {
-                  "text": "Ease deeper if available",
-                  "sub": true
-                }
-              ],
+              "detail": "Hold 1 for 2 min, rest 30 s, hold 2 for 1.5 min. Ease deeper if available.",
               "whole": true
             }
           ]
         },
         {
           "title": "Shoulder hyperflexion on bench",
-          "minutes": 12,
-          "note": "⚡ MONEY EXERCISE",
+          "minutes": 13,
+          "note": "Key exercise. Rest 1 min between rounds.",
           "items": [
             {
-              "name": "Shoulder hyperflexion on bench",
-              "duration": "12 min",
-              "cues": [
-                "Round 1, passive (4 min): hands empty, relax into deepest position",
-                "Rest (1 min)",
-                "Round 2, loaded (4 min): whatever weight/band tension feels right today — don't assume heavier than last time",
-                "Rest (1 min)",
-                "Round 3, unweighted (3 min): hold at today's available depth, no forcing toward a target"
-              ],
-              "whole": true
+              "name": "Round 1, passive",
+              "duration": "3.5 min",
+              "detail": "hands empty. 2 x 90 s holds with 30 s rest, relaxing into the deepest position."
+            },
+            {
+              "name": "Round 2, active",
+              "duration": "4 min",
+              "detail": "(a) Lift-offs: with the arms at your deepest comfortable overhead position, lift both arms 2 to 5 cm off the bench using your shoulders and upper back, hold 5 s, lower slowly. 3 sets of 5. (b) Optional light eccentric pullover: 0.5 to 2 kg per hand, or a very light band. Lower over 4 seconds into range, pause 2 s, return. 2 sets of 6. Keep the ribs down. Never let the weight pull you deeper than you can lift out of [5][6][7]."
+            },
+            {
+              "name": "Round 3, unweighted",
+              "duration": "3 min",
+              "detail": "hold at today's available depth, no forcing toward a target."
             }
           ]
         },
@@ -636,208 +904,180 @@ export default {
           ]
         }
       ],
-      "footer": [
-        "EVERY 4TH WEEK: deload — passive round only, skip loading."
-      ]
-    },
-    {
-      "id": "splits-intensive",
-      "title": "Splits Intensive",
-      "day": 5,
-      "start": "12:30",
-      "end": "14:10",
-      "total": 103,
+      "notes": [
+        {
+          "label": "How to measure",
+          "text": "Lie on your back with knees bent and the lower back flat. If the ribs flare or the back arches, that range is coming from your spine, not your shoulder. Tight lats commonly cause this compensation [29][30]."
+        },
+        {
+          "label": "Stop rule",
+          "text": "Drop to the passive round only if you feel a deep or front-of-shoulder pinch, clicking, a dead-arm feeling, tingling into the arm, or shoulder ache that is still there the next morning [20]."
+        }
+      ],
+      "deload": "Do the passive round only and skip Round 2.",
       "short": {
         "minutes": 18,
         "items": [
           {
-            "name": "Cardio",
+            "name": "Theragun",
             "duration": "3 min",
-            "detail": "mopping/sweeping or quick movement — just get heart rate up"
+            "detail": "upper traps and lats, quick pass (optional)."
           },
           {
-            "name": "Couch stretch",
-            "duration": "4 min",
-            "detail": "shin vertical against wall, torso upright, don't force; 2 min/side"
+            "name": "Pole chest stretch",
+            "duration": "3 min",
+            "detail": "middle position only. Breathe 5 s in, 5 s out."
           },
           {
-            "name": "Contract-relax hip flexor",
+            "name": "Lat stretch on roller",
             "duration": "2 min",
-            "detail": "press back shin down 5-10s, relax deeper 20s; 1 min/side"
+            "detail": "1 hold, ease into it."
           },
           {
-            "name": "Supported split right + left",
-            "duration": "6 min",
-            "detail": "4-6\" support, square hips, front heel down/toes up, back knee down, ease slightly deeper; 3 min/side"
-          },
-          {
-            "name": "Middle split",
-            "duration": "2 min",
-            "detail": "knees pointing up, breathe, ease wider on exhales if it's there"
+            "name": "Shoulder hyperflexion on bench",
+            "duration": "8 min",
+            "detail": "a passive round (3 min), an active lift-off round (3 min) and a short rest. Skip round 3."
           },
           {
             "name": "Cool down",
             "duration": "2 min",
-            "detail": "child's pose + deep breathing"
+            "detail": "child's pose and breathing."
           }
         ],
-        "skip": "theragun, hamstring/banded work, ankle mobility"
+        "skip": "full tissue prep, band CARs, shoulder extension, and the high and low chest stretch positions"
       },
+      "length": "~55 min"
+    },
+    {
+      "id": "hips-backbend",
+      "title": "Hips & Backbend",
+      "kind": "big",
+      "minutes": 60,
+      "about": [
+        "This session opens the front of the body, builds backbend depth, and gives your front splits and middle split a lighter exposure. Place it using rules 3 and 4."
+      ],
       "sections": [
         {
           "title": "Warm-up",
-          "minutes": 12,
+          "minutes": 10,
           "items": [
             {
               "name": "Cardio",
-              "duration": "8 min",
-              "detail": "choreo run-through, OR mopping/sweeping floors counts — just get sweaty, heart rate up"
+              "duration": "4 min",
+              "detail": "dance, jump rope or jumping jacks. Mopping or sweeping counts, but keep going until you are slightly warm [4][24]."
             },
             {
-              "name": "Transition",
-              "duration": "4 min",
-              "detail": "water, calm music, clear space"
-            }
-          ]
-        },
-        {
-          "title": "Active flexibility",
-          "minutes": 12,
-          "items": [
-            {
-              "name": "Standing splits at pole",
-              "duration": "4 min",
-              "detail": "hinge forward 20-30°, hips square, 60s/leg"
-            },
-            {
-              "name": "Leg lifts at pole",
-              "duration": "4 min",
-              "detail": "front/side/back, 10 reps each leg"
-            },
-            {
-              "name": "Supported split descents",
-              "duration": "4 min",
-              "detail": "slow slide near-floor, 3-4 reps/side"
-            }
-          ]
-        },
-        {
-          "title": "Theragun prep",
-          "minutes": 5,
-          "items": [
-            {
-              "name": "Theragun prep",
-              "duration": "5 min",
-              "cues": [
-                "Flexibility & Mobility program, hip flexors (gentle)"
-              ],
-              "whole": true
-            }
-          ]
-        },
-        {
-          "title": "Hip flexor intensive",
-          "minutes": 22,
-          "note": "⚡ PRIORITY",
-          "items": [
-            {
-              "name": "Psoas lunge",
-              "duration": "4 min",
-              "detail": "pelvis tucked, torso upright, 2 min/side"
-            },
-            {
-              "name": "Elevated hip flexor",
-              "duration": "4 min",
-              "detail": "back foot on 8-12\" riser, 2 min/side"
-            },
-            {
-              "name": "Couch stretch, extended",
-              "duration": "8 min",
-              "detail": "4 min/side, don't force"
-            },
-            {
-              "name": "90/90 hip rotations",
+              "name": "Cat-cow",
               "duration": "2 min",
-              "detail": "1 min each direction"
+              "detail": "15 slow reps, thoracic bias."
             },
             {
-              "name": "Contract-relax hip flexor",
-              "duration": "4 min",
-              "detail": "press 5-10s, sink 20s, 2 min/side"
+              "name": "Segmental spinal waves",
+              "duration": "2 min"
+            },
+            {
+              "name": "Wrist prep",
+              "duration": "2 min",
+              "detail": "wrist circles 10 each way. Quadruped rocks forward and back over the hands, 10 with fingers forward and 10 with fingers pointing back. Palm lifts, 10 reps [19]."
             }
           ]
         },
         {
-          "title": "Hamstring work",
-          "minutes": 11,
+          "title": "Open the restrictors",
+          "minutes": 14,
           "items": [
             {
-              "name": "Half splits, active",
-              "duration": "4 min",
-              "detail": "flat back, hinge from hips, 2 min/side"
-            },
-            {
-              "name": "Banded hamstring curls at pole",
+              "name": "Couch or kneeling hip flexor",
               "duration": "3 min",
-              "detail": "band looped at pole base, 3 sets of 12-15 reps"
+              "detail": "90 s per side, pelvis tucked."
             },
             {
-              "name": "PNF hamstring",
+              "name": "Half-kneeling hip flexor with reach-over",
+              "duration": "2 min",
+              "detail": "60 s per side."
+            },
+            {
+              "name": "Supported anterior-chain opener on roller",
+              "duration": "2 min"
+            },
+            {
+              "name": "Thoracic roll and arch-backs",
               "duration": "4 min",
-              "detail": "press 5-10s, fold deeper 20s, 2 min/side"
+              "detail": "4 positions, 30 s each, 2 rounds."
+            },
+            {
+              "name": "Sphinx to cobra pulses",
+              "duration": "3 min",
+              "detail": "about 9 slow reps."
             }
           ]
         },
         {
-          "title": "Split work",
-          "minutes": 26,
+          "title": "Activate the extensors",
+          "minutes": 6,
+          "items": [
+            {
+              "name": "Locust",
+              "duration": "3 min",
+              "detail": "3 x 20 s hold, 20 s rest."
+            },
+            {
+              "name": "Bridge prep or glute bridge",
+              "duration": "1.5 min",
+              "detail": "10 reps."
+            },
+            {
+              "name": "Thoracic bridge with block squeeze",
+              "duration": "1.5 min",
+              "detail": "3 x 30 s."
+            }
+          ]
+        },
+        {
+          "title": "Depth and skill work",
+          "minutes": 14,
+          "note": "Do this fresh",
+          "items": [
+            {
+              "name": "Camel at pole",
+              "duration": "4 min",
+              "detail": "2 x 90 s holds. The chest opens first, then the hips follow."
+            },
+            {
+              "name": "Diagnostic bridge breathing test",
+              "duration": "2 min",
+              "detail": "does a soft-belly exhale open depth?"
+            },
+            {
+              "name": "Full bridge depth focus",
+              "duration": "8 min",
+              "detail": "3 reps x 45 s. Press the shoulders and chest open before sinking into the lower back. Use hands on blocks if your wrists complain. If pole is the next day, stop at 2 reps and about 80% of your usual depth. Today's depth is the right depth [1][2]."
+            }
+          ]
+        },
+        {
+          "title": "Front-split and middle-split exposure",
+          "minutes": 10,
+          "note": "Usual depth",
           "items": [
             {
               "name": "Supported split right",
-              "duration": "8 min",
-              "detail": "square hips, ease deeper 2nd half"
+              "duration": "3 min"
             },
             {
               "name": "Supported split left",
-              "duration": "8 min",
-              "detail": "same protocol"
+              "duration": "3 min"
             },
             {
               "name": "Middle split",
-              "duration": "6 min",
-              "detail": "breathe, ease wider on exhale if it's there"
-            },
-            {
-              "name": "Wide straddle fold",
-              "duration": "2 min"
-            },
-            {
-              "name": "Butterfly",
-              "duration": "2 min"
-            }
-          ]
-        },
-        {
-          "title": "Ankle mobility",
-          "minutes": 5,
-          "items": [
-            {
-              "name": "Ankle circles",
-              "duration": "1 min"
-            },
-            {
-              "name": "Point/flex",
-              "duration": "2 min"
-            },
-            {
-              "name": "Top-of-foot stretch",
-              "duration": "2 min"
+              "duration": "4 min",
+              "detail": "breathe, no pushing."
             }
           ]
         },
         {
           "title": "Cool down",
-          "minutes": 5,
+          "minutes": 6,
           "items": [
             {
               "name": "Child's pose",
@@ -848,206 +1088,274 @@ export default {
               "duration": "2 min"
             },
             {
-              "name": "Deep breathing",
-              "duration": "1 min"
-            }
-          ]
-        },
-        {
-          "title": "Theragun recovery",
-          "minutes": 5,
-          "items": [
-            {
-              "name": "Theragun recovery",
-              "duration": "5 min",
-              "cues": [
-                "Lower Body Recovery program, extra time on hip flexors"
-              ],
-              "whole": true
+              "name": "Constructive rest and breathing",
+              "duration": "2 min"
             }
           ]
         }
       ],
-      "footer": [
-        "EVERY 4TH WEEK: deload — no depth chasing, just move through and breathe. Skip banded curls or use light band only."
-      ]
+      "notes": [
+        {
+          "label": "Depth cue",
+          "text": "The lower back moves more easily than the upper back, so it will try to do all the work. Open the shoulders and chest first, then use hip extension to share the bend, and let the lower back add depth last. The thoracic spine gives only a small share of the total extension, so shoulder flexion and hip extension are the bigger levers [14][15][16]."
+        },
+        {
+          "label": "Stop rule",
+          "text": "Stop backbending for the day if you get sharp or one-sided low-back pain when arching. See the stop rules above."
+        }
+      ],
+      "deload": "No depth chasing. Just move through and breathe. Keep bridges to 2 reps at 80% depth.",
+      "short": {
+        "minutes": 20,
+        "items": [
+          {
+            "name": "Cardio",
+            "duration": "2 min",
+            "detail": "Mopping or sweeping works."
+          },
+          {
+            "name": "Cat-cow",
+            "duration": "1 min"
+          },
+          {
+            "name": "Wrist prep",
+            "duration": "1 min"
+          },
+          {
+            "name": "Couch or kneeling hip flexor",
+            "duration": "2 min",
+            "detail": "1 min per side."
+          },
+          {
+            "name": "Sphinx to cobra pulses",
+            "duration": "2 min"
+          },
+          {
+            "name": "Locust",
+            "duration": "1 min",
+            "detail": "short holds."
+          },
+          {
+            "name": "Camel at pole",
+            "duration": "2 min",
+            "detail": "1 x 90 s hold, rise slowly."
+          },
+          {
+            "name": "Full bridge, depth focus",
+            "duration": "7 min",
+            "detail": "2 reps x 45 to 60 s, easing deeper on exhales."
+          },
+          {
+            "name": "Cool down",
+            "duration": "2 min",
+            "detail": "child's pose, then slow breaths."
+          }
+        ]
+      },
+      "length": "~60 min"
     },
     {
-      "id": "splits-maintenance",
-      "title": "Splits Maintenance",
-      "day": 6,
-      "start": "22:00",
-      "end": "22:35",
-      "total": 36,
-      "intro": [
-        "🔀 WARM (just finished rehearsal): skip to Section 1",
-        "❄️ COLD (no rehearsal): do Section 0 first",
-        "Total: 36 min warm / 48 min cold"
+      "id": "shoulder-recovery",
+      "title": "Shoulder Recovery after pole",
+      "kind": "short",
+      "minutes": 20,
+      "about": [
+        "Do this after pole class, keeping intensity at 5 out of 10 or lower and stopping for any front-of-shoulder pinch [12][20]. Skip the Theragun if you are tired."
+      ],
+      "sections": [
+        {
+          "items": [
+            {
+              "name": "Pole chest stretch, middle position",
+              "duration": "4 min",
+              "detail": "2 min per side. Breathe 5 s in, 5 s out."
+            },
+            {
+              "name": "Thoracic extension over roller",
+              "duration": "3 min",
+              "detail": "lie across a foam roller at mid-back, hands behind the head or arms overhead. Extend gently backward over it. Walk the roller up or down 2 to 3 segments, holding each 20 to 30 s. Keep the chin slightly tucked [14]."
+            },
+            {
+              "name": "Wall slides",
+              "duration": "3 min",
+              "detail": "back flat against a wall, arms in goal-post position. Slide the arms overhead and back down, keeping the lower back pressed flat."
+            },
+            {
+              "name": "Segmental cat-cow",
+              "duration": "2 min",
+              "detail": "exaggerate the rounding and arching through the upper back while the lower back stays more neutral."
+            },
+            {
+              "name": "Thread-the-needle and arm circles",
+              "duration": "3 min"
+            },
+            {
+              "name": "Child's pose and deep breathing",
+              "duration": "2 min"
+            },
+            {
+              "name": "Theragun",
+              "duration": "3 min",
+              "detail": "(optional) upper traps and lats only. It has no proven recovery benefit [26]."
+            }
+          ]
+        }
       ],
       "short": {
         "minutes": 10,
         "items": [
           {
-            "name": "Couch stretch",
-            "duration": "2 min",
-            "detail": "shin vertical against wall, ease toward usual depth; 1 min/side"
+            "name": "Pole chest stretch, middle position",
+            "duration": "4 min"
           },
           {
-            "name": "Supported split right + left",
-            "duration": "4 min",
-            "detail": "square hips, heel down/toes up; 2 min/side"
+            "name": "Thoracic extension over roller",
+            "duration": "3 min"
           },
           {
-            "name": "Middle split",
-            "duration": "1 min",
-            "detail": "breathe, ease wider if available"
-          },
-          {
-            "name": "Cool down",
-            "duration": "2 min",
-            "detail": "child's pose + breathing"
+            "name": "Child's pose and deep breathing",
+            "duration": "3 min"
           }
-        ],
-        "skip": "leg lifts, standing splits, wide straddle, butterfly, theragun"
+        ]
       },
+      "length": "~20 min"
+    },
+    {
+      "id": "shoulder-reset",
+      "title": "Shoulder Reset",
+      "kind": "short",
+      "minutes": 15,
+      "about": [
+        "A light session for the day before or after a class. Skip it if exhausted."
+      ],
       "sections": [
         {
-          "title": "Warm-up",
-          "minutes": 12,
-          "note": "(cold only)",
           "items": [
             {
-              "name": "Cardio",
-              "duration": "5 min",
-              "detail": "march → high knees → jumping jacks, OR mopping/sweeping floors counts"
-            },
-            {
-              "name": "Dynamic leg swings",
+              "name": "Foam roll lats",
               "duration": "4 min",
-              "detail": "15/leg each direction — still do this even if you mopped, it's joint-specific prep mopping won't cover"
+              "detail": "roller under the armpit, slow passes. Stop on tender spots, 2 min each side [27][28]."
             },
             {
-              "name": "Hip openers",
+              "name": "Shoulder CARs",
               "duration": "3 min",
-              "detail": "lunges 8/side, hip circles"
+              "detail": "5 reps each direction per arm, 5 to 10 seconds per circle, torso still. Keep the ribs down [30]."
+            },
+            {
+              "name": "Wall clocks",
+              "duration": "8 min",
+              "detail": "(skip if exhausted) 12, 3, 6 and 9 o'clock positions, 30 s each. Press firmly, reverse direction, then switch arms and repeat."
             }
           ]
-        },
+        }
+      ],
+      "short": {
+        "minutes": 5,
+        "items": [
+          {
+            "name": "Foam roll lats",
+            "duration": "2 min",
+            "detail": "1 min per side."
+          },
+          {
+            "name": "Shoulder CARs",
+            "duration": "3 min",
+            "detail": "5 reps each direction per arm."
+          }
+        ]
+      },
+      "length": "~15 min"
+    },
+    {
+      "id": "splits-snack",
+      "title": "Splits Snack",
+      "kind": "short",
+      "minutes": 20,
+      "about": [
+        "A short third exposure for your front splits and middle split. Stay at your usual depth, and never use it to chase new depth."
+      ],
+      "sections": [
         {
-          "title": "Active flexibility",
-          "minutes": 7,
           "items": [
+            {
+              "name": "Warm-up",
+              "duration": "4 min",
+              "detail": "leg swings, hip circles, walk around."
+            },
             {
               "name": "Leg lifts at pole",
-              "duration": "3 min",
-              "detail": "front/side, 8 reps/leg"
-            },
-            {
-              "name": "Standing splits",
               "duration": "2 min",
-              "detail": "45s/leg, hips square"
+              "detail": "front and side, 8 reps per leg."
             },
-            {
-              "name": "Active split descents",
-              "duration": "2 min",
-              "detail": "warm → 1-3\" from floor; cold → comfortable depth only"
-            }
-          ]
-        },
-        {
-          "title": "Hip flexor quick hits",
-          "minutes": 6,
-          "items": [
             {
               "name": "Couch stretch",
               "duration": "4 min",
-              "detail": "warm → slightly deeper; cold → match usual depth"
+              "detail": "shin vertical against the wall, 2 min per side."
             },
             {
-              "name": "Contract-relax",
-              "duration": "2 min",
-              "detail": "2-3 reps/side"
-            }
-          ]
-        },
-        {
-          "title": "Split work",
-          "minutes": 14,
-          "items": [
-            {
-              "name": "Supported split right",
-              "duration": "4 min",
-              "detail": "warm → less support; cold → same/more support"
-            },
-            {
-              "name": "Supported split left",
-              "duration": "4 min",
-              "detail": "same protocol"
+              "name": "Supported split right and left",
+              "duration": "5 min",
+              "detail": "2.5 min per side, square hips, heel down and toes up."
             },
             {
               "name": "Middle split",
               "duration": "3 min",
-              "detail": "warm → push a bit wider; cold → stay comfortable"
+              "detail": "breathe, ease wider on exhales if it's there."
             },
             {
-              "name": "Wide straddle fold",
-              "duration": "2 min"
-            },
-            {
-              "name": "Butterfly",
-              "duration": "1 min"
-            }
-          ]
-        },
-        {
-          "title": "Cool down",
-          "minutes": 3,
-          "items": [
-            {
-              "name": "Child's pose",
-              "duration": "90s"
-            },
-            {
-              "name": "Supine twists",
-              "duration": "30s/side"
-            },
-            {
-              "name": "Deep breathing",
-              "duration": "30s"
-            }
-          ]
-        },
-        {
-          "title": "Theragun",
-          "minutes": 3,
-          "items": [
-            {
-              "name": "Theragun",
-              "duration": "3 min",
-              "cues": [
-                "Lower-body recovery, low setting"
-              ],
-              "whole": true
+              "name": "Cool down",
+              "duration": "2 min",
+              "detail": "child's pose and breathing."
             }
           ]
         }
-      ]
+      ],
+      "length": "~20 min"
+    },
+    {
+      "id": "class-prep",
+      "title": "Class-day prep",
+      "kind": "prep",
+      "minutes": 10,
+      "about": [
+        "Do this before pole, pole tricks, dance or rehearsal. A warm-up of light aerobic activity, large dynamic stretches and sport-specific movement is the standard recommendation, and dynamic stretching shows no harm to later performance [36]. Keep any static hold under 60 seconds per muscle group."
+      ],
+      "sections": [
+        {
+          "items": [
+            {
+              "name": "March or light cardio",
+              "duration": "2 min"
+            },
+            {
+              "name": "Leg swings",
+              "duration": "2 min",
+              "detail": "15 per leg each direction."
+            },
+            {
+              "name": "Hip circles and lunges",
+              "duration": "2 min",
+              "detail": "8 lunges per side."
+            },
+            {
+              "name": "Shoulder CARs",
+              "duration": "2 min",
+              "detail": "5 each direction per arm."
+            },
+            {
+              "name": "Cat-cow",
+              "duration": "1 min"
+            }
+          ]
+        }
+      ],
+      "after": [
+        "Pole tricks and dance leaps depend on maximal strength and power, so these days are the most important ones to keep long passive holds away from."
+      ],
+      "length": "5 to 10 min"
     }
   ],
   "library": {
-    "active split descents": [
-      {
-        "session": "Splits Maintenance",
-        "name": "Active split descents",
-        "duration": "2 min",
-        "cues": [
-          "Right leg forward: 3-4 slow descents",
-          "You should reach 1-3\" from floor!",
-          "Left leg forward: 3-4 descents",
-          "Capitalize on warm muscles"
-        ]
-      }
-    ],
     "bridge prep": [
       {
         "session": "Backbend Intensive",
@@ -1070,28 +1378,6 @@ export default {
           "Rest 5-10 seconds",
           "10 reps total",
           "Focus on CONTROL and glute engagement"
-        ]
-      }
-    ],
-    "bridge shoulder flossing": [
-      {
-        "session": "Backbend Intensive",
-        "name": "Bridge shoulder flossing",
-        "duration": "8 min",
-        "cues": [
-          "⚡ CRITICAL FOR SHOULDER HYPERFLEXION ⚡",
-          "Start in bridge position (hands and feet on floor)",
-          "Walk hands toward feet 2-3 inches"
-        ]
-      }
-    ],
-    "butterfly": [
-      {
-        "session": "Splits Maintenance",
-        "name": "Butterfly",
-        "duration": "1 min",
-        "cues": [
-          "Quick relaxing stretch"
         ]
       }
     ],
@@ -1310,285 +1596,6 @@ export default {
         ]
       }
     ],
-    "full bridge": [
-      {
-        "session": "Backbend Intensive",
-        "name": "Full bridge work",
-        "duration": "17 min",
-        "cues": [
-          "Bridge 1 - Warm-up (60 sec):",
-          {
-            "text": "Lie on back, knees bent, feet flat",
-            "sub": true
-          },
-          {
-            "text": "NO block now (remove it)",
-            "sub": true
-          },
-          {
-            "text": "Hands by ears, fingers pointing toward shoulders",
-            "sub": true
-          },
-          {
-            "text": "Press into hands and feet",
-            "sub": true
-          },
-          {
-            "text": "Press up into full bridge",
-            "sub": true
-          },
-          {
-            "text": "Straighten arms as much as possible",
-            "sub": true
-          },
-          {
-            "text": "Focus on getting comfortable in position",
-            "sub": true
-          },
-          {
-            "text": "Feet parallel, shoulder-width apart",
-            "sub": true
-          },
-          {
-            "text": "Press hips UP high",
-            "sub": true
-          },
-          {
-            "text": "Hold 60 seconds",
-            "sub": true
-          },
-          {
-            "text": "Breathe steadily",
-            "sub": true
-          },
-          {
-            "text": "Rest: 45 sec (child's pose)",
-            "sub": true
-          },
-          {
-            "text": "Lower down carefully",
-            "sub": true
-          },
-          {
-            "text": "Come to hands and knees",
-            "sub": true
-          },
-          {
-            "text": "Sit back on heels, arms forward",
-            "sub": true
-          },
-          "Bridge 2 - Depth Work (60 sec):",
-          {
-            "text": "Lie on back, hands by ears",
-            "sub": true
-          },
-          {
-            "text": "Press up into bridge",
-            "sub": true
-          },
-          {
-            "text": "Once up, practice rocking:",
-            "sub": true
-          },
-          {
-            "text": "Rock forward over shoulders",
-            "sub": true
-          },
-          {
-            "text": "Rock back over feet",
-            "sub": true
-          },
-          {
-            "text": "Push hips HIGHER toward ceiling",
-            "sub": true
-          },
-          {
-            "text": "Try to straighten legs more",
-            "sub": true
-          },
-          {
-            "text": "Press chest toward the wall behind you",
-            "sub": true
-          },
-          {
-            "text": "This deepens the backbend",
-            "sub": true
-          },
-          {
-            "text": "Hold 60 seconds",
-            "sub": true
-          },
-          {
-            "text": "Keep breathing",
-            "sub": true
-          },
-          {
-            "text": "Rest: 45 sec (child's pose)",
-            "sub": true
-          },
-          "Bridge 3 - Max Effort (45 sec):",
-          {
-            "text": "Lie on back, hands by ears",
-            "sub": true
-          },
-          {
-            "text": "Press up into bridge",
-            "sub": true
-          },
-          {
-            "text": "Once stable:",
-            "sub": true
-          },
-          {
-            "text": "Try to walk hands 1-2\" closer to feet",
-            "sub": true
-          },
-          {
-            "text": "Push hips as high as possible",
-            "sub": true
-          },
-          {
-            "text": "Straighten legs as much as you can",
-            "sub": true
-          },
-          {
-            "text": "This is your deepest bridge position",
-            "sub": true
-          },
-          {
-            "text": "📊 MEASURE: hand-to-foot distance",
-            "sub": true
-          },
-          {
-            "text": "📸 TAKE PHOTO from side",
-            "sub": true
-          },
-          {
-            "text": "Hold 45 seconds",
-            "sub": true
-          },
-          {
-            "text": "Rest: 45 sec (child's pose)",
-            "sub": true
-          },
-          "Bridge 4 - Endurance (45 sec):",
-          {
-            "text": "Lie on back, hands by ears",
-            "sub": true
-          },
-          {
-            "text": "Press up into bridge",
-            "sub": true
-          },
-          {
-            "text": "Find a comfortable, sustainable position",
-            "sub": true
-          },
-          {
-            "text": "Hold steady (no rocking or adjusting)",
-            "sub": true
-          },
-          {
-            "text": "Focus on breathing: 5 sec in, 5 sec out",
-            "sub": true
-          },
-          {
-            "text": "Build stamina for holding bridge",
-            "sub": true
-          },
-          {
-            "text": "This trains endurance",
-            "sub": true
-          },
-          {
-            "text": "Hold 45 seconds",
-            "sub": true
-          },
-          {
-            "text": "REST: 2 min (child's pose)",
-            "sub": true
-          },
-          {
-            "text": "Full rest after bridge work",
-            "sub": true
-          },
-          {
-            "text": "Let entire back release",
-            "sub": true
-          },
-          "Bridge 5 - Active Shoulder Work (60 sec):",
-          {
-            "text": "Press up into bridge",
-            "sub": true
-          },
-          {
-            "text": "Once stable, actively PUSH shoulders forward",
-            "sub": true
-          },
-          {
-            "text": "Try to shift more weight over shoulders",
-            "sub": true
-          },
-          {
-            "text": "Feel the hyperflexion demand",
-            "sub": true
-          },
-          {
-            "text": "This is advanced shoulder work",
-            "sub": true
-          },
-          {
-            "text": "Mimics positions needed for contortion",
-            "sub": true
-          },
-          {
-            "text": "Hold 60 seconds",
-            "sub": true
-          },
-          {
-            "text": "Rest: 45 sec (child's pose)",
-            "sub": true
-          },
-          "Bridge 6 - Final Push (45 sec):",
-          {
-            "text": "One last bridge",
-            "sub": true
-          },
-          {
-            "text": "Everything you've got",
-            "sub": true
-          },
-          {
-            "text": "Combine all elements:",
-            "sub": true
-          },
-          {
-            "text": "Hands close to feet",
-            "sub": true
-          },
-          {
-            "text": "Hips high",
-            "sub": true
-          },
-          {
-            "text": "Shoulders pushed forward",
-            "sub": true
-          },
-          {
-            "text": "Legs as straight as possible",
-            "sub": true
-          },
-          {
-            "text": "Push for maximum depth",
-            "sub": true
-          },
-          {
-            "text": "Hold 45 seconds",
-            "sub": true
-          }
-        ]
-      }
-    ],
     "hyperflexion cars with band": [
       {
         "session": "Shoulder Hyperflexion",
@@ -1796,134 +1803,6 @@ export default {
           },
           {
             "text": "Focus on squeezing shoulder blades",
-            "sub": true
-          }
-        ]
-      }
-    ],
-    "shoulder hyperflexion on bench": [
-      {
-        "session": "Shoulder Hyperflexion",
-        "name": "Shoulder hyperflexion on bench",
-        "duration": "12 min",
-        "cues": [
-          "Lie on bench/elevated surface (8-12\" high)",
-          "Torso and hips on bench",
-          "Arms overhead reaching DOWN toward floor behind you",
-          "Arms straight",
-          "🔑 RIBS STAY DOWN (don't arch lower back!)",
-          "Goal: fingers go BELOW bench level (past 180°)",
-          "Round 1 - Passive (4 min):",
-          {
-            "text": "Hands empty, no weights",
-            "sub": true
-          },
-          {
-            "text": "Focus: relax into deepest position",
-            "sub": true
-          },
-          {
-            "text": "Let gravity pull arms down",
-            "sub": true
-          },
-          {
-            "text": "Breathe: 5 sec in, 5 sec out",
-            "sub": true
-          },
-          {
-            "text": "With each exhale, try to lower hands 1/4\" closer to floor",
-            "sub": true
-          },
-          {
-            "text": "Don't force - let it happen naturally",
-            "sub": true
-          },
-          "Rest (1 min):",
-          {
-            "text": "Bring arms down to sides",
-            "sub": true
-          },
-          {
-            "text": "Sit up, shake out shoulders",
-            "sub": true
-          },
-          {
-            "text": "Breathe normally",
-            "sub": true
-          },
-          "Round 2 - Loaded (4 min):",
-          {
-            "text": "2-3 lb wrist weights (heavier than Tuesday!)",
-            "sub": true
-          },
-          {
-            "text": "OR resistance band anchored to wall/pole behind you",
-            "sub": true
-          },
-          {
-            "text": "Band should have moderate tension, gently pulling arms deeper",
-            "sub": true
-          },
-          {
-            "text": "This is KEY for past-180° adaptation",
-            "sub": true
-          },
-          {
-            "text": "The load helps tissue adapt to hyperflexion range",
-            "sub": true
-          },
-          {
-            "text": "Breathe steadily",
-            "sub": true
-          },
-          {
-            "text": "Don't hold breath",
-            "sub": true
-          },
-          "Rest (1 min):",
-          {
-            "text": "Remove weights/band",
-            "sub": true
-          },
-          {
-            "text": "Bring arms to sides",
-            "sub": true
-          },
-          {
-            "text": "Sit up",
-            "sub": true
-          },
-          "Round 3 - Max Depth (3 min):",
-          {
-            "text": "Return to unweighted",
-            "sub": true
-          },
-          {
-            "text": "Should be able to go 1-2\" deeper than Round 1",
-            "sub": true
-          },
-          {
-            "text": "This is your deepest position of the day",
-            "sub": true
-          },
-          {
-            "text": "📊 MEASURE: fingertip-to-floor distance",
-            "sub": true
-          },
-          {
-            "text": "(Negative number = fingers below bench level!)",
-            "sub": true
-          },
-          {
-            "text": "📸 TAKE PHOTO from side if breakthrough",
-            "sub": true
-          },
-          {
-            "text": "Hold full 3 minutes",
-            "sub": true
-          },
-          {
-            "text": "Keep breathing",
             "sub": true
           }
         ]
