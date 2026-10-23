@@ -169,7 +169,9 @@ h3.sec .mins { color: var(--gold); letter-spacing: 1px; }
     cursor: pointer;
 }
 .x:hover { color: var(--accent); }
-select.add, input.time {
+.class.editing { border-radius: 6px; padding: 3px 4px 3px 9px; flex-wrap: wrap; }
+input.hours { width: 52px; }
+select.add, input.time, input.hours {
     background: var(--bg-elevated);
     border: 1px solid var(--border-bright);
     color: var(--text-label);

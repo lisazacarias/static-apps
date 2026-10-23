@@ -174,8 +174,8 @@ function weekView(arg) {
     html += `<div class="day${ymd(date) === ymd(now) ? ' is-today' : ''}">
       <div class="dname">${esc(date.toLocaleDateString([], { weekday: 'short' }))}<b>${date.getDate()}</b></div>
       <div>
-        ${day.classes.length || edit ? `<div class="row classes">${day.classes.map((c) => `<span class="class">${esc(CLASS[c].label)}${edit ? `<button type="button" class="x" data-unclass="${i}:${c}" aria-label="Remove ${esc(CLASS[c].label)}">×</button>` : ''}</span>`).join('')}
-          ${edit ? `<select class="add" data-addclass="${i}" aria-label="Add a class on ${DAY_NAMES[i]}"><option value="">+ class</option>${CLASS_TYPES.filter((c) => !day.classes.includes(c.id)).map((c) => `<option value="${c.id}">${esc(c.label)}</option>`).join('')}</select>` : ''}</div>` : ''}
+        ${day.classes.length || edit ? `<div class="row classes">${day.classes.map((c) => classChip(c, i, edit)).join('')}
+          ${edit ? `<select class="add" data-addclass="${i}" aria-label="Add a class on ${DAY_NAMES[i]}"><option value="">+ class</option>${CLASS_TYPES.filter((c) => !day.classes.some((x) => x.id === c.id)).map((c) => `<option value="${c.id}">${esc(c.label)}</option>`).join('')}</select>` : ''}</div>` : ''}
         ${list.map((o) => occRow(o, i, edit)).join('')}
         ${!list.length && !edit ? `<div class="rest">${day.classes.length ? 'Class-day prep before class' : 'Rest'}</div>` : ''}
         ${edit ? `<select class="add" data-addsession="${i}" aria-label="Add a session on ${DAY_NAMES[i]}"><option value="">+ session</option>${ROUTINE.sessions.filter((s) => !day.sessions.some((p) => p.id === s.id)).map((s) => `<option value="${s.id}">${esc(s.title)} (${esc(s.length)})</option>`).join('')}</select>` : ''}
@@ -184,6 +184,17 @@ function weekView(arg) {
     </div>`;
   }
   return html;
+}
+
+// A class on the week view. Its time and length are optional; with them the
+// rule checks count exact hours instead of whole days.
+function classChip(c, dayIndex, edit) {
+  const label = esc(CLASS[c.id].label);
+  if (!edit) return `<span class="class">${label}${c.time ? ` · ${esc(fmtTime(c.time))}` : ''}</span>`;
+  return `<span class="class editing">${label}
+    <input type="time" class="time" value="${esc(c.time)}" data-classtime="${dayIndex}:${c.id}" aria-label="${label} start time">
+    <input type="number" class="hours" min="0.5" max="12" step="0.5" value="${c.hours}" data-classhours="${dayIndex}:${c.id}" aria-label="${label} length in hours"><span class="tiny">h</span>
+    <button type="button" class="x" data-unclass="${dayIndex}:${c.id}" aria-label="Remove ${label}">×</button></span>`;
 }
 
 function occRow(o, dayIndex, edit) {
@@ -320,7 +331,17 @@ function currentOcc() {
 
 $('view').addEventListener('change', (ev) => {
   const t = ev.target;
-  if (t.dataset.addclass) { const i = +t.dataset.addclass; changeWeek(i, (d) => d.classes.push(t.value)); return; }
+  if (t.dataset.addclass) { const i = +t.dataset.addclass; changeWeek(i, (d) => d.classes.push({ id: t.value, time: '', hours: CLASS[t.value].hours })); return; }
+  if (t.dataset.classtime || t.dataset.classhours) {
+    const [i, id] = (t.dataset.classtime || t.dataset.classhours).split(':');
+    changeWeek(+i, (d) => {
+      const c = d.classes.find((x) => x.id === id);
+      if (!c) return;
+      if (t.dataset.classtime) c.time = t.value;
+      else if (+t.value > 0) c.hours = +t.value;
+    });
+    return;
+  }
   if (t.dataset.addsession) { const i = +t.dataset.addsession; changeWeek(i, (d) => d.sessions.push({ id: t.value, time: '' })); return; }
   if (t.dataset.time) {
     const [i, id] = t.dataset.time.split(':');
@@ -372,7 +393,7 @@ $('view').addEventListener('click', (ev) => {
     if (o) { updateEntry(o, { variant: t.dataset.variant }); render(true); }
     return;
   }
-  if (t.dataset.unclass) { const [i, c] = t.dataset.unclass.split(':'); changeWeek(+i, (d) => { d.classes = d.classes.filter((x) => x !== c); }); return; }
+  if (t.dataset.unclass) { const [i, c] = t.dataset.unclass.split(':'); changeWeek(+i, (d) => { d.classes = d.classes.filter((x) => x.id !== c); }); return; }
   if (t.dataset.unplan) { const [i, id] = t.dataset.unplan.split(':'); changeWeek(+i, (d) => { d.sessions = d.sessions.filter((x) => x.id !== id); }); return; }
   if (t.dataset.start) {
     const [kind, arg] = t.dataset.start.split(':');

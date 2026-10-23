@@ -15,24 +15,27 @@ export const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'
 
 /* ── classes ─────────────────────────────────────────────────────────── */
 
-// `pole` is what rules 2 and 3 mean by a pole day. `hard` is what rule 1
-// means by a hard class: the plan's week B puts Splits Intensive the day
-// before a rehearsal, so rehearsal, climbing and skating don't count.
+// `pole` is what rules 2 and 3 mean by a pole day: pole and pole tricks.
+// Pole dance and rehearsal count as dance. `hard` is what rule 1 means by a
+// hard class. `hours` is a class's length when you haven't given one.
 export const CLASS_TYPES = [
-  { id: 'pole', label: 'Pole', pole: true, hard: true },
-  { id: 'pole-tricks', label: 'Pole tricks', pole: true, hard: true },
-  { id: 'pole-dance', label: 'Pole dance', pole: true, hard: true },
-  { id: 'dance', label: 'Dance', pole: false, hard: true },
-  { id: 'rehearsal', label: 'Rehearsal', pole: false, hard: false },
-  { id: 'climbing', label: 'Climbing', pole: false, hard: false },
-  { id: 'skating', label: 'Skating', pole: false, hard: false },
+  { id: 'pole', label: 'Pole', pole: true, hard: true, hours: 1.5 },
+  { id: 'pole-tricks', label: 'Pole tricks', pole: true, hard: true, hours: 1.5 },
+  { id: 'pole-dance', label: 'Pole dance', pole: false, hard: true, hours: 1.5 },
+  { id: 'dance', label: 'Dance', pole: false, hard: true, hours: 1.5 },
+  { id: 'rehearsal', label: 'Rehearsal', pole: false, hard: true, hours: 2.5 },
+  { id: 'climbing', label: 'Climbing', pole: false, hard: false, hours: 2 },
+  { id: 'skating', label: 'Skating', pole: false, hard: false, hours: 1.5 },
 ];
 const CLASS = Object.fromEntries(CLASS_TYPES.map((c) => [c.id, c]));
 
 /* ── stored weeks ────────────────────────────────────────────────────── */
 
 // { version: 1, weeks: { ['YYYY-MM-DD' of the Monday]: week } }
-//   week: { deload, days: [7 × { classes: [class id], sessions: [{ id, time 'HH:MM'|'' }] }] }
+//   week:  { deload, days: [7 × { classes, sessions }] }
+//   class: { id, time 'HH:MM'|'', hours }; a bare id string is read as one
+//          with no time
+//   session: { id, time 'HH:MM'|'' }
 export function normalizeWeeks(raw, sessionIds = null) {
   const weeks = {};
   const src = raw && typeof raw === 'object' && raw.weeks && typeof raw.weeks === 'object' ? raw.weeks : {};
@@ -43,15 +46,25 @@ export function normalizeWeeks(raw, sessionIds = null) {
   return { version: 1, weeks };
 }
 
+const isTime = (t) => typeof t === 'string' && /^\d{2}:\d{2}$/.test(t);
+
 export function normalizeWeek(w, sessionIds = null) {
   const days = Array.from({ length: 7 }, (_, i) => {
     const d = Array.isArray(w?.days) && w.days[i] && typeof w.days[i] === 'object' ? w.days[i] : {};
-    const classes = Array.isArray(d.classes) ? [...new Set(d.classes.filter((c) => CLASS[c]))] : [];
+    const seenClass = new Set();
+    const classes = (Array.isArray(d.classes) ? d.classes : [])
+      .map((c) => (typeof c === 'string' ? { id: c } : c))
+      .filter((c) => c && CLASS[c.id] && !seenClass.has(c.id) && seenClass.add(c.id))
+      .map((c) => ({
+        id: c.id,
+        time: isTime(c.time) ? c.time : '',
+        hours: Number.isFinite(c.hours) && c.hours > 0 && c.hours <= 12 ? c.hours : CLASS[c.id].hours,
+      }));
     const seen = new Set();
     const sessions = (Array.isArray(d.sessions) ? d.sessions : [])
       .map((s) => (typeof s === 'string' ? { id: s, time: '' } : s))
       .filter((s) => s && typeof s.id === 'string' && (!sessionIds || sessionIds.includes(s.id)) && !seen.has(s.id) && seen.add(s.id))
-      .map((s) => ({ id: s.id, time: /^\d{2}:\d{2}$/.test(s.time) ? s.time : '' }));
+      .map((s) => ({ id: s.id, time: isTime(s.time) ? s.time : '' }));
     return { classes, sessions };
   });
   return { deload: w?.deload === true, days };
@@ -59,11 +72,9 @@ export function normalizeWeek(w, sessionIds = null) {
 
 export const emptyWeek = () => normalizeWeek({});
 
-export function weekFromExample(example) {
-  const w = emptyWeek();
-  for (const d of example.days) w.days[d.day] = { classes: [...d.classes], sessions: d.sessions.map((id) => ({ id, time: '' })) };
-  return w;
-}
+export const weekFromExample = (example) => normalizeWeek({
+  days: Array.from({ length: 7 }, (_, i) => example.days.find((d) => d.day === i) || {}),
+});
 
 // A copy of a week's classes and sessions for another week; deload doesn't
 // carry over.
@@ -94,50 +105,111 @@ export function occurrences(routine, weeks, from, to) {
 
 /* ── rule checks ─────────────────────────────────────────────────────── */
 
+const at = (day, hhmm) => { const [h, m] = hhmm.split(':').map(Number); return new Date(day.getFullYear(), day.getMonth(), day.getDate(), h, m); };
+const HOUR = 3600000;
+const fmtHours = (h) => `${Math.round(h)} hours`;
+
 // Checks a week against the plan's weekly minimums and placement rules 1–5.
-// Days are whole days, so "48 hours" is read as "not the day before".
+// When a session and a class both have times, gaps are exact hours from the
+// end of one to the start of the other. When either has no time it falls
+// back to whole days: "48 hours before pole" reads as "not the day before".
 // Neighbouring weeks are looked at across the Monday/Sunday boundary.
 //   minimums: [{ session, count, planned }]
 //   flags:    [{ day, session, level 'warn'|'info', rule, text }]
 export function checkWeek(routine, weeks, monday) {
-  const key = ymd(monday);
-  const week = weeks.weeks[key] || emptyWeek();
+  const week = weeks.weeks[ymd(monday)] || emptyWeek();
   const dayAt = (i) => {
     if (i >= 0 && i < 7) return week.days[i];
-    const other = weeks.weeks[ymd(addDays(monday, i < 0 ? -7 : 7))];
-    return other ? other.days[(i + 7) % 7] : { classes: [], sessions: [] };
+    const other = weeks.weeks[ymd(addDays(monday, Math.floor(i / 7) * 7))];
+    return other ? other.days[((i % 7) + 7) % 7] : { classes: [], sessions: [] };
   };
-  const pole = (i) => dayAt(i).classes.some((c) => CLASS[c].pole);
-  const hard = (i) => dayAt(i).classes.some((c) => CLASS[c].hard);
-  const any = (i) => dayAt(i).classes.length > 0;
-  const has = (i, id) => dayAt(i).sessions.some((s) => s.id === id);
-  const label = (i) => dayAt(i).classes.map((c) => CLASS[c].label.toLowerCase()).join(' and ');
+  // Classes from 3 days before to 3 days after day d, with real start/end
+  // times where known.
+  const classesNear = (d) => {
+    const out = [];
+    for (let i = d - 3; i <= d + 3; i++) {
+      for (const c of dayAt(i).classes) {
+        const date = addDays(monday, i);
+        const start = c.time ? at(date, c.time) : null;
+        out.push({ ...CLASS[c.id], day: i, start, end: start && new Date(start.getTime() + c.hours * HOUR) });
+      }
+    }
+    return out;
+  };
+  const named = (c) => `${DAY_NAMES[((c.day % 7) + 7) % 7]}’s ${c.label.toLowerCase()}`;
   const title = (id) => routine.sessions.find((s) => s.id === id)?.title || id;
+  const minutes = (id) => routine.sessions.find((s) => s.id === id)?.minutes || 0;
 
   const flags = [];
   const flag = (day, session, level, rule, text) => flags.push({ day, session, level, rule, text });
   for (let d = 0; d < 7; d++) {
-    for (const { id } of week.days[d].sessions) {
+    const today = dayAt(d).classes.map((c) => CLASS[c.id]);
+    const dayLabel = today.map((c) => c.label.toLowerCase()).join(' and ');
+    for (const { id, time } of week.days[d].sessions) {
+      const start = time ? at(addDays(monday, d), time) : null;
+      const end = start && new Date(start.getTime() + minutes(id) * HOUR / 60);
+      const near = classesNear(d);
+      // Hours from this session to a later class, or from an earlier class
+      // to this session; null when either has no time.
+      const until = (c) => (end && c.start ? (c.start - end) / HOUR : null);
+      const since = (c) => (start && c.end ? (start - c.end) / HOUR : null);
+      const next = (pred) => near.filter((c) => c.day > d && pred(c)).sort((a, b) => a.day - b.day || (a.start || 0) - (b.start || 0))[0];
+      const prev = (pred) => near.filter((c) => c.day < d && pred(c)).sort((a, b) => b.day - a.day || (b.end || 0) - (a.end || 0))[0];
+      const sameDay = near.filter((c) => c.day === d);
+      // Same-day classes: before this session or after it.
+      const laterToday = sameDay.filter((c) => (until(c) ?? -1) >= 0);
+      const minGapToday = Math.min(...laterToday.map(until));
+      const afterClassToday = sameDay.length && sameDay.every((c) => (since(c) ?? -1) >= 0);
+
+      // Whole-day fallback when a time is missing: 24 hours per day apart.
+      const hours = (c, f, fallback) => f(c) ?? fallback;
+
       if (id === 'splits-intensive') {
-        if (any(d)) flag(d, id, 'warn', 1, `Splits Intensive goes on a free day, not a ${label(d)} day.`);
-        else if (hard(d + 1)) flag(d, id, 'warn', 1, `Splits Intensive is less than 48 hours before ${DAY_NAMES[(d + 1) % 7]}’s ${label(d + 1)}. Aim for 48, ideally 72.`);
-        else if (hard(d + 2)) flag(d, id, 'info', 1, `${DAY_NAMES[(d + 2) % 7]}’s ${label(d + 2)} is about 48 hours away. 72 is better if another day allows it.`);
-      }
-      if (id === 'shoulder-hyperflexion') {
-        if (pole(d)) flag(d, id, 'warn', 2, 'Never on a pole or pole-tricks day.');
-        else if (pole(d + 1)) flag(d, id, 'warn', 2, 'Pole is tomorrow. Shoulder Hyperflexion needs at least 48 hours before pole.');
-        else if (pole(d - 1)) flag(d, id, 'info', 2, 'Pole was yesterday. Make sure it’s at least 24 hours after class.');
-        if (any(d) && !pole(d)) flag(d, id, 'info', 5, `Finish at least a few hours before ${label(d)}.`);
-      }
-      if (id === 'hips-backbend') {
-        if (pole(d)) flag(d, id, 'warn', 3, 'Hips & Backbend never goes on a pole day.');
-        else {
-          if (any(d)) flag(d, id, 'info', 5, `Finish at least a few hours before ${label(d)}.`);
-          if (pole(d + 1)) flag(d, id, 'info', 3, 'Pole is tomorrow: stop bridging at 2 reps and about 80% of your usual depth.');
+        const c = next((x) => x.hard);
+        if (today.length) flag(d, id, 'warn', 1, `Splits Intensive goes on a free day, not a ${dayLabel} day.`);
+        else if (c) {
+          const h = hours(c, until, c.day - d === 1 ? 24 : c.day - d === 2 ? 48 : 72);
+          if (h < 48) flag(d, id, 'warn', 1, `Splits Intensive is ${until(c) == null ? 'less than 48 hours' : `${fmtHours(h)}`} before ${named(c)}. Aim for 48, ideally 72.`);
+          else if (h < 72) flag(d, id, 'info', 1, `${named(c)} is ${until(c) == null ? 'about 48 hours' : fmtHours(h)} away. 72 is better if another day allows it.`);
         }
       }
-      if (id === 'splits-snack' && any(d)) flag(d, id, 'info', 5, 'Class day: before class keep holds under 60 seconds; after class stay at your usual depth.');
-      if (['splits-intensive', 'shoulder-hyperflexion', 'hips-backbend'].includes(id) && has(d + 1, id)) {
+
+      if (id === 'shoulder-hyperflexion') {
+        if (today.some((c) => c.pole)) flag(d, id, 'warn', 2, 'Never on a pole or pole-tricks day.');
+        else {
+          const c = next((x) => x.pole);
+          if (c) {
+            const h = hours(c, until, c.day - d === 1 ? 24 : 48);
+            if (h < 48) flag(d, id, 'warn', 2, until(c) == null ? 'Pole is tomorrow. Shoulder Hyperflexion needs at least 48 hours before pole.' : `Only ${fmtHours(h)} before ${named(c)}. It needs at least 48.`);
+          }
+          const p = prev((x) => x.pole);
+          if (p) {
+            const h = since(p);
+            if (h != null && h < 24) flag(d, id, 'warn', 2, `Only ${fmtHours(h)} after ${named(p)}. It needs at least 24.`);
+            else if (h == null && p.day === d - 1) flag(d, id, 'info', 2, 'Pole was yesterday. Make sure it’s at least 24 hours after class.');
+          }
+        }
+      }
+
+      if (id === 'hips-backbend') {
+        if (today.some((c) => c.pole)) flag(d, id, 'warn', 3, 'Hips & Backbend never goes on a pole day.');
+        else if (next((x) => x.pole)?.day === d + 1) flag(d, id, 'info', 3, 'Pole is tomorrow: stop bridging at 2 reps and about 80% of your usual depth.');
+      }
+
+      // Rule 5: long passive work on a class day should finish at least a
+      // few hours before class. The plan's examples say 3 to 4.
+      const big = ['splits-intensive', 'shoulder-hyperflexion', 'hips-backbend'].includes(id);
+      if (big && id !== 'splits-intensive' && today.length && !today.some((c) => c.pole)) {
+        if (laterToday.length && minGapToday < 3) flag(d, id, 'warn', 5, `Ends only ${minGapToday < 1 ? `${Math.max(0, Math.round(minGapToday * 60))} minutes` : `${minGapToday.toFixed(1).replace(/\.0$/, '')} hours`} before ${dayLabel}. Finish at least 3 to 4 hours before.`);
+        else if (afterClassToday) flag(d, id, 'info', 6, 'After class: stay at your usual depth and don’t chase new depth when tired.');
+        else if (!laterToday.length) flag(d, id, 'info', 5, `Finish at least a few hours before ${dayLabel}.`);
+      }
+      if (id === 'splits-snack' && today.length) {
+        if (afterClassToday) flag(d, id, 'info', 6, 'After class: stay at your usual depth.');
+        else flag(d, id, 'info', 5, laterToday.length ? 'Before class: keep holds under 60 seconds.' : 'Class day: before class keep holds under 60 seconds; after class stay at your usual depth.');
+      }
+
+      if (big && dayAt(d + 1).sessions.some((s) => s.id === id)) {
         flag(d, id, 'warn', 4, `${title(id)} two days running. Loaded end-range work for the same region needs a day between.`);
       }
     }
