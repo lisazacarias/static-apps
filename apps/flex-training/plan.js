@@ -478,7 +478,7 @@ const ALIASES = {
   'couch or kneeling hip flexor': 'couch stretch',
   'contract relax': 'contract relax hip flexor',
   'thoracic spine roll': 'thoracic roll',
-  'thoracic roll and arch backs': 'thoracic roll',
+  'thoracic roll and arch backs': 'foam roller arch backs',
   'lats roll': 'foam roll lats',
   'standing splits at pole': 'standing splits',
   'bridge prep or glute bridge': 'bridge prep',
@@ -499,17 +499,24 @@ const ALIASES = {
   'round 1 passive': 'shoulder hyperflexion on bench',
   'round 2 active': 'shoulder hyperflexion on bench',
   'round 3 unweighted': 'shoulder hyperflexion on bench',
-  'thread the needle and arm circles': 'thread the needle',
   'childs pose and deep breathing': 'childs pose',
 };
 
 const rawKey = (name) => name.toLowerCase().replace(/→/g, ' to ').replace(/&/g, ' and ').replace(/['’]/g, '')
   .replace(/[^a-z0-9]+/g, ' ').trim();
 
-export function moveKey(name) {
+// Plan items that are really two movements, each with its own page.
+const SPLIT = { 'thread the needle and arm circles': ['thread the needle', 'arm circles'] };
+// Display names for movements no plan item is named after exactly.
+const NAMES = { 'foam roller arch backs': 'Foam roller arch-backs', 'arm circles': 'Arm circles' };
+
+// Every movement a plan item counts as, usually one.
+export function moveKeys(name) {
   const k = rawKey(name);
-  return ALIASES[k] || k;
+  return SPLIT[k] || [ALIASES[k] || k];
 }
+
+export const moveKey = (name) => moveKeys(name)[0];
 
 // One entry per movement in the plan: the sessions it's in, and each
 // place it's used there (session, which version, the plan's time and
@@ -518,13 +525,13 @@ export function moveKey(name) {
 //     duration, detail, cues }] }
 export function movementIndex(routine) {
   const index = new Map();
-  const add = (item, session, version) => {
-    const key = moveKey(item.name);
-    if (!index.has(key)) index.set(key, { key, name: item.name, sessions: [], uses: [] });
+  const add = (item, session, version) => { for (const key of moveKeys(item.name)) addTo(key, item, session, version); };
+  const addTo = (key, item, session, version) => {
+    if (!index.has(key)) index.set(key, { key, name: NAMES[key] || item.name, sessions: [], uses: [] });
     const entry = index.get(key);
     // Prefer the movement's own name over a variant ("Couch stretch", not
     // "Couch stretch, extended").
-    if (rawKey(item.name) === key && rawKey(entry.name) !== key) entry.name = item.name;
+    if (!NAMES[key] && rawKey(item.name) === key && rawKey(entry.name) !== key) entry.name = item.name;
     if (!entry.sessions.includes(session)) entry.sessions.push(session);
     const use = { session, version, name: item.name, duration: item.duration, detail: item.detail || '', cues: item.cues || [] };
     if (!entry.uses.some((u) => JSON.stringify(u) === JSON.stringify(use))) entry.uses.push(use);

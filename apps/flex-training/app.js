@@ -1,6 +1,6 @@
 import {
   CLASS_TYPES, LOADS, DAY_NAMES, versionOf, deloadInfo, normalizeWeeks, normalizeWeek, emptyWeek, weekFromExample, copyWeek, isPlanned,
-  occurrences, checkWeek, checklist, timerOptions, movementIndex, moveKey, cueText, cueSub,
+  occurrences, checkWeek, checklist, timerOptions, movementIndex, moveKey, moveKeys, cueText, cueSub,
   normalizeLog, isEmptyEntry, toIcs, suggestWeek, playPhases, nextToDo, ymd, fromYmd, addDays, weekStart,
 } from './plan.js';
 import ROUTINE from './routine.js';
@@ -415,12 +415,13 @@ function moveRow({ id, item }, checked) {
   const on = checked.has(id);
   const timers = timerOptions(item);
   const mk = moveKey(item.name);
+  const forms = moveKeys(item.name).map((k) => FORM[k]).filter(Boolean);
   return `<div class="move${on ? ' checked' : ''}">
     <input type="checkbox" data-check="${esc(id)}" id="c-${esc(id)}" ${on ? 'checked' : ''} aria-label="${esc(item.name)} done">
     <div>
       <label class="mname" for="c-${esc(id)}">${esc(item.name)}</label><span class="mdur">${esc(item.duration)}</span>
       ${item.detail ? `<div class="mdetail">${rich(item.detail)}</div>` : ''}
-      ${item.cues?.length || FORM[mk] ? `<details class="cues"><summary>How to do it</summary>${item.cues?.length ? cueList(item.cues) : ''}${FORM[mk] ? formHtml(FORM[mk], true) : ''}</details>` : ''}
+      ${item.cues?.length || forms.length ? `<details class="cues"><summary>How to do it</summary>${item.cues?.length ? cueList(item.cues) : ''}${forms.map((f) => formHtml(f, true)).join('')}</details>` : ''}
       <div class="row move-tools">
         ${timers.map((t) => `<button class="btn" type="button" data-timer="${t.seconds}" data-label="${esc(item.name)} · ${esc(t.label)}">⏱ ${esc(t.label)}</button>`).join('')}
         <a href="#m/${encodeURIComponent(mk)}">About this movement →</a>
@@ -433,12 +434,14 @@ function moveRow({ id, item }, checked) {
 // session where the full page is one tap away.
 function formHtml(f, compact = false) {
   return `<div class="form">
-    ${f.guess ? `<p class="guess">Best guess: ${esc(f.guess)}</p>` : ''}
+    ${f.guess ? `<p class="guess"><b>Best guess.</b> ${esc(f.guess)}</p>` : ''}
+    ${f.note ? `<p class="guess">${esc(f.note)}</p>` : ''}
+    ${f.intro ? `<p><b>${esc(f.intro)}</b></p>` : ''}
     ${f.setup ? `<p><b>Setup.</b> ${esc(f.setup)}</p>` : ''}
     <ol>${f.steps.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>
     ${f.cues?.length ? `<p class="form-h">Cues</p><ul>${f.cues.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
     ${f.avoid?.length ? `<p class="form-h">Avoid</p><ul class="avoid">${f.avoid.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
-    ${compact ? '' : `<p class="tiny muted">${f.fromPlan ? 'Condensed from the cues in the earlier version of your plan.' : 'General form notes added in the app, not from your plan.'} The plan’s times and reps below are what to follow.</p>`}
+    ${compact ? '' : `<p class="tiny muted">${f.guess ? 'Best guess: your calendar only gives the name.' : f.fromPlan ? 'From the cues in your Flex Training calendar.' : 'Standard technique, not from your calendar.'} The plan’s times and reps below are what to follow.</p>`}
   </div>`;
 }
 
@@ -855,7 +858,6 @@ function paintPlayer() {
   const { item, section, id } = items[index];
   const checked = new Set(entryFor(o).checked);
   const step = phases[phase];
-  const mk = moveKey(item.name);
   const upNext = nextToDo(items, new Set([...checked, id]), index);
   $('playHead').textContent = `${o.session.title} · ${index + 1} of ${items.length}${section?.title ? ` · ${section.title}` : ''}`;
   $('playStep').textContent = step.ready ? 'Get ready' : step.label || (checked.has(id) ? 'Already ticked' : '');
@@ -865,7 +867,7 @@ function paintPlayer() {
     <p class="mdur">${esc(item.duration)}</p>
     ${item.detail ? `<p class="mdetail">${rich(item.detail)}</p>` : ''}
     ${item.cues?.length ? cueList(item.cues) : ''}
-    ${FORM[mk] ? `<h3 class="sec">How to do it</h3>${formHtml(FORM[mk], true)}` : ''}
+    ${moveKeys(item.name).some((k) => FORM[k]) ? `<h3 class="sec">How to do it</h3>${moveKeys(item.name).filter((k) => FORM[k]).map((k) => formHtml(FORM[k], true)).join('')}` : ''}
     ${upNext >= 0 ? `<p class="up-next">Next: ${esc(items[upNext].item.name)}</p>` : ''}`;
   $('playBody').scrollTop = 0;
   $('playBack').disabled = index === 0;

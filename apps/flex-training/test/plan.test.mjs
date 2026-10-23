@@ -412,13 +412,24 @@ test('the reference lists each place a movement is used', () => {
   assert.equal(new Set(index.map((m) => m.key)).size, index.length);
 });
 
+test('a combined plan item counts as each of its movements', () => {
+  const index = movementIndex(ROUTINE);
+  for (const key of ['thread the needle', 'arm circles']) {
+    const m = index.find((x) => x.key === key);
+    assert.ok(m.uses.some((u) => u.name === 'Thread-the-needle and arm circles'), key);
+  }
+  assert.equal(index.find((x) => x.key === 'arm circles').name, 'Arm circles');
+  assert.equal(index.find((x) => x.key === 'foam roller arch backs').name, 'Foam roller arch-backs');
+  assert.equal(moveKey('Thoracic roll and arch-backs'), 'foam roller arch backs');
+});
+
 test('every movement has one form description, and every description a movement', () => {
   const keys = movementIndex(ROUTINE).map((m) => m.key);
   for (const key of keys) {
     const f = FORM[key];
     assert.ok(f, `no form notes for ${key}`);
     assert.ok(Array.isArray(f.steps) && f.steps.length, key);
-    for (const k of Object.keys(f)) assert.ok(['setup', 'steps', 'cues', 'avoid', 'guess', 'fromPlan'].includes(k), `${key}.${k}`);
+    for (const k of Object.keys(f)) assert.ok(['guess', 'note', 'fromPlan', 'intro', 'setup', 'steps', 'cues', 'avoid'].includes(k), `${key}.${k}`);
   }
   for (const key of Object.keys(FORM)) assert.ok(keys.includes(key), `form notes for unknown movement ${key}`);
 });
