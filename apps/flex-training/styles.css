@@ -145,6 +145,8 @@ h3.sec .mins { color: var(--gold); letter-spacing: 1px; }
 .min.planned b { color: var(--gold); }
 .min.missing { color: var(--accent); border-color: rgba(194, 116, 122, 0.35); }
 .week-tools { margin-bottom: 6px; }
+.auto-note { margin: 4px 0 8px; color: var(--gold); }
+.auto-note .btn { padding: 4px 10px; font-size: 12px; margin-right: 6px; }
 .deload { font-size: 13px; display: flex; align-items: center; gap: 6px; cursor: pointer; }
 .deload input { accent-color: var(--green); width: 16px; height: 16px; }
 .classes { gap: 6px; margin: 10px 0 6px; }

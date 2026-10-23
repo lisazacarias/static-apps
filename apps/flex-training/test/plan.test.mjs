@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   normalizeWeeks, normalizeWeek, emptyWeek, weekFromExample, copyWeek, isPlanned,
-  occurrences, checkWeek, checklist, versionOf, timerOptions, parseDuration, moveKey, movementIndex,
+  occurrences, checkWeek, suggestWeek, checklist, versionOf, timerOptions, parseDuration, moveKey, movementIndex,
   normalizeLog, isEmptyEntry, describe, toIcs, foldLine, weekStart, ymd,
 } from '../plan.js';
 import ROUTINE from '../routine.js';
@@ -125,9 +125,7 @@ test('occurrences list planned sessions in day order, keyed by date', () => {
 /* ── rule checks ── */
 
 test('the plan’s example weeks raise no warnings, only its own notes', () => {
-  assert.deepEqual(textsOf(weeksWith(weekFromExample(WEEK_A))), [
-    'info 1: If Friday’s pole dance left you sore, drop the bridge block and Round 2.',
-  ]);
+  assert.deepEqual(textsOf(weeksWith(weekFromExample(WEEK_A))), []);
   assert.deepEqual(textsOf(weeksWith(weekFromExample(WEEK_B))), [
     'info 5: The day after pole tricks: skip the thoracic roll and arch-backs if your upper back is sore.',
     'info 3: Less than 48 hours before Sunday’s rehearsal. Fine unless big splits or kicks matter in that class.',
@@ -137,7 +135,10 @@ test('the plan’s example weeks raise no warnings, only its own notes', () => {
 test('rule 1: Shoulders & Bridge 48 hours before tricks, and after its soreness', () => {
   assert.deepEqual(flagsOf(plan({ 2: { classes: ['pole-tricks'], sessions: ['shoulders-bridge'] } })), [[2, 'shoulders-bridge', 'warn', 1]]);
   assert.deepEqual(flagsOf(plan({ 1: { sessions: ['shoulders-bridge'] }, 2: { classes: ['pole-tricks'] } })), [[1, 'shoulders-bridge', 'warn', 1]]);
-  assert.deepEqual(flagsOf(plan({ 0: { sessions: ['shoulders-bridge'] }, 2: { classes: ['pole-tricks'] } })), []);
+  // Two days before, without times, could be either side of 48 hours.
+  assert.deepEqual(textsOf(plan({ 0: { sessions: ['shoulders-bridge'] }, 2: { classes: ['pole-tricks'] } })),
+    ['info 1: Two days before Wednesday’s pole tricks: fine if it’s 48 hours from the end of this session to the start of class. Add times to check.']);
+  assert.deepEqual(flagsOf(plan({ 0: { sessions: ['shoulders-bridge'] }, 3: { classes: ['pole-tricks'] } })), []);
   // After tricks: the day after is a warning, two days after a reminder.
   assert.deepEqual(flagsOf(plan({ 2: { classes: ['pole-tricks'] }, 3: { sessions: ['shoulders-bridge'] } })), [[3, 'shoulders-bridge', 'warn', 1]]);
   assert.deepEqual(flagsOf(plan({ 2: { classes: ['pole-tricks'] }, 4: { sessions: ['shoulders-bridge'] } })), [[4, 'shoulders-bridge', 'info', 1]]);
@@ -183,9 +184,13 @@ test('rule 4: long holds stay off the hour or two before a class that uses them'
   assert.deepEqual(textsOf(day('16:30')), ['warn 4: Ends 44 minutes before dance. Keep long hip and hamstring holds off the hour or two before class.']);
   assert.deepEqual(textsOf(day('14:00')), []);
   assert.deepEqual(textsOf(day('20:00')), []);
-  // Shoulders & Bridge before dance is fine; before climbing it isn't.
+  // Pole dance and rehearsal count as dance. Shoulders & Bridge before
+  // dance is fine, and climbing and skating have no hold rule.
+  assert.deepEqual(flagsOf(day('16:30', 'pole-dance')), [[3, 'hips-thoracic', 'warn', 4]]);
+  assert.deepEqual(flagsOf(day('16:30', 'rehearsal')), [[3, 'hips-thoracic', 'warn', 4]]);
   assert.deepEqual(textsOf(day('16:30', 'dance', 'shoulders-bridge')), []);
-  assert.deepEqual(flagsOf(day('16:30', 'climbing', 'shoulders-bridge')), [[3, 'shoulders-bridge', 'warn', 4]]);
+  assert.deepEqual(textsOf(day('16:30', 'climbing', 'shoulders-bridge')), []);
+  assert.deepEqual(textsOf(day('16:30', 'skating')), []);
   // Without times it's a reminder.
   assert.deepEqual(flagsOf(plan({ 3: { classes: ['dance'], sessions: ['splits-snack'] } })), [[3, 'splits-snack', 'info', 4]]);
 });
@@ -198,6 +203,56 @@ test('rule 5: the day after tricks is gentle for the upper body', () => {
 test('rule 7: late big sessions are maintenance only', () => {
   assert.deepEqual(flagsOf(plan({ 0: { sessions: [ses('hips-thoracic', '21:30')] } })), [[0, 'hips-thoracic', 'info', 7]]);
   assert.deepEqual(flagsOf(plan({ 0: { sessions: [ses('hips-thoracic', '19:30'), ses('splits-snack', '22:00')] } })), []);
+});
+
+/* ── suggested week ── */
+
+const suggested = (days) => {
+  const weeks = plan(days);
+  const w = suggestWeek(ROUTINE, weeks, MONDAY);
+  weeks.weeks[ymd(MONDAY)] = w;
+  return { w, weeks, byDay: w.days.map((d) => d.sessions.map((x) => x.id)), flags: check(weeks) };
+};
+const MINIMUMS = ROUTINE.guide.minimums.map((m) => m.session);
+
+test('a suggested week meets the minimums with no warnings', () => {
+  const weeks = [
+    { 1: { classes: [cls('pole-tricks', '20:50', { hours: 1.25 })] }, 3: { classes: [cls('dance', '18:00', { hours: 4 })] } },
+    ...ROUTINE.guide.examples.map((ex) => Object.fromEntries(ex.days.map((d) => [d.day, { classes: d.classes }]))),
+    {},
+  ];
+  for (const days of weeks) {
+    const { w, byDay, flags } = suggested(days);
+    assert.equal(w.auto, true);
+    for (const id of MINIMUMS) assert.ok(byDay.some((d) => d.includes(id)), `${id} in ${JSON.stringify(byDay)}`);
+    assert.deepEqual(flags.filter((f) => f.level === 'warn'), [], JSON.stringify(byDay));
+  }
+});
+
+test('the suggestion keeps classes and follows the plan’s placement', () => {
+  const { w, byDay } = suggested({ 1: { classes: ['pole-tricks'] }, 3: { classes: ['dance'] } });
+  assert.deepEqual(w.days[1].classes.map((c) => c.id), ['pole-tricks']);
+  assert.ok(byDay[1].includes('shoulder-recovery'), 'Shoulder Recovery after tricks');
+  assert.deepEqual(byDay[3], ['class-prep'], 'class-day prep on an otherwise empty class day');
+  const sb = byDay.findIndex((d) => d.includes('shoulders-bridge'));
+  assert.ok(![0, 1, 2].includes(sb), `Shoulders & Bridge on day ${sb}`);
+  // Separate exposures: never two splits or two shoulder sessions on a day.
+  for (const d of byDay) {
+    assert.ok(d.filter((x) => ['splits-intensive', 'hips-thoracic', 'splits-snack'].includes(x)).length <= 1, JSON.stringify(d));
+    assert.ok(d.filter((x) => ['shoulders-bridge', 'shoulder-recovery', 'shoulder-reset'].includes(x)).length <= 1, JSON.stringify(d));
+  }
+});
+
+test('the suggestion skips a double tricks night', () => {
+  const { byDay } = suggested({ 2: { classes: [cls('pole-tricks', '', { double: true })] } });
+  assert.deepEqual(byDay[2], ['class-prep']);
+  assert.ok(byDay[3].includes('shoulder-recovery'), 'Shoulder Recovery moves to the next day');
+});
+
+test('a week stays suggested only until you change a session', () => {
+  assert.equal(normalizeWeek({ auto: true }).auto, true);
+  assert.equal(normalizeWeek({}).auto, false);
+  assert.equal(weekFromExample(WEEK_A).auto, false);
 });
 
 test('rules look across the week boundary', () => {

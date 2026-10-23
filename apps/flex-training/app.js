@@ -1,7 +1,7 @@
 import {
   CLASS_TYPES, LOADS, DAY_NAMES, versionOf, normalizeWeeks, normalizeWeek, emptyWeek, weekFromExample, copyWeek, isPlanned,
   occurrences, checkWeek, checklist, timerOptions, movementIndex, moveKey, cueText, cueSub,
-  normalizeLog, isEmptyEntry, toIcs, ymd, fromYmd, addDays, weekStart,
+  normalizeLog, isEmptyEntry, toIcs, suggestWeek, ymd, fromYmd, addDays, weekStart,
 } from './plan.js';
 import ROUTINE from './routine.js';
 
@@ -138,8 +138,9 @@ function weekView(arg) {
     const prev = Object.keys(weeks.weeks).filter((k) => k < mk && isPlanned(weeks.weeks[k])).sort().at(-1);
     html += `<div class="card plan-start">
       <h2>Plan this week</h2>
-      <p class="muted">Add the week’s classes first, then place sessions. Or start from:</p>
+      <p class="muted">Add the week’s classes below and the sessions are suggested around them, following the placement rules. Or start from:</p>
       <div class="row">
+        <button class="btn" type="button" id="suggestBtn">Suggest with no classes</button>
         ${prev ? `<button class="btn primary" type="button" data-start="copy:${prev}">Copy week of ${esc(fmtShort(fromYmd(prev)))}</button>` : ''}
         ${ROUTINE.guide.examples.map((ex, i) => `<button class="btn" type="button" data-start="example:${i}" title="${esc(ex.title)}">Example week ${'AB'[i] || i + 1}</button>`).join('')}
       </div>
@@ -164,6 +165,8 @@ function weekView(arg) {
         ${planned ? `<button class="btn" type="button" id="exportBtn">Export .ics</button>` : ''}
       </span>
     </div>`;
+  if (week?.auto && planned) html += `<p class="auto-note tiny">✦ Sessions suggested from your classes. They move when you change a class; moving or timing a session yourself keeps them where you put them.</p>`;
+  else if (planned) html += `<p class="auto-note tiny"><button class="btn" type="button" id="suggestBtn">Suggest again</button> <span class="muted">Re-places this week’s sessions around its classes.</span></p>`;
   if (week?.deload) html += `<p class="info-box tiny">${rich(ROUTINE.guide.deload)}</p>`;
 
   for (let i = 0; i < 7; i++) {
@@ -214,13 +217,23 @@ function occRow(o, dayIndex, edit) {
   </div>`;
 }
 
-function changeWeek(dayIndex, f) {
+// A change to a day's classes or sessions. Changing classes in a suggested
+// (auto) week, or in a week with nothing in it yet, re-suggests its
+// sessions; changing a session yourself stops that.
+function changeWeek(dayIndex, f, what = 'sessions') {
   const monday = currentMonday();
-  const week = normalizeWeek(weeks.weeks[monday] || emptyWeek(), SESSION_IDS);
+  const existing = weeks.weeks[monday];
+  const week = normalizeWeek(existing || { auto: true }, SESSION_IDS);
+  if (what === 'classes' && !isPlanned(existing)) week.auto = true;
   f(week.days[dayIndex], week);
+  if (what === 'sessions') week.auto = false;
   setWeek(monday, week);
+  if (week.auto) suggest(monday);
+  editing = monday;
   render(true);
 }
+
+const suggest = (monday) => setWeek(monday, suggestWeek(ROUTINE, weeks, fromYmd(monday)));
 
 function currentMonday() {
   const [route, arg] = location.hash.slice(1).split('/');
@@ -338,7 +351,7 @@ function currentOcc() {
 
 $('view').addEventListener('change', (ev) => {
   const t = ev.target;
-  if (t.dataset.addclass) { const i = +t.dataset.addclass; changeWeek(i, (d) => d.classes.push({ id: t.value })); return; }
+  if (t.dataset.addclass) { const i = +t.dataset.addclass; changeWeek(i, (d) => d.classes.push({ id: t.value }), 'classes'); return; }
   const classKey = t.dataset.classtime || t.dataset.classhours || t.dataset.classload || t.dataset.classdouble;
   if (classKey) {
     const [i, id] = classKey.split(':');
@@ -349,7 +362,7 @@ $('view').addEventListener('change', (ev) => {
       else if (t.dataset.classhours) { if (+t.value > 0) c.hours = +t.value; }
       else if (t.dataset.classload) c.load = t.value;
       else c.double = t.checked;
-    });
+    }, 'classes');
     return;
   }
   if (t.dataset.addsession) { const i = +t.dataset.addsession; changeWeek(i, (d) => d.sessions.push({ id: t.value, time: '' })); return; }
@@ -403,7 +416,7 @@ $('view').addEventListener('click', (ev) => {
     if (o) { updateEntry(o, { variant: t.dataset.variant }); render(true); }
     return;
   }
-  if (t.dataset.unclass) { const [i, c] = t.dataset.unclass.split(':'); changeWeek(+i, (d) => { d.classes = d.classes.filter((x) => x.id !== c); }); return; }
+  if (t.dataset.unclass) { const [i, c] = t.dataset.unclass.split(':'); changeWeek(+i, (d) => { d.classes = d.classes.filter((x) => x.id !== c); }, 'classes'); return; }
   if (t.dataset.unplan) { const [i, id] = t.dataset.unplan.split(':'); changeWeek(+i, (d) => { d.sessions = d.sessions.filter((x) => x.id !== id); }); return; }
   if (t.dataset.start) {
     const [kind, arg] = t.dataset.start.split(':');
@@ -419,6 +432,14 @@ $('view').addEventListener('click', (ev) => {
     setWeek(monday, weekFromExample(ROUTINE.guide.examples[+t.dataset.useExample]));
     editing = monday;
     location.hash = '#week';
+    return;
+  }
+  if (t.id === 'suggestBtn') {
+    const monday = currentMonday();
+    if (weeks.weeks[monday]?.days.some((d) => d.sessions.length) && !confirm('Replace this week’s sessions with a suggestion?')) return;
+    suggest(monday);
+    editing = monday;
+    render(true);
     return;
   }
   if (t.id === 'editBtn') { const m = currentMonday(); editing = editing === m ? null : m; render(true); return; }

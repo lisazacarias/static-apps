@@ -20,14 +20,17 @@ export const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'
 // any class hard on the day ("call it hard if you are sore the next day").
 // `uses` is which holds to keep off the hour or two before it (rule 4):
 // before tricks no long shoulder, lat or chest holds; before dance no long
-// hip or hamstring holds. `hours` is the length when you haven't given one.
+// hip or hamstring holds. Pole dance and rehearsal count as dance. Climbing
+// and skating have none: you're not usually sore after them, so the plan's
+// muscle-group rules aren't applied. `hours` is the length when you haven't
+// given one.
 export const CLASS_TYPES = [
   { id: 'pole-tricks', label: 'Pole tricks', load: 'upper', uses: 'upper', hours: 1.5 },
-  { id: 'pole-dance', label: 'Pole dance', load: 'light', uses: 'both', hours: 1.5 },
+  { id: 'pole-dance', label: 'Pole dance', load: 'light', uses: 'lower', hours: 1.5 },
   { id: 'dance', label: 'Dance', load: 'light', uses: 'lower', hours: 1.5 },
   { id: 'rehearsal', label: 'Rehearsal', load: 'light', uses: 'lower', hours: 2.5 },
-  { id: 'climbing', label: 'Climbing', load: 'light', uses: 'upper', hours: 2 },
-  { id: 'skating', label: 'Skating', load: 'light', uses: 'lower', hours: 1.5 },
+  { id: 'climbing', label: 'Climbing', load: 'light', uses: null, hours: 2 },
+  { id: 'skating', label: 'Skating', load: 'light', uses: null, hours: 1.5 },
 ];
 const CLASS = Object.fromEntries(CLASS_TYPES.map((c) => [c.id, c]));
 export const LOADS = { light: 'Light', upper: 'Hard · upper body', lower: 'Hard · lower body', both: 'Hard · whole body' };
@@ -44,7 +47,8 @@ export const SESSION_REGION = {
 /* ── stored weeks ────────────────────────────────────────────────────── */
 
 // { version: 1, weeks: { ['YYYY-MM-DD' of the Monday]: week } }
-//   week:    { deload, days: [7 × { classes, sessions }] }
+//   week:    { deload, auto, days: [7 × { classes, sessions }] }; auto means
+//            the sessions are suggestWeek()'s and follow the classes
 //   class:   { id, time 'HH:MM'|'', hours, load, double }; a bare id string
 //            is read as one with no time and the type's defaults
 //   session: { id, time 'HH:MM'|'' }
@@ -83,7 +87,7 @@ export function normalizeWeek(w, sessionIds = null) {
       .map((s) => ({ id: s.id, time: isTime(s.time) ? s.time : '' }));
     return { classes, sessions };
   });
-  return { deload: w?.deload === true, days };
+  return { deload: w?.deload === true, auto: w?.auto === true, days };
 }
 
 export const emptyWeek = () => normalizeWeek({});
@@ -97,6 +101,91 @@ export const weekFromExample = (example) => normalizeWeek({
 export const copyWeek = (w) => normalizeWeek({ days: w.days });
 
 export const isPlanned = (w) => !!w && w.days.some((d) => d.classes.length || d.sessions.length);
+
+/* ── suggested week ──────────────────────────────────────────────────── */
+
+const BIG = ['shoulders-bridge', 'splits-intensive', 'hips-thoracic'];
+const LOWER = ['splits-intensive', 'hips-thoracic', 'splits-snack'];
+const SHOULDER = ['shoulders-bridge', 'shoulder-recovery', 'shoulder-reset'];
+
+// Places the weekly minimums around the week's classes: every arrangement
+// of the three big sessions (one per day), then the Splits Snack and
+// Shoulder Reset around the best few, scored by checkWeek's flags. The
+// upper-body session goes first, as the plan's "how to build your week"
+// says. Shoulder Recovery goes after the first tricks class (the day after
+// a double night, which skips any session), or after pole dance if there's
+// no tricks. Class-day prep goes on any class day left empty. Sessions get
+// no times.
+//   score: a warning costs 1000, a reminder 10. Two splits or two shoulder
+//   sessions on one day cost 30, since the minimums are meant as separate
+//   exposures. Then small nudges against a session on a class day (rule 4),
+//   two sessions on one day, and lower-body sessions on back-to-back days.
+export function suggestWeek(routine, weeks, monday) {
+  const key = ymd(monday);
+  const base = normalizeWeek(weeks.weeks[key] || {});
+  const ids = new Set(routine.sessions.map((s) => s.id));
+  const days = base.days.map((d) => d.classes);
+  const doubleNight = (i) => days[i].some((c) => c.double && hardFor(CLASS[c.id] && c, 'upper'));
+  const open = [0, 1, 2, 3, 4, 5, 6].filter((i) => !doubleNight(i));
+
+  const fixed = Array.from({ length: 7 }, () => []);
+  const tricks = [0, 1, 2, 3, 4, 5, 6].find((i) => days[i].some((c) => hardFor(c, 'upper')));
+  const poleDance = [0, 1, 2, 3, 4, 5, 6].find((i) => days[i].some((c) => c.id === 'pole-dance'));
+  const recoveryDay = tricks != null ? (doubleNight(tricks) ? Math.min(tricks + 1, 6) : tricks) : poleDance;
+  if (ids.has('shoulder-recovery') && recoveryDay != null) fixed[recoveryDay].push('shoulder-recovery');
+
+  const build = (placed) => {
+    const w = normalizeWeek({ ...base, auto: true });
+    w.days.forEach((d, i) => { d.sessions = [...fixed[i], ...(placed[i] || [])].map((id) => ({ id, time: '' })); });
+    return w;
+  };
+  const score = (w) => {
+    const all = { ...weeks, weeks: { ...weeks.weeks, [key]: w } };
+    let n = 0;
+    for (const f of checkWeek(routine, all, monday).flags) n += f.level === 'warn' ? 1000 : 10;
+    w.days.forEach((d, i) => {
+      const own = d.sessions.filter((s) => s.id !== 'class-prep' && !(s.id === 'shoulder-recovery' && i === recoveryDay));
+      if (own.length && d.classes.length) n += 3 * own.length;
+      if (d.sessions.length > 1) n += 2 * (d.sessions.length - 1);
+      if (d.sessions.length > 2) n += 50;
+      for (const group of [LOWER, SHOULDER]) n += 30 * Math.max(0, d.sessions.filter((s) => group.includes(s.id)).length - 1);
+      if (i < 6 && own.some((s) => LOWER.includes(s.id)) && w.days[i + 1].sessions.some((s) => LOWER.includes(s.id))) n += 1;
+    });
+    return n;
+  };
+
+  const bigIds = BIG.filter((id) => ids.has(id));
+  const bigPlans = [];
+  const place = (k, used, placed) => {
+    if (k === bigIds.length) { const w = build(placed); bigPlans.push({ placed, score: score(w) }); return; }
+    for (const i of open) {
+      if (used.has(i)) continue;
+      place(k + 1, new Set([...used, i]), { ...placed, [i]: [...(placed[i] || []), bigIds[k]] });
+    }
+  };
+  place(0, new Set(), {});
+  bigPlans.sort((a, b) => a.score - b.score);
+
+  // With no tricks or pole dance to follow, Shoulder Recovery is placed
+  // like the other short sessions.
+  const extras = ['splits-snack', 'shoulder-reset', ...(recoveryDay == null ? ['shoulder-recovery'] : [])].filter((id) => ids.has(id));
+  let best = null;
+  for (const { placed } of bigPlans.slice(0, 8)) {
+    const tryExtras = (k, p) => {
+      if (k === extras.length) {
+        const w = build(p);
+        const sc = score(w);
+        if (!best || sc < best.score) best = { w, score: sc };
+        return;
+      }
+      for (const i of open) tryExtras(k + 1, { ...p, [i]: [...(p[i] || []), extras[k]] });
+    };
+    tryExtras(0, placed);
+  }
+  const w = best ? best.w : build({});
+  if (ids.has('class-prep')) w.days.forEach((d) => { if (d.classes.length && !d.sessions.length) d.sessions.push({ id: 'class-prep', time: '' }); });
+  return w;
+}
 
 /* ── schedule ────────────────────────────────────────────────────────── */
 
@@ -190,6 +279,8 @@ export function checkWeek(routine, weeks, monday) {
         if (hardToday) flag(d, id, 'warn', 1, `Not on a ${hardToday.label.toLowerCase()} day. It goes at least 48 hours before the next one and after soreness from the last has gone.`);
         else {
           if (next && until(next) < 48) flag(d, id, 'warn', 1, `Only ${timed(next) ? fmtHours(until(next)) : 'a day'} before ${named(next)}. It needs at least 48 hours.`);
+          // Two days apart without times could be either side of 48 hours.
+          else if (next && !timed(next) && until(next) < 72) flag(d, id, 'info', 1, `Two days before ${named(next)}: fine if it’s 48 hours from the end of this session to the start of class. Add times to check.`);
           if (last) {
             // Soreness typically peaks 24 to 72 hours after hard loaded work;
             // a double night adds a day (rule 6).
@@ -198,9 +289,6 @@ export function checkWeek(routine, weeks, monday) {
             if (h < window) flag(d, id, 'warn', 1, `${timed(last) ? `Only ${fmtHours(h)}` : `${Math.round(h / 24)} day${h > 24 ? 's' : ''}`} after ${named(last)}${last.double ? ' (a double)' : ''}. Wait until the soreness has gone, usually ${last.double ? '3 to 4' : '2 to 3'} days.`);
             else if (h < window + 24) flag(d, id, 'info', 1, `${DAY_NAMES[((last.day % 7) + 7) % 7]} was ${last.label.toLowerCase()}. Only do this once that soreness has gone.`);
           }
-          const lightUpper = before.find((c) => !hardFor(c, 'upper') && usesRegion(c, 'upper') && c.day >= d - 2)
-            || today.find((c) => !hardFor(c, 'upper') && usesRegion(c, 'upper') && timed(c) && since(c) >= 0);
-          if (lightUpper) flag(d, id, 'info', 1, `If ${named(lightUpper)} left you sore, drop the bridge block and Round 2.`);
         }
       }
 
