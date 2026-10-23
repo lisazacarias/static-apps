@@ -15,26 +15,38 @@ export const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'
 
 /* ── classes ─────────────────────────────────────────────────────────── */
 
-// `pole` is what rules 2 and 3 mean by a pole day: pole and pole tricks.
-// Pole dance and rehearsal count as dance. `hard` is what rule 1 means by a
-// hard class. `hours` is a class's length when you haven't given one.
+// From the plan's "What counts as hard". `load` is a class's default load:
+// pole tricks is hard for the upper body, the rest are light. You can mark
+// any class hard on the day ("call it hard if you are sore the next day").
+// `uses` is which holds to keep off the hour or two before it (rule 4):
+// before tricks no long shoulder, lat or chest holds; before dance no long
+// hip or hamstring holds. `hours` is the length when you haven't given one.
 export const CLASS_TYPES = [
-  { id: 'pole', label: 'Pole', pole: true, hard: true, hours: 1.5 },
-  { id: 'pole-tricks', label: 'Pole tricks', pole: true, hard: true, hours: 1.5 },
-  { id: 'pole-dance', label: 'Pole dance', pole: false, hard: true, hours: 1.5 },
-  { id: 'dance', label: 'Dance', pole: false, hard: true, hours: 1.5 },
-  { id: 'rehearsal', label: 'Rehearsal', pole: false, hard: true, hours: 2.5 },
-  { id: 'climbing', label: 'Climbing', pole: false, hard: false, hours: 2 },
-  { id: 'skating', label: 'Skating', pole: false, hard: false, hours: 1.5 },
+  { id: 'pole-tricks', label: 'Pole tricks', load: 'upper', uses: 'upper', hours: 1.5 },
+  { id: 'pole-dance', label: 'Pole dance', load: 'light', uses: 'both', hours: 1.5 },
+  { id: 'dance', label: 'Dance', load: 'light', uses: 'lower', hours: 1.5 },
+  { id: 'rehearsal', label: 'Rehearsal', load: 'light', uses: 'lower', hours: 2.5 },
+  { id: 'climbing', label: 'Climbing', load: 'light', uses: 'upper', hours: 2 },
+  { id: 'skating', label: 'Skating', load: 'light', uses: 'lower', hours: 1.5 },
 ];
 const CLASS = Object.fromEntries(CLASS_TYPES.map((c) => [c.id, c]));
+export const LOADS = { light: 'Light', upper: 'Hard · upper body', lower: 'Hard · lower body', both: 'Hard · whole body' };
+// Earlier versions of the app stored a plain "pole" class.
+const RENAMED = { pole: 'pole-tricks' };
+
+// Which body region a session loads. Only upper and lower sessions have long
+// holds that rules 1–5 are about.
+export const SESSION_REGION = {
+  'splits-intensive': 'lower', 'hips-thoracic': 'lower', 'splits-snack': 'lower',
+  'shoulders-bridge': 'upper', 'shoulder-recovery': 'gentle', 'shoulder-reset': 'gentle', 'class-prep': 'prep',
+};
 
 /* ── stored weeks ────────────────────────────────────────────────────── */
 
 // { version: 1, weeks: { ['YYYY-MM-DD' of the Monday]: week } }
-//   week:  { deload, days: [7 × { classes, sessions }] }
-//   class: { id, time 'HH:MM'|'', hours }; a bare id string is read as one
-//          with no time
+//   week:    { deload, days: [7 × { classes, sessions }] }
+//   class:   { id, time 'HH:MM'|'', hours, load, double }; a bare id string
+//            is read as one with no time and the type's defaults
 //   session: { id, time 'HH:MM'|'' }
 export function normalizeWeeks(raw, sessionIds = null) {
   const weeks = {};
@@ -54,11 +66,15 @@ export function normalizeWeek(w, sessionIds = null) {
     const seenClass = new Set();
     const classes = (Array.isArray(d.classes) ? d.classes : [])
       .map((c) => (typeof c === 'string' ? { id: c } : c))
-      .filter((c) => c && CLASS[c.id] && !seenClass.has(c.id) && seenClass.add(c.id))
+      .filter((c) => c && typeof c.id === 'string')
+      .map((c) => ({ ...c, id: RENAMED[c.id] || c.id }))
+      .filter((c) => CLASS[c.id] && !seenClass.has(c.id) && seenClass.add(c.id))
       .map((c) => ({
         id: c.id,
         time: isTime(c.time) ? c.time : '',
         hours: Number.isFinite(c.hours) && c.hours > 0 && c.hours <= 12 ? c.hours : CLASS[c.id].hours,
+        load: LOADS[c.load] ? c.load : CLASS[c.id].load,
+        double: c.double === true,
       }));
     const seen = new Set();
     const sessions = (Array.isArray(d.sessions) ? d.sessions : [])
@@ -108,13 +124,18 @@ export function occurrences(routine, weeks, from, to) {
 const at = (day, hhmm) => { const [h, m] = hhmm.split(':').map(Number); return new Date(day.getFullYear(), day.getMonth(), day.getDate(), h, m); };
 const HOUR = 3600000;
 const fmtHours = (h) => `${Math.round(h)} hours`;
+const hardFor = (c, region) => c.load === region || c.load === 'both';
+const usesRegion = (c, region) => c.uses === region || c.uses === 'both';
+const HOLDS = { upper: 'shoulder, lat and chest', lower: 'hip and hamstring' };
+// "Late" for rule 7: the plan's evidence is about 9 to 10 PM.
+const LATE = '21:00';
 
-// Checks a week against the plan's weekly minimums and placement rules 1–5.
+// Checks a week against the plan's weekly minimums and placement rules.
 // When a session and a class both have times, gaps are exact hours from the
 // end of one to the start of the other. When either has no time it falls
-// back to whole days: "48 hours before pole" reads as "not the day before".
-// Neighbouring weeks are looked at across the Monday/Sunday boundary.
-//   minimums: [{ session, count, planned }]
+// back to whole days, 24 hours per day apart. Neighbouring weeks are looked
+// at across the Monday/Sunday boundary.
+//   minimums: [{ session, count, load, serves, planned }]
 //   flags:    [{ day, session, level 'warn'|'info', rule, text }]
 export function checkWeek(routine, weeks, monday) {
   const week = weeks.weeks[ymd(monday)] || emptyWeek();
@@ -123,94 +144,96 @@ export function checkWeek(routine, weeks, monday) {
     const other = weeks.weeks[ymd(addDays(monday, Math.floor(i / 7) * 7))];
     return other ? other.days[((i % 7) + 7) % 7] : { classes: [], sessions: [] };
   };
-  // Classes from 3 days before to 3 days after day d, with real start/end
-  // times where known.
   const classesNear = (d) => {
     const out = [];
     for (let i = d - 3; i <= d + 3; i++) {
       for (const c of dayAt(i).classes) {
-        const date = addDays(monday, i);
-        const start = c.time ? at(date, c.time) : null;
-        out.push({ ...CLASS[c.id], day: i, start, end: start && new Date(start.getTime() + c.hours * HOUR) });
+        const start = c.time ? at(addDays(monday, i), c.time) : null;
+        out.push({ ...CLASS[c.id], ...c, day: i, start, end: start && new Date(start.getTime() + c.hours * HOUR) });
       }
     }
     return out;
   };
   const named = (c) => `${DAY_NAMES[((c.day % 7) + 7) % 7]}’s ${c.label.toLowerCase()}`;
+  const listed = (cs) => cs.map((c) => c.label.toLowerCase()).join(' and ');
   const title = (id) => routine.sessions.find((s) => s.id === id)?.title || id;
   const minutes = (id) => routine.sessions.find((s) => s.id === id)?.minutes || 0;
 
   const flags = [];
   const flag = (day, session, level, rule, text) => flags.push({ day, session, level, rule, text });
   for (let d = 0; d < 7; d++) {
-    const today = dayAt(d).classes.map((c) => CLASS[c.id]);
-    const dayLabel = today.map((c) => c.label.toLowerCase()).join(' and ');
     for (const { id, time } of week.days[d].sessions) {
+      const region = SESSION_REGION[id];
       const start = time ? at(addDays(monday, d), time) : null;
       const end = start && new Date(start.getTime() + minutes(id) * HOUR / 60);
       const near = classesNear(d);
-      // Hours from this session to a later class, or from an earlier class
-      // to this session; null when either has no time.
-      const until = (c) => (end && c.start ? (c.start - end) / HOUR : null);
-      const since = (c) => (start && c.end ? (start - c.end) / HOUR : null);
-      const next = (pred) => near.filter((c) => c.day > d && pred(c)).sort((a, b) => a.day - b.day || (a.start || 0) - (b.start || 0))[0];
-      const prev = (pred) => near.filter((c) => c.day < d && pred(c)).sort((a, b) => b.day - a.day || (b.end || 0) - (a.end || 0))[0];
-      const sameDay = near.filter((c) => c.day === d);
-      // Same-day classes: before this session or after it.
-      const laterToday = sameDay.filter((c) => (until(c) ?? -1) >= 0);
-      const minGapToday = Math.min(...laterToday.map(until));
-      const afterClassToday = sameDay.length && sameDay.every((c) => (since(c) ?? -1) >= 0);
+      const today = near.filter((c) => c.day === d);
+      // Hours from this session's end to a later class's start, or from an
+      // earlier class's end to this session's start. Whole days if untimed.
+      const until = (c) => (end && c.start ? (c.start - end) / HOUR : (c.day - d) * 24);
+      const since = (c) => (start && c.end ? (start - c.end) / HOUR : (d - c.day) * 24);
+      const timed = (c) => !!(start && c.start);
+      const after = near.filter((c) => c.day > d).sort((a, b) => until(a) - until(b));
+      const before = near.filter((c) => c.day < d).sort((a, b) => since(a) - since(b));
+      // A class later the same day, and whether every class today is done.
+      const laterToday = today.filter((c) => timed(c) && until(c) >= 0);
+      const afterAllToday = today.length > 0 && today.every((c) => timed(c) && since(c) >= 0);
 
-      // Whole-day fallback when a time is missing: 24 hours per day apart.
-      const hours = (c, f, fallback) => f(c) ?? fallback;
+      // Rule 6: a double tricks night.
+      const double = today.find((c) => c.double && hardFor(c, 'upper'));
+      if (double && id !== 'class-prep') flag(d, id, 'warn', 6, `Double ${double.label.toLowerCase()} night: skip any session tonight.`);
+
+      if (id === 'shoulders-bridge') {
+        const hardToday = today.find((c) => hardFor(c, 'upper'));
+        const next = after.find((c) => hardFor(c, 'upper'));
+        const last = before.find((c) => hardFor(c, 'upper'));
+        if (hardToday) flag(d, id, 'warn', 1, `Not on a ${hardToday.label.toLowerCase()} day. It goes at least 48 hours before the next one and after soreness from the last has gone.`);
+        else {
+          if (next && until(next) < 48) flag(d, id, 'warn', 1, `Only ${timed(next) ? fmtHours(until(next)) : 'a day'} before ${named(next)}. It needs at least 48 hours.`);
+          if (last) {
+            // Soreness typically peaks 24 to 72 hours after hard loaded work;
+            // a double night adds a day (rule 6).
+            const window = last.double ? 72 : 48;
+            const h = since(last);
+            if (h < window) flag(d, id, 'warn', 1, `${timed(last) ? `Only ${fmtHours(h)}` : `${Math.round(h / 24)} day${h > 24 ? 's' : ''}`} after ${named(last)}${last.double ? ' (a double)' : ''}. Wait until the soreness has gone, usually ${last.double ? '3 to 4' : '2 to 3'} days.`);
+            else if (h < window + 24) flag(d, id, 'info', 1, `${DAY_NAMES[((last.day % 7) + 7) % 7]} was ${last.label.toLowerCase()}. Only do this once that soreness has gone.`);
+          }
+          const lightUpper = before.find((c) => !hardFor(c, 'upper') && usesRegion(c, 'upper') && c.day >= d - 2)
+            || today.find((c) => !hardFor(c, 'upper') && usesRegion(c, 'upper') && timed(c) && since(c) >= 0);
+          if (lightUpper) flag(d, id, 'info', 1, `If ${named(lightUpper)} left you sore, drop the bridge block and Round 2.`);
+        }
+      }
+
+      if (['shoulders-bridge', 'splits-intensive'].includes(id) && dayAt(d + 1).sessions.some((s) => s.id === id)) {
+        flag(d, id, 'warn', 2, `${title(id)} two days running. Loaded end-range work for the same region needs a day between.`);
+      }
 
       if (id === 'splits-intensive') {
-        const c = next((x) => x.hard);
-        if (today.length) flag(d, id, 'warn', 1, `Splits Intensive goes on a free day, not a ${dayLabel} day.`);
-        else if (c) {
-          const h = hours(c, until, c.day - d === 1 ? 24 : c.day - d === 2 ? 48 : 72);
-          if (h < 48) flag(d, id, 'warn', 1, `Splits Intensive is ${until(c) == null ? 'less than 48 hours' : `${fmtHours(h)}`} before ${named(c)}. Aim for 48, ideally 72.`);
-          else if (h < 72) flag(d, id, 'info', 1, `${named(c)} is ${until(c) == null ? 'about 48 hours' : fmtHours(h)} away. 72 is better if another day allows it.`);
+        const hard = after.find((c) => hardFor(c, 'lower') && until(c) < 48);
+        const kicks = after.find((c) => !hardFor(c, 'lower') && usesRegion(c, 'lower') && until(c) < 48);
+        if (hard) flag(d, id, 'warn', 3, `Only ${timed(hard) ? fmtHours(until(hard)) : 'a day'} before ${named(hard)}, marked hard for the lower body. Keep Splits Intensive 48 hours before it.`);
+        else if (kicks) flag(d, id, 'info', 3, `${timed(kicks) ? fmtHours(until(kicks)) : 'Less than 48 hours'} before ${named(kicks)}. Fine unless big splits or kicks matter in that class.`);
+      }
+
+      // Rule 4: long holds for a region stay off the hour or two before a
+      // class that uses it.
+      if (region === 'upper' || region === 'lower') {
+        const users = today.filter((c) => usesRegion(c, region) && !(region === 'upper' && hardFor(c, 'upper')));
+        if (users.length) {
+          const soon = users.filter((c) => laterToday.includes(c) && until(c) < 2);
+          if (soon.length) flag(d, id, 'warn', 4, `Ends ${until(soon[0]) < 1 ? `${Math.max(0, Math.round(until(soon[0]) * 60))} minutes` : `${until(soon[0]).toFixed(1).replace(/\.0$/, '')} hours`} before ${listed(soon)}. Keep long ${HOLDS[region]} holds off the hour or two before class.`);
+          else if (users.some((c) => !timed(c))) flag(d, id, 'info', 4, `Class day: keep long ${HOLDS[region]} holds off the hour or two before ${listed(users)}.`);
         }
       }
 
-      if (id === 'shoulder-hyperflexion') {
-        if (today.some((c) => c.pole)) flag(d, id, 'warn', 2, 'Never on a pole or pole-tricks day.');
-        else {
-          const c = next((x) => x.pole);
-          if (c) {
-            const h = hours(c, until, c.day - d === 1 ? 24 : 48);
-            if (h < 48) flag(d, id, 'warn', 2, until(c) == null ? 'Pole is tomorrow. Shoulder Hyperflexion needs at least 48 hours before pole.' : `Only ${fmtHours(h)} before ${named(c)}. It needs at least 48.`);
-          }
-          const p = prev((x) => x.pole);
-          if (p) {
-            const h = since(p);
-            if (h != null && h < 24) flag(d, id, 'warn', 2, `Only ${fmtHours(h)} after ${named(p)}. It needs at least 24.`);
-            else if (h == null && p.day === d - 1) flag(d, id, 'info', 2, 'Pole was yesterday. Make sure it’s at least 24 hours after class.');
-          }
-        }
-      }
+      // Rule 5: the day after tricks is gentle for the upper body.
+      const yesterday = before.find((c) => hardFor(c, 'upper') && (c.day === d - 1 || (c.double && c.day === d - 2)));
+      if (yesterday && id === 'shoulder-reset') flag(d, id, 'info', 5, `The day after ${yesterday.label.toLowerCase()}: Shoulder Recovery or nothing for the upper body while you’re sore.`);
+      if (yesterday && id === 'hips-thoracic') flag(d, id, 'info', 5, `The day after ${yesterday.label.toLowerCase()}: skip the thoracic roll and arch-backs if your upper back is sore.`);
 
-      if (id === 'hips-backbend') {
-        if (today.some((c) => c.pole)) flag(d, id, 'warn', 3, 'Hips & Backbend never goes on a pole day.');
-        else if (next((x) => x.pole)?.day === d + 1) flag(d, id, 'info', 3, 'Pole is tomorrow: stop bridging at 2 reps and about 80% of your usual depth.');
-      }
-
-      // Rule 5: long passive work on a class day should finish at least a
-      // few hours before class. The plan's examples say 3 to 4.
-      const big = ['splits-intensive', 'shoulder-hyperflexion', 'hips-backbend'].includes(id);
-      if (big && id !== 'splits-intensive' && today.length && !today.some((c) => c.pole)) {
-        if (laterToday.length && minGapToday < 3) flag(d, id, 'warn', 5, `Ends only ${minGapToday < 1 ? `${Math.max(0, Math.round(minGapToday * 60))} minutes` : `${minGapToday.toFixed(1).replace(/\.0$/, '')} hours`} before ${dayLabel}. Finish at least 3 to 4 hours before.`);
-        else if (afterClassToday) flag(d, id, 'info', 6, 'After class: stay at your usual depth and don’t chase new depth when tired.');
-        else if (!laterToday.length) flag(d, id, 'info', 5, `Finish at least a few hours before ${dayLabel}.`);
-      }
-      if (id === 'splits-snack' && today.length) {
-        if (afterClassToday) flag(d, id, 'info', 6, 'After class: stay at your usual depth.');
-        else flag(d, id, 'info', 5, laterToday.length ? 'Before class: keep holds under 60 seconds.' : 'Class day: before class keep holds under 60 seconds; after class stay at your usual depth.');
-      }
-
-      if (big && dayAt(d + 1).sessions.some((s) => s.id === id)) {
-        flag(d, id, 'warn', 4, `${title(id)} two days running. Loaded end-range work for the same region needs a day between.`);
+      // Rule 7: late sessions are maintenance only.
+      if (time && time >= LATE && ['splits-intensive', 'shoulders-bridge', 'hips-thoracic'].includes(id)) {
+        flag(d, id, 'info', 7, 'Late session: maintenance only. Usual depth, no chasing new depth.');
       }
     }
   }
@@ -227,12 +250,18 @@ export function checkWeek(routine, weeks, monday) {
 export const cueText = (c) => (typeof c === 'string' ? c : c.text);
 export const cueSub = (c) => typeof c === 'object' && c.sub === true;
 
+// A session's shorter versions, by id ('short', 'bridge').
+export const versionOf = (session, variant) => (session.versions || []).find((v) => v.id === variant) || null;
+
 // What gets ticked off for a session, keyed 'Section / Name', or just the
 // name in a session with one unnamed section, or just the section for an
-// item that is the whole section.
+// item that is the whole section. A shorter version's items are keyed by
+// the version: 'Short / Name', 'Bridge / Name'.
 export function checklist(session, variant = 'full') {
-  if (variant === 'short' && session.short) {
-    return session.short.items.map((item) => ({ id: `Short / ${item.name}`, section: null, item }));
+  const v = versionOf(session, variant);
+  if (v) {
+    const prefix = v.id[0].toUpperCase() + v.id.slice(1);
+    return v.items.map((item) => ({ id: `${prefix} / ${item.name}`, section: null, item }));
   }
   return session.sections.flatMap((section) => section.items.map((item) => ({
     id: item.whole ? section.title : section.title ? `${section.title} / ${item.name}` : item.name, section, item,
@@ -275,6 +304,7 @@ const ALIASES = {
   'lats roll': 'foam roll lats',
   'standing splits at pole': 'standing splits',
   'bridge prep or glute bridge': 'bridge prep',
+  'glute bridge': 'bridge prep',
   'bridge prep glute bridge': 'bridge prep',
   'thoracic bridge with block squeeze': 'thoracic bridge with block',
   'full bridge depth focus': 'full bridge',
@@ -320,7 +350,7 @@ export function movementIndex(routine) {
     }
   };
   for (const s of routine.sessions) {
-    for (const item of [...s.sections.flatMap((sec) => sec.items), ...(s.short?.items || [])]) add(moveKey(item.name), item, s.title, true);
+    for (const item of [...s.sections.flatMap((sec) => sec.items), ...(s.versions || []).flatMap((v) => v.items)]) add(moveKey(item.name), item, s.title, true);
   }
   for (const [key, list] of Object.entries(routine.library || {})) {
     if (!index.has(key)) continue;
@@ -332,7 +362,7 @@ export function movementIndex(routine) {
 /* ── practice log ────────────────────────────────────────────────────── */
 
 // { version: 1, entries: { ['YYYY-MM-DD|session id']: entry } }
-//   entry: { date 'YYYY-MM-DD', title, variant 'full'|'short',
+//   entry: { date 'YYYY-MM-DD', title, variant 'full' or a version id,
 //            checked: ['Section / Movement', …], notes, done, updated }
 export function normalizeLog(raw) {
   const entries = {};
@@ -344,7 +374,7 @@ export function normalizeLog(raw) {
     entries[key] = {
       date,
       title: typeof e.title === 'string' ? e.title : '',
-      variant: e.variant === 'short' ? 'short' : 'full',
+      variant: typeof e.variant === 'string' && /^[a-z-]+$/.test(e.variant) ? e.variant : 'full',
       checked: Array.isArray(e.checked) ? [...new Set(e.checked.filter((c) => typeof c === 'string'))] : [],
       notes: typeof e.notes === 'string' ? e.notes : '',
       done: e.done === true,
@@ -374,9 +404,9 @@ export function describe(s) {
   }
   for (const p of s.after || []) out.push('', p);
   if (s.deload) out.push('', `Deload week: ${s.deload}`);
-  if (s.short) {
-    out.push('', `${s.short.minutes}-MINUTE VERSION`, ...s.short.items.map(itemLine));
-    if (s.short.skip) out.push(`Skip ${s.short.skip}.`);
+  for (const v of s.versions || []) {
+    out.push('', v.label.toUpperCase(), ...v.items.map(itemLine));
+    if (v.skip) out.push(`Skip ${v.skip}.`);
   }
   return out.join('\n').trim();
 }

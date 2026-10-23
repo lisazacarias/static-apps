@@ -169,7 +169,12 @@ h3.sec .mins { color: var(--gold); letter-spacing: 1px; }
     cursor: pointer;
 }
 .x:hover { color: var(--accent); }
+.class.hard { background: var(--accent-dim); color: var(--accent); }
 .class.editing { border-radius: 6px; padding: 3px 4px 3px 9px; flex-wrap: wrap; }
+.class .dbl { display: inline-flex; align-items: center; gap: 3px; font-weight: 600; }
+.class select.add { margin: 0; }
+.hard-tbl .head td { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-label); }
+.hard-tbl td:first-child { width: auto; }
 input.hours { width: 52px; }
 select.add, input.time, input.hours {
     background: var(--bg-elevated);

@@ -2,23 +2,30 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   normalizeWeeks, normalizeWeek, emptyWeek, weekFromExample, copyWeek, isPlanned,
-  occurrences, checkWeek, checklist, timerOptions, parseDuration, moveKey, movementIndex,
+  occurrences, checkWeek, checklist, versionOf, timerOptions, parseDuration, moveKey, movementIndex,
   normalizeLog, isEmptyEntry, describe, toIcs, foldLine, weekStart, ymd,
 } from '../plan.js';
 import ROUTINE from '../routine.js';
 
 const IDS = ROUTINE.sessions.map((s) => s.id);
 const MONDAY = new Date(2026, 9, 19);
+const [WEEK_A, WEEK_B] = ROUTINE.guide.examples;
 const unfold = (ics) => ics.replace(/\r\n /g, '');
 const weeksWith = (week, monday = MONDAY) => ({ version: 1, weeks: { [ymd(monday)]: normalizeWeek(week, IDS) } });
 const plan = (days) => weeksWith({ days: Array.from({ length: 7 }, (_, i) => days[i] || {}) });
-const flagsOf = (weeks) => checkWeek(ROUTINE, weeks, MONDAY).flags.map((f) => [f.day, f.session, f.level, f.rule]);
+const check = (weeks) => checkWeek(ROUTINE, weeks, MONDAY).flags;
+const flagsOf = (weeks) => check(weeks).map((f) => [f.day, f.session, f.level, f.rule]);
+const textsOf = (weeks) => check(weeks).map((f) => `${f.level} ${f.rule}: ${f.text}`);
+const cls = (id, time = '', more = {}) => ({ id, time, ...more });
+const ses = (id, time) => ({ id, time });
 
 /* ── the plan data ── */
 
-test('the routine has the seven sessions from the plan', () => {
-  assert.deepEqual(IDS, ['splits-intensive', 'shoulder-hyperflexion', 'hips-backbend', 'shoulder-recovery', 'shoulder-reset', 'splits-snack', 'class-prep']);
+test('the routine has the seven sessions from version 3', () => {
+  assert.equal(ROUTINE.guide.version, 3);
+  assert.deepEqual(IDS, ['splits-intensive', 'shoulders-bridge', 'hips-thoracic', 'shoulder-recovery', 'shoulder-reset', 'splits-snack', 'class-prep']);
   for (const s of ROUTINE.sessions) assert.ok(s.minutes > 0 && s.length, s.id);
+  assert.deepEqual(ROUTINE.guide.minimums.map((m) => m.session), ['splits-intensive', 'shoulders-bridge', 'hips-thoracic', 'splits-snack', 'shoulder-recovery', 'shoulder-reset']);
 });
 
 test('every citation points at a reference', () => {
@@ -28,9 +35,9 @@ test('every citation points at a reference', () => {
   for (const [, n] of cited.matchAll(/\[(\d+)\]/g)) assert.ok(refs.has(+n), `[${n}]`);
 });
 
-test('every session has a checklist with unique ids and timeable items', () => {
+test('every session and version has a checklist with unique ids and timeable items', () => {
   for (const s of ROUTINE.sessions) {
-    for (const variant of ['full', 'short']) {
+    for (const variant of ['full', ...(s.versions || []).map((v) => v.id)]) {
       const list = checklist(s, variant);
       assert.ok(list.length, `${s.id} ${variant}`);
       assert.equal(new Set(list.map((i) => i.id)).size, list.length, `${s.id} ${variant} ids`);
@@ -39,12 +46,21 @@ test('every session has a checklist with unique ids and timeable items', () => {
   }
 });
 
+test('Shoulders & Bridge has an 18-minute and an 8-minute bridge version', () => {
+  const s = ROUTINE.sessions.find((x) => x.id === 'shoulders-bridge');
+  assert.deepEqual(s.versions.map((v) => [v.id, v.minutes]), [['short', 18], ['bridge', 8]]);
+  assert.ok(checklist(s, 'bridge').every((i) => i.id.startsWith('Bridge / ')));
+  assert.ok(checklist(s, 'short').every((i) => i.id.startsWith('Short / ')));
+  assert.equal(versionOf(s, 'nope'), null);
+  assert.ok(checklist(s).some((i) => i.id === 'Bridge block / Camel at pole'));
+});
+
 test('checklist ids: section / name, name alone, or the whole section', () => {
   const by = (id) => ROUTINE.sessions.find((s) => s.id === id);
   assert.ok(checklist(by('splits-intensive')).some((i) => i.id === 'Hip flexor block / Psoas lunge'));
-  assert.ok(checklist(by('shoulder-hyperflexion')).some((i) => i.id === 'Lat stretch on roller'));
+  assert.ok(checklist(by('shoulders-bridge')).some((i) => i.id === 'Lat stretch on roller'));
+  assert.ok(checklist(by('hips-thoracic')).some((i) => i.id === 'Hip extension end-range strength'));
   assert.deepEqual(checklist(by('shoulder-reset')).map((i) => i.id), ['Foam roll lats', 'Shoulder CARs', 'Wall clocks']);
-  assert.ok(checklist(by('splits-intensive'), 'short').every((i) => i.id.startsWith('Short / ')));
 });
 
 test('the example weeks name real sessions on all seven days', () => {
@@ -60,8 +76,8 @@ test('weeks normalizer keeps good days and drops junk', () => {
   const w = normalizeWeeks({
     weeks: {
       '2026-10-19': { deload: true, days: [
-        { classes: ['pole', 'pole', 'yoga'], sessions: ['splits-snack', { id: 'shoulder-reset', time: '21:15' }, { id: 'nope' }, 'splits-snack'] },
-        { classes: [{ id: 'rehearsal', time: '19:00', hours: 3 }, { id: 'dance', time: '7pm', hours: -1 }] },
+        { classes: ['pole', 'pole-tricks', 'yoga'], sessions: ['splits-snack', { id: 'shoulder-reset', time: '21:15' }, { id: 'nope' }, 'splits-snack'] },
+        { classes: [{ id: 'rehearsal', time: '19:00', hours: 3, load: 'lower', double: true }, { id: 'dance', time: '7pm', hours: -1, load: 'extreme' }] },
       ] },
       'next week': { days: [] },
       '2026-10-26': null,
@@ -71,17 +87,24 @@ test('weeks normalizer keeps good days and drops junk', () => {
   const week = w.weeks['2026-10-19'];
   assert.equal(week.deload, true);
   assert.equal(week.days.length, 7);
-  // A bare class id (how classes were first stored) reads as one with no time.
-  assert.deepEqual(week.days[0], { classes: [{ id: 'pole', time: '', hours: 1.5 }], sessions: [{ id: 'splits-snack', time: '' }, { id: 'shoulder-reset', time: '21:15' }] });
-  assert.deepEqual(week.days[1].classes, [{ id: 'rehearsal', time: '19:00', hours: 3 }, { id: 'dance', time: '', hours: 1.5 }]);
+  // A bare id string (how classes were first stored) reads as one with no
+  // time; the old plain "pole" class is pole tricks.
+  assert.deepEqual(week.days[0], {
+    classes: [{ id: 'pole-tricks', time: '', hours: 1.5, load: 'upper', double: false }],
+    sessions: [{ id: 'splits-snack', time: '' }, { id: 'shoulder-reset', time: '21:15' }],
+  });
+  assert.deepEqual(week.days[1].classes, [
+    { id: 'rehearsal', time: '19:00', hours: 3, load: 'lower', double: true },
+    { id: 'dance', time: '', hours: 1.5, load: 'light', double: false },
+  ]);
   assert.deepEqual(week.days[6], { classes: [], sessions: [] });
   assert.deepEqual(normalizeWeeks(null), { version: 1, weeks: {} });
   assert.ok(!isPlanned(emptyWeek()));
 });
 
 test('an example becomes a week, and copying a week drops deload', () => {
-  const a = weekFromExample(ROUTINE.guide.examples[0]);
-  assert.deepEqual(a.days[2], { classes: [{ id: 'pole', time: '', hours: 1.5 }], sessions: [{ id: 'shoulder-recovery', time: '' }] });
+  const a = weekFromExample(WEEK_A);
+  assert.deepEqual(a.days[2], { classes: [{ id: 'pole-tricks', time: '', hours: 1.5, load: 'upper', double: false }], sessions: [{ id: 'shoulder-recovery', time: '' }] });
   assert.ok(isPlanned(a));
   const copy = copyWeek({ ...a, deload: true });
   assert.equal(copy.deload, false);
@@ -89,11 +112,11 @@ test('an example becomes a week, and copying a week drops deload', () => {
 });
 
 test('occurrences list planned sessions in day order, keyed by date', () => {
-  const weeks = weeksWith(weekFromExample(ROUTINE.guide.examples[0]));
+  const weeks = weeksWith(weekFromExample(WEEK_A));
   const list = occurrences(ROUTINE, weeks, MONDAY, new Date(2026, 9, 26));
   assert.deepEqual(list.map((o) => o.key), [
-    '2026-10-19|splits-snack', '2026-10-19|shoulder-reset', '2026-10-20|hips-backbend', '2026-10-21|shoulder-recovery',
-    '2026-10-22|class-prep', '2026-10-24|splits-intensive', '2026-10-25|shoulder-hyperflexion',
+    '2026-10-19|splits-snack', '2026-10-19|shoulder-reset', '2026-10-20|hips-thoracic', '2026-10-21|shoulder-recovery',
+    '2026-10-22|class-prep', '2026-10-24|splits-intensive', '2026-10-25|shoulders-bridge',
   ]);
   assert.deepEqual(occurrences(ROUTINE, weeks, new Date(2026, 9, 24), new Date(2026, 9, 25)).map((o) => o.session.id), ['splits-intensive']);
   assert.equal(occurrences(ROUTINE, weeks, new Date(2026, 9, 26), new Date(2026, 10, 2)).length, 0);
@@ -101,95 +124,94 @@ test('occurrences list planned sessions in day order, keyed by date', () => {
 
 /* ── rule checks ── */
 
-test('example week A raises no warnings; week B’s Sunday rehearsal is too close to Saturday', () => {
-  const warns = (n) => checkWeek(ROUTINE, weeksWith(weekFromExample(ROUTINE.guide.examples[n])), MONDAY).flags
-    .filter((f) => f.level === 'warn').map((f) => [f.day, f.session, f.rule]);
-  assert.deepEqual(warns(0), []);
-  // Rehearsal counts as dance, so it's a hard class for rule 1.
-  assert.deepEqual(warns(1), [[5, 'splits-intensive', 1]]);
+test('the plan’s example weeks raise no warnings, only its own notes', () => {
+  assert.deepEqual(textsOf(weeksWith(weekFromExample(WEEK_A))), [
+    'info 1: If Friday’s pole dance left you sore, drop the bridge block and Round 2.',
+  ]);
+  assert.deepEqual(textsOf(weeksWith(weekFromExample(WEEK_B))), [
+    'info 5: The day after pole tricks: skip the thoracic roll and arch-backs if your upper back is sore.',
+    'info 3: Less than 48 hours before Sunday’s rehearsal. Fine unless big splits or kicks matter in that class.',
+  ]);
 });
 
-test('example week A: pole tomorrow keeps backbend submaximal', () => {
-  const flags = flagsOf(weeksWith(weekFromExample(ROUTINE.guide.examples[0])));
-  assert.deepEqual(flags, [[1, 'hips-backbend', 'info', 3]]);
+test('rule 1: Shoulders & Bridge 48 hours before tricks, and after its soreness', () => {
+  assert.deepEqual(flagsOf(plan({ 2: { classes: ['pole-tricks'], sessions: ['shoulders-bridge'] } })), [[2, 'shoulders-bridge', 'warn', 1]]);
+  assert.deepEqual(flagsOf(plan({ 1: { sessions: ['shoulders-bridge'] }, 2: { classes: ['pole-tricks'] } })), [[1, 'shoulders-bridge', 'warn', 1]]);
+  assert.deepEqual(flagsOf(plan({ 0: { sessions: ['shoulders-bridge'] }, 2: { classes: ['pole-tricks'] } })), []);
+  // After tricks: the day after is a warning, two days after a reminder.
+  assert.deepEqual(flagsOf(plan({ 2: { classes: ['pole-tricks'] }, 3: { sessions: ['shoulders-bridge'] } })), [[3, 'shoulders-bridge', 'warn', 1]]);
+  assert.deepEqual(flagsOf(plan({ 2: { classes: ['pole-tricks'] }, 4: { sessions: ['shoulders-bridge'] } })), [[4, 'shoulders-bridge', 'info', 1]]);
+  assert.deepEqual(flagsOf(plan({ 2: { classes: ['pole-tricks'] }, 5: { sessions: ['shoulders-bridge'] } })), []);
 });
 
-test('rule 2: shoulder hyperflexion on, before and after pole', () => {
-  assert.deepEqual(flagsOf(plan({ 2: { classes: ['pole'], sessions: ['shoulder-hyperflexion'] } })), [[2, 'shoulder-hyperflexion', 'warn', 2]]);
-  assert.deepEqual(flagsOf(plan({ 1: { sessions: ['shoulder-hyperflexion'] }, 2: { classes: ['pole-tricks'] } })), [[1, 'shoulder-hyperflexion', 'warn', 2]]);
-  assert.deepEqual(flagsOf(plan({ 2: { classes: ['pole'] }, 3: { sessions: ['shoulder-hyperflexion'] } })), [[3, 'shoulder-hyperflexion', 'info', 2]]);
-  assert.deepEqual(flagsOf(plan({ 2: { classes: ['dance'] }, 3: { sessions: ['shoulder-hyperflexion'] } })), []);
-  // Pole dance counts as dance, not pole.
-  assert.deepEqual(flagsOf(plan({ 2: { classes: ['pole-dance'], sessions: ['shoulder-hyperflexion'] } })), [[2, 'shoulder-hyperflexion', 'info', 5]]);
+test('rule 1: light classes are fine, unless you mark them hard', () => {
+  assert.deepEqual(flagsOf(plan({ 1: { sessions: ['shoulders-bridge'] }, 2: { classes: ['dance'] } })), []);
+  assert.deepEqual(flagsOf(plan({ 1: { sessions: ['shoulders-bridge'] }, 2: { classes: [cls('climbing', '', { load: 'upper' })] } })), [[1, 'shoulders-bridge', 'warn', 1]]);
 });
 
-test('rule 1: splits intensive needs a free day and 48 hours before a hard class', () => {
-  assert.deepEqual(flagsOf(plan({ 5: { classes: ['dance'], sessions: ['splits-intensive'] } })), [[5, 'splits-intensive', 'warn', 1]]);
-  assert.deepEqual(flagsOf(plan({ 5: { sessions: ['splits-intensive'] }, 6: { classes: ['pole'] } })), [[5, 'splits-intensive', 'warn', 1]]);
-  assert.deepEqual(flagsOf(plan({ 4: { sessions: ['splits-intensive'] }, 6: { classes: ['dance'] } })), [[4, 'splits-intensive', 'info', 1]]);
-  assert.deepEqual(flagsOf(plan({ 5: { sessions: ['splits-intensive'] }, 6: { classes: ['rehearsal'] } })), [[5, 'splits-intensive', 'warn', 1]]);
-  assert.deepEqual(flagsOf(plan({ 5: { sessions: ['splits-intensive'] }, 6: { classes: ['climbing'] } })), []);
+test('rule 1 with times counts hours', () => {
+  // Monday 10:00–11:07, tricks Wednesday 10:00: 47 hours.
+  assert.deepEqual(textsOf(plan({ 0: { sessions: [ses('shoulders-bridge', '10:00')] }, 2: { classes: [cls('pole-tricks', '10:00')] } })),
+    ['warn 1: Only 47 hours before Wednesday’s pole tricks. It needs at least 48 hours.']);
+  assert.deepEqual(textsOf(plan({ 0: { sessions: [ses('shoulders-bridge', '10:00')] }, 2: { classes: [cls('pole-tricks', '19:00')] } })), []);
 });
 
-test('rule 3: hips & backbend never on a pole day', () => {
-  assert.deepEqual(flagsOf(plan({ 0: { classes: ['pole'], sessions: ['hips-backbend'] } })), [[0, 'hips-backbend', 'warn', 3]]);
-  assert.deepEqual(flagsOf(plan({ 0: { classes: ['pole-dance'], sessions: ['hips-backbend'] } })), [[0, 'hips-backbend', 'info', 5]]);
-  assert.deepEqual(flagsOf(plan({ 0: { classes: ['rehearsal'], sessions: ['hips-backbend'] } })), [[0, 'hips-backbend', 'info', 5]]);
+test('rule 6: a double tricks night', () => {
+  const night = plan({ 2: { classes: [cls('pole-tricks', '', { double: true })], sessions: ['shoulder-recovery'] }, 4: { sessions: ['shoulders-bridge'] } });
+  // Skip any session that night, and the soreness window grows by a day.
+  assert.deepEqual(flagsOf(night), [[2, 'shoulder-recovery', 'warn', 6], [4, 'shoulders-bridge', 'warn', 1]]);
+  assert.deepEqual(flagsOf(plan({ 2: { classes: [cls('pole-tricks', '', { double: true })], sessions: ['class-prep'] } })), []);
 });
 
-test('rule 4: the same big session two days running', () => {
-  assert.deepEqual(flagsOf(plan({ 2: { sessions: ['hips-backbend'] }, 3: { sessions: ['hips-backbend'] } })), [[2, 'hips-backbend', 'warn', 4]]);
+test('rule 2: the same loaded session two days running', () => {
+  assert.deepEqual(flagsOf(plan({ 4: { sessions: ['splits-intensive'] }, 5: { sessions: ['splits-intensive'] } })), [[4, 'splits-intensive', 'warn', 2]]);
   assert.deepEqual(flagsOf(plan({ 2: { sessions: ['splits-snack'] }, 3: { sessions: ['splits-snack'] } })), []);
 });
 
-const cls = (id, time, hours) => ({ id, time, ...(hours ? { hours } : {}) });
-const ses = (id, time) => ({ id, time });
-const textsOf = (weeks) => checkWeek(ROUTINE, weeks, MONDAY).flags.map((f) => `${f.level} ${f.rule}: ${f.text}`);
-
-test('with times, rule 2 counts hours before pole', () => {
-  // Monday 10:00–10:55, pole Tuesday 20:00: 33 hours.
-  assert.deepEqual(textsOf(plan({ 0: { sessions: [ses('shoulder-hyperflexion', '10:00')] }, 1: { classes: [cls('pole', '20:00')] } })),
-    ['warn 2: Only 33 hours before Tuesday’s pole. It needs at least 48.']);
-  // Two days later is fine at noon, but not at 10:00 (47 hours) — whole days would miss this.
-  assert.deepEqual(textsOf(plan({ 0: { sessions: [ses('shoulder-hyperflexion', '10:00')] }, 2: { classes: [cls('pole', '12:00')] } })), []);
-  assert.deepEqual(textsOf(plan({ 0: { sessions: [ses('shoulder-hyperflexion', '10:00')] }, 2: { classes: [cls('pole', '10:00')] } })),
-    ['warn 2: Only 47 hours before Wednesday’s pole. It needs at least 48.']);
-  // Without times it falls back to whole days.
-  assert.deepEqual(flagsOf(plan({ 0: { sessions: ['shoulder-hyperflexion'] }, 2: { classes: ['pole'] } })), []);
+test('rule 3: lower-body sessions can go the day after tricks', () => {
+  assert.deepEqual(flagsOf(plan({ 2: { classes: ['pole-tricks'] }, 3: { sessions: ['splits-intensive'] } })), []);
+  // Splits Intensive before a class marked hard for the lower body warns;
+  // before a light class that uses the legs it's a reminder.
+  assert.deepEqual(flagsOf(plan({ 4: { sessions: ['splits-intensive'] }, 5: { classes: [cls('dance', '', { load: 'lower' })] } })), [[4, 'splits-intensive', 'warn', 3]]);
+  assert.deepEqual(flagsOf(plan({ 4: { sessions: ['splits-intensive'] }, 5: { classes: ['dance'] } })), [[4, 'splits-intensive', 'info', 3]]);
+  assert.deepEqual(flagsOf(plan({ 4: { sessions: ['splits-intensive'] }, 6: { classes: ['dance'] } })), []);
 });
 
-test('with times, rule 2 counts hours after pole', () => {
-  // Pole Monday 20:00–21:30.
-  assert.deepEqual(textsOf(plan({ 0: { classes: [cls('pole', '20:00')] }, 1: { sessions: [ses('shoulder-hyperflexion', '22:00')] } })), []);
-  assert.deepEqual(textsOf(plan({ 0: { classes: [cls('pole', '20:00')] }, 1: { sessions: [ses('shoulder-hyperflexion', '18:00')] } })),
-    ['warn 2: Only 21 hours after Monday’s pole. It needs at least 24.']);
+test('rule 4: long holds stay off the hour or two before a class that uses them', () => {
+  const day = (sessionTime, classId = 'dance', session = 'hips-thoracic') => plan({ 3: { classes: [cls(classId, '18:00')], sessions: [ses(session, sessionTime)] } });
+  // Hips & Thoracic 16:30–17:16, dance 18:00.
+  assert.deepEqual(textsOf(day('16:30')), ['warn 4: Ends 44 minutes before dance. Keep long hip and hamstring holds off the hour or two before class.']);
+  assert.deepEqual(textsOf(day('14:00')), []);
+  assert.deepEqual(textsOf(day('20:00')), []);
+  // Shoulders & Bridge before dance is fine; before climbing it isn't.
+  assert.deepEqual(textsOf(day('16:30', 'dance', 'shoulders-bridge')), []);
+  assert.deepEqual(flagsOf(day('16:30', 'climbing', 'shoulders-bridge')), [[3, 'shoulders-bridge', 'warn', 4]]);
+  // Without times it's a reminder.
+  assert.deepEqual(flagsOf(plan({ 3: { classes: ['dance'], sessions: ['splits-snack'] } })), [[3, 'splits-snack', 'info', 4]]);
 });
 
-test('with times, rule 1 counts hours to the next hard class', () => {
-  // Saturday 09:00–10:30, rehearsal Sunday 19:00.
-  assert.deepEqual(textsOf(plan({ 5: { sessions: [ses('splits-intensive', '09:00')] }, 6: { classes: [cls('rehearsal', '19:00')] } })),
-    ['warn 1: Splits Intensive is 33 hours before Sunday’s rehearsal. Aim for 48, ideally 72.']);
+test('rule 5: the day after tricks is gentle for the upper body', () => {
+  assert.deepEqual(flagsOf(plan({ 1: { classes: ['pole-tricks'] }, 2: { sessions: ['shoulder-reset'] } })), [[2, 'shoulder-reset', 'info', 5]]);
+  assert.deepEqual(flagsOf(plan({ 1: { classes: ['pole-tricks'] }, 2: { sessions: ['shoulder-recovery'] } })), []);
 });
 
-test('with times, rule 5 wants big sessions done 3 hours before class', () => {
-  const day = (time) => plan({ 3: { classes: [cls('rehearsal', time === 'after' ? '10:00' : '17:00')], sessions: [ses('hips-backbend', time === 'after' ? '14:00' : time)] } });
-  assert.deepEqual(textsOf(day('14:00')), ['warn 5: Ends only 2 hours before rehearsal. Finish at least 3 to 4 hours before.']);
-  assert.deepEqual(textsOf(day('12:00')), []);
-  // Rehearsal 10:00–12:30, session at 14:00: rule 6, after class.
-  assert.deepEqual(textsOf(day('after')), ['info 6: After class: stay at your usual depth and don’t chase new depth when tired.']);
+test('rule 7: late big sessions are maintenance only', () => {
+  assert.deepEqual(flagsOf(plan({ 0: { sessions: [ses('hips-thoracic', '21:30')] } })), [[0, 'hips-thoracic', 'info', 7]]);
+  assert.deepEqual(flagsOf(plan({ 0: { sessions: [ses('hips-thoracic', '19:30'), ses('splits-snack', '22:00')] } })), []);
 });
 
 test('rules look across the week boundary', () => {
-  const weeks = plan({ 6: { sessions: ['shoulder-hyperflexion'] } });
-  weeks.weeks['2026-10-26'] = normalizeWeek({ days: [{ classes: ['pole'] }] }, IDS);
-  assert.deepEqual(flagsOf(weeks), [[6, 'shoulder-hyperflexion', 'warn', 2]]);
+  const weeks = plan({ 6: { sessions: ['shoulders-bridge'] } });
+  weeks.weeks['2026-10-26'] = normalizeWeek({ days: [{ classes: ['pole-tricks'] }] }, IDS);
+  assert.deepEqual(flagsOf(weeks), [[6, 'shoulders-bridge', 'warn', 1]]);
 });
 
 test('minimums count the days each session is planned', () => {
-  const { minimums } = checkWeek(ROUTINE, weeksWith(weekFromExample(ROUTINE.guide.examples[1])), MONDAY);
-  assert.ok(minimums.every((m) => m.planned >= m.count), JSON.stringify(minimums));
-  const empty = checkWeek(ROUTINE, { version: 1, weeks: {} }, MONDAY).minimums;
-  assert.ok(empty.every((m) => m.planned === 0));
+  for (const ex of ROUTINE.guide.examples) {
+    const { minimums } = checkWeek(ROUTINE, weeksWith(weekFromExample(ex)), MONDAY);
+    assert.ok(minimums.every((m) => m.planned >= m.count), `${ex.title}: ${JSON.stringify(minimums)}`);
+  }
+  assert.ok(checkWeek(ROUTINE, { version: 1, weeks: {} }, MONDAY).minimums.every((m) => m.planned === 0));
 });
 
 /* ── timer, movements, log ── */
@@ -205,10 +227,10 @@ test('durations read minutes, seconds and ranges', () => {
 test('timer offers a per-side or single hold before the whole block', () => {
   assert.deepEqual(timerOptions({ name: 'Psoas lunge', duration: '4 min', detail: 'pelvis tucked, torso upright, 2 min per side.' }),
     [{ label: '2 min/side', seconds: 120 }, { label: '4 min', seconds: 240 }]);
-  assert.deepEqual(timerOptions({ name: 'Camel at pole', duration: '4 min', detail: '2 x 90 s holds.' }),
-    [{ label: '90 s hold', seconds: 90 }, { label: '4 min', seconds: 240 }]);
-  assert.deepEqual(timerOptions({ name: 'Bridge', duration: '8 min', detail: '3 reps x 45 s.' }),
-    [{ label: '45 s hold', seconds: 45 }, { label: '8 min', seconds: 480 }]);
+  assert.deepEqual(timerOptions({ name: 'Camel at pole', duration: '2 min', detail: '1 x 90 s hold.' }),
+    [{ label: '90 s hold', seconds: 90 }, { label: '2 min', seconds: 120 }]);
+  assert.deepEqual(timerOptions({ name: 'Bridge', duration: '6 min', detail: '3 reps x 45 s at about 80 to 90% of your best depth.' }),
+    [{ label: '45 s hold', seconds: 45 }, { label: '6 min', seconds: 360 }]);
   assert.deepEqual(timerOptions({ name: 'Butterfly', duration: '2 min' }), [{ label: '2 min', seconds: 120 }]);
 });
 
@@ -216,14 +238,16 @@ test('movement names match across spellings', () => {
   assert.equal(moveKey('Sphinx to cobra pulses'), moveKey('Sphinx → cobra pulses'));
   assert.equal(moveKey('Couch stretch, extended'), 'couch stretch');
   assert.equal(moveKey('Round 2, active'), 'shoulder hyperflexion on bench');
+  assert.equal(moveKey('Full bridge, depth focus'), 'full bridge');
 });
 
 test('the reference gathers a movement from every session it is in', () => {
   const index = movementIndex(ROUTINE);
   const couch = index.find((m) => m.key === 'couch stretch');
   assert.equal(couch.name, 'Couch stretch');
-  assert.deepEqual(couch.sessions, ['Splits Intensive', 'Hips & Backbend', 'Splits Snack']);
+  assert.deepEqual(couch.sessions, ['Splits Intensive', 'Hips & Thoracic', 'Splits Snack']);
   const camel = index.find((m) => m.key === 'camel at pole');
+  assert.deepEqual(camel.sessions, ['Shoulders & Bridge']);
   assert.ok(camel.writeups.some((w) => !w.current && w.cues.length > 10), 'earlier long-form cues are kept');
   assert.equal(new Set(index.map((m) => m.key)).size, index.length);
 });
@@ -241,23 +265,25 @@ test('earlier write-ups whose loading changed are left out', () => {
 test('log normalizer keeps good entries and drops junk', () => {
   const log = normalizeLog({
     entries: {
-      '2026-10-20|hips-backbend': { date: '2026-10-20', title: 'Hips & Backbend', checked: ['Warm-up / Cardio', 'Warm-up / Cardio', 3], notes: 'tight', done: true, updated: 5 },
-      '2026-10-21|splits-snack': { checked: 'nope', variant: 'weird' },
+      '2026-10-20|hips-thoracic': { date: '2026-10-20', title: 'Hips & Thoracic', checked: ['Warm-up / Cardio', 'Warm-up / Cardio', 3], notes: 'tight', done: true, updated: 5 },
+      '2026-10-21|shoulders-bridge': { variant: 'bridge' },
+      '2026-10-22|splits-snack': { checked: 'nope', variant: 'Weird Thing!' },
       'garbage': { date: 'yesterday' },
-      '2026-10-22|x': null,
+      '2026-10-23|x': null,
     },
   });
-  assert.deepEqual(Object.keys(log.entries), ['2026-10-20|hips-backbend', '2026-10-21|splits-snack']);
-  assert.deepEqual(log.entries['2026-10-20|hips-backbend'].checked, ['Warm-up / Cardio']);
-  assert.deepEqual(log.entries['2026-10-21|splits-snack'], { date: '2026-10-21', title: '', variant: 'full', checked: [], notes: '', done: false, updated: 0 });
+  assert.deepEqual(Object.keys(log.entries), ['2026-10-20|hips-thoracic', '2026-10-21|shoulders-bridge', '2026-10-22|splits-snack']);
+  assert.deepEqual(log.entries['2026-10-20|hips-thoracic'].checked, ['Warm-up / Cardio']);
+  assert.equal(log.entries['2026-10-21|shoulders-bridge'].variant, 'bridge');
+  assert.deepEqual(log.entries['2026-10-22|splits-snack'], { date: '2026-10-22', title: '', variant: 'full', checked: [], notes: '', done: false, updated: 0 });
   assert.deepEqual(normalizeLog(null), { version: 1, entries: {} });
-  assert.ok(isEmptyEntry(log.entries['2026-10-21|splits-snack']));
+  assert.ok(isEmptyEntry(log.entries['2026-10-22|splits-snack']));
 });
 
 /* ── export ── */
 
 test('export writes the week’s planned sessions, timed or all-day', () => {
-  const week = weekFromExample(ROUTINE.guide.examples[0]);
+  const week = weekFromExample(WEEK_A);
   week.days[5].sessions[0].time = '12:30';
   const ics = toIcs(ROUTINE, weeksWith(week), MONDAY, new Date(2026, 9, 26), new Date(2026, 9, 23, 12));
   const flat = unfold(ics);
@@ -266,12 +292,12 @@ test('export writes the week’s planned sessions, timed or all-day', () => {
   assert.match(flat, /^DTEND:20261024T140000$/m); // ~90 min
   assert.match(flat, /^DTSTART;VALUE=DATE:20261019$/m);
   assert.match(flat, /^UID:2026-10-24-splits-intensive@flex-training$/m);
-  assert.match(flat, /^SUMMARY:Hips & Backbend$/m);
+  assert.match(flat, /^SUMMARY:Shoulders & Bridge$/m);
   assert.ok(ics.endsWith('END:VCALENDAR\r\n'));
 });
 
 test('export lines are folded at 75 bytes without splitting characters', () => {
-  const ics = toIcs(ROUTINE, weeksWith(weekFromExample(ROUTINE.guide.examples[1])), MONDAY, new Date(2026, 9, 26));
+  const ics = toIcs(ROUTINE, weeksWith(weekFromExample(WEEK_B)), MONDAY, new Date(2026, 9, 26));
   const enc = new TextEncoder();
   for (const line of ics.split('\r\n')) assert.ok(enc.encode(line).length <= 75, line);
   const long = '⏱'.repeat(40);
@@ -279,14 +305,14 @@ test('export lines are folded at 75 bytes without splitting characters', () => {
 });
 
 test('export text escapes and keeps the session layout', () => {
-  const s = ROUTINE.sessions.find((x) => x.id === 'splits-intensive');
+  const s = ROUTINE.sessions.find((x) => x.id === 'shoulders-bridge');
   const text = describe(s);
-  assert.match(text, /^⏱ ~90 min/);
-  assert.match(text, /HIP FLEXOR BLOCK — 20 min\. Priority/);
-  assert.match(text, /• Psoas lunge, 4 min: pelvis tucked, torso upright, 2 min per side/);
-  assert.match(text, /18-MINUTE VERSION/);
+  assert.match(text, /^⏱ ~67 min/);
+  assert.match(text, /BRIDGE BLOCK — 12 min\. While your shoulders are fresh/);
+  assert.match(text, /18-MINUTE VERSION \(NO BRIDGES\)/);
+  assert.match(text, /8-MINUTE BRIDGE VERSION/);
   assert.match(text, /Deload week: /);
-  const flat = unfold(toIcs(ROUTINE, weeksWith(weekFromExample(ROUTINE.guide.examples[0])), MONDAY, new Date(2026, 9, 26)));
+  const flat = unfold(toIcs(ROUTINE, weeksWith(weekFromExample(WEEK_A)), MONDAY, new Date(2026, 9, 26)));
   const desc = flat.split('\r\n').find((l) => l.startsWith('DESCRIPTION:⏱ ~90'));
   assert.ok(desc.includes('pelvis tucked\\, torso upright') && desc.includes('\\n') && !/[^\\],/.test(desc));
 });

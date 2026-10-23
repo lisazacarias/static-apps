@@ -1,5 +1,5 @@
 import {
-  CLASS_TYPES, DAY_NAMES, normalizeWeeks, normalizeWeek, emptyWeek, weekFromExample, copyWeek, isPlanned,
+  CLASS_TYPES, LOADS, DAY_NAMES, versionOf, normalizeWeeks, normalizeWeek, emptyWeek, weekFromExample, copyWeek, isPlanned,
   occurrences, checkWeek, checklist, timerOptions, movementIndex, moveKey, cueText, cueSub,
   normalizeLog, isEmptyEntry, toIcs, ymd, fromYmd, addDays, weekStart,
 } from './plan.js';
@@ -120,7 +120,7 @@ function weekView(arg) {
       ? list.map((o) => `<div class="card today">
           <span class="label">Today${o.time ? ` · ${esc(fmtTime(o.time))}` : ''}${isDeload(now) ? ' · deload week' : ''}</span>
           <h2>${esc(o.session.title)}</h2>
-          <p class="muted">${esc(o.session.length)}${o.session.short ? ` · ${o.session.short.minutes}-minute version available` : ''}</p>
+          <p class="muted">${esc(o.session.length)}${o.session.versions ? ` · ${o.session.versions.map((v) => `${v.minutes}-min`).join(' or ')} version available` : ''}</p>
           <a class="link-button" href="${sessionHref(now, o.session.id)}">${status(o.key) === 'done' ? 'Done ✓ — open' : 'Start →'}</a>
         </div>`).join('')
       : `<div class="card today"><span class="label">Today</span><h2>${week?.days[(now.getDay() + 6) % 7].classes.length ? 'Class day' : 'Nothing planned'}</h2>
@@ -190,11 +190,17 @@ function weekView(arg) {
 // rule checks count exact hours instead of whole days.
 function classChip(c, dayIndex, edit) {
   const label = esc(CLASS[c.id].label);
-  if (!edit) return `<span class="class">${label}${c.time ? ` · ${esc(fmtTime(c.time))}` : ''}</span>`;
-  return `<span class="class editing">${label}
-    <input type="time" class="time" value="${esc(c.time)}" data-classtime="${dayIndex}:${c.id}" aria-label="${label} start time">
-    <input type="number" class="hours" min="0.5" max="12" step="0.5" value="${c.hours}" data-classhours="${dayIndex}:${c.id}" aria-label="${label} length in hours"><span class="tiny">h</span>
-    <button type="button" class="x" data-unclass="${dayIndex}:${c.id}" aria-label="Remove ${label}">×</button></span>`;
+  const hard = c.load !== 'light';
+  if (!edit) {
+    return `<span class="class${hard ? ' hard' : ''}" title="${esc(LOADS[c.load])}">${label}${c.double ? ' ×2' : ''}${c.time ? ` · ${esc(fmtTime(c.time))}` : ''}${hard ? ` · hard${c.load === 'both' ? '' : ` ${c.load}`}` : ''}</span>`;
+  }
+  const key = `${dayIndex}:${c.id}`;
+  return `<span class="class editing${hard ? ' hard' : ''}">${label}
+    <input type="time" class="time" value="${esc(c.time)}" data-classtime="${key}" aria-label="${label} start time">
+    <input type="number" class="hours" min="0.5" max="12" step="0.5" value="${c.hours}" data-classhours="${key}" aria-label="${label} length in hours"><span class="tiny">h</span>
+    <select class="add" data-classload="${key}" aria-label="${label} load">${Object.entries(LOADS).map(([k, v]) => `<option value="${k}"${k === c.load ? ' selected' : ''}>${esc(v)}</option>`).join('')}</select>
+    <label class="tiny dbl"><input type="checkbox" data-classdouble="${key}"${c.double ? ' checked' : ''}> double</label>
+    <button type="button" class="x" data-unclass="${key}" aria-label="Remove ${label}">×</button></span>`;
 }
 
 function occRow(o, dayIndex, edit) {
@@ -229,7 +235,7 @@ function sessionsView() {
   const now = today();
   return `<p class="muted tiny" style="margin-bottom:12px">Every session in the plan. Open one to do it today, planned or not.</p>
     ${ROUTINE.sessions.map((s) => `<a class="mlist-link" href="${sessionHref(now, s.id)}"><div class="card">
-      <span class="label">${KIND_LABEL[s.kind]} · ${esc(s.length)}${s.short ? ` · ${s.short.minutes}-min version` : ''}</span>
+      <span class="label">${KIND_LABEL[s.kind]} · ${esc(s.length)}${(s.versions || []).map((v) => ` · ${v.minutes}-min ${v.id === 'short' ? '' : `${v.id} `}version`).join('')}</span>
       <h2>${esc(s.title)}</h2>
       ${s.about?.[0] ? `<p class="muted">${esc(s.about[0].replace(/\s*\[\d+\]/g, ''))}</p>` : ''}
     </div></a>`).join('')}`;
@@ -246,7 +252,8 @@ function sessionView(key) {
   if (!o) return `<a class="back" href="#week">‹ Week</a><p class="muted">That session isn’t in the plan any more.${log.entries[key] ? ` Your log for it is still under <a href="#history">History</a>.` : ''}</p>`;
   const s = o.session;
   const e = entryFor(o);
-  const variant = e.variant === 'short' && s.short ? 'short' : 'full';
+  const version = versionOf(s, e.variant);
+  const variant = version ? version.id : 'full';
   const items = checklist(s, variant);
   const checked = new Set(e.checked);
   const count = items.filter((i) => checked.has(i.id)).length;
@@ -260,17 +267,17 @@ function sessionView(key) {
   if (isDeload(o.date) && s.deload) html += `<div class="info-box"><b>Deload week.</b> ${rich(s.deload)}</div>`;
   html += flags.map((f) => `<p class="flag ${f.level}"><b>Rule ${f.rule}.</b> ${esc(f.text)}</p>`).join('');
   html += (s.notes || []).map((n) => `<div class="info-box note"><b>${esc(n.label)}.</b> ${rich(n.text)}</div>`).join('');
-  if (s.short) {
+  if (s.versions) {
     html += `<div class="row variant" role="group" aria-label="Which version">
       <button class="btn${variant === 'full' ? ' on' : ''}" data-variant="full" type="button">Full · ${esc(s.length)}</button>
-      <button class="btn${variant === 'short' ? ' on' : ''}" data-variant="short" type="button">${s.short.minutes}-minute version</button>
+      ${s.versions.map((v) => `<button class="btn${variant === v.id ? ' on' : ''}" data-variant="${v.id}" type="button">${esc(v.label.replace(/^(\d+)-minute/, '$1-min'))}</button>`).join('')}
     </div>`;
   }
   html += `<p class="progress" id="progress" style="margin-top:12px">${count} of ${items.length} ticked</p>`;
 
-  if (variant === 'short') {
-    html += `<h3 class="sec">${s.short.minutes}-minute version</h3>${items.map((i) => moveRow(i, checked)).join('')}`;
-    if (s.short.skip) html += `<p class="skip">Skipping: ${esc(s.short.skip)}</p>`;
+  if (version) {
+    html += `<h3 class="sec">${esc(version.label)}</h3>${items.map((i) => moveRow(i, checked)).join('')}`;
+    if (version.skip) html += `<p class="skip">Skipping: ${esc(version.skip)}</p>`;
   } else {
     for (const sec of s.sections) {
       if (sec.title) html += `<h3 class="sec">${esc(sec.title)}${sec.minutes ? ` <span class="mins">· ${sec.minutes} min</span>` : ''}</h3>`;
@@ -331,14 +338,17 @@ function currentOcc() {
 
 $('view').addEventListener('change', (ev) => {
   const t = ev.target;
-  if (t.dataset.addclass) { const i = +t.dataset.addclass; changeWeek(i, (d) => d.classes.push({ id: t.value, time: '', hours: CLASS[t.value].hours })); return; }
-  if (t.dataset.classtime || t.dataset.classhours) {
-    const [i, id] = (t.dataset.classtime || t.dataset.classhours).split(':');
+  if (t.dataset.addclass) { const i = +t.dataset.addclass; changeWeek(i, (d) => d.classes.push({ id: t.value })); return; }
+  const classKey = t.dataset.classtime || t.dataset.classhours || t.dataset.classload || t.dataset.classdouble;
+  if (classKey) {
+    const [i, id] = classKey.split(':');
     changeWeek(+i, (d) => {
       const c = d.classes.find((x) => x.id === id);
       if (!c) return;
       if (t.dataset.classtime) c.time = t.value;
-      else if (+t.value > 0) c.hours = +t.value;
+      else if (t.dataset.classhours) { if (+t.value > 0) c.hours = +t.value; }
+      else if (t.dataset.classload) c.load = t.value;
+      else c.double = t.checked;
     });
     return;
   }
@@ -361,7 +371,7 @@ $('view').addEventListener('change', (ev) => {
   const e = entryFor(o);
   const set = new Set(e.checked);
   if (t.checked) set.add(id); else set.delete(id);
-  const items = checklist(o.session, e.variant === 'short' ? 'short' : 'full');
+  const items = checklist(o.session, e.variant);
   const all = items.every((i) => set.has(i.id));
   // Ticking the last movement marks the session done; unticking doesn't undo
   // a done you set yourself.
@@ -469,11 +479,20 @@ function guideView() {
   const g = ROUTINE.guide;
   const sessionName = (id) => esc(SESSION[id].title);
   return `<p class="about">${rich(g.intro)}</p>
+    <h3 class="sec">What counts as hard</h3>
+    <p class="about">${rich(g.hard.intro)}</p>
+    <div class="card"><table class="tbl hard-tbl">
+      <tr class="head"><td>Class</td><td>Heart rate</td><td>Soreness next day</td><td>Counts as</td></tr>
+      ${g.hard.table.map((r) => `<tr><td><b>${esc(r.klass)}</b></td><td class="tiny">Zone 3+: ${esc(r.zone3)}<br>Zone 5: ${esc(r.zone5)}<br>Peak: ${esc(r.peak)}</td><td>${esc(r.soreness)}</td><td>${esc(r.counts)}</td></tr>`).join('')}
+    </table></div>
+    ${g.hard.notes.map((n) => `<p class="about tiny">${rich(n)}</p>`).join('')}
+    <ul class="steps">${g.hard.meaning.map((l) => `<li>${rich(l)}</li>`).join('')}</ul>
+    <p class="about tiny muted">In the Week tab, each class starts at its usual load. Change it for a class that leaves you sore.</p>
     <h3 class="sec">How to build your week</h3>
     <ol class="steps">${g.howTo.map((l) => `<li>${rich(l)}</li>`).join('')}</ol>
     <h3 class="sec">Weekly minimums</h3>
     <p class="about">${rich(g.minimumsNote)}</p>
-    <div class="card"><table class="tbl">${g.minimums.map((m) => `<tr><td><b>${sessionName(m.session)}</b> ×${m.count}<br><span class="muted tiny">${esc(SESSION[m.session].length)}</span></td><td>${esc(m.serves)}</td></tr>`).join('')}</table></div>
+    <div class="card"><table class="tbl">${g.minimums.map((m) => `<tr><td><b>${sessionName(m.session)}</b> ×${m.count}<br><span class="muted tiny">${esc(SESSION[m.session].length)} · ${esc(m.load.toLowerCase())}</span></td><td>${esc(m.serves)}</td></tr>`).join('')}</table></div>
     <h3 class="sec">Placement rules</h3>
     ${g.rules.map((r, i) => `<div class="card rule"><p><b>${i + 1}. ${rich(r.rule)}</b> ${rich(r.why)}</p><p class="meta">Evidence: ${rich(r.evidence)}</p></div>`).join('')}
     <h3 class="sec">Example weeks</h3>
@@ -512,7 +531,7 @@ function historyView() {
   for (const [key, e] of entries) {
     html += `<a href="#s/${encodeURIComponent(key)}"><div class="card">
       <div class="spread"><h2>${esc(e.title || 'Session')}</h2>${e.done ? '<span class="chip done">Done</span>' : '<span class="chip started">Started</span>'}</div>
-      <p class="meta">${esc(fmtDay(fromYmd(e.date)))}${e.variant === 'short' ? ' · short version' : ''} · ${e.checked.length} ticked</p>
+      <p class="meta">${esc(fmtDay(fromYmd(e.date)))}${e.variant !== 'full' ? ` · ${esc(versionOf(SESSION[key.slice(11)] || {}, e.variant)?.label || 'short version')}` : ''} · ${e.checked.length} ticked</p>
       ${e.notes.trim() ? `<div class="notes">${esc(e.notes)}</div>` : ''}
     </div></a>`;
   }
