@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flex Training</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="../../shared/base.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="container">
+    <header class="top">
+        <h1>Flex Training</h1>
+        <p class="subtitle">Your weekly flexibility routine. Tick things off, time your holds, look up a movement.</p>
+        <nav class="tabs" aria-label="Views">
+            <a href="#week" data-tab="week">Week</a>
+            <a href="#moves" data-tab="moves">Movements</a>
+            <a href="#history" data-tab="history">History</a>
+        </nav>
+    </header>
+
+    <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+    <main id="view"></main>
+</div>
+
+<div id="timer" class="timer" hidden>
+    <div class="timer-label" id="timerLabel"></div>
+    <div class="timer-time" id="timerTime">0:00</div>
+    <button id="timerToggle" class="btn" type="button">Pause</button>
+    <button id="timerReset" class="btn" type="button">Reset</button>
+    <button id="timerClose" class="btn" type="button" aria-label="Close timer">×</button>
+</div>
+
+<input id="backupFile" type="file" accept=".json,application/json" hidden>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

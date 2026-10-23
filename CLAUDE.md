@@ -9,6 +9,7 @@ python3 -m http.server 8000      # from the repo root
 # Tests — per app, Node's built-in runner, nothing to install
 cd apps/piano-practice && npm test
 cd apps/lighting-cue-builder && npm test
+cd apps/flex-training && npm test
 
 # Real-browser smoke test (piano practice; needs Chrome/Chromium, CHROME_PATH to override)
 cd apps/piano-practice && npm run smoke
