@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   normalizeWeeks, normalizeWeek, emptyWeek, deloadInfo, weekFromExample, copyWeek, isPlanned,
-  occurrences, checkWeek, suggestWeek, checklist, playPhases, nextToDo, READY_SECONDS, versionOf, timerOptions, parseDuration, moveKey, movementIndex,
+  occurrences, checkWeek, suggestWeek, checklist, playPhases, pressCycle, nextToDo, READY_SECONDS, SWITCH_SECONDS, versionOf, timerOptions, parseDuration, moveKey, movementIndex,
   normalizeLog, isEmptyEntry, describe, toIcs, foldLine, weekStart, ymd, fromYmd,
 } from '../plan.js';
 import ROUTINE from '../routine.js';
@@ -343,16 +343,34 @@ test('minimums count the days each session is planned', () => {
 
 /* ── guided player ── */
 
-test('the player counts in, then splits per-side blocks into halves', () => {
-  const steps = (item) => playPhases(item).map((p) => [p.label, p.seconds]);
-  assert.deepEqual(steps({ name: 'Psoas lunge', duration: '4 min', detail: 'pelvis tucked, torso upright, 2 min per side.' }),
-    [['Get ready', READY_SECONDS], ['First side', 120], ['Second side', 120]]);
-  assert.deepEqual(steps({ name: '90/90', duration: '2 min', detail: '1 min each direction.' }),
-    [['Get ready', READY_SECONDS], ['One direction', 60], ['Other direction', 60]]);
+test('the player counts in, then splits per-side blocks with a switch between', () => {
+  const steps = (item) => playPhases(item).map((p) => [p.kind, p.label, p.seconds, !!p.wait]);
+  assert.deepEqual(steps({ name: 'Psoas lunge', duration: '4 min', detail: 'pelvis tucked, torso upright, 2 min per side.' }), [
+    ['ready', 'Get ready', READY_SECONDS, false], ['work', 'First side', 120, false],
+    ['switch', 'Switch sides', SWITCH_SECONDS, true], ['work', 'Second side', 120, false],
+  ]);
+  assert.deepEqual(steps({ name: '90/90', duration: '2 min', detail: '1 min each direction.' }).map((s) => s[1]),
+    ['Get ready', 'One direction', 'Change direction', 'Other direction']);
   // 60 s per leg inside a 4-minute block doesn't add up, so it stays whole.
   assert.deepEqual(steps({ name: 'Standing splits', duration: '4 min', detail: 'hips square, 60 s per leg.' }),
-    [['Get ready', READY_SECONDS], ['', 240]]);
-  assert.deepEqual(steps({ name: 'Butterfly', duration: '2 min' }), [['Get ready', READY_SECONDS], ['', 120]]);
+    [['ready', 'Get ready', READY_SECONDS, false], ['work', '', 240, false]]);
+  assert.deepEqual(steps({ name: 'Butterfly', duration: '2 min' }), [['ready', 'Get ready', READY_SECONDS, false], ['work', '', 120, false]]);
+});
+
+test('contract-relax runs press and relax rounds on each side', () => {
+  const cr = ROUTINE.sessions.find((s) => s.id === 'splits-intensive').sections.flatMap((x) => x.items).find((i) => i.name === 'Contract-relax hip flexor');
+  assert.deepEqual(pressCycle(cr), { press: 10, relax: 20, verb: 'Relax and sink deeper' });
+  const p = playPhases(cr);
+  assert.deepEqual(p.map((x) => x.kind).join(' '), 'ready press relax press relax press relax press relax switch press relax press relax press relax press relax');
+  assert.equal(p[1].label, 'First side · Press · 1 of 4');
+  assert.equal(p[2].label, 'First side · Relax and sink deeper · 1 of 4');
+  assert.equal(p.filter((x) => x.kind === 'press' || x.kind === 'relax').reduce((n, x) => n + x.seconds, 0), 240);
+  // PNF hamstring folds rather than sinks; the 18-minute version's is 1 min a side.
+  const pnf = { name: 'PNF hamstring', duration: '4 min', detail: 'press at about 30 to 50% effort for 5 to 10 s, fold deeper for 20 s, 2 min per side.' };
+  assert.equal(pressCycle(pnf).verb, 'Relax and fold deeper');
+  const short = { name: 'Contract-relax hip flexor', duration: '2 min', detail: 'press the back shin down 5 to 10 s, relax deeper for 20 s, 1 min per side.' };
+  assert.equal(playPhases(short).filter((x) => x.kind === 'press').length, 4);
+  assert.equal(pressCycle({ name: 'Couch stretch', duration: '4 min', detail: '2 min per side.' }), null);
 });
 
 test('every movement in every session gets player steps', () => {

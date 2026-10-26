@@ -437,28 +437,52 @@ export function timerOptions(item) {
 /* ── guided player ───────────────────────────────────────────────────── */
 
 export const READY_SECONDS = 10;
+// After the switch-sides tap, a short count-in for the second side.
+export const SWITCH_SECONDS = 5;
 const HALVES = {
   side: ['First side', 'Second side'],
   leg: ['First leg', 'Second leg'],
   arm: ['First arm', 'Second arm'],
   direction: ['One direction', 'Other direction'],
 };
+const SWITCH_LABEL = { side: 'Switch sides', leg: 'Switch legs', arm: 'Switch arms', direction: 'Change direction' };
 
-// The timer steps for one movement in the guided player: a short "Get
-// ready", then the block. When the notes give a per-side (or per-leg…)
-// time that adds up to the block, the block is split into the two halves
-// so there's a cue to switch.
-//   → [{ label, seconds, ready? }]
+// Contract-relax and PNF: "press … for 5 to 10 s, sink for 20 s". The press
+// uses the top of its range (10 s) so the 30-second cycles divide each
+// 1- or 2-minute side evenly.
+const PRESS = /press\b[^.]*?(\d+)(?:\s*(?:to|-|–)\s*(\d+))?\s*s\b[^.]*?\b(sink|relax|fold)\b[^.]*?(?:for\s*)?(\d+)\s*s\b/i;
+export function pressCycle(item) {
+  const m = PRESS.exec(item.detail || '');
+  if (!m) return null;
+  const verb = m[3].toLowerCase() === 'fold' ? 'Relax and fold deeper' : 'Relax and sink deeper';
+  return { press: +(m[2] || m[1]), relax: +m[4], verb };
+}
+
+// The timer steps for one movement in the guided player:
+//   ready   a "Get ready" count-in
+//   work    the block, or one half of it when the notes give a per-side
+//           (or per-leg…) time that adds up to the block
+//   press / relax  contract-relax cycles filling each half
+//   switch  between halves: waits for a tap, then a short count-in
+//   → [{ kind, label, seconds, wait? }]
 export function playPhases(item) {
   const total = parseDuration(item.duration) || 60;
-  const phases = [{ label: 'Get ready', seconds: READY_SECONDS, ready: true }];
+  const phases = [{ kind: 'ready', label: 'Get ready', seconds: READY_SECONDS }];
   const half = timerOptions(item).find((o) => o.label.includes('/'));
-  const names = half && HALVES[half.label.split('/')[1]];
-  if (names && Math.abs(half.seconds * 2 - total) <= total * 0.25) {
-    phases.push({ label: names[0], seconds: half.seconds }, { label: names[1], seconds: half.seconds });
-  } else {
-    phases.push({ label: '', seconds: total });
-  }
+  const unit = half && half.label.split('/')[1];
+  const split = HALVES[unit] && Math.abs(half.seconds * 2 - total) <= total * 0.25;
+  const blocks = split ? [{ label: HALVES[unit][0], seconds: half.seconds }, { label: HALVES[unit][1], seconds: half.seconds }] : [{ label: '', seconds: total }];
+  const cycle = pressCycle(item);
+  blocks.forEach((b, i) => {
+    if (i > 0) phases.push({ kind: 'switch', label: SWITCH_LABEL[unit], seconds: SWITCH_SECONDS, wait: true });
+    if (!cycle) { phases.push({ kind: 'work', label: b.label, seconds: b.seconds }); return; }
+    const n = Math.max(1, Math.round(b.seconds / (cycle.press + cycle.relax)));
+    const side = b.label ? `${b.label} · ` : '';
+    for (let k = 1; k <= n; k++) {
+      phases.push({ kind: 'press', label: `${side}Press · ${k} of ${n}`, seconds: cycle.press });
+      phases.push({ kind: 'relax', label: `${side}${cycle.verb} · ${k} of ${n}`, seconds: cycle.relax });
+    }
+  });
   return phases;
 }
 

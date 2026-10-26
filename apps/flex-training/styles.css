@@ -344,11 +344,17 @@ body.playing { overflow: hidden; }
     padding: 12px 16px env(safe-area-inset-bottom);
 }
 .play-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.play-top .label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.play-top .label { min-width: 0; line-height: 1.5; }
 .play-clock { text-align: center; padding: 18px 0 8px; }
 .play-step { font-family: var(--font-mono); font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); min-height: 18px; }
 .play-time { font-family: var(--font-mono); font-size: clamp(64px, 22vw, 120px); font-weight: 600; color: var(--text-bright); line-height: 1.05; }
-.player.ready .play-time { color: var(--gold); }
+.player[data-step="ready"] .play-time, .player[data-step="switch"] .play-time { color: var(--gold); }
+.player[data-step="press"] .play-time { color: var(--accent); }
+.player[data-step="relax"] .play-time { color: var(--green); }
+.player.waiting #playToggle { border-color: var(--gold); color: var(--text-bright); background: var(--gold-dim); }
+.switch-note { background: var(--gold-dim); color: #e8cfa6; padding: 10px 12px; border-radius: 6px; font-size: 14px; margin-bottom: 12px; }
+.lock-btn { margin-left: auto; padding: 5px 9px; font-size: 11px; white-space: nowrap; }
+.skipped { margin: 8px 0 14px 20px; text-align: left; display: inline-block; }
 .play-controls { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
 .play-controls .btn { padding: 12px 6px; font-size: 14px; text-align: center; }
 .play-body { flex: 1; overflow-y: auto; border-top: 1px solid var(--border); padding-top: 12px; -webkit-overflow-scrolling: touch; }
