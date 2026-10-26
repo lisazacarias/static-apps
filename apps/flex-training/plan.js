@@ -486,6 +486,32 @@ export function playPhases(item) {
   return phases;
 }
 
+// Which step list a saved resume point's phase counts in. Bump it when
+// playPhases changes shape, and teach resumeStep to read the old one.
+export const RESUME_LAYOUT = 2;
+
+// Where to pick a movement back up from a saved resume point → { phase, left }.
+// A count-in starts over, and a switch waits for you again; a hold keeps
+// its time. Points saved before RESUME_LAYOUT counted 0 ready, 1 first half
+// (or the whole block), 2 second half, so those map to the start of that
+// half and walk forward through its press/relax rounds by the time used.
+export function resumeStep(phases, r) {
+  const holds = (k) => k === 'work' || k === 'press' || k === 'relax';
+  if (r.layout === RESUME_LAYOUT) {
+    const phase = Math.min(r.phase, phases.length - 1);
+    const step = phases[phase];
+    return { phase, left: holds(step.kind) ? Math.min(r.left, step.seconds) : step.seconds };
+  }
+  const starts = [1, ...phases.flatMap((p, i) => (p.kind === 'switch' ? [i + 1] : []))];
+  if (r.phase < 1 || r.phase > starts.length) return { phase: 0, left: phases[0].seconds };
+  let phase = starts[r.phase - 1];
+  const end = r.phase < starts.length ? starts[r.phase] - 1 : phases.length;
+  const half = phases.slice(phase, end).reduce((t, p) => t + p.seconds, 0);
+  let used = Math.max(0, half - r.left);
+  while (phase < end - 1 && used >= phases[phase].seconds) used -= phases[phase++].seconds;
+  return { phase, left: Math.max(1, Math.round(phases[phase].seconds - used)) };
+}
+
 // Where the player goes after index `from`: the next movement not yet
 // ticked, or -1 when there isn't one.
 export function nextToDo(items, checked, from) {
@@ -572,8 +598,11 @@ export function movementIndex(routine) {
 // { version: 1, entries: { ['YYYY-MM-DD|session id']: entry } }
 //   entry: { date 'YYYY-MM-DD', title, variant 'full' or a version id,
 //            checked: ['Section / Movement', …], notes, done, updated,
-//            resume? { index, phase, left } — where the guided player
-//            stopped: checklist index, timer step, seconds left }
+//            resume? { index, phase, left, layout? } — where the guided
+//            player stopped: checklist index, timer step, seconds left.
+//            layout 2 is the step list with switch and press/relax steps;
+//            without it the phase is the older ready / first half / second
+//            half numbering (see resumeStep). }
 export function normalizeLog(raw) {
   const entries = {};
   const src = raw && typeof raw === 'object' && raw.entries && typeof raw.entries === 'object' ? raw.entries : {};
@@ -592,7 +621,7 @@ export function normalizeLog(raw) {
     };
     const r = e.resume;
     if (r && Number.isInteger(r.index) && r.index >= 0 && Number.isInteger(r.phase) && r.phase >= 0 && Number.isFinite(r.left) && r.left >= 0) {
-      entries[key].resume = { index: r.index, phase: r.phase, left: r.left };
+      entries[key].resume = { index: r.index, phase: r.phase, left: r.left, ...(r.layout === RESUME_LAYOUT ? { layout: RESUME_LAYOUT } : {}) };
     }
   }
   return { version: 1, entries };

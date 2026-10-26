@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   normalizeWeeks, normalizeWeek, emptyWeek, deloadInfo, weekFromExample, copyWeek, isPlanned,
-  occurrences, checkWeek, suggestWeek, checklist, playPhases, pressCycle, nextToDo, READY_SECONDS, SWITCH_SECONDS, versionOf, timerOptions, parseDuration, moveKey, movementIndex,
+  occurrences, checkWeek, suggestWeek, checklist, playPhases, pressCycle, resumeStep, RESUME_LAYOUT, nextToDo, READY_SECONDS, SWITCH_SECONDS, versionOf, timerOptions, parseDuration, moveKey, movementIndex,
   normalizeLog, isEmptyEntry, describe, toIcs, foldLine, weekStart, ymd, fromYmd,
 } from '../plan.js';
 import ROUTINE from '../routine.js';
@@ -389,6 +389,27 @@ test('the player moves on to the next movement not yet ticked', () => {
   assert.equal(nextToDo(items, new Set(), -1), 0);
   assert.equal(nextToDo(items, new Set(['b', 'c']), 0), 3);
   assert.equal(nextToDo(items, new Set(['d']), 2), -1);
+});
+
+test('a resume point saved before switch and press steps lands on the same spot', () => {
+  const cr = ROUTINE.sessions.find((s) => s.id === 'splits-intensive').sections.flatMap((x) => x.items).find((i) => i.name === 'Contract-relax hip flexor');
+  const p = playPhases(cr);
+  // Old layout: 0 ready, 1 first side, 2 second side; 83 s left of 120 is
+  // 37 s in, which is the second press with 3 s to go.
+  assert.deepEqual(resumeStep(p, { phase: 1, left: 83 }), { phase: 3, left: 3 });
+  assert.deepEqual(resumeStep(p, { phase: 1, left: 120 }), { phase: 1, left: 10 });
+  // Second side starts after the switch, without waiting at it.
+  assert.deepEqual(resumeStep(p, { phase: 2, left: 120 }), { phase: 10, left: 10 });
+  assert.deepEqual(resumeStep(p, { phase: 0, left: 4 }), { phase: 0, left: READY_SECONDS });
+  const lunge = playPhases({ name: 'Psoas lunge', duration: '4 min', detail: '2 min per side.' });
+  assert.deepEqual(resumeStep(lunge, { phase: 2, left: 50 }), { phase: 3, left: 50 });
+  assert.deepEqual(resumeStep(lunge, { phase: 1, left: 50 }), { phase: 1, left: 50 });
+  // New layout reads the phase as is; a switch waits again from its start.
+  assert.deepEqual(resumeStep(p, { phase: 4, left: 7, layout: RESUME_LAYOUT }), { phase: 4, left: 7 });
+  assert.deepEqual(resumeStep(lunge, { phase: 2, left: 1, layout: RESUME_LAYOUT }), { phase: 2, left: SWITCH_SECONDS });
+  // The log keeps the layout mark.
+  const log = normalizeLog({ entries: { '2026-10-27|hips-thoracic': { date: '2026-10-27', resume: { index: 1, phase: 4, left: 7, layout: RESUME_LAYOUT } } } });
+  assert.equal(log.entries['2026-10-27|hips-thoracic'].resume.layout, RESUME_LAYOUT);
 });
 
 test('the log keeps a valid resume point and drops a broken one', () => {

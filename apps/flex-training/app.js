@@ -1,7 +1,7 @@
 import {
   CLASS_TYPES, LOADS, DAY_NAMES, versionOf, deloadInfo, normalizeWeeks, normalizeWeek, emptyWeek, weekFromExample, copyWeek, isPlanned,
   occurrences, checkWeek, checklist, timerOptions, movementIndex, moveKey, moveKeys, cueText, cueSub,
-  normalizeLog, isEmptyEntry, toIcs, suggestWeek, playPhases, nextToDo, ymd, fromYmd, addDays, weekStart,
+  normalizeLog, isEmptyEntry, toIcs, suggestWeek, playPhases, resumeStep, RESUME_LAYOUT, nextToDo, ymd, fromYmd, addDays, weekStart,
 } from './plan.js';
 import ROUTINE from './routine.js';
 import FORM from './form.js';
@@ -748,12 +748,8 @@ function openPlayer(key) {
   const index = r ? r.index : Math.max(0, nextToDo(items, checked, -1));
   play = { o, items, index, phases: playPhases(items[index].item), phase: 0, left: 0, running: false, waiting: false, endAt: 0, tick: null, saved: 0 };
   if (r) {
-    play.phase = Math.min(r.phase, play.phases.length - 1);
-    const step = play.phases[play.phase];
-    // A resumed count-in starts over (and a switch waits for you again);
-    // a resumed hold keeps its time.
-    play.left = step.kind === 'work' || step.kind === 'press' || step.kind === 'relax' ? r.left : step.seconds;
-    play.waiting = !!step.wait;
+    ({ phase: play.phase, left: play.left } = resumeStep(play.phases, r));
+    play.waiting = !!play.phases[play.phase].wait;
   } else {
     play.left = play.phases[0].seconds;
   }
@@ -790,7 +786,7 @@ const playLeft = () => (play.running ? Math.max(0, (play.endAt - Date.now()) / 1
 function savePlayer() {
   if (!play || play.done) return;
   play.saved = Date.now();
-  updateEntry(play.o, { resume: { index: play.index, phase: play.phase, left: Math.round(playLeft()) } });
+  updateEntry(play.o, { resume: { index: play.index, phase: play.phase, left: Math.round(playLeft()), layout: RESUME_LAYOUT } });
 }
 
 function runPlayer() {
@@ -934,8 +930,7 @@ function paintPlayer() {
   $('playStep').textContent = step.label || (checked.has(id) ? 'Already ticked' : '');
   $('player').dataset.step = step.kind;
   $('player').classList.toggle('waiting', play.waiting);
-  $('playLock').setAttribute('aria-pressed', lockScreenOn);
-  $('playLock').textContent = `Lock screen: ${lockScreenOn ? 'on' : 'off'}`;
+  paintLockButton();
   const s = o.session;
   $('playBody').innerHTML = `
     ${play.waiting ? `<p class="switch-note">${esc(step.label)}, then tap <b>I’m ready</b>. You get ${step.seconds} seconds to settle.</p>` : ''}
@@ -954,6 +949,11 @@ function paintPlayer() {
   $('playBody').scrollTop = 0;
   $('playBack').disabled = index === 0;
   tickPlayer();
+}
+
+function paintLockButton() {
+  $('playLock').setAttribute('aria-pressed', lockScreenOn);
+  $('playLock').textContent = `Lock screen: ${lockScreenOn ? 'on' : 'off'}`;
 }
 
 function togglePlayer(want) {
@@ -991,8 +991,9 @@ $('playClose').addEventListener('click', () => {
 $('playLock').addEventListener('click', () => {
   lockScreenOn = !lockScreenOn;
   try { localStorage.setItem(LOCK_KEY, lockScreenOn ? '1' : '0'); } catch { /* per-visit only */ }
-  if (lockScreenOn) setupLockScreen(); else clearLockScreen();
-  paintPlayer();
+  if (lockScreenOn && !play?.done) setupLockScreen(); else clearLockScreen();
+  // Just the button: a repaint would swap the end screen for the last movement.
+  paintLockButton();
 });
 // Save where you are if the page is hidden or closed mid-hold.
 document.addEventListener('visibilitychange', () => { if (document.hidden && play && !play.done) savePlayer(); });
