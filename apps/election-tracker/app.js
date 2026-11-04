@@ -1,16 +1,15 @@
+// Bump this ?v= with the one in index.html: phones cache imported modules too.
+import {
+    FETCH_TIMEOUT, parseVotes, parsePercent, estimateBallotsCounted, shortTime, sourcesFor,
+    TOO_CLOSE_POINTS, PROP_CONFLICTS, PROP_SHORT_NAMES, lastName, parseSosTime
+} from './results.js?v=2026-11-04g';
+
 let autoRefreshInterval;
 let countdownInterval;
 let nextRefreshAt = null;
 const REFRESH_MS = 300000;
 const CANDIDATES_TO_SHOW = 5;
 const MIN_PERCENT_FOR_BAR = 1.0;
-// Under the Netlify proxy's own 26s limit (docs.netlify.com/manage/routing/redirects/rewrites-proxies/).
-const FETCH_TIMEOUT = 15000;
-const SOS_ORIGIN = 'https://api.sos.ca.gov/';
-// Rewritten to api.sos.ca.gov by the rule in /_redirects. Relative, so it resolves under
-// apps/election-tracker/. Only exists on the Netlify site; on GitHub Pages it 404s.
-const NETLIFY_PROXY = 'sos-api/';
-const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
 
 const RACE_ENDPOINTS = {
     measures: ['https://api.sos.ca.gov/returns/ballot-measures'],
@@ -31,60 +30,6 @@ const RACE_ENDPOINTS = {
     senate10: ['https://api.sos.ca.gov/returns/state-senate/district/10'],
     assembly20: ['https://api.sos.ca.gov/returns/state-assembly/district/20']
 };
-
-function parseVotes(votesStr) {
-    return parseInt(votesStr.replace(/,/g, ''), 10) || 0;
-}
-
-function parsePercent(percentStr) {
-    return parseFloat(percentStr) || 0;
-}
-
-function estimateBallotsCounted(data, raceName) {
-    const candidates = data.candidates || [];
-    const totalVotesCounted = candidates.reduce((sum, c) => {
-        return sum + parseVotes(c.Votes || '0');
-    }, 0);
-
-    let estimatedRegisteredVoters;
-    // Generals turn out far more voters than primaries (this was 0.35 for June).
-    // 61% is Political Data's Nov 2026 projection, per CalMatters:
-    // https://calmatters.org/politics/elections/2026/11/live-election-updates/
-    // 2018's midterm hit 64.5% (https://www.sos.ca.gov/administration/news-releases-and-advisories/2018-news-releases-and-advisories/california-secretary-state-certifies-november-2018-general-election-results).
-    let estimatedTurnout = 0.61;
-
-    // Statewide and CD 14 are from the SoS reports of registration for this election:
-    // https://elections.cdn.sos.ca.gov/ror/15day-gen-2026/historical-reg-stats.pdf (Oct 19)
-    // https://elections.cdn.sos.ca.gov/ror/60day-gen-2026/congressional.pdf (CD 14, Sept 4)
-    // CHECK: SD 10, AD 20 and BOE 2 are still older counts; the Oct 19 district files
-    // (elections.cdn.sos.ca.gov/ror/15day-gen-2026/) should have current ones.
-    if (raceName && raceName.includes('House District')) {
-        estimatedRegisteredVoters = 425448;
-    } else if (raceName && raceName.includes('State Senate District')) {
-        estimatedRegisteredVoters = 531343;
-    } else if (raceName && raceName.includes('State Assembly District')) {
-        estimatedRegisteredVoters = 290773;
-    } else if (raceName && raceName.includes('Board of Equalization')) {
-        estimatedRegisteredVoters = 5927373;
-    } else {
-        estimatedRegisteredVoters = 23273590;
-    }
-
-    const expectedTotalBallots = estimatedRegisteredVoters * estimatedTurnout;
-    const percentCounted = (totalVotesCounted / expectedTotalBallots) * 100;
-
-    return {
-        totalVotesCounted,
-        expectedTotalBallots,
-        percentCounted: Math.min(percentCounted, 100),
-        estimatedRegisteredVoters
-    };
-}
-
-// "November 3, 2026, 11:42 p.m." -> "Nov 3, 11:42 p.m." so the line fits on a phone.
-function shortTime(t) {
-    return t.replace(/^([A-Z][a-z]{2})[a-z]*\.? (\d{1,2}), \d{4},? /, '$1 $2, ');
-}
 
 // One slim line per card: the estimate, a thin bar, and when the SoS last updated. The
 // precincts figure goes in the tooltip only: a precinct counts as reported once any one
@@ -114,21 +59,6 @@ async function attemptFetch(url, timeout) {
     } finally {
         clearTimeout(id);
     }
-}
-
-// Each endpoint is tried through these in order until one returns JSON. Direct only works
-// if api.sos.ca.gov sends CORS headers (unconfirmed). The Netlify rewrite is ours and fast.
-// allorigins is a free public proxy, last because it's often slow or down. A timeout or
-// error moves on to the next one instead of giving up.
-// CHECK: Netlify may cache proxied responses that carry an ETag. If results look stale
-// on the Netlify site, that's the first suspect.
-function sourcesFor(endpoint) {
-    const sources = [endpoint];
-    if (endpoint.startsWith(SOS_ORIGIN)) {
-        sources.push(NETLIFY_PROXY + endpoint.slice(SOS_ORIGIN.length));
-    }
-    sources.push(CORS_PROXY + encodeURIComponent(endpoint));
-    return sources;
 }
 
 async function tryEndpoints(raceName, endpoints) {
@@ -182,9 +112,6 @@ function toggleShowAll(raceId) {
         if (collapsedInfo) collapsedInfo.style.display = 'block';
     }
 }
-
-// Under a 1-point gap counts as too close to call. My own cutoff, not an official rule.
-const TOO_CLOSE_POINTS = 1;
 
 // Generals are top-two runoffs, so nearly every race is two names on one bar. The bar is
 // colored by who's ahead (gold) and who's behind (gray), never by party: Dem-vs-Dem races
@@ -325,13 +252,6 @@ function renderRace(raceName, data) {
     '</div>';
 }
 
-// Shape confirmed against the live feed on Nov 3, 2026: { Reporting, ReportingTime,
-// 'ballot-measures': [{ Name, Number: "01", yesVotes, yesPercent, noVotes, noPercent }] }
-// Pairwise, not three-way: 41 and 42 each may conflict with 40, not with each other, and
-// it's for courts to decide whether they do. Per the LAO's analyses of each measure:
-// lao.ca.gov/BallotAnalysis/Proposition?number=42&year=2026 (and number=40, 41)
-const PROP_CONFLICTS = { '40': ['41', '42'], '41': ['40'], '42': ['40'] };
-
 function conflictNote(number) {
     const others = PROP_CONFLICTS[number];
     if (!others) return '';
@@ -339,17 +259,6 @@ function conflictNote(number) {
         (others.length > 1 ? 'if 40 and either one pass' : 'if both pass') +
         ', courts may apply whichever got more Yes votes.</div>';
 }
-
-// Short labels for the compact rows. Mine, paraphrasing each official title; the full
-// title is one tap away under each row.
-const PROP_SHORT_NAMES = {
-    '1': 'Housing bond', '2': 'Rainy day fund', '3': 'High-income tax extension',
-    '4': 'Public campaign funding', '5': 'Statewide recall process',
-    '37': 'Middle-income home loans', '38': 'Immunology research bond', '39': 'Voter ID',
-    '40': 'One-time billionaire tax', '41': 'Special-tax audits',
-    '42': 'No new personal property taxes', '43': 'Two-thirds for local taxes',
-    '44': 'Clinic spending rule', '45': 'Environmental review changes'
-};
 
 function renderMeasure(m) {
     const number = String(parseInt(m.Number, 10) || m.Number || '');
@@ -497,11 +406,6 @@ function fetchLegislativeResults() {
 
 // ── At a glance: one short line per race that has votes, and a chip per prop ──
 
-function lastName(name) {
-    const parts = String(name || '').trim().split(/\s+/);
-    return parts[parts.length - 1] || name;
-}
-
 function glanceRace(race) {
     const data = lastGoodData[race.key];
     if (!data) return '';
@@ -551,19 +455,6 @@ function renderGlance() {
 // Feeds this refresh that returned results we actually show. An empty list doesn't count,
 // since the render code keeps the saved results instead of showing it.
 let refreshStats = { ok: 0 };
-
-const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
-
-// "November 3, 2026, 11:42 p.m." -> a Date, so feeds can be compared. null if it doesn't parse.
-function parseSosTime(t) {
-    const m = String(t || '').match(/^([A-Za-z]+)\.? (\d{1,2}), (\d{4}),? (\d{1,2}):(\d{2}) ?([ap])\.?m\.?/i);
-    if (!m) return null;
-    const month = MONTHS.indexOf(m[1].slice(0, 3).toLowerCase());
-    if (month < 0) return null;
-    let hour = parseInt(m[4], 10) % 12;
-    if (m[6].toLowerCase() === 'p') hour += 12;
-    return new Date(parseInt(m[3], 10), month, parseInt(m[2], 10), hour, parseInt(m[5], 10));
-}
 
 function latestSosTime() {
     let best = null, bestText = '';
