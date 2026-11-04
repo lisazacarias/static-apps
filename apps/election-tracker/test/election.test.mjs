@@ -32,16 +32,16 @@ test('each section matches a container in index.html, and the page has every tab
 });
 
 test('every prop in the real feed has a short name', () => {
-  for (const m of measures) assert.ok(ELECTION.propShortNames[propNumber(m)], propNumber(m));
+  for (const m of measures) assert.ok(ELECTION.current.propShortNames[propNumber(m)], propNumber(m));
 });
 
 test('prop conflicts go both ways, and 41 and 42 only conflict with 40', () => {
-  const c = ELECTION.propConflicts;
+  const c = ELECTION.current.propConflicts;
   for (const [a, others] of Object.entries(c)) for (const b of others) assert.ok(c[b].includes(a), `${a}<->${b}`);
   assert.deepEqual(c['41'], ['40']);
   assert.deepEqual(c['42'], ['40']);
 });
 
 test('turnout is a share, not a percent', () => {
-  assert.ok(ELECTION.turnout > 0 && ELECTION.turnout < 1);
+  assert.ok(ELECTION.current.turnout > 0 && ELECTION.current.turnout < 1);
 });

@@ -165,3 +165,62 @@ export function escapeFeed(value) {
     }
     return value;
 }
+
+// ── Which election is this? ──
+// The feed never names its election (no name, date or type field; SoS API guide:
+// cms.cdn.sos.ca.gov/media/3-api-documentation-v5.pdf), so the page works it out from
+// ReportingTime.
+
+// A race not on the ballot comes back blank (checked Nov 3, 2026: /returns/president and
+// /returns/us-senate returned empty pages), and the state's site serves an HTML error page
+// for some. Anything that isn't JSON with a non-empty list counts as "not on this ballot".
+export function usableFeed(json, listKey) {
+    return !!(json && typeof json === 'object' && Array.isArray(json[listKey]) && json[listKey].length);
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Feeds more than this far behind the newest one belong to an earlier election. Counting
+// runs about five weeks after Election Day (Nov 3 to Dec 11 certification this year), and
+// primaries and generals are five months apart, so 60 days separates them with room to spare.
+// Cached API copies have served 2020 and 2024 results under current paths, which this hides.
+export const SAME_ELECTION_DAYS = 60;
+
+export function isSameElection(data, newestText) {
+    const newest = parseSosTime(newestText);
+    const when = parseSosTime(data && data.ReportingTime);
+    // CHECK: no feed so far has lacked a parseable ReportingTime. If one does, it's kept,
+    // since hiding a live race is worse than showing one oddly dated.
+    if (!newest || !when) return true;
+    return newest - when <= SAME_ELECTION_DAYS * DAY_MS;
+}
+
+// No state update for this long means the count is over (or paused), so the badge stops
+// saying Live. Counties report most days until certification.
+export const QUIET_DAYS = 7;
+
+export function isQuiet(newestText, now) {
+    const newest = parseSosTime(newestText);
+    return !!newest && now - newest > QUIET_DAYS * DAY_MS;
+}
+
+// Is the election that election.js's `current` block was written for the one on screen?
+// Judged by the newest feed, or by today's date before any feed has loaded.
+export function windowActive(window, newestText, now) {
+    const when = parseSosTime(newestText) || now;
+    const start = new Date(window.start + 'T00:00:00');
+    const end = new Date(window.end + 'T23:59:59');
+    return when >= start && when <= end;
+}
+
+// "Nov 2028" from a ReportingTime, for the generic title between known elections.
+export function monthYear(newestText) {
+    const t = parseSosTime(newestText);
+    return t ? MONTHS[t.getMonth()][0].toUpperCase() + MONTHS[t.getMonth()].slice(1) + ' ' + t.getFullYear() : '';
+}
+
+// Official title with its "Initiative Statute." style ending trimmed, for props that have
+// no short name written for them.
+export function trimPropTitle(name) {
+    return String(name || '').replace(/\.\s*(Legislative|Initiative)[^.]*\.?$/, '');
+}

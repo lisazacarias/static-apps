@@ -2,12 +2,10 @@
 import {
     FETCH_TIMEOUT, parseVotes, parsePercent, estimateBallotsCounted, shortTime, sourcesFor,
     lastName, sortByVotes, headToHead, raceGap, propNumber, measureStatus, latestSosTime,
-    escapeHtml, escapeFeed
-} from './results.js?v=2026-11-04i';
-import { ELECTION } from './election.js?v=2026-11-04i';
-
-const PROP_SHORT_NAMES = ELECTION.propShortNames;
-const PROP_CONFLICTS = ELECTION.propConflicts;
+    escapeHtml, escapeFeed, usableFeed, isSameElection, isQuiet, windowActive, monthYear,
+    trimPropTitle
+} from './results.js?v=2026-11-04k';
+import { ELECTION } from './election.js?v=2026-11-04k';
 
 let autoRefreshInterval;
 let countdownInterval;
@@ -21,11 +19,17 @@ const MIN_PERCENT_FOR_BAR = 1.0;
 // ballot from it is in, so it can read 100% with many ballots still out
 // (electionresults.sos.ca.gov/frequently-asked-questions).
 function renderBallotCountStatus(data, reportingTime, registered) {
-    const ballotInfo = estimateBallotsCounted(data, registered, ELECTION.turnout);
-    const pct = ballotInfo.percentCounted.toFixed(1);
     const tooltip = data.Reporting
         ? ' title="' + data.Reporting.replace(/precincts reporting/i, 'precincts partially reporting') + '"'
         : '';
+    // Voter counts and turnout belong to ELECTION.current; for any other election there's
+    // no honest estimate, so only the update time shows.
+    if (!currentActive) {
+        return '<div class="count-line"' + tooltip + '>' +
+            (reportingTime ? '<span>SoS ' + shortTime(reportingTime) + '</span>' : '') + '</div>';
+    }
+    const ballotInfo = estimateBallotsCounted(data, registered, ELECTION.current.turnout);
+    const pct = ballotInfo.percentCounted.toFixed(1);
     return '<div class="count-line"' + tooltip + '>' +
         '<b>~' + pct + '%</b>' +
         '<div class="count-bar"><i style="width: ' + pct + '%"></i></div>' +
@@ -46,30 +50,49 @@ async function attemptFetch(url, timeout) {
     }
 }
 
-async function tryEndpoints(raceName, endpoints) {
+// status: 'ok' (usable data), 'empty' (the state answered, but with nothing: not on this
+// ballot) or 'unreachable' (no source answered at all).
+// A 404 or network error moves on to the next source, since on GitHub Pages the Netlify
+// path 404s and a direct request may be blocked (CORS). A 200 that isn't usable JSON is the
+// state's answer, so it stops there.
+async function tryEndpoints(endpoints, listKey) {
     for (const endpoint of endpoints) {
         for (const url of sourcesFor(endpoint)) {
+            let response;
             try {
-                const response = await attemptFetch(url, FETCH_TIMEOUT);
-                if (!response.ok) {
-                    console.log('Failed:', url, response.status);
-                    continue;
-                }
-                const data = escapeFeed(await response.json());
-                return { success: true, data, endpoint };
+                response = await attemptFetch(url, FETCH_TIMEOUT);
             } catch (err) {
                 console.log('Error:', url, err.name, err.message);
+                continue;
             }
+            if (!response.ok) {
+                console.log('Failed:', url, response.status);
+                continue;
+            }
+            // Reading the body can still fail mid-transfer after a 200; that's a failed source,
+            // not an answer, so it moves on too.
+            let body;
+            try {
+                body = await response.text();
+            } catch (err) {
+                console.log('Error reading:', url, err.name, err.message);
+                continue;
+            }
+            let json = null;
+            try { json = JSON.parse(body); } catch { /* blank or HTML: not on the ballot */ }
+            return usableFeed(json, listKey)
+                ? { status: 'ok', data: escapeFeed(json), endpoint }
+                : { status: 'empty', endpoint };
         }
     }
 
-    return { success: false };
+    return { status: 'unreachable' };
 }
 
 function renderPendingRow(raceName, ballotpediaUrl = null) {
     return '<div class="pending-row">' +
         '<span class="pending-name">' + raceName + '</span>' +
-        '<span class="pending-note">no results yet</span>' +
+        '<span class="pending-note">couldn\'t reach the state</span>' +
         '<a href="https://electionresults.sos.ca.gov/" target="_blank">SoS →</a>' +
         (ballotpediaUrl ? '<a href="' + ballotpediaUrl + '" target="_blank">Ballotpedia →</a>' : '') +
     '</div>';
@@ -231,7 +254,7 @@ function renderRace(race, data) {
 }
 
 function conflictNote(number) {
-    const others = PROP_CONFLICTS[number];
+    const others = propConflicts()[number];
     if (!others) return '';
     return '<div class="prop-conflict"><strong>May conflict with ' + others.join(' and ') + ':</strong> ' +
         (others.length > 1 ? 'if 40 and either one pass' : 'if both pass') +
@@ -241,8 +264,7 @@ function conflictNote(number) {
 function renderMeasure(m) {
     const number = propNumber(m);
     const fullName = m.Name || '';
-    const shortName = PROP_SHORT_NAMES[number] ||
-        fullName.replace(/\.\s*(Legislative|Initiative)[^.]*\.?$/, '');
+    const shortName = propShortNames()[number] || trimPropTitle(fullName);
     const { total, yesShare, status } = measureStatus(m);
     const yesLeads = status === 'pass', noLeads = status === 'fail';
     const tag = {
@@ -271,32 +293,25 @@ function renderMeasure(m) {
     '</div>';
 }
 
-async function fetchMeasureResults() {
-    const container = document.getElementById('measure-races');
-    showLoading(container, '⏳ Loading propositions...');
+// ── Fetch, then decide what's on screen, then draw ──
 
-    const result = await tryEndpoints('State Propositions', [ELECTION.measures.endpoint]);
-    const measures = result.success ? (result.data['ballot-measures'] || []) : [];
-    if (measures.length) {
-        refreshStats.ok++;
-        // Every prop is on every statewide ballot, so the busiest one stands in for turnout.
-        const mostVotes = Math.max(...measures.map(m =>
-            parseVotes(m.yesVotes || '0') + parseVotes(m.noVotes || '0')));
-        const status = renderBallotCountStatus(
-            { candidates: [{ Votes: String(mostVotes) }], Reporting: result.data.Reporting },
-            result.data.ReportingTime || '', ELECTION.measures.registered);
-        lastGoodData.measures = result.data;
-        lastGoodHTML.measures = '<div class="race props">' + status +
-            measures.map(renderMeasure).join('') + '</div>';
-    }
-    replaceSection(container, lastGoodHTML.measures || renderPendingBlock([
-        renderPendingRow('State Propositions', ELECTION.measures.ballotpedia)]));
-}
-
-// Each race's last good render, so a refresh that fails or times out keeps the
-// results already on screen instead of swapping them for a link-only card.
-const lastGoodHTML = {};
+// Last usable response per race key (and 'measures'). A refresh that fails keeps these.
 const lastGoodData = {};
+
+// The newest ReportingTime across everything loaded. It decides which election is on screen:
+// anything more than SAME_ELECTION_DAYS older is from an earlier one and stays hidden.
+let newestSos = '';
+
+// Whether ELECTION.current (and the title, notice and Hayward list in index.html) describe
+// the election on screen. Before anything loads, judged by today's date.
+let currentActive = windowActive(ELECTION.current, '', new Date());
+
+const propShortNames = () => currentActive ? ELECTION.current.propShortNames : {};
+const propConflicts = () => currentActive ? ELECTION.current.propConflicts : {};
+
+function onScreen(key) {
+    return !!lastGoodData[key] && isSameElection(lastGoodData[key], newestSos);
+}
 
 // Only the first load shows a spinner. Later refreshes leave the old results up
 // until the new ones are ready, then swap them in with any expanded
@@ -317,38 +332,115 @@ function replaceSection(container, html) {
     });
 }
 
-// All races in a section are fetched at once, so one slow endpoint costs one
-// timeout rather than holding up every race queued behind it.
-async function loadSection({ id, loading, races }) {
-    const container = document.getElementById(id);
-    showLoading(container, loading);
+// A section with nothing on this ballot hides, along with its tab.
+function setSectionVisible(container, visible) {
+    const section = container.closest('.section');
+    section.hidden = !visible;
+    const tab = document.querySelector('.section-tabs a[href="#' + section.id + '"]');
+    if (tab) tab.hidden = !visible;
+}
 
-    const results = await Promise.all(races.map(race =>
-        tryEndpoints(race.name, [race.endpoint])));
+// Every race at once, so one slow endpoint costs one timeout rather than holding up
+// every race queued behind it.
+async function fetchAll() {
+    const measures = tryEndpoints([ELECTION.measures.endpoint], 'ballot-measures');
+    const sections = ELECTION.sections.map(section =>
+        Promise.all(section.races.map(race => tryEndpoints([race.endpoint], 'candidates'))));
+    return { measures: await measures, sections: await Promise.all(sections) };
+}
 
+function acceptResults(results) {
+    const fresh = [];
+    const keep = (key, result) => {
+        if (result.status !== 'ok') return;
+        lastGoodData[key] = result.data;
+        fresh.push(result.data);
+    };
+    keep('measures', results.measures);
+    ELECTION.sections.forEach((section, s) => section.races.forEach((race, r) =>
+        keep(race.key, results.sections[s][r])));
+    newestSos = latestSosTime(Object.values(lastGoodData));
+    currentActive = windowActive(ELECTION.current, newestSos, new Date());
+    // Only feeds for the election on screen count toward Live: a stale cached race loading
+    // fine while every current one fails is still Offline.
+    refreshStats.ok = fresh.filter(d => isSameElection(d, newestSos)).length;
+}
+
+function renderMeasures(result) {
+    const container = document.getElementById('measure-races');
+    if (onScreen('measures')) {
+        const data = lastGoodData.measures;
+        const measures = data['ballot-measures'];
+        // Every prop is on every statewide ballot, so the busiest one stands in for turnout.
+        const mostVotes = Math.max(...measures.map(m =>
+            parseVotes(m.yesVotes || '0') + parseVotes(m.noVotes || '0')));
+        const status = renderBallotCountStatus(
+            { candidates: [{ Votes: String(mostVotes) }], Reporting: data.Reporting },
+            data.ReportingTime || '', ELECTION.measures.registered);
+        replaceSection(container, '<div class="race props">' + status +
+            measures.map(renderMeasure).join('') + '</div>');
+        setSectionVisible(container, true);
+    } else if (result.status === 'unreachable') {
+        replaceSection(container, renderPendingBlock([
+            renderPendingRow('State Propositions', ELECTION.measures.ballotpedia)]));
+        setSectionVisible(container, true);
+    } else {
+        replaceSection(container, '');
+        setSectionVisible(container, false);
+    }
+}
+
+// Races on screen get cards. Races the state couldn't be reached for get a one-line row.
+// Races that came back empty aren't on this ballot and don't appear at all.
+function renderSection(section, results) {
+    const container = document.getElementById(section.id);
     const cards = [];
     const pending = [];
-    races.forEach((race, i) => {
-        // An empty candidate list (a glitchy or reset feed) doesn't replace real results.
-        if (results[i].success && (results[i].data.candidates || []).length) {
-            refreshStats.ok++;
-            lastGoodHTML[race.key] = '<div id="race-' + race.key + '" class="race-anchor">' +
-                renderRace(race, results[i].data) + '</div>';
-            lastGoodData[race.key] = results[i].data;
+    section.races.forEach((race, i) => {
+        if (onScreen(race.key)) {
+            cards.push('<div id="race-' + race.key + '" class="race-anchor">' +
+                renderRace(race, lastGoodData[race.key]) + '</div>');
+        } else if (results[i].status === 'unreachable') {
+            pending.push(renderPendingRow(race.name, race.ballotpedia));
         }
-        if (lastGoodHTML[race.key]) cards.push(lastGoodHTML[race.key]);
-        else pending.push(renderPendingRow(race.name, race.ballotpedia));
     });
-
     replaceSection(container, cards.join('') + renderPendingBlock(pending));
+    setSectionVisible(container, cards.length + pending.length > 0);
+}
+
+// The title, notice and Hayward list in index.html are written for ELECTION.current. When
+// a different election is on screen, swap in generic versions; swap back if it returns.
+const electionChrome = {};
+
+function applyElectionChrome() {
+    const title = document.getElementById('pageTitle');
+    const notice = document.getElementById('notice');
+    const local = document.getElementById('localRaces');
+    const county = document.getElementById('countyLink');
+    if (!electionChrome.saved) {
+        Object.assign(electionChrome, {
+            saved: true, title: title.innerHTML, countyHref: county.href, countyText: county.textContent
+        });
+    }
+    if (currentActive) {
+        title.innerHTML = electionChrome.title;
+        county.href = electionChrome.countyHref;
+        county.textContent = electionChrome.countyText;
+    } else {
+        const when = monthYear(newestSos);
+        title.innerHTML = 'Hayward Election Results' + (when ? '<br>Latest: ' + when : '');
+        county.href = ELECTION.countyHome;
+        county.textContent = 'Alameda County elections →';
+    }
+    notice.hidden = !currentActive;
+    local.hidden = !currentActive;
 }
 
 // ── At a glance: one short line per race that has votes, and a chip per prop ──
 
 function glanceRace(race) {
-    const data = lastGoodData[race.key];
-    if (!data) return '';
-    const g = raceGap(data.candidates);
+    if (!onScreen(race.key)) return '';
+    const g = raceGap(lastGoodData[race.key].candidates);
     if (!g) return '';
     const a = g.leader;
     const result = g.tooClose
@@ -360,7 +452,8 @@ function glanceRace(race) {
 }
 
 function glanceProps() {
-    const measures = (lastGoodData.measures || {})['ballot-measures'] || [];
+    if (!onScreen('measures')) return '';
+    const measures = lastGoodData.measures['ballot-measures'];
     if (!measures.some(m => measureStatus(m).total > 0)) return '';
     return '<div class="glance-props">' + measures.map(m => {
         const n = propNumber(m);
@@ -369,7 +462,7 @@ function glanceProps() {
         // No votes in yet reads as a dash, not a tie, matching the card's "No votes yet".
         const word = { pass: 'Pass', fail: 'Fail', tie: 'Tie', none: '–' }[status];
         return '<a class="glance-chip ' + cls + '" href="#prop-' + n + '" title="Prop ' + n + ': ' +
-            (PROP_SHORT_NAMES[n] || '') + '">' + n + ' <b>' + word + '</b></a>';
+            (propShortNames()[n] || '') + '">' + n + ' <b>' + word + '</b></a>';
     }).join('') + '</div>';
 }
 
@@ -387,13 +480,18 @@ function renderGlance() {
 // since the render code keeps the saved results instead of showing it.
 let refreshStats = { ok: 0 };
 
+// Live while the state is updating. Offline when nothing loaded this refresh. Once the state
+// has gone QUIET_DAYS without an update (counting done, or between elections), the badge
+// says when the last one was instead of claiming Live.
 function updateFreshness() {
-    const latest = latestSosTime(Object.values(lastGoodData));
+    const latest = newestSos;
     document.getElementById('sosUpdate').textContent = latest ? shortTime(latest) : '—';
     const offline = refreshStats.ok === 0;
-    document.getElementById('liveBadge').classList.toggle('offline', offline);
+    const quiet = !offline && isQuiet(latest, new Date());
+    document.getElementById('liveBadge').classList.toggle('offline', offline || quiet);
     document.getElementById('liveText').textContent = offline
         ? (latest ? 'Offline · showing ' + shortTime(latest) : 'Offline')
+        : quiet ? 'Last update ' + shortTime(latest).split(',')[0]
         : 'Live';
 }
 
@@ -421,17 +519,14 @@ async function runRefresh() {
     refreshStats = { ok: 0 };
 
     try {
-        // Fetch all sections but don't wait for failures
-        const results = await Promise.allSettled([
-            fetchMeasureResults(),
-            ...ELECTION.sections.map(loadSection)
-        ]);
+        showLoading(document.getElementById('measure-races'), '⏳ Loading propositions...');
+        ELECTION.sections.forEach(s => showLoading(document.getElementById(s.id), s.loading));
 
-        // Check if any failed
-        const failures = results.filter(r => r.status === 'rejected');
-        if (failures.length > 0) {
-            console.error('Some sections failed to load:', failures);
-        }
+        const results = await fetchAll();
+        acceptResults(results);
+        renderMeasures(results.measures);
+        ELECTION.sections.forEach((section, i) => renderSection(section, results.sections[i]));
+        applyElectionChrome();
 
         document.getElementById('lastUpdate').textContent =
             new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
