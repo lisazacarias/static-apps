@@ -589,3 +589,6 @@ header {
 
 .live-badge.offline { background: var(--bg-elevated); border-color: var(--border-bright); color: var(--text-label); }
 .live-badge.offline .live-dot { background: var(--text-label); animation: none; }
+
+/* Sections and tabs hide when nothing in them is on the current ballot */
+.section[hidden], .section-tabs a[hidden], .notice[hidden], .local-race-list[hidden] { display: none; }

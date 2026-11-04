@@ -6,14 +6,16 @@
     <title>Hayward Election Results · November 2026</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="../../shared/base.css?v=2026-11-04i">
-    <link rel="stylesheet" href="styles.css?v=2026-11-04i">
+    <link rel="stylesheet" href="../../shared/base.css?v=2026-11-04j">
+    <link rel="stylesheet" href="styles.css?v=2026-11-04j">
 </head>
 <body>
     <div class="container">
         <header>
             <div class="header-top">
-                <h1>Hayward Election Results<br>November 3, 2026 General</h1>
+                <!-- This title, the notice and the Hayward list are for ELECTION.current in
+                     election.js. Outside its window, app.js swaps in generic versions. -->
+                <h1 id="pageTitle">Hayward Election Results<br>November 3, 2026 General</h1>
                 <div class="live-badge" id="liveBadge">
                     <span class="live-dot"></span>
                     <span id="liveText">Live</span>
@@ -25,7 +27,7 @@
                 <div class="last-update">Next refresh: <span id="nextUpdate">5:00</span></div>
                 <button class="refresh-btn" onclick="refreshData()">↻ Refresh</button>
             </div>
-            <details class="notice">
+            <details class="notice" id="notice">
                 <summary><strong>Unofficial results</strong> · counting continues into December</summary>
                 <p>Alameda County has until Dec 3 to finalize its count; the state certifies Dec 11. Mail-in and provisional ballots continue to be counted.</p>
                 <p>"~% counted" is an estimate from votes cast vs. expected turnout. The page checks for new results every 5 minutes.</p>
@@ -90,20 +92,20 @@
                 <div class="section-line"></div>
             </div>
             <div class="local-races-block">
-                <ul class="local-race-list">
+                <ul class="local-race-list" id="localRaces">
                     <li>Hayward Mayor</li>
                     <li>Hayward City Council — District 1</li>
                     <li>Hayward City Council — District 6</li>
                     <li>Measure CC — Hayward business license tax</li>
                 </ul>
                 <!-- CHECK: the county's rovresults/<id>/ page for Nov 3 wasn't confirmed; this is the ACVOTE election page (id=260), which links to results. -->
-                <a href="https://acvote.alamedacountyca.gov/election-information/elections?id=260" target="_blank" class="link-button">View on Official Alameda County Elections →</a>
+                <a href="https://acvote.alamedacountyca.gov/election-information/elections?id=260" target="_blank" class="link-button" id="countyLink">View on Official Alameda County Elections →</a>
             </div>
         </div>
     </div>
 
     <!-- Bump ?v= (here and on app.js's imports) whenever app.js, results.js, election.js, styles.css or base.css changes: phones kept serving a cached app.js
          against the new index.html, leaving the props stuck on "Loading…". -->
-    <script type="module" src="app.js?v=2026-11-04i"></script>
+    <script type="module" src="app.js?v=2026-11-04j"></script>
 </body>
 </html>

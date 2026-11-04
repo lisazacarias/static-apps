@@ -1,6 +1,11 @@
-// Everything specific to one election, in one place. For the next election, start here.
-// Also per-election, but in index.html: the page title, the certification dates in the
-// notice, and the Hayward race list.
+// What the tracker asks the state for, and what it knows about one particular election.
+//
+// The race list is every contest a Hayward voter can see. Races not on the current ballot
+// come back empty and stay hidden, so nothing here needs editing between elections.
+// The `current` block is different: it was written for one election, and the page only
+// uses it while that election is on screen. Outside its window the page falls back to a
+// plain title and drops the ballots-counted estimate, short prop names and conflict notes.
+// Also tied to `current`, but in index.html: the title, the notice and the Hayward list.
 
 const SOS = 'https://api.sos.ca.gov/returns/';
 
@@ -12,11 +17,36 @@ const SOS = 'https://api.sos.ca.gov/returns/';
 const STATEWIDE_REGISTERED = 23273590;
 
 export const ELECTION = {
-    // Generals turn out far more voters than primaries (this was 0.35 for June).
-    // 61% is Political Data's Nov 2026 projection, per CalMatters:
-    // https://calmatters.org/politics/elections/2026/11/live-election-updates/
-    // 2018's midterm hit 64.5% (https://www.sos.ca.gov/administration/news-releases-and-advisories/2018-news-releases-and-advisories/california-secretary-state-certifies-november-2018-general-election-results).
-    turnout: 0.61,
+    current: {
+        name: 'November 3, 2026 General',
+        // From when the state loads test data (weeks before; API guide v19 shows mid-September
+        // timestamps) to past certification on Dec 11.
+        start: '2026-09-01',
+        end: '2027-01-31',
+
+        // Generals turn out far more voters than primaries (this was 0.35 for June).
+        // 61% is Political Data's Nov 2026 projection, per CalMatters:
+        // https://calmatters.org/politics/elections/2026/11/live-election-updates/
+        // 2018's midterm hit 64.5% (https://www.sos.ca.gov/administration/news-releases-and-advisories/2018-news-releases-and-advisories/california-secretary-state-certifies-november-2018-general-election-results).
+        turnout: 0.61,
+
+        // Short labels for the compact prop rows. Mine, paraphrasing each official title; the
+        // full title is one tap away under each row. Prop numbers get reused, so these only
+        // apply inside the window.
+        propShortNames: {
+            '1': 'Housing bond', '2': 'Rainy day fund', '3': 'High-income tax extension',
+            '4': 'Public campaign funding', '5': 'Statewide recall process',
+            '37': 'Middle-income home loans', '38': 'Immunology research bond', '39': 'Voter ID',
+            '40': 'One-time billionaire tax', '41': 'Special-tax audits',
+            '42': 'No new personal property taxes', '43': 'Two-thirds for local taxes',
+            '44': 'Clinic spending rule', '45': 'Environmental review changes'
+        },
+
+        // Pairwise, not three-way: 41 and 42 each may conflict with 40, not with each other, and
+        // it's for courts to decide whether they do. Per the LAO's analyses of each measure:
+        // lao.ca.gov/BallotAnalysis/Proposition?number=42&year=2026 (and number=40, 41)
+        propConflicts: { '40': ['41', '42'], '41': ['40'], '42': ['40'] }
+    },
 
     measures: {
         endpoint: SOS + 'ballot-measures',
@@ -29,13 +59,22 @@ export const ELECTION = {
         {
             id: 'federal-races', loading: '⏳ Loading federal results...',
             races: [
+                // Presidential years only, and U.S. Senate when a seat is up.
+                { key: 'president', name: 'President', endpoint: SOS + 'president',
+                  registered: STATEWIDE_REGISTERED },
+                { key: 'senate', name: 'U.S. Senate', endpoint: SOS + 'us-senate',
+                  registered: STATEWIDE_REGISTERED },
+                // CHECK: a partial-term Senate race has its own path the research couldn't
+                // confirm (2024 listed "U.S. Senate (Partial/Unexpired Term)" separately).
                 { key: 'house14', name: 'U.S. House District 14', endpoint: SOS + 'us-rep/district/14',
                   registered: 425448,
                   ballotpedia: 'https://ballotpedia.org/California%27s_14th_Congressional_District_election,_2026' }
             ]
         },
         {
-            // dp.electionresults.sos.ca.gov returns HTML for these paths, so api.sos.ca.gov only
+            // dp.electionresults.sos.ca.gov returns HTML for these paths, so api.sos.ca.gov only.
+            // Governor and the other constitutional offices are midterm-year races; in
+            // presidential years they come back empty and hide.
             id: 'statewide-races', loading: '⏳ Loading statewide results...',
             races: [
                 { key: 'governor', name: 'Governor', endpoint: SOS + 'governor' },
@@ -64,19 +103,7 @@ export const ELECTION = {
         }
     ],
 
-    // Short labels for the compact prop rows. Mine, paraphrasing each official title; the
-    // full title is one tap away under each row.
-    propShortNames: {
-        '1': 'Housing bond', '2': 'Rainy day fund', '3': 'High-income tax extension',
-        '4': 'Public campaign funding', '5': 'Statewide recall process',
-        '37': 'Middle-income home loans', '38': 'Immunology research bond', '39': 'Voter ID',
-        '40': 'One-time billionaire tax', '41': 'Special-tax audits',
-        '42': 'No new personal property taxes', '43': 'Two-thirds for local taxes',
-        '44': 'Clinic spending rule', '45': 'Environmental review changes'
-    },
-
-    // Pairwise, not three-way: 41 and 42 each may conflict with 40, not with each other, and
-    // it's for courts to decide whether they do. Per the LAO's analyses of each measure:
-    // lao.ca.gov/BallotAnalysis/Proposition?number=42&year=2026 (and number=40, 41)
-    propConflicts: { '40': ['41', '42'], '41': ['40'], '42': ['40'] }
+    // Hayward and county races aren't in the state feed. When `current` doesn't apply, the
+    // Hayward list in index.html hides and this link goes to the county's elections home.
+    countyHome: 'https://acvote.alamedacountyca.gov/'
 };
