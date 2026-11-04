@@ -1,0 +1,5 @@
+# Netlify only (GitHub Pages ignores this file). Proxies the CA Secretary of State's
+# results API for the election tracker, which can't always fetch it directly (CORS).
+# A 200 makes it a rewrite, not a redirect:
+# https://docs.netlify.com/manage/routing/redirects/rewrites-proxies/
+/apps/election-tracker/sos-api/*  https://api.sos.ca.gov/:splat  200
