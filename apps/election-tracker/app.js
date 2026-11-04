@@ -305,13 +305,17 @@ function renderRace(raceName, data) {
 
 // Shape confirmed against the live feed on Nov 3, 2026: { Reporting, ReportingTime,
 // 'ballot-measures': [{ Name, Number: "01", yesVotes, yesPercent, noVotes, noPercent }] }
-const CONFLICTING_PROPS = ['40', '41', '42'];
+// Pairwise, not three-way: 41 and 42 each may conflict with 40, not with each other, and
+// it's for courts to decide whether they do. Per the LAO's analyses of each measure:
+// lao.ca.gov/BallotAnalysis/Proposition?number=42&year=2026 (and number=40, 41)
+const PROP_CONFLICTS = { '40': ['41', '42'], '41': ['40'], '42': ['40'] };
 
 function conflictNote(number) {
-    if (!CONFLICTING_PROPS.includes(number)) return '';
-    const others = CONFLICTING_PROPS.filter(n => n !== number).join(' & ');
-    return '<div class="top-two-note"><strong>Conflicts with ' + others + ':</strong> ' +
-        'if more than one passes, the one with the most Yes votes wins.</div>';
+    const others = PROP_CONFLICTS[number];
+    if (!others) return '';
+    return '<div class="top-two-note"><strong>May conflict with ' + others.join(' and ') + ':</strong> ' +
+        (others.length > 1 ? 'if 40 and either one pass' : 'if both pass') +
+        ', courts may apply whichever got more Yes votes.</div>';
 }
 
 function renderMeasure(m) {
@@ -322,8 +326,9 @@ function renderMeasure(m) {
     const yesVotes = m.yesVotes || '0';
     const noVotes = m.noVotes || '0';
     // Every Nov 2026 prop passes on a simple statewide majority (Cal. Const. art. II §10(a),
-    // art. XVIII §4; LAO: lao.ca.gov/ballotanalysis/propositions). Props 40-42 conflict:
-    // if more than one passes, the most Yes votes wins (art. II §10(b)), noted on each card.
+    // art. XVIII §4; LAO: lao.ca.gov/ballotanalysis/propositions). Props 41 and 42 may each
+    // conflict with 40; if a pair both pass, courts may apply the one with more Yes votes
+    // (art. II §10(b)). See PROP_CONFLICTS.
     const yesLeads = parseVotes(yesVotes) > parseVotes(noVotes);
     const noLeads = parseVotes(noVotes) > parseVotes(yesVotes);
 
