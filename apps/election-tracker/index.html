@@ -6,36 +6,45 @@
     <title>Hayward Election Results · November 2026</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="../../shared/base.css?v=2026-11-04e">
-    <link rel="stylesheet" href="styles.css?v=2026-11-04e">
+    <link rel="stylesheet" href="../../shared/base.css?v=2026-11-04g">
+    <link rel="stylesheet" href="styles.css?v=2026-11-04g">
 </head>
 <body>
     <div class="container">
         <header>
             <div class="header-top">
                 <h1>Hayward Election Results<br>November 3, 2026 General</h1>
-                <div class="live-badge">
+                <div class="live-badge" id="liveBadge">
                     <span class="live-dot"></span>
-                    Live
+                    <span id="liveText">Live</span>
                 </div>
             </div>
             <div class="header-meta">
-                <div class="last-update">Updated: <span id="lastUpdate">—</span></div>
+                <div class="last-update">State update: <span id="sosUpdate">—</span></div>
+                <div class="last-update">Checked: <span id="lastUpdate">—</span></div>
                 <div class="last-update">Next refresh: <span id="nextUpdate">5:00</span></div>
                 <button class="refresh-btn" onclick="refreshData()">↻ Refresh</button>
             </div>
-            <div class="certification-notice" style="margin-top: 12px;">
-                <strong>Unofficial Results</strong> — Alameda County has until Dec 3 to finalize its count; the state certifies Dec 11. Mail-in and provisional ballots continue to be counted.
-            </div>
+            <details class="notice">
+                <summary><strong>Unofficial results</strong> · counting continues into December</summary>
+                <p>Alameda County has until Dec 3 to finalize its count; the state certifies Dec 11. Mail-in and provisional ballots continue to be counted.</p>
+                <p>"~% counted" is an estimate from votes cast vs. expected turnout. The page checks for new results every 5 minutes.</p>
+            </details>
         </header>
 
-        <div class="info-box">
-            Ballot count % is estimated from votes cast vs. expected turnout. Auto-refreshes every 5 minutes.
-        </div>
+        <nav class="section-tabs" aria-label="Sections">
+            <a href="#sec-props">Props</a>
+            <a href="#sec-federal">Federal</a>
+            <a href="#sec-state">State</a>
+            <a href="#sec-legislature">Legislature</a>
+            <a href="#sec-local">Hayward</a>
+        </nav>
+
+        <div id="glance" class="glance" hidden></div>
 
         <div id="error-container"></div>
 
-        <div class="section">
+        <div class="section" id="sec-props">
             <div class="section-header">
                 <h2>State Propositions</h2>
                 <div class="section-line"></div>
@@ -45,7 +54,7 @@
             </div>
         </div>
 
-        <div class="section">
+        <div class="section" id="sec-federal">
             <div class="section-header">
                 <h2>Federal</h2>
                 <div class="section-line"></div>
@@ -55,7 +64,7 @@
             </div>
         </div>
 
-        <div class="section">
+        <div class="section" id="sec-state">
             <div class="section-header">
                 <h2>California Statewide</h2>
                 <div class="section-line"></div>
@@ -65,7 +74,7 @@
             </div>
         </div>
 
-        <div class="section">
+        <div class="section" id="sec-legislature">
             <div class="section-header">
                 <h2>State Legislature</h2>
                 <div class="section-line"></div>
@@ -75,7 +84,7 @@
             </div>
         </div>
 
-        <div class="section">
+        <div class="section" id="sec-local">
             <div class="section-header">
                 <h2>Hayward &amp; Alameda County</h2>
                 <div class="section-line"></div>
@@ -95,6 +104,6 @@
 
     <!-- Bump ?v= whenever app.js or styles.css changes: phones kept serving a cached app.js
          against the new index.html, leaving the props stuck on "Loading…". -->
-    <script type="module" src="app.js?v=2026-11-04e"></script>
+    <script type="module" src="app.js?v=2026-11-04g"></script>
 </body>
 </html>
