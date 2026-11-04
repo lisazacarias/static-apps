@@ -141,6 +141,7 @@ async function tryEndpoints(raceName, endpoints) {
                     continue;
                 }
                 const data = await response.json();
+                refreshStats.ok++;
                 return { success: true, data, endpoint };
             } catch (err) {
                 console.log('Error:', url, err.name, err.message);
@@ -148,6 +149,7 @@ async function tryEndpoints(raceName, endpoints) {
         }
     }
 
+    refreshStats.failed++;
     return { success: false };
 }
 
@@ -371,7 +373,7 @@ function renderMeasure(m) {
         : '<span class="tag tie">Tied</span>';
     const yesShare = total ? yes / total * 100 : 0;
 
-    return '<div class="prop">' +
+    return '<div class="prop" id="prop-' + number + '">' +
         '<div class="prop-top">' +
             '<span class="prop-num">' + number + '</span>' +
             '<span class="prop-name">' + shortName + '</span>' +
@@ -403,6 +405,7 @@ async function fetchMeasureResults() {
         const status = renderBallotCountStatus(
             { candidates: [{ Votes: String(mostVotes) }], Reporting: result.data.Reporting },
             result.data.ReportingTime || '', 'State Propositions');
+        lastGoodData.measures = result.data;
         lastGoodHTML.measures = '<div class="race props">' + status +
             measures.map(renderMeasure).join('') + '</div>';
     }
@@ -413,6 +416,9 @@ async function fetchMeasureResults() {
 // Each race's last good render, so a refresh that fails or times out keeps the
 // results already on screen instead of swapping them for a link-only card.
 const lastGoodHTML = {};
+const lastGoodData = {};
+// Races per section in page order, for the at-a-glance strip.
+const sectionRaces = {};
 
 // Only the first load shows a spinner. Later refreshes leave the old results up
 // until the new ones are ready, then swap them in with any expanded
@@ -436,6 +442,7 @@ function replaceSection(container, html) {
 // All races in a section are fetched at once, so one slow endpoint costs one
 // timeout rather than holding up every race queued behind it.
 async function loadSection(containerId, loadingText, races) {
+    sectionRaces[containerId] = races;
     const container = document.getElementById(containerId);
     showLoading(container, loadingText);
 
@@ -447,7 +454,9 @@ async function loadSection(containerId, loadingText, races) {
     races.forEach((race, i) => {
         // An empty candidate list (a glitchy or reset feed) doesn't replace real results.
         if (results[i].success && (results[i].data.candidates || []).length) {
-            lastGoodHTML[race.key] = renderRace(race.name, results[i].data);
+            lastGoodHTML[race.key] = '<div id="race-' + race.key + '" class="race-anchor">' +
+                renderRace(race.name, results[i].data) + '</div>';
+            lastGoodData[race.key] = results[i].data;
         }
         if (lastGoodHTML[race.key]) cards.push(lastGoodHTML[race.key]);
         else pending.push(renderPendingRow(race.name, race.ballotpedia));
@@ -486,6 +495,92 @@ function fetchLegislativeResults() {
     ]);
 }
 
+// ── At a glance: one short line per race that has votes, and a chip per prop ──
+
+function lastName(name) {
+    const parts = String(name || '').trim().split(/\s+/);
+    return parts[parts.length - 1] || name;
+}
+
+function glanceRace(race) {
+    const data = lastGoodData[race.key];
+    if (!data) return '';
+    const sorted = [...(data.candidates || [])].sort((a, b) => parseVotes(b.Votes) - parseVotes(a.Votes));
+    const [a, b] = sorted;
+    if (!a || !b) return '';
+    const va = parseVotes(a.Votes), vb = parseVotes(b.Votes);
+    if (!va && !vb) return '';
+    // Points of all votes cast in the race, so it matches the percentages on the card
+    // (for two candidates that's the same math as renderHeadToHead).
+    const total = sorted.reduce((sum, c) => sum + parseVotes(c.Votes), 0);
+    const gap = Math.abs(va - vb) / total * 100;
+    const result = gap < TOO_CLOSE_POINTS
+        ? '<span class="tag tie">Too close</span>'
+        : '<span class="glance-lead">' + lastName(a.Name) + (a.Party ? ' (' + a.Party + ')' : '') +
+          '</span> <span class="glance-margin">+' + gap.toFixed(1) + ' pts</span>';
+    return '<a class="glance-row" href="#race-' + race.key + '">' +
+        '<span class="glance-name">' + race.name + '</span>' + result + '</a>';
+}
+
+function glanceProps() {
+    const measures = (lastGoodData.measures || {})['ballot-measures'] || [];
+    if (!measures.some(m => parseVotes(m.yesVotes || '0') + parseVotes(m.noVotes || '0') > 0)) return '';
+    return '<div class="glance-props">' + measures.map(m => {
+        const n = String(parseInt(m.Number, 10) || m.Number || '');
+        const yes = parseVotes(m.yesVotes || '0'), no = parseVotes(m.noVotes || '0');
+        const cls = yes > no ? 'yes' : no > yes ? 'no' : 'tie';
+        const word = yes > no ? 'Pass' : no > yes ? 'Fail' : 'Tie';
+        return '<a class="glance-chip ' + cls + '" href="#prop-' + n + '" title="Prop ' + n + ': ' +
+            (PROP_SHORT_NAMES[n] || '') + '">' + n + ' <b>' + word + '</b></a>';
+    }).join('') + '</div>';
+}
+
+const GLANCE_SECTIONS = ['federal-races', 'statewide-races', 'legislative-races'];
+
+function renderGlance() {
+    const el = document.getElementById('glance');
+    const rows = GLANCE_SECTIONS.flatMap(id => (sectionRaces[id] || []).map(glanceRace)).join('');
+    const props = glanceProps();
+    el.hidden = !rows && !props;
+    el.innerHTML = '<div class="glance-title">At a glance</div>' + props + rows;
+}
+
+// ── Freshness: the state's own update time leads; the badge goes Offline when nothing loads ──
+
+let refreshStats = { ok: 0, failed: 0 };
+
+const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+
+// "November 3, 2026, 11:42 p.m." -> a Date, so feeds can be compared. null if it doesn't parse.
+function parseSosTime(t) {
+    const m = String(t || '').match(/^([A-Za-z]+)\.? (\d{1,2}), (\d{4}),? (\d{1,2}):(\d{2}) ?([ap])\.?m\.?/i);
+    if (!m) return null;
+    const month = MONTHS.indexOf(m[1].slice(0, 3).toLowerCase());
+    if (month < 0) return null;
+    let hour = parseInt(m[4], 10) % 12;
+    if (m[6].toLowerCase() === 'p') hour += 12;
+    return new Date(parseInt(m[3], 10), month, parseInt(m[2], 10), hour, parseInt(m[5], 10));
+}
+
+function latestSosTime() {
+    let best = null, bestText = '';
+    Object.values(lastGoodData).forEach(d => {
+        const when = parseSosTime(d.ReportingTime);
+        if (when && (!best || when > best)) { best = when; bestText = d.ReportingTime; }
+    });
+    return bestText;
+}
+
+function updateFreshness() {
+    const latest = latestSosTime();
+    document.getElementById('sosUpdate').textContent = latest ? shortTime(latest) : '—';
+    const offline = refreshStats.ok === 0;
+    document.getElementById('liveBadge').classList.toggle('offline', offline);
+    document.getElementById('liveText').textContent = offline
+        ? (latest ? 'Offline · showing ' + shortTime(latest) : 'Offline')
+        : 'Live';
+}
+
 function showError(message) {
     const container = document.getElementById('error-container');
     container.innerHTML = '<div class="error">⚠️ ' + message + '</div>';
@@ -496,6 +591,7 @@ function showError(message) {
 
 async function refreshData() {
     document.getElementById('lastUpdate').textContent = 'Updating...';
+    refreshStats = { ok: 0, failed: 0 };
 
     try {
         // Fetch all sections but don't wait for failures
@@ -512,7 +608,10 @@ async function refreshData() {
             console.error('Some sections failed to load:', failures);
         }
 
-        document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+        document.getElementById('lastUpdate').textContent =
+            new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        renderGlance();
+        updateFreshness();
         nextRefreshAt = Date.now() + REFRESH_MS;
     } catch (error) {
         showError('Error refreshing data: ' + error.message);

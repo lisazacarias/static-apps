@@ -561,3 +561,31 @@ header {
 .pending-name { flex: 1; color: var(--text-label); }
 .pending-note { font-size: 11px; color: var(--text-label); }
 .pending-row a { font-size: 12px; color: var(--blue); text-decoration: none; white-space: nowrap; }
+
+/* ── At a glance, section tabs, merged notice, offline badge ── */
+
+.notice { margin-top: 12px; background: rgba(240, 180, 41, 0.07); border: 1px solid rgba(240, 180, 41, 0.2); border-left: 3px solid var(--gold); border-radius: 4px; padding: 8px 14px; font-size: 12.5px; color: rgba(240, 180, 41, 0.85); }
+.notice summary { cursor: pointer; }
+.notice p { margin: 8px 0 2px; color: var(--text-label); line-height: 1.5; }
+
+.section-tabs { position: sticky; top: 0; z-index: 5; display: flex; gap: 6px; overflow-x: auto; padding: 8px 0; margin-bottom: 14px; background: var(--bg); border-bottom: 1px solid var(--border); scrollbar-width: none; }
+.section-tabs::-webkit-scrollbar { display: none; }
+.section-tabs a { flex: 0 0 auto; font-size: 12px; font-weight: 600; color: var(--text-label); text-decoration: none; padding: 5px 11px; border: 1px solid var(--border-bright); border-radius: 999px; }
+.section-tabs a:hover, .section-tabs a:focus-visible { color: var(--text-bright); border-color: var(--gold); }
+/* Keep jumped-to headings and cards clear of the sticky tabs */
+.section, .race-anchor, .prop { scroll-margin-top: 56px; }
+
+.glance { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 12px 16px; margin-bottom: 24px; }
+.glance-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 600; color: var(--text-bright); margin-bottom: 8px; }
+.glance-props { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.glance-chip { font-family: 'Fira Code', monospace; font-size: 11px; color: var(--text-label); text-decoration: none; padding: 3px 7px; border-radius: 3px; border: 1px solid var(--border-bright); }
+.glance-chip b { font-weight: 600; }
+.glance-chip.yes { color: var(--green); border-color: rgba(16, 185, 129, 0.3); background: var(--green-dim); }
+.glance-chip.no { color: #c2747a; border-color: rgba(194, 116, 122, 0.35); background: rgba(194, 116, 122, 0.1); }
+.glance-row { display: flex; align-items: baseline; gap: 8px; padding: 7px 0; border-top: 1px solid var(--border); text-decoration: none; font-size: 13px; }
+.glance-name { flex: 1; color: var(--text-label); }
+.glance-lead { color: var(--text-bright); font-weight: 600; }
+.glance-margin { font-family: 'Fira Code', monospace; color: var(--gold); font-size: 12px; }
+
+.live-badge.offline { background: var(--bg-elevated); border-color: var(--border-bright); color: var(--text-label); }
+.live-badge.offline .live-dot { background: var(--text-label); animation: none; }
