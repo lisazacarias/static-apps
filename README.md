@@ -24,9 +24,12 @@ browser never needs a build — not that Node is banned from the workflow.
 └── apps/
     ├── election-tracker/    # Hayward / Alameda County election results
     │   ├── index.html
-    │   ├── app.js
+    │   ├── app.js           # Fetching and the page
+    │   ├── results.js       # DOM-free parsing and race/prop math (tested)
+    │   ├── election.js      # This election's races, voter counts, turnout, prop names
     │   ├── styles.css
-    │   └── proxy.js
+    │   ├── proxy.js         # Local CORS proxy for development
+    │   └── test/
     ├── algae-tracker/       # Paddleboard algae advisory tracker (CA FHAB data)
     │   ├── index.html
     │   └── app.js
@@ -84,8 +87,8 @@ Then open:
 
 ## Tests
 
-Piano practice, the lighting cue builder and flex training have suites. From either app's
-folder:
+Piano practice, the lighting cue builder, flex training and the election tracker have
+suites. From the app's folder:
 
 ```
 npm test

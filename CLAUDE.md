@@ -10,6 +10,7 @@ python3 -m http.server 8000      # from the repo root
 cd apps/piano-practice && npm test
 cd apps/lighting-cue-builder && npm test
 cd apps/flex-training && npm test
+cd apps/election-tracker && npm test
 
 # Real-browser smoke test (piano practice; needs Chrome/Chromium, CHROME_PATH to override)
 cd apps/piano-practice && npm run smoke
