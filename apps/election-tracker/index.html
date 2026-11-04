@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hayward Election Results · June 2026</title>
+    <title>Hayward Election Results · November 2026</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="../../shared/base.css">
@@ -13,7 +13,7 @@
     <div class="container">
         <header>
             <div class="header-top">
-                <h1>Hayward Election Results<br>June 2026 Primary</h1>
+                <h1>Hayward Election Results<br>November 3, 2026 General</h1>
                 <div class="live-badge">
                     <span class="live-dot"></span>
                     Live
@@ -25,15 +25,25 @@
                 <button class="refresh-btn" onclick="refreshData()">↻ Refresh</button>
             </div>
             <div class="certification-notice" style="margin-top: 12px;">
-                <strong>Unofficial Results</strong> — Results will be certified by July 10, 2026. Mail-in and provisional ballots continue to be counted.
+                <strong>Unofficial Results</strong> — Alameda County has until Dec 3 to finalize its count; the state certifies Dec 11. Mail-in and provisional ballots continue to be counted.
             </div>
         </header>
 
         <div class="info-box">
-            Showing top 5 candidates per race. Ballot count % is estimated from votes cast vs. expected turnout. Auto-refreshes every 5 minutes.
+            Showing top 5 candidates per race and every statewide proposition. Ballot count % is estimated from votes cast vs. expected turnout. Auto-refreshes every 5 minutes.
         </div>
 
         <div id="error-container"></div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2>State Propositions</h2>
+                <div class="section-line"></div>
+            </div>
+            <div id="measure-races">
+                <div class="loading">Loading…</div>
+            </div>
+        </div>
 
         <div class="section">
             <div class="section-header">
@@ -67,18 +77,18 @@
 
         <div class="section">
             <div class="section-header">
-                <h2>Alameda County &amp; Local</h2>
+                <h2>Hayward &amp; Alameda County</h2>
                 <div class="section-line"></div>
             </div>
             <div class="local-races-block">
                 <ul class="local-race-list">
-                    <li>Alameda County District Attorney</li>
-                    <li>County Superintendent of Schools</li>
-                    <li>Board of Supervisors — District 2</li>
-                    <li>Superior Court — Office No. 13</li>
-                    <li>Superior Court — Office No. 19</li>
+                    <li>Hayward Mayor</li>
+                    <li>Hayward City Council — District 1</li>
+                    <li>Hayward City Council — District 6</li>
+                    <li>Measure CC — Hayward business license tax</li>
                 </ul>
-                <a href="https://alamedacountyca.gov/rovresults/259/" target="_blank" class="link-button">View all on Official Alameda County Results →</a>
+                <!-- CHECK: the county's rovresults/<id>/ page for Nov 3 wasn't confirmed; this is the ACVOTE election page (id=260), which links to results. -->
+                <a href="https://acvote.alamedacountyca.gov/election-information/elections?id=260" target="_blank" class="link-button">View on Official Alameda County Elections →</a>
             </div>
         </div>
     </div>
