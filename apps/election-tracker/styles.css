@@ -152,6 +152,13 @@ header {
     text-overflow: ellipsis;
 }
 
+.ballot-count-reporting {
+    font-size: 12px;
+    color: var(--text-label);
+    margin-top: 8px;
+    font-family: 'Fira Code', monospace;
+}
+
 .ballot-count-footer {
     font-size: 11px;
     color: var(--text-muted);
