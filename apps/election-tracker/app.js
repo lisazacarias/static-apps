@@ -1,7 +1,7 @@
 // Bump this ?v= with the one in index.html: phones cache imported modules too.
 import {
     FETCH_TIMEOUT, parseVotes, parsePercent, estimateBallotsCounted, shortTime, sourcesFor,
-    TOO_CLOSE_POINTS, lastName, parseSosTime
+    lastName, sortByVotes, headToHead, raceGap, propNumber, measureStatus, latestSosTime
 } from './results.js?v=2026-11-04g';
 import { ELECTION } from './election.js?v=2026-11-04g';
 
@@ -104,14 +104,7 @@ function toggleShowAll(raceId) {
 function renderHeadToHead(race, data, sorted) {
     const raceName = race.name;
     const [a, b] = sorted;
-    const va = parseVotes(a.Votes), vb = parseVotes(b.Votes);
-    const total = va + vb;
-    const shareA = total ? va / total * 100 : 0;
-    const shareB = total ? 100 - shareA : 0;
-    const aLeads = va > vb, bLeads = vb > va;
-    // From the vote counts, not the feed's rounded Percent: 5,049 to 4,951 is a 0.98-point
-    // gap that rounds to 50.5 vs 49.5 and would miss the cutoff.
-    const tooClose = total > 0 && Math.abs(shareA - shareB) < TOO_CLOSE_POINTS;
+    const { va, vb, shareA, shareB, aLeads, bLeads, tooClose } = headToHead(a, b);
 
     const name = (c, leads) =>
         '<span class="' + (leads ? 'lead' : '') + '">' + (c.Name || 'Unknown') +
@@ -152,9 +145,7 @@ function renderRace(race, data) {
         return renderPendingBlock([renderPendingRow(raceName)]);
     }
 
-    const sortedCandidates = [...candidates].sort((a, b) =>
-        parseVotes(b.Votes) - parseVotes(a.Votes)
-    );
+    const sortedCandidates = sortByVotes(candidates);
 
     // More than two only happens with a qualified write-in; that keeps the full list.
     if (sortedCandidates.length === 2) {
@@ -247,24 +238,18 @@ function conflictNote(number) {
 }
 
 function renderMeasure(m) {
-    const number = String(parseInt(m.Number, 10) || m.Number || '');
+    const number = propNumber(m);
     const fullName = m.Name || '';
     const shortName = PROP_SHORT_NAMES[number] ||
         fullName.replace(/\.\s*(Legislative|Initiative)[^.]*\.?$/, '');
-    const yes = parseVotes(m.yesVotes || '0');
-    const no = parseVotes(m.noVotes || '0');
-    const total = yes + no;
-    // Every Nov 2026 prop passes on a simple statewide majority (Cal. Const. art. II §10(a),
-    // art. XVIII §4; LAO: lao.ca.gov/ballotanalysis/propositions). Props 41 and 42 may each
-    // conflict with 40; if a pair both pass, courts may apply the one with more Yes votes
-    // (art. II §10(b)). See PROP_CONFLICTS.
-    const yesLeads = yes > no;
-    const noLeads = no > yes;
-    const tag = !total ? '<span class="tag tie">No votes yet</span>'
-        : yesLeads ? '<span class="tag yes">Passing</span>'
-        : noLeads ? '<span class="tag no">Failing</span>'
-        : '<span class="tag tie">Tied</span>';
-    const yesShare = total ? yes / total * 100 : 0;
+    const { total, yesShare, status } = measureStatus(m);
+    const yesLeads = status === 'pass', noLeads = status === 'fail';
+    const tag = {
+        none: '<span class="tag tie">No votes yet</span>',
+        pass: '<span class="tag yes">Passing</span>',
+        fail: '<span class="tag no">Failing</span>',
+        tie: '<span class="tag tie">Tied</span>'
+    }[status];
 
     return '<div class="prop" id="prop-' + number + '">' +
         '<div class="prop-top">' +
@@ -362,32 +347,26 @@ async function loadSection({ id, loading, races }) {
 function glanceRace(race) {
     const data = lastGoodData[race.key];
     if (!data) return '';
-    const sorted = [...(data.candidates || [])].sort((a, b) => parseVotes(b.Votes) - parseVotes(a.Votes));
-    const [a, b] = sorted;
-    if (!a || !b) return '';
-    const va = parseVotes(a.Votes), vb = parseVotes(b.Votes);
-    if (!va && !vb) return '';
-    // Points of all votes cast in the race, so it matches the percentages on the card
-    // (for two candidates that's the same math as renderHeadToHead).
-    const total = sorted.reduce((sum, c) => sum + parseVotes(c.Votes), 0);
-    const gap = Math.abs(va - vb) / total * 100;
-    const result = gap < TOO_CLOSE_POINTS
+    const g = raceGap(data.candidates);
+    if (!g) return '';
+    const a = g.leader;
+    const result = g.tooClose
         ? '<span class="tag tie">Too close</span>'
         : '<span class="glance-lead">' + lastName(a.Name) + (a.Party ? ' (' + a.Party + ')' : '') +
-          '</span> <span class="glance-margin">+' + gap.toFixed(1) + ' pts</span>';
+          '</span> <span class="glance-margin">+' + g.gap.toFixed(1) + ' pts</span>';
     return '<a class="glance-row" href="#race-' + race.key + '">' +
         '<span class="glance-name">' + race.name + '</span>' + result + '</a>';
 }
 
 function glanceProps() {
     const measures = (lastGoodData.measures || {})['ballot-measures'] || [];
-    if (!measures.some(m => parseVotes(m.yesVotes || '0') + parseVotes(m.noVotes || '0') > 0)) return '';
+    if (!measures.some(m => measureStatus(m).total > 0)) return '';
     return '<div class="glance-props">' + measures.map(m => {
-        const n = String(parseInt(m.Number, 10) || m.Number || '');
-        const yes = parseVotes(m.yesVotes || '0'), no = parseVotes(m.noVotes || '0');
-        const cls = yes > no ? 'yes' : no > yes ? 'no' : 'tie';
+        const n = propNumber(m);
+        const { status } = measureStatus(m);
+        const cls = { pass: 'yes', fail: 'no' }[status] || 'tie';
         // No votes in yet reads as a dash, not a tie, matching the card's "No votes yet".
-        const word = yes > no ? 'Pass' : no > yes ? 'Fail' : yes ? 'Tie' : '–';
+        const word = { pass: 'Pass', fail: 'Fail', tie: 'Tie', none: '–' }[status];
         return '<a class="glance-chip ' + cls + '" href="#prop-' + n + '" title="Prop ' + n + ': ' +
             (PROP_SHORT_NAMES[n] || '') + '">' + n + ' <b>' + word + '</b></a>';
     }).join('') + '</div>';
@@ -407,17 +386,8 @@ function renderGlance() {
 // since the render code keeps the saved results instead of showing it.
 let refreshStats = { ok: 0 };
 
-function latestSosTime() {
-    let best = null, bestText = '';
-    Object.values(lastGoodData).forEach(d => {
-        const when = parseSosTime(d.ReportingTime);
-        if (when && (!best || when > best)) { best = when; bestText = d.ReportingTime; }
-    });
-    return bestText;
-}
-
 function updateFreshness() {
-    const latest = latestSosTime();
+    const latest = latestSosTime(Object.values(lastGoodData));
     document.getElementById('sosUpdate').textContent = latest ? shortTime(latest) : '—';
     const offline = refreshStats.ok === 0;
     document.getElementById('liveBadge').classList.toggle('offline', offline);

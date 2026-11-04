@@ -9,8 +9,9 @@ export const SOS_ORIGIN = 'https://api.sos.ca.gov/';
 export const NETLIFY_PROXY = 'sos-api/';
 export const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
 
+// "1,234" -> 1234. Anything missing or odd is 0 rather than a crash.
 export function parseVotes(votesStr) {
-    return parseInt(votesStr.replace(/,/g, ''), 10) || 0;
+    return parseInt(String(votesStr ?? '').replace(/,/g, ''), 10) || 0;
 }
 
 export function parsePercent(percentStr) {
@@ -38,7 +39,7 @@ export function estimateBallotsCounted(data, registered, turnout) {
 
 // "November 3, 2026, 11:42 p.m." -> "Nov 3, 11:42 p.m." so the line fits on a phone.
 export function shortTime(t) {
-    return t.replace(/^([A-Z][a-z]{2})[a-z]*\.? (\d{1,2}), \d{4},? /, '$1 $2, ');
+    return String(t ?? '').replace(/^([A-Z][a-z]{2})[a-z]*\.? (\d{1,2}), \d{4},? /, '$1 $2, ');
 }
 
 // Each endpoint is tried through these in order until one returns JSON. Direct only works
@@ -75,4 +76,68 @@ export function parseSosTime(t) {
     let hour = parseInt(m[4], 10) % 12;
     if (m[6].toLowerCase() === 'p') hour += 12;
     return new Date(parseInt(m[3], 10), month, parseInt(m[2], 10), hour, parseInt(m[5], 10));
+}
+
+// ── Race and prop math, kept apart from the HTML so it can be tested ──
+
+export function sortByVotes(candidates) {
+    return [...(candidates || [])].sort((a, b) => parseVotes(b.Votes) - parseVotes(a.Votes));
+}
+
+// Two-candidate race. Shares come from the vote counts, not the feed's rounded Percent:
+// 5,049 to 4,951 is a 0.98-point gap that rounds to 50.5 vs 49.5 and would miss the cutoff.
+export function headToHead(a, b) {
+    const va = parseVotes(a.Votes), vb = parseVotes(b.Votes);
+    const total = va + vb;
+    const shareA = total ? va / total * 100 : 0;
+    const shareB = total ? 100 - shareA : 0;
+    return {
+        va, vb, shareA, shareB,
+        aLeads: va > vb, bLeads: vb > va,
+        tooClose: total > 0 && Math.abs(shareA - shareB) < TOO_CLOSE_POINTS
+    };
+}
+
+// Leader and margin for the at-a-glance line, in points of all votes cast in the race so it
+// matches the card's percentages (for two candidates, the same math as headToHead).
+// null when there aren't two candidates or no votes yet.
+export function raceGap(candidates) {
+    const sorted = sortByVotes(candidates);
+    const [a, b] = sorted;
+    if (!a || !b) return null;
+    const va = parseVotes(a.Votes), vb = parseVotes(b.Votes);
+    if (!va && !vb) return null;
+    const total = sorted.reduce((sum, c) => sum + parseVotes(c.Votes), 0);
+    const gap = Math.abs(va - vb) / total * 100;
+    return { leader: a, gap, tooClose: gap < TOO_CLOSE_POINTS };
+}
+
+// The feed numbers props "01"; the page says Prop 1.
+export function propNumber(m) {
+    return String(parseInt(m.Number, 10) || m.Number || '');
+}
+
+// Every Nov 2026 prop passes on a simple statewide majority (Cal. Const. art. II §10(a),
+// art. XVIII §4; LAO: lao.ca.gov/ballotanalysis/propositions). Props 41 and 42 may each
+// conflict with 40; if a pair both pass, courts may apply the one with more Yes votes
+// (art. II §10(b)). See ELECTION.propConflicts.
+// status: 'none' (no votes yet), 'pass', 'fail' or 'tie'.
+export function measureStatus(m) {
+    const yes = parseVotes(m.yesVotes), no = parseVotes(m.noVotes);
+    const total = yes + no;
+    return {
+        yes, no, total,
+        yesShare: total ? yes / total * 100 : 0,
+        status: !total ? 'none' : yes > no ? 'pass' : no > yes ? 'fail' : 'tie'
+    };
+}
+
+// The newest ReportingTime across feeds, as the feed wrote it. '' if none parse.
+export function latestSosTime(feeds) {
+    let best = null, bestText = '';
+    feeds.forEach(d => {
+        const when = parseSosTime(d && d.ReportingTime);
+        if (when && (!best || when > best)) { best = when; bestText = d.ReportingTime; }
+    });
+    return bestText;
 }
