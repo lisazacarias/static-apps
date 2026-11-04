@@ -8,6 +8,8 @@ const FETCH_TIMEOUT = 20000;
 const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
 
 const RACE_ENDPOINTS = {
+    measures: ['https://api.sos.ca.gov/returns/ballot-measures'],
+
     house14: ['https://api.sos.ca.gov/returns/us-rep/district/14'],
 
     // Statewide — dp.electionresults.sos.ca.gov returns HTML for these paths, so api.sos.ca.gov only
@@ -40,7 +42,9 @@ function estimateBallotsCounted(data, raceName) {
     }, 0);
 
     let estimatedRegisteredVoters;
-    let estimatedTurnout = 0.35;
+    // Generals turn out far more voters than primaries (this was 0.35 for June).
+    // CHECK: is ~55% of registered a fair guess for Nov 2026? CA's 2022 general was roughly half.
+    let estimatedTurnout = 0.55;
 
     if (raceName && raceName.includes('House District')) {
         estimatedRegisteredVoters = 422557;
@@ -257,11 +261,13 @@ function renderRace(raceName, data) {
     const collapsedInfo = hasManyCandidates ?
         '<div class="collapsed-info" data-collapsed="' + raceId + '">Showing top ' + CANDIDATES_TO_SHOW + ' of ' + sortedCandidates.length + ' candidates</div>' : '';
 
-    const top2 = sortedCandidates.slice(0, 2);
-    const topTwoNote = top2.length >= 2 ?
+    // November is the runoff from June's top two, so the note now names the leader.
+    const [first, second] = sortedCandidates;
+    const margin = first && second ? parseVotes(first.Votes) - parseVotes(second.Votes) : 0;
+    const leaderNote = first && second && margin > 0 ?
         '<div class="top-two-note">' +
-            '<strong>Top 2 Advance to November:</strong> ' +
-            top2[0].Name + ' (' + top2[0].Party + ') and ' + top2[1].Name + ' (' + top2[1].Party + ')' +
+            '<strong>Leading:</strong> ' + first.Name + (first.Party ? ' (' + first.Party + ')' : '') +
+            ' by ' + margin.toLocaleString('en-US') + ' votes' +
         '</div>' : '';
 
     return '<div class="race">' +
@@ -274,8 +280,61 @@ function renderRace(raceName, data) {
         ballotCountHTML +
         candidatesHTML +
         collapsedInfo +
-        topTwoNote +
+        leaderNote +
     '</div>';
+}
+
+// CHECK: field names come from the SoS API docs (v19, a 2025 test sample) — confirm against
+// the live feed. Both spellings are read so a renamed key degrades to a link, not a crash.
+function measureField(m, ...keys) {
+    for (const k of keys) if (m[k] != null) return String(m[k]);
+    return '';
+}
+
+function renderMeasure(m) {
+    const number = measureField(m, 'Number', 'number').replace(/^prop(osition)?\s*/i, '');
+    const name = measureField(m, 'Name', 'name');
+    const yesPct = parsePercent(measureField(m, 'yesPercent', 'YesPercent'));
+    const noPct = parsePercent(measureField(m, 'noPercent', 'NoPercent'));
+    const yesVotes = measureField(m, 'yesVotes', 'YesVotes') || '0';
+    const noVotes = measureField(m, 'noVotes', 'NoVotes') || '0';
+    // CHECK: every Nov 2026 prop is a simple majority on statewide yes/no, right?
+    // Bond and tax measures still pass on 50%+1 at the state level, as far as I know.
+    const yesLeads = parseVotes(yesVotes) > parseVotes(noVotes);
+
+    const row = (label, votes, pct, leading) =>
+        '<div class="candidate ' + (leading ? 'top-candidate' : '') + '">' +
+            '<div class="candidate-info">' +
+                '<div class="candidate-name">' + label + '</div>' +
+                '<div class="votes">' +
+                    '<div class="vote-count">' + votes + '</div>' +
+                    '<div class="vote-percent">' + pct + '%</div>' +
+                '</div>' +
+            '</div>' +
+            '<div class="progress-bar">' +
+                '<div class="progress-fill ' + (leading ? 'leading' : '') + '" style="width: ' + Math.min(pct, 100) + '%"></div>' +
+            '</div>' +
+        '</div>';
+
+    return '<div class="race">' +
+        '<div class="race-header">' +
+            '<div class="race-title">Prop ' + number + (name ? ' — ' + name : '') + '</div>' +
+        '</div>' +
+        row('Yes', yesVotes, yesPct, yesLeads) +
+        row('No', noVotes, noPct, !yesLeads && parseVotes(noVotes) > 0) +
+    '</div>';
+}
+
+async function fetchMeasureResults() {
+    const container = document.getElementById('measure-races');
+    container.innerHTML = '<div class="loading">⏳ Loading propositions...</div>';
+
+    const result = await tryEndpoints('State Propositions', RACE_ENDPOINTS.measures);
+    const measures = result.success ? (result.data['ballot-measures'] || []) : [];
+
+    container.innerHTML = measures.length
+        ? measures.map(renderMeasure).join('')
+        : renderLinkOnlyRace('State Propositions', 'https://ballotpedia.org/California_2026_ballot_propositions');
 }
 
 async function fetchFederalResults() {
@@ -373,6 +432,7 @@ async function refreshData() {
     try {
         // Fetch all sections but don't wait for failures
         const results = await Promise.allSettled([
+            fetchMeasureResults(),
             fetchFederalResults(),
             fetchStatewideResults(),
             fetchLegislativeResults()
