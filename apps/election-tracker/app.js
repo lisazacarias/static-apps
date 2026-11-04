@@ -3,8 +3,8 @@ import {
     FETCH_TIMEOUT, parseVotes, parsePercent, estimateBallotsCounted, shortTime, sourcesFor,
     lastName, sortByVotes, headToHead, raceGap, propNumber, measureStatus, latestSosTime,
     escapeHtml, escapeFeed
-} from './results.js?v=2026-11-04h';
-import { ELECTION } from './election.js?v=2026-11-04h';
+} from './results.js?v=2026-11-04i';
+import { ELECTION } from './election.js?v=2026-11-04i';
 
 const PROP_SHORT_NAMES = ELECTION.propShortNames;
 const PROP_CONFLICTS = ELECTION.propConflicts;
