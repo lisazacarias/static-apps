@@ -141,7 +141,6 @@ async function tryEndpoints(raceName, endpoints) {
                     continue;
                 }
                 const data = await response.json();
-                refreshStats.ok++;
                 return { success: true, data, endpoint };
             } catch (err) {
                 console.log('Error:', url, err.name, err.message);
@@ -149,7 +148,6 @@ async function tryEndpoints(raceName, endpoints) {
         }
     }
 
-    refreshStats.failed++;
     return { success: false };
 }
 
@@ -399,6 +397,7 @@ async function fetchMeasureResults() {
     const result = await tryEndpoints('State Propositions', RACE_ENDPOINTS.measures);
     const measures = result.success ? (result.data['ballot-measures'] || []) : [];
     if (measures.length) {
+        refreshStats.ok++;
         // Every prop is on every statewide ballot, so the busiest one stands in for turnout.
         const mostVotes = Math.max(...measures.map(m =>
             parseVotes(m.yesVotes || '0') + parseVotes(m.noVotes || '0')));
@@ -454,6 +453,7 @@ async function loadSection(containerId, loadingText, races) {
     races.forEach((race, i) => {
         // An empty candidate list (a glitchy or reset feed) doesn't replace real results.
         if (results[i].success && (results[i].data.candidates || []).length) {
+            refreshStats.ok++;
             lastGoodHTML[race.key] = '<div id="race-' + race.key + '" class="race-anchor">' +
                 renderRace(race.name, results[i].data) + '</div>';
             lastGoodData[race.key] = results[i].data;
@@ -529,7 +529,8 @@ function glanceProps() {
         const n = String(parseInt(m.Number, 10) || m.Number || '');
         const yes = parseVotes(m.yesVotes || '0'), no = parseVotes(m.noVotes || '0');
         const cls = yes > no ? 'yes' : no > yes ? 'no' : 'tie';
-        const word = yes > no ? 'Pass' : no > yes ? 'Fail' : 'Tie';
+        // No votes in yet reads as a dash, not a tie, matching the card's "No votes yet".
+        const word = yes > no ? 'Pass' : no > yes ? 'Fail' : yes ? 'Tie' : '–';
         return '<a class="glance-chip ' + cls + '" href="#prop-' + n + '" title="Prop ' + n + ': ' +
             (PROP_SHORT_NAMES[n] || '') + '">' + n + ' <b>' + word + '</b></a>';
     }).join('') + '</div>';
@@ -547,7 +548,9 @@ function renderGlance() {
 
 // ── Freshness: the state's own update time leads; the badge goes Offline when nothing loads ──
 
-let refreshStats = { ok: 0, failed: 0 };
+// Feeds this refresh that returned results we actually show. An empty list doesn't count,
+// since the render code keeps the saved results instead of showing it.
+let refreshStats = { ok: 0 };
 
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
 
@@ -589,9 +592,20 @@ function showError(message) {
     }, 8000);
 }
 
-async function refreshData() {
+// The Refresh button and the 5-minute timer can both fire mid-refresh. A second call
+// joins the one in flight, so refreshStats only ever counts one refresh.
+let refreshInFlight = null;
+
+function refreshData() {
+    if (!refreshInFlight) {
+        refreshInFlight = runRefresh().finally(() => { refreshInFlight = null; });
+    }
+    return refreshInFlight;
+}
+
+async function runRefresh() {
     document.getElementById('lastUpdate').textContent = 'Updating...';
-    refreshStats = { ok: 0, failed: 0 };
+    refreshStats = { ok: 0 };
 
     try {
         // Fetch all sections but don't wait for failures
