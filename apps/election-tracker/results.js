@@ -17,44 +17,22 @@ export function parsePercent(percentStr) {
     return parseFloat(percentStr) || 0;
 }
 
-export function estimateBallotsCounted(data, raceName) {
+// Estimated share of expected ballots counted: votes so far over registered voters
+// times expected turnout. Both inputs come from election.js.
+export function estimateBallotsCounted(data, registered, turnout) {
     const candidates = data.candidates || [];
     const totalVotesCounted = candidates.reduce((sum, c) => {
         return sum + parseVotes(c.Votes || '0');
     }, 0);
 
-    let estimatedRegisteredVoters;
-    // Generals turn out far more voters than primaries (this was 0.35 for June).
-    // 61% is Political Data's Nov 2026 projection, per CalMatters:
-    // https://calmatters.org/politics/elections/2026/11/live-election-updates/
-    // 2018's midterm hit 64.5% (https://www.sos.ca.gov/administration/news-releases-and-advisories/2018-news-releases-and-advisories/california-secretary-state-certifies-november-2018-general-election-results).
-    let estimatedTurnout = 0.61;
-
-    // Statewide and CD 14 are from the SoS reports of registration for this election:
-    // https://elections.cdn.sos.ca.gov/ror/15day-gen-2026/historical-reg-stats.pdf (Oct 19)
-    // https://elections.cdn.sos.ca.gov/ror/60day-gen-2026/congressional.pdf (CD 14, Sept 4)
-    // CHECK: SD 10, AD 20 and BOE 2 are still older counts; the Oct 19 district files
-    // (elections.cdn.sos.ca.gov/ror/15day-gen-2026/) should have current ones.
-    if (raceName && raceName.includes('House District')) {
-        estimatedRegisteredVoters = 425448;
-    } else if (raceName && raceName.includes('State Senate District')) {
-        estimatedRegisteredVoters = 531343;
-    } else if (raceName && raceName.includes('State Assembly District')) {
-        estimatedRegisteredVoters = 290773;
-    } else if (raceName && raceName.includes('Board of Equalization')) {
-        estimatedRegisteredVoters = 5927373;
-    } else {
-        estimatedRegisteredVoters = 23273590;
-    }
-
-    const expectedTotalBallots = estimatedRegisteredVoters * estimatedTurnout;
+    const expectedTotalBallots = registered * turnout;
     const percentCounted = (totalVotesCounted / expectedTotalBallots) * 100;
 
     return {
         totalVotesCounted,
         expectedTotalBallots,
         percentCounted: Math.min(percentCounted, 100),
-        estimatedRegisteredVoters
+        estimatedRegisteredVoters: registered
     };
 }
 
@@ -80,24 +58,6 @@ export function sourcesFor(endpoint) {
 
 // Under a 1-point gap counts as too close to call. My own cutoff, not an official rule.
 export const TOO_CLOSE_POINTS = 1;
-
-// Shape confirmed against the live feed on Nov 3, 2026: { Reporting, ReportingTime,
-// 'ballot-measures': [{ Name, Number: "01", yesVotes, yesPercent, noVotes, noPercent }] }
-// Pairwise, not three-way: 41 and 42 each may conflict with 40, not with each other, and
-// it's for courts to decide whether they do. Per the LAO's analyses of each measure:
-// lao.ca.gov/BallotAnalysis/Proposition?number=42&year=2026 (and number=40, 41)
-export const PROP_CONFLICTS = { '40': ['41', '42'], '41': ['40'], '42': ['40'] };
-
-// Short labels for the compact rows. Mine, paraphrasing each official title; the full
-// title is one tap away under each row.
-export const PROP_SHORT_NAMES = {
-    '1': 'Housing bond', '2': 'Rainy day fund', '3': 'High-income tax extension',
-    '4': 'Public campaign funding', '5': 'Statewide recall process',
-    '37': 'Middle-income home loans', '38': 'Immunology research bond', '39': 'Voter ID',
-    '40': 'One-time billionaire tax', '41': 'Special-tax audits',
-    '42': 'No new personal property taxes', '43': 'Two-thirds for local taxes',
-    '44': 'Clinic spending rule', '45': 'Environmental review changes'
-};
 
 export function lastName(name) {
     const parts = String(name || '').trim().split(/\s+/);

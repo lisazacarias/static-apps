@@ -1,8 +1,12 @@
 // Bump this ?v= with the one in index.html: phones cache imported modules too.
 import {
     FETCH_TIMEOUT, parseVotes, parsePercent, estimateBallotsCounted, shortTime, sourcesFor,
-    TOO_CLOSE_POINTS, PROP_CONFLICTS, PROP_SHORT_NAMES, lastName, parseSosTime
+    TOO_CLOSE_POINTS, lastName, parseSosTime
 } from './results.js?v=2026-11-04g';
+import { ELECTION } from './election.js?v=2026-11-04g';
+
+const PROP_SHORT_NAMES = ELECTION.propShortNames;
+const PROP_CONFLICTS = ELECTION.propConflicts;
 
 let autoRefreshInterval;
 let countdownInterval;
@@ -11,32 +15,12 @@ const REFRESH_MS = 300000;
 const CANDIDATES_TO_SHOW = 5;
 const MIN_PERCENT_FOR_BAR = 1.0;
 
-const RACE_ENDPOINTS = {
-    measures: ['https://api.sos.ca.gov/returns/ballot-measures'],
-
-    house14: ['https://api.sos.ca.gov/returns/us-rep/district/14'],
-
-    // Statewide — dp.electionresults.sos.ca.gov returns HTML for these paths, so api.sos.ca.gov only
-    governor: ['https://api.sos.ca.gov/returns/governor'],
-    ltGovernor: ['https://api.sos.ca.gov/returns/lieutenant-governor'],
-    secretary: ['https://api.sos.ca.gov/returns/secretary-of-state'],
-    attorneyGeneral: ['https://api.sos.ca.gov/returns/attorney-general'],
-    insurance: ['https://api.sos.ca.gov/returns/insurance-commissioner'],
-    controller: ['https://api.sos.ca.gov/returns/controller'],
-    treasurer: ['https://api.sos.ca.gov/returns/treasurer'],
-    superintendent: ['https://api.sos.ca.gov/returns/superintendent-of-public-instruction'],
-    equalization2: ['https://api.sos.ca.gov/returns/board-of-equalization/district/2'],
-
-    senate10: ['https://api.sos.ca.gov/returns/state-senate/district/10'],
-    assembly20: ['https://api.sos.ca.gov/returns/state-assembly/district/20']
-};
-
 // One slim line per card: the estimate, a thin bar, and when the SoS last updated. The
 // precincts figure goes in the tooltip only: a precinct counts as reported once any one
 // ballot from it is in, so it can read 100% with many ballots still out
 // (electionresults.sos.ca.gov/frequently-asked-questions).
-function renderBallotCountStatus(data, reportingTime, raceName) {
-    const ballotInfo = estimateBallotsCounted(data, raceName);
+function renderBallotCountStatus(data, reportingTime, registered) {
+    const ballotInfo = estimateBallotsCounted(data, registered, ELECTION.turnout);
     const pct = ballotInfo.percentCounted.toFixed(1);
     const tooltip = data.Reporting
         ? ' title="' + data.Reporting.replace(/precincts reporting/i, 'precincts partially reporting') + '"'
@@ -117,7 +101,8 @@ function toggleShowAll(raceId) {
 // colored by who's ahead (gold) and who's behind (gray), never by party: Dem-vs-Dem races
 // and nonpartisan offices like Superintendent would otherwise be one color or none.
 // Party stays as the badge.
-function renderHeadToHead(raceName, data, sorted) {
+function renderHeadToHead(race, data, sorted) {
+    const raceName = race.name;
     const [a, b] = sorted;
     const va = parseVotes(a.Votes), vb = parseVotes(b.Votes);
     const total = va + vb;
@@ -144,7 +129,7 @@ function renderHeadToHead(raceName, data, sorted) {
             '<div class="race-title">' + raceName + '</div>' +
             (tooClose ? '<span class="tag tie">Too close</span>' : '') +
         '</div>' +
-        renderBallotCountStatus(data, data.ReportingTime || '', raceName) +
+        renderBallotCountStatus(data, data.ReportingTime || '', race.registered) +
         '<div class="h2h-names">' + name(a, aLeads) + name(b, bLeads) + '</div>' +
         '<div class="split">' +
             '<i class="' + (aLeads ? 'lead' : 'trail') + '" style="width: ' + shareA + '%"></i>' +
@@ -158,7 +143,8 @@ function renderHeadToHead(raceName, data, sorted) {
     '</div>';
 }
 
-function renderRace(raceName, data) {
+function renderRace(race, data) {
+    const raceName = race.name;
     let candidates = data.candidates || [];
     let reportingTime = data.ReportingTime || '';
 
@@ -172,13 +158,13 @@ function renderRace(raceName, data) {
 
     // More than two only happens with a qualified write-in; that keeps the full list.
     if (sortedCandidates.length === 2) {
-        return renderHeadToHead(raceName, data, sortedCandidates);
+        return renderHeadToHead(race, data, sortedCandidates);
     }
 
     const raceId = raceName.replace(/\s+/g, '-').toLowerCase();
     const hasManyCandidates = sortedCandidates.length > CANDIDATES_TO_SHOW;
 
-    const ballotCountHTML = renderBallotCountStatus(data, reportingTime, raceName);
+    const ballotCountHTML = renderBallotCountStatus(data, reportingTime, race.registered);
 
     const candidatesHTML = sortedCandidates
     .map((candidate, index) => {
@@ -303,7 +289,7 @@ async function fetchMeasureResults() {
     const container = document.getElementById('measure-races');
     showLoading(container, '⏳ Loading propositions...');
 
-    const result = await tryEndpoints('State Propositions', RACE_ENDPOINTS.measures);
+    const result = await tryEndpoints('State Propositions', [ELECTION.measures.endpoint]);
     const measures = result.success ? (result.data['ballot-measures'] || []) : [];
     if (measures.length) {
         refreshStats.ok++;
@@ -312,21 +298,19 @@ async function fetchMeasureResults() {
             parseVotes(m.yesVotes || '0') + parseVotes(m.noVotes || '0')));
         const status = renderBallotCountStatus(
             { candidates: [{ Votes: String(mostVotes) }], Reporting: result.data.Reporting },
-            result.data.ReportingTime || '', 'State Propositions');
+            result.data.ReportingTime || '', ELECTION.measures.registered);
         lastGoodData.measures = result.data;
         lastGoodHTML.measures = '<div class="race props">' + status +
             measures.map(renderMeasure).join('') + '</div>';
     }
     replaceSection(container, lastGoodHTML.measures || renderPendingBlock([
-        renderPendingRow('State Propositions', 'https://ballotpedia.org/California_2026_ballot_propositions')]));
+        renderPendingRow('State Propositions', ELECTION.measures.ballotpedia)]));
 }
 
 // Each race's last good render, so a refresh that fails or times out keeps the
 // results already on screen instead of swapping them for a link-only card.
 const lastGoodHTML = {};
 const lastGoodData = {};
-// Races per section in page order, for the at-a-glance strip.
-const sectionRaces = {};
 
 // Only the first load shows a spinner. Later refreshes leave the old results up
 // until the new ones are ready, then swap them in with any expanded
@@ -349,13 +333,12 @@ function replaceSection(container, html) {
 
 // All races in a section are fetched at once, so one slow endpoint costs one
 // timeout rather than holding up every race queued behind it.
-async function loadSection(containerId, loadingText, races) {
-    sectionRaces[containerId] = races;
-    const container = document.getElementById(containerId);
-    showLoading(container, loadingText);
+async function loadSection({ id, loading, races }) {
+    const container = document.getElementById(id);
+    showLoading(container, loading);
 
     const results = await Promise.all(races.map(race =>
-        tryEndpoints(race.name, RACE_ENDPOINTS[race.key])));
+        tryEndpoints(race.name, [race.endpoint])));
 
     const cards = [];
     const pending = [];
@@ -364,7 +347,7 @@ async function loadSection(containerId, loadingText, races) {
         if (results[i].success && (results[i].data.candidates || []).length) {
             refreshStats.ok++;
             lastGoodHTML[race.key] = '<div id="race-' + race.key + '" class="race-anchor">' +
-                renderRace(race.name, results[i].data) + '</div>';
+                renderRace(race, results[i].data) + '</div>';
             lastGoodData[race.key] = results[i].data;
         }
         if (lastGoodHTML[race.key]) cards.push(lastGoodHTML[race.key]);
@@ -372,36 +355,6 @@ async function loadSection(containerId, loadingText, races) {
     });
 
     replaceSection(container, cards.join('') + renderPendingBlock(pending));
-}
-
-function fetchFederalResults() {
-    return loadSection('federal-races', '⏳ Loading federal results...', [
-        { name: 'U.S. House District 14', key: 'house14',
-          ballotpedia: 'https://ballotpedia.org/California%27s_14th_Congressional_District_election,_2026' }
-    ]);
-}
-
-function fetchStatewideResults() {
-    return loadSection('statewide-races', '⏳ Loading statewide results...', [
-        { name: 'Governor', key: 'governor' },
-        { name: 'Lieutenant Governor', key: 'ltGovernor' },
-        { name: 'Secretary of State', key: 'secretary' },
-        { name: 'Attorney General', key: 'attorneyGeneral' },
-        { name: 'Insurance Commissioner', key: 'insurance' },
-        { name: 'Controller', key: 'controller' },
-        { name: 'Superintendent of Public Instruction', key: 'superintendent' },
-        { name: 'Treasurer', key: 'treasurer' },
-        { name: 'Board of Equalization District 2', key: 'equalization2' }
-    ]);
-}
-
-function fetchLegislativeResults() {
-    return loadSection('legislative-races', '⏳ Loading legislative results...', [
-        { name: 'State Senate District 10', key: 'senate10',
-          ballotpedia: 'https://ballotpedia.org/California_State_Senate_District_10' },
-        { name: 'State Assembly District 20', key: 'assembly20',
-          ballotpedia: 'https://ballotpedia.org/California_State_Assembly_District_20' }
-    ]);
 }
 
 // ── At a glance: one short line per race that has votes, and a chip per prop ──
@@ -440,11 +393,9 @@ function glanceProps() {
     }).join('') + '</div>';
 }
 
-const GLANCE_SECTIONS = ['federal-races', 'statewide-races', 'legislative-races'];
-
 function renderGlance() {
     const el = document.getElementById('glance');
-    const rows = GLANCE_SECTIONS.flatMap(id => (sectionRaces[id] || []).map(glanceRace)).join('');
+    const rows = ELECTION.sections.flatMap(section => section.races.map(glanceRace)).join('');
     const props = glanceProps();
     el.hidden = !rows && !props;
     el.innerHTML = '<div class="glance-title">At a glance</div>' + props + rows;
@@ -502,9 +453,7 @@ async function runRefresh() {
         // Fetch all sections but don't wait for failures
         const results = await Promise.allSettled([
             fetchMeasureResults(),
-            fetchFederalResults(),
-            fetchStatewideResults(),
-            fetchLegislativeResults()
+            ...ELECTION.sections.map(loadSection)
         ]);
 
         // Check if any failed
