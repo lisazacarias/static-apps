@@ -4,7 +4,12 @@ let nextRefreshAt = null;
 const REFRESH_MS = 300000;
 const CANDIDATES_TO_SHOW = 5;
 const MIN_PERCENT_FOR_BAR = 1.0;
-const FETCH_TIMEOUT = 20000;
+// Under the Netlify proxy's own 26s limit (docs.netlify.com/manage/routing/redirects/rewrites-proxies/).
+const FETCH_TIMEOUT = 15000;
+const SOS_ORIGIN = 'https://api.sos.ca.gov/';
+// Rewritten to api.sos.ca.gov by the rule in /_redirects. Relative, so it resolves under
+// apps/election-tracker/. Only exists on the Netlify site; on GitHub Pages it 404s.
+const NETLIFY_PROXY = 'sos-api/';
 const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
 
 const RACE_ENDPOINTS = {
@@ -48,8 +53,13 @@ function estimateBallotsCounted(data, raceName) {
     // 2018's midterm hit 64.5% (https://www.sos.ca.gov/administration/news-releases-and-advisories/2018-news-releases-and-advisories/california-secretary-state-certifies-november-2018-general-election-results).
     let estimatedTurnout = 0.61;
 
+    // Statewide and CD 14 are from the SoS reports of registration for this election:
+    // https://elections.cdn.sos.ca.gov/ror/15day-gen-2026/historical-reg-stats.pdf (Oct 19)
+    // https://elections.cdn.sos.ca.gov/ror/60day-gen-2026/congressional.pdf (CD 14, Sept 4)
+    // CHECK: SD 10, AD 20 and BOE 2 are still older counts; the Oct 19 district files
+    // (elections.cdn.sos.ca.gov/ror/15day-gen-2026/) should have current ones.
     if (raceName && raceName.includes('House District')) {
-        estimatedRegisteredVoters = 422557;
+        estimatedRegisteredVoters = 425448;
     } else if (raceName && raceName.includes('State Senate District')) {
         estimatedRegisteredVoters = 531343;
     } else if (raceName && raceName.includes('State Assembly District')) {
@@ -57,7 +67,7 @@ function estimateBallotsCounted(data, raceName) {
     } else if (raceName && raceName.includes('Board of Equalization')) {
         estimatedRegisteredVoters = 5927373;
     } else {
-        estimatedRegisteredVoters = 23155447;
+        estimatedRegisteredVoters = 23273590;
     }
 
     const expectedTotalBallots = estimatedRegisteredVoters * estimatedTurnout;
@@ -112,10 +122,12 @@ function renderBallotCountStatus(data, reportingTime, raceName) {
         '<div class="ballot-progress">' +
             '<div class="ballot-progress-fill" style="width: ' + percentCounted + '%"></div>' +
         '</div>' +
-        // The state's own figure, shown as-is next to the estimate above.
-        // CHECK: in an all-mail election, does "precincts reporting" hit 100% on election
-        // night while ballots are still being counted? If so it can't replace the estimate.
-        (data.Reporting ? '<div class="ballot-count-reporting">State feed: ' + data.Reporting + '</div>' : '') +
+        // A precinct counts as reported once any one ballot from it is counted, so this can
+        // read 100% with many ballots still out (electionresults.sos.ca.gov/frequently-asked-questions).
+        // It stays a footnote under the estimate, never the progress number.
+        (data.Reporting ? '<div class="ballot-count-reporting">' +
+            data.Reporting.replace(/precincts reporting/i, 'precincts partially reporting') +
+            ' (any ballot in)</div>' : '') +
         '<div class="ballot-count-footer">' +
             statusMessage + ' · Updated ' + (reportingTime || 'recently') +
         '</div>' +
@@ -126,43 +138,44 @@ async function attemptFetch(url, timeout) {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeout);
     try {
-        const response = await fetch(url, {
+        return await fetch(url, {
             signal: controller.signal,
             headers: { 'Accept': 'application/json' }
         });
+    } finally {
         clearTimeout(id);
-        return response;
-    } catch (error) {
-        clearTimeout(id);
-        throw error;
     }
 }
 
-async function fetchWithTimeout(url, timeout = FETCH_TIMEOUT) {
-    try {
-        return await attemptFetch(url, timeout);
-    } catch (err) {
-        if (err.name === 'AbortError') throw err;
-        // CORS error — retry via proxy (used on GitHub Pages)
-        return await attemptFetch(CORS_PROXY + encodeURIComponent(url), timeout);
+// Each endpoint is tried through these in order until one returns JSON. Direct only works
+// if api.sos.ca.gov sends CORS headers (unconfirmed). The Netlify rewrite is ours and fast.
+// allorigins is a free public proxy, last because it's often slow or down. A timeout or
+// error moves on to the next one instead of giving up.
+// CHECK: Netlify may cache proxied responses that carry an ETag. If results look stale
+// on the Netlify site, that's the first suspect.
+function sourcesFor(endpoint) {
+    const sources = [endpoint];
+    if (endpoint.startsWith(SOS_ORIGIN)) {
+        sources.push(NETLIFY_PROXY + endpoint.slice(SOS_ORIGIN.length));
     }
+    sources.push(CORS_PROXY + encodeURIComponent(endpoint));
+    return sources;
 }
 
 async function tryEndpoints(raceName, endpoints) {
     for (const endpoint of endpoints) {
-        try {
-            console.log('Trying endpoint:', endpoint);
-            const response = await fetchWithTimeout(endpoint);
-
-            if (response.ok) {
+        for (const url of sourcesFor(endpoint)) {
+            try {
+                const response = await attemptFetch(url, FETCH_TIMEOUT);
+                if (!response.ok) {
+                    console.log('Failed:', url, response.status);
+                    continue;
+                }
                 const data = await response.json();
-                console.log('Success:', endpoint);
                 return { success: true, data, endpoint };
-            } else {
-                console.log('Failed:', endpoint, response.status);
+            } catch (err) {
+                console.log('Error:', url, err.name, err.message);
             }
-        } catch (err) {
-            console.log('Error:', endpoint, err.message);
         }
     }
 
@@ -292,6 +305,19 @@ function renderRace(raceName, data) {
 
 // Shape confirmed against the live feed on Nov 3, 2026: { Reporting, ReportingTime,
 // 'ballot-measures': [{ Name, Number: "01", yesVotes, yesPercent, noVotes, noPercent }] }
+// Pairwise, not three-way: 41 and 42 each may conflict with 40, not with each other, and
+// it's for courts to decide whether they do. Per the LAO's analyses of each measure:
+// lao.ca.gov/BallotAnalysis/Proposition?number=42&year=2026 (and number=40, 41)
+const PROP_CONFLICTS = { '40': ['41', '42'], '41': ['40'], '42': ['40'] };
+
+function conflictNote(number) {
+    const others = PROP_CONFLICTS[number];
+    if (!others) return '';
+    return '<div class="top-two-note"><strong>May conflict with ' + others.join(' and ') + ':</strong> ' +
+        (others.length > 1 ? 'if 40 and either one pass' : 'if both pass') +
+        ', courts may apply whichever got more Yes votes.</div>';
+}
+
 function renderMeasure(m) {
     const number = String(parseInt(m.Number, 10) || m.Number || '');
     const name = m.Name || '';
@@ -299,8 +325,10 @@ function renderMeasure(m) {
     const noPct = parsePercent(m.noPercent);
     const yesVotes = m.yesVotes || '0';
     const noVotes = m.noVotes || '0';
-    // CHECK: every Nov 2026 prop is a simple majority on statewide yes/no, right?
-    // Bond and tax measures still pass on 50%+1 at the state level, as far as I know.
+    // Every Nov 2026 prop passes on a simple statewide majority (Cal. Const. art. II §10(a),
+    // art. XVIII §4; LAO: lao.ca.gov/ballotanalysis/propositions). Props 41 and 42 may each
+    // conflict with 40; if a pair both pass, courts may apply the one with more Yes votes
+    // (art. II §10(b)). See PROP_CONFLICTS.
     const yesLeads = parseVotes(yesVotes) > parseVotes(noVotes);
     const noLeads = parseVotes(noVotes) > parseVotes(yesVotes);
 
@@ -324,6 +352,7 @@ function renderMeasure(m) {
         '</div>' +
         row('Yes', yesVotes, yesPct, yesLeads) +
         row('No', noVotes, noPct, noLeads) +
+        conflictNote(number) +
     '</div>';
 }
 
