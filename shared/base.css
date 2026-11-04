@@ -22,7 +22,9 @@
     --blue-dim: rgba(143, 180, 212, 0.12);
     --text: #e8dede;
     --text-bright: #f5eeee;
-    --text-muted: #8a6567;
+    /* Contrast (WCAG 2.x): 5.05:1 on --bg, 4.84 on --bg-card, 4.59 on --bg-elevated.
+       Keep it >= 4.5 on all three and below --text-label (5.42 on --bg-card). */
+    --text-muted: #9c7779;
     --text-label: #9e8283;
     --gold: #d4a96a;
     --gold-dim: rgba(212, 169, 106, 0.12);
