@@ -45,7 +45,25 @@ export const ELECTION = {
         // Pairwise, not three-way: 41 and 42 each may conflict with 40, not with each other, and
         // it's for courts to decide whether they do. Per the LAO's analyses of each measure:
         // lao.ca.gov/BallotAnalysis/Proposition?number=42&year=2026 (and number=40, 41)
-        propConflicts: { '40': ['41', '42'], '41': ['40'], '42': ['40'] }
+        propConflicts: { '40': ['41', '42'], '41': ['40'], '42': ['40'] },
+
+        // Race calls, entered by hand. The SoS never calls races (winners are official at
+        // certification), and AP's call data is paid. Keys are race keys from `sections`
+        // below; props by number. Update `asOf` with each batch.
+        calls: {
+            source: 'Ballotpedia',
+            sourceUrl: 'https://ballotpedia.org/',
+            asOf: 'Nov 4, 1:12 p.m.',
+            races: {
+                governor: 'Xavier Becerra',
+                ltGovernor: 'Fiona Ma',
+                secretary: 'Shirley Weber',
+                attorneyGeneral: 'Rob Bonta',
+                controller: 'Malia Cohen',
+                treasurer: 'Eleni Kounalakis'
+            },
+            props: { '1': 'approved', '2': 'approved', '37': 'approved', '39': 'defeated', '44': 'defeated' }
+        }
     },
 
     measures: {

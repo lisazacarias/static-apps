@@ -45,3 +45,20 @@ test('prop conflicts go both ways, and 41 and 42 only conflict with 40', () => {
 test('turnout is a share, not a percent', () => {
   assert.ok(ELECTION.current.turnout > 0 && ELECTION.current.turnout < 1);
 });
+
+test('hand-entered calls name real races and props, with a source and time', () => {
+  const c = ELECTION.current.calls;
+  assert.ok(c.source && c.asOf && c.sourceUrl.startsWith('https://'));
+  const keys = new Set(races.map(r => r.key));
+  for (const [key, winner] of Object.entries(c.races)) {
+    assert.ok(keys.has(key), key);
+    assert.ok(winner.trim().length > 0, key);
+  }
+  const propNumbers = new Set(measures.map(propNumber));
+  for (const [n, result] of Object.entries(c.props)) {
+    assert.ok(propNumbers.has(n), 'prop ' + n);
+    assert.ok(['approved', 'defeated'].includes(result), 'prop ' + n);
+  }
+  // the source link is a general one: no street address from a personal ballot page
+  assert.ok(!/street=|zip=/.test(c.sourceUrl));
+});
