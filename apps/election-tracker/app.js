@@ -81,56 +81,25 @@ function estimateBallotsCounted(data, raceName) {
     };
 }
 
+// "November 3, 2026, 11:42 p.m." -> "Nov 3, 11:42 p.m." so the line fits on a phone.
+function shortTime(t) {
+    return t.replace(/^([A-Z][a-z]{2})[a-z]*\.? (\d{1,2}), \d{4},? /, '$1 $2, ');
+}
+
+// One slim line per card: the estimate, a thin bar, and when the SoS last updated. The
+// precincts figure goes in the tooltip only: a precinct counts as reported once any one
+// ballot from it is in, so it can read 100% with many ballots still out
+// (electionresults.sos.ca.gov/frequently-asked-questions).
 function renderBallotCountStatus(data, reportingTime, raceName) {
     const ballotInfo = estimateBallotsCounted(data, raceName);
-    const percentCounted = ballotInfo.percentCounted.toFixed(1);
-
-    let statusBadge = '';
-    let statusMessage = '';
-
-    if (ballotInfo.percentCounted < 60) {
-        statusBadge = '<span class="status-badge early-count">Early Count</span>';
-        statusMessage = 'More ballots being counted';
-    } else if (ballotInfo.percentCounted < 90) {
-        statusBadge = '<span class="status-badge counting">Counting Continues</span>';
-        statusMessage = 'More ballots being counted';
-    } else {
-        statusBadge = '<span class="status-badge late-count">Late Count</span>';
-        statusMessage = 'Final ballots being counted';
-    }
-
-    const votesCountedFormatted = ballotInfo.totalVotesCounted.toLocaleString('en-US', {
-        maximumFractionDigits: 0
-    });
-
-    let expectedVotesDisplay;
-    if (ballotInfo.expectedTotalBallots >= 1000000) {
-        expectedVotesDisplay = '~' + (ballotInfo.expectedTotalBallots / 1000000).toFixed(1) + 'M expected votes';
-    } else {
-        expectedVotesDisplay = '~' + (ballotInfo.expectedTotalBallots / 1000).toFixed(0) + 'K expected votes';
-    }
-
-    return '<div class="ballot-count-status">' +
-        '<div class="ballot-count-inner">' +
-            '<div class="ballot-count-pct">~' + percentCounted + '%</div>' +
-            '<div class="ballot-count-labels">' +
-                '<div class="ballot-count-title">Est. ballots counted</div>' +
-                '<div class="ballot-count-sub">' + votesCountedFormatted + ' of ' + expectedVotesDisplay + '</div>' +
-            '</div>' +
-            statusBadge +
-        '</div>' +
-        '<div class="ballot-progress">' +
-            '<div class="ballot-progress-fill" style="width: ' + percentCounted + '%"></div>' +
-        '</div>' +
-        // A precinct counts as reported once any one ballot from it is counted, so this can
-        // read 100% with many ballots still out (electionresults.sos.ca.gov/frequently-asked-questions).
-        // It stays a footnote under the estimate, never the progress number.
-        (data.Reporting ? '<div class="ballot-count-reporting">' +
-            data.Reporting.replace(/precincts reporting/i, 'precincts partially reporting') +
-            ' (any ballot in)</div>' : '') +
-        '<div class="ballot-count-footer">' +
-            statusMessage + ' · Updated ' + (reportingTime || 'recently') +
-        '</div>' +
+    const pct = ballotInfo.percentCounted.toFixed(1);
+    const tooltip = data.Reporting
+        ? ' title="' + data.Reporting.replace(/precincts reporting/i, 'precincts partially reporting') + '"'
+        : '';
+    return '<div class="count-line"' + tooltip + '>' +
+        '<b>~' + pct + '%</b>' +
+        '<div class="count-bar"><i style="width: ' + pct + '%"></i></div>' +
+        '<span>est. counted' + (reportingTime ? ' · SoS ' + shortTime(reportingTime) : '') + '</span>' +
     '</div>';
 }
 
@@ -182,17 +151,17 @@ async function tryEndpoints(raceName, endpoints) {
     return { success: false };
 }
 
-function renderLinkOnlyRace(raceName, ballotpediaUrl = null) {
-    return '<div class="race">' +
-        '<div class="race-header">' +
-            '<div class="race-title">' + raceName + '</div>' +
-        '</div>' +
-        '<p class="race-link-only-text">Results not yet available — view on official sources:</p>' +
-        '<div style="display: flex; gap: 8px; flex-wrap: wrap;">' +
-            '<a href="https://electionresults.sos.ca.gov/" target="_blank" class="link-button">CA Secretary of State →</a>' +
-            (ballotpediaUrl ? '<a href="' + ballotpediaUrl + '" target="_blank" class="link-button ballotpedia">Ballotpedia →</a>' : '') +
-        '</div>' +
+function renderPendingRow(raceName, ballotpediaUrl = null) {
+    return '<div class="pending-row">' +
+        '<span class="pending-name">' + raceName + '</span>' +
+        '<span class="pending-note">no results yet</span>' +
+        '<a href="https://electionresults.sos.ca.gov/" target="_blank">SoS →</a>' +
+        (ballotpediaUrl ? '<a href="' + ballotpediaUrl + '" target="_blank">Ballotpedia →</a>' : '') +
     '</div>';
+}
+
+function renderPendingBlock(rows) {
+    return rows.length ? '<div class="pending">' + rows.join('') + '</div>' : '';
 }
 
 function toggleShowAll(raceId) {
@@ -214,17 +183,68 @@ function toggleShowAll(raceId) {
     }
 }
 
+// Under a 1-point gap counts as too close to call. My own cutoff, not an official rule.
+const TOO_CLOSE_POINTS = 1;
+
+// Generals are top-two runoffs, so nearly every race is two names on one bar. The bar is
+// colored by who's ahead (gold) and who's behind (gray), never by party: Dem-vs-Dem races
+// and nonpartisan offices like Superintendent would otherwise be one color or none.
+// Party stays as the badge.
+function renderHeadToHead(raceName, data, sorted) {
+    const [a, b] = sorted;
+    const va = parseVotes(a.Votes), vb = parseVotes(b.Votes);
+    const total = va + vb;
+    const shareA = total ? va / total * 100 : 0;
+    const shareB = total ? 100 - shareA : 0;
+    const aLeads = va > vb, bLeads = vb > va;
+    const tooClose = total > 0 && Math.abs(parsePercent(a.Percent) - parsePercent(b.Percent)) < TOO_CLOSE_POINTS;
+
+    const name = (c, leads) =>
+        '<span class="' + (leads ? 'lead' : '') + '">' + (c.Name || 'Unknown') +
+            (c.Party ? '<span class="party ' + c.Party + '">' + c.Party + '</span>' : '') +
+            (c.incumbent ? '<span class="incumbent">Incumbent</span>' : '') +
+        '</span>';
+
+    const margin = aLeads || bLeads
+        ? '<div class="h2h-margin">' + (aLeads ? a : b).Name + ' leads by <b>' +
+            Math.abs(va - vb).toLocaleString('en-US') + '</b></div>'
+        : '';
+
+    return '<div class="race h2h">' +
+        '<div class="race-header">' +
+            '<div class="race-title">' + raceName + '</div>' +
+            (tooClose ? '<span class="tag tie">Too close</span>' : '') +
+        '</div>' +
+        renderBallotCountStatus(data, data.ReportingTime || '', raceName) +
+        '<div class="h2h-names">' + name(a, aLeads) + name(b, bLeads) + '</div>' +
+        '<div class="split">' +
+            '<i class="' + (aLeads ? 'lead' : 'trail') + '" style="width: ' + shareA + '%"></i>' +
+            '<i class="' + (bLeads ? 'lead' : 'trail') + '" style="width: ' + shareB + '%"></i>' +
+        '</div>' +
+        '<div class="split-labels">' +
+            '<span class="' + (aLeads ? 'lead' : '') + '">' + (a.Votes || '0') + ' · ' + parsePercent(a.Percent) + '%</span>' +
+            '<span class="' + (bLeads ? 'lead' : '') + '">' + parsePercent(b.Percent) + '% · ' + (b.Votes || '0') + '</span>' +
+        '</div>' +
+        margin +
+    '</div>';
+}
+
 function renderRace(raceName, data) {
     let candidates = data.candidates || [];
     let reportingTime = data.ReportingTime || '';
 
     if (!candidates || candidates.length === 0) {
-        return renderLinkOnlyRace(raceName);
+        return renderPendingBlock([renderPendingRow(raceName)]);
     }
 
     const sortedCandidates = [...candidates].sort((a, b) =>
         parseVotes(b.Votes) - parseVotes(a.Votes)
     );
+
+    // More than two only happens with a qualified write-in; that keeps the full list.
+    if (sortedCandidates.length === 2) {
+        return renderHeadToHead(raceName, data, sortedCandidates);
+    }
 
     const raceId = raceName.replace(/\s+/g, '-').toLowerCase();
     const hasManyCandidates = sortedCandidates.length > CANDIDATES_TO_SHOW;
@@ -313,46 +333,58 @@ const PROP_CONFLICTS = { '40': ['41', '42'], '41': ['40'], '42': ['40'] };
 function conflictNote(number) {
     const others = PROP_CONFLICTS[number];
     if (!others) return '';
-    return '<div class="top-two-note"><strong>May conflict with ' + others.join(' and ') + ':</strong> ' +
+    return '<div class="prop-conflict"><strong>May conflict with ' + others.join(' and ') + ':</strong> ' +
         (others.length > 1 ? 'if 40 and either one pass' : 'if both pass') +
         ', courts may apply whichever got more Yes votes.</div>';
 }
 
+// Short labels for the compact rows. Mine, paraphrasing each official title; the full
+// title is one tap away under each row.
+const PROP_SHORT_NAMES = {
+    '1': 'Housing bond', '2': 'Rainy day fund', '3': 'High-income tax extension',
+    '4': 'Public campaign funding', '5': 'Statewide recall process',
+    '37': 'Middle-income home loans', '38': 'Immunology research bond', '39': 'Voter ID',
+    '40': 'One-time billionaire tax', '41': 'Special-tax audits',
+    '42': 'No new personal property taxes', '43': 'Two-thirds for local taxes',
+    '44': 'Clinic spending rule', '45': 'Environmental review changes'
+};
+
 function renderMeasure(m) {
     const number = String(parseInt(m.Number, 10) || m.Number || '');
-    const name = m.Name || '';
-    const yesPct = parsePercent(m.yesPercent);
-    const noPct = parsePercent(m.noPercent);
-    const yesVotes = m.yesVotes || '0';
-    const noVotes = m.noVotes || '0';
+    const fullName = m.Name || '';
+    const shortName = PROP_SHORT_NAMES[number] ||
+        fullName.replace(/\.\s*(Legislative|Initiative)[^.]*\.?$/, '');
+    const yes = parseVotes(m.yesVotes || '0');
+    const no = parseVotes(m.noVotes || '0');
+    const total = yes + no;
     // Every Nov 2026 prop passes on a simple statewide majority (Cal. Const. art. II §10(a),
     // art. XVIII §4; LAO: lao.ca.gov/ballotanalysis/propositions). Props 41 and 42 may each
     // conflict with 40; if a pair both pass, courts may apply the one with more Yes votes
     // (art. II §10(b)). See PROP_CONFLICTS.
-    const yesLeads = parseVotes(yesVotes) > parseVotes(noVotes);
-    const noLeads = parseVotes(noVotes) > parseVotes(yesVotes);
+    const yesLeads = yes > no;
+    const noLeads = no > yes;
+    const tag = !total ? '<span class="tag tie">No votes yet</span>'
+        : yesLeads ? '<span class="tag yes">Passing</span>'
+        : noLeads ? '<span class="tag no">Failing</span>'
+        : '<span class="tag tie">Tied</span>';
+    const yesShare = total ? yes / total * 100 : 0;
 
-    const row = (label, votes, pct, leading) =>
-        '<div class="candidate ' + (leading ? 'top-candidate' : '') + '">' +
-            '<div class="candidate-info">' +
-                '<div class="candidate-name">' + label + '</div>' +
-                '<div class="votes">' +
-                    '<div class="vote-count">' + votes + '</div>' +
-                    '<div class="vote-percent">' + pct + '%</div>' +
-                '</div>' +
-            '</div>' +
-            '<div class="progress-bar">' +
-                '<div class="progress-fill ' + (leading ? 'leading' : '') + '" style="width: ' + Math.min(pct, 100) + '%"></div>' +
-            '</div>' +
-        '</div>';
-
-    return '<div class="race">' +
-        '<div class="race-header">' +
-            '<div class="race-title">Prop ' + number + (name ? ' — ' + name : '') + '</div>' +
+    return '<div class="prop">' +
+        '<div class="prop-top">' +
+            '<span class="prop-num">' + number + '</span>' +
+            '<span class="prop-name">' + shortName + '</span>' +
+            tag +
         '</div>' +
-        row('Yes', yesVotes, yesPct, yesLeads) +
-        row('No', noVotes, noPct, noLeads) +
+        '<div class="split prop-split">' +
+            '<i class="yes" style="width: ' + yesShare + '%"></i>' +
+            '<i class="no" style="width: ' + (total ? 100 - yesShare : 0) + '%"></i>' +
+        '</div>' +
+        '<div class="split-labels prop-labels">' +
+            '<span class="' + (yesLeads ? 'lead' : '') + '">Yes ' + parsePercent(m.yesPercent) + '%</span>' +
+            '<span class="' + (noLeads ? 'lead' : '') + '">No ' + parsePercent(m.noPercent) + '%</span>' +
+        '</div>' +
         conflictNote(number) +
+        (fullName ? '<details class="prop-full"><summary>Full title</summary><p>' + fullName + '</p></details>' : '') +
     '</div>';
 }
 
@@ -362,14 +394,18 @@ async function fetchMeasureResults() {
 
     const result = await tryEndpoints('State Propositions', RACE_ENDPOINTS.measures);
     const measures = result.success ? (result.data['ballot-measures'] || []) : [];
-    const reporting = result.success && result.data.Reporting
-        ? '<div class="ballot-count-footer">' + result.data.Reporting +
-            (result.data.ReportingTime ? ' · Updated ' + result.data.ReportingTime : '') + '</div>'
-        : '';
-
-    if (measures.length) lastGoodHTML.measures = reporting + measures.map(renderMeasure).join('');
-    replaceSection(container, lastGoodHTML.measures ||
-        renderLinkOnlyRace('State Propositions', 'https://ballotpedia.org/California_2026_ballot_propositions'));
+    if (measures.length) {
+        // Every prop is on every statewide ballot, so the busiest one stands in for turnout.
+        const mostVotes = Math.max(...measures.map(m =>
+            parseVotes(m.yesVotes || '0') + parseVotes(m.noVotes || '0')));
+        const status = renderBallotCountStatus(
+            { candidates: [{ Votes: String(mostVotes) }], Reporting: result.data.Reporting },
+            result.data.ReportingTime || '', 'State Propositions');
+        lastGoodHTML.measures = '<div class="race props">' + status +
+            measures.map(renderMeasure).join('') + '</div>';
+    }
+    replaceSection(container, lastGoodHTML.measures || renderPendingBlock([
+        renderPendingRow('State Propositions', 'https://ballotpedia.org/California_2026_ballot_propositions')]));
 }
 
 // Each race's last good render, so a refresh that fails or times out keeps the
@@ -380,7 +416,7 @@ const lastGoodHTML = {};
 // until the new ones are ready, then swap them in with any expanded
 // "Show all" lists still open.
 function showLoading(container, text) {
-    if (!container.querySelector('.race')) {
+    if (!container.querySelector('.race, .pending')) {
         container.innerHTML = '<div class="loading">' + text + '</div>';
     }
 }
@@ -404,15 +440,18 @@ async function loadSection(containerId, loadingText, races) {
     const results = await Promise.all(races.map(race =>
         tryEndpoints(race.name, RACE_ENDPOINTS[race.key])));
 
-    const html = races.map((race, i) => {
+    const cards = [];
+    const pending = [];
+    races.forEach((race, i) => {
         // An empty candidate list (a glitchy or reset feed) doesn't replace real results.
         if (results[i].success && (results[i].data.candidates || []).length) {
             lastGoodHTML[race.key] = renderRace(race.name, results[i].data);
         }
-        return lastGoodHTML[race.key] || renderLinkOnlyRace(race.name, race.ballotpedia);
+        if (lastGoodHTML[race.key]) cards.push(lastGoodHTML[race.key]);
+        else pending.push(renderPendingRow(race.name, race.ballotpedia));
     });
 
-    replaceSection(container, html.join(''));
+    replaceSection(container, cards.join('') + renderPendingBlock(pending));
 }
 
 function fetchFederalResults() {
