@@ -112,6 +112,10 @@ function renderBallotCountStatus(data, reportingTime, raceName) {
         '<div class="ballot-progress">' +
             '<div class="ballot-progress-fill" style="width: ' + percentCounted + '%"></div>' +
         '</div>' +
+        // The state's own figure, shown as-is next to the estimate above.
+        // CHECK: in an all-mail election, does "precincts reporting" hit 100% on election
+        // night while ballots are still being counted? If so it can't replace the estimate.
+        (data.Reporting ? '<div class="ballot-count-reporting">State feed: ' + data.Reporting + '</div>' : '') +
         '<div class="ballot-count-footer">' +
             statusMessage + ' · Updated ' + (reportingTime || 'recently') +
         '</div>' +
@@ -325,7 +329,7 @@ function renderMeasure(m) {
 
 async function fetchMeasureResults() {
     const container = document.getElementById('measure-races');
-    container.innerHTML = '<div class="loading">⏳ Loading propositions...</div>';
+    showLoading(container, '⏳ Loading propositions...');
 
     const result = await tryEndpoints('State Propositions', RACE_ENDPOINTS.measures);
     const measures = result.success ? (result.data['ballot-measures'] || []) : [];
@@ -334,42 +338,62 @@ async function fetchMeasureResults() {
             (result.data.ReportingTime ? ' · Updated ' + result.data.ReportingTime : '') + '</div>'
         : '';
 
-    container.innerHTML = measures.length
-        ? reporting + measures.map(renderMeasure).join('')
-        : renderLinkOnlyRace('State Propositions', 'https://ballotpedia.org/California_2026_ballot_propositions');
+    if (measures.length) lastGoodHTML.measures = reporting + measures.map(renderMeasure).join('');
+    replaceSection(container, lastGoodHTML.measures ||
+        renderLinkOnlyRace('State Propositions', 'https://ballotpedia.org/California_2026_ballot_propositions'));
 }
 
-async function fetchFederalResults() {
-    const container = document.getElementById('federal-races');
-    container.innerHTML = '<div class="loading">⏳ Loading federal results...</div>';
+// Each race's last good render, so a refresh that fails or times out keeps the
+// results already on screen instead of swapping them for a link-only card.
+const lastGoodHTML = {};
 
-    const races = [
-        { name: 'U.S. House District 14', key: 'house14' }
-    ];
-
-    let racesHTML = [];
-
-    for (const race of races) {
-        const result = await tryEndpoints(race.name, RACE_ENDPOINTS[race.key]);
-
-        if (result.success) {
-            racesHTML.push(renderRace(race.name, result.data));
-        } else {
-            racesHTML.push(renderLinkOnlyRace(
-                race.name,
-                'https://ballotpedia.org/California%27s_14th_Congressional_District_election,_2026'
-            ));
-        }
+// Only the first load shows a spinner. Later refreshes leave the old results up
+// until the new ones are ready, then swap them in with any expanded
+// "Show all" lists still open.
+function showLoading(container, text) {
+    if (!container.querySelector('.race')) {
+        container.innerHTML = '<div class="loading">' + text + '</div>';
     }
-
-    container.innerHTML = racesHTML.join('');
 }
 
-async function fetchStatewideResults() {
-    const container = document.getElementById('statewide-races');
-    container.innerHTML = '<div class="loading">⏳ Loading statewide results...</div>';
+function replaceSection(container, html) {
+    const expanded = Array.from(container.querySelectorAll('[data-race-btn]'))
+        .filter(btn => btn.textContent === 'Show fewer')
+        .map(btn => btn.dataset.raceBtn);
+    container.innerHTML = html;
+    expanded.forEach(raceId => {
+        if (container.querySelector('[data-race-btn="' + raceId + '"]')) toggleShowAll(raceId);
+    });
+}
 
-    const races = [
+// All races in a section are fetched at once, so one slow endpoint costs one
+// timeout rather than holding up every race queued behind it.
+async function loadSection(containerId, loadingText, races) {
+    const container = document.getElementById(containerId);
+    showLoading(container, loadingText);
+
+    const results = await Promise.all(races.map(race =>
+        tryEndpoints(race.name, RACE_ENDPOINTS[race.key])));
+
+    const html = races.map((race, i) => {
+        if (results[i].success) {
+            lastGoodHTML[race.key] = renderRace(race.name, results[i].data);
+        }
+        return lastGoodHTML[race.key] || renderLinkOnlyRace(race.name, race.ballotpedia);
+    });
+
+    replaceSection(container, html.join(''));
+}
+
+function fetchFederalResults() {
+    return loadSection('federal-races', '⏳ Loading federal results...', [
+        { name: 'U.S. House District 14', key: 'house14',
+          ballotpedia: 'https://ballotpedia.org/California%27s_14th_Congressional_District_election,_2026' }
+    ]);
+}
+
+function fetchStatewideResults() {
+    return loadSection('statewide-races', '⏳ Loading statewide results...', [
         { name: 'Governor', key: 'governor' },
         { name: 'Lieutenant Governor', key: 'ltGovernor' },
         { name: 'Secretary of State', key: 'secretary' },
@@ -379,45 +403,16 @@ async function fetchStatewideResults() {
         { name: 'Superintendent of Public Instruction', key: 'superintendent' },
         { name: 'Treasurer', key: 'treasurer' },
         { name: 'Board of Equalization District 2', key: 'equalization2' }
-    ];
-
-    const racesHTML = [];
-
-    for (const race of races) {
-        const result = await tryEndpoints(race.name, RACE_ENDPOINTS[race.key]);
-        racesHTML.push(result.success
-            ? renderRace(race.name, result.data)
-            : renderLinkOnlyRace(race.name));
-    }
-
-    container.innerHTML = racesHTML.join('');
+    ]);
 }
 
-async function fetchLegislativeResults() {
-    const container = document.getElementById('legislative-races');
-    container.innerHTML = '<div class="loading">⏳ Loading legislative results...</div>';
-
-    const races = [
-        { name: 'State Senate District 10', key: 'senate10' },
-        { name: 'State Assembly District 20', key: 'assembly20' }
-    ];
-
-    let racesHTML = [];
-
-    for (const race of races) {
-        const result = await tryEndpoints(race.name, RACE_ENDPOINTS[race.key]);
-
-        if (result.success) {
-            racesHTML.push(renderRace(race.name, result.data));
-        } else {
-            const ballotpediaUrl = race.key === 'senate10'
-                ? 'https://ballotpedia.org/California_State_Senate_District_10'
-                : 'https://ballotpedia.org/California_State_Assembly_District_20';
-            racesHTML.push(renderLinkOnlyRace(race.name, ballotpediaUrl));
-        }
-    }
-
-    container.innerHTML = racesHTML.join('');
+function fetchLegislativeResults() {
+    return loadSection('legislative-races', '⏳ Loading legislative results...', [
+        { name: 'State Senate District 10', key: 'senate10',
+          ballotpedia: 'https://ballotpedia.org/California_State_Senate_District_10' },
+        { name: 'State Assembly District 20', key: 'assembly20',
+          ballotpedia: 'https://ballotpedia.org/California_State_Assembly_District_20' }
+    ]);
 }
 
 function showError(message) {
