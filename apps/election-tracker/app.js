@@ -43,8 +43,10 @@ function estimateBallotsCounted(data, raceName) {
 
     let estimatedRegisteredVoters;
     // Generals turn out far more voters than primaries (this was 0.35 for June).
-    // CHECK: is ~55% of registered a fair guess for Nov 2026? CA's 2022 general was roughly half.
-    let estimatedTurnout = 0.55;
+    // 61% is Political Data's Nov 2026 projection, per CalMatters:
+    // https://calmatters.org/politics/elections/2026/11/live-election-updates/
+    // 2018's midterm hit 64.5% (https://www.sos.ca.gov/administration/news-releases-and-advisories/2018-news-releases-and-advisories/california-secretary-state-certifies-november-2018-general-election-results).
+    let estimatedTurnout = 0.61;
 
     if (raceName && raceName.includes('House District')) {
         estimatedRegisteredVoters = 422557;
