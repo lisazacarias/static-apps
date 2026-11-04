@@ -197,7 +197,9 @@ function renderHeadToHead(raceName, data, sorted) {
     const shareA = total ? va / total * 100 : 0;
     const shareB = total ? 100 - shareA : 0;
     const aLeads = va > vb, bLeads = vb > va;
-    const tooClose = total > 0 && Math.abs(parsePercent(a.Percent) - parsePercent(b.Percent)) < TOO_CLOSE_POINTS;
+    // From the vote counts, not the feed's rounded Percent: 5,049 to 4,951 is a 0.98-point
+    // gap that rounds to 50.5 vs 49.5 and would miss the cutoff.
+    const tooClose = total > 0 && Math.abs(shareA - shareB) < TOO_CLOSE_POINTS;
 
     const name = (c, leads) =>
         '<span class="' + (leads ? 'lead' : '') + '">' + (c.Name || 'Unknown') +
