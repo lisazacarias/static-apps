@@ -284,20 +284,15 @@ function renderRace(raceName, data) {
     '</div>';
 }
 
-// CHECK: field names come from the SoS API docs (v19, a 2025 test sample) — confirm against
-// the live feed. Both spellings are read so a renamed key degrades to a link, not a crash.
-function measureField(m, ...keys) {
-    for (const k of keys) if (m[k] != null) return String(m[k]);
-    return '';
-}
-
+// Shape confirmed against the live feed on Nov 3, 2026: { Reporting, ReportingTime,
+// 'ballot-measures': [{ Name, Number: "01", yesVotes, yesPercent, noVotes, noPercent }] }
 function renderMeasure(m) {
-    const number = measureField(m, 'Number', 'number').replace(/^prop(osition)?\s*/i, '');
-    const name = measureField(m, 'Name', 'name');
-    const yesPct = parsePercent(measureField(m, 'yesPercent', 'YesPercent'));
-    const noPct = parsePercent(measureField(m, 'noPercent', 'NoPercent'));
-    const yesVotes = measureField(m, 'yesVotes', 'YesVotes') || '0';
-    const noVotes = measureField(m, 'noVotes', 'NoVotes') || '0';
+    const number = String(parseInt(m.Number, 10) || m.Number || '');
+    const name = m.Name || '';
+    const yesPct = parsePercent(m.yesPercent);
+    const noPct = parsePercent(m.noPercent);
+    const yesVotes = m.yesVotes || '0';
+    const noVotes = m.noVotes || '0';
     // CHECK: every Nov 2026 prop is a simple majority on statewide yes/no, right?
     // Bond and tax measures still pass on 50%+1 at the state level, as far as I know.
     const yesLeads = parseVotes(yesVotes) > parseVotes(noVotes);
@@ -331,9 +326,13 @@ async function fetchMeasureResults() {
 
     const result = await tryEndpoints('State Propositions', RACE_ENDPOINTS.measures);
     const measures = result.success ? (result.data['ballot-measures'] || []) : [];
+    const reporting = result.success && result.data.Reporting
+        ? '<div class="ballot-count-footer">' + result.data.Reporting +
+            (result.data.ReportingTime ? ' · Updated ' + result.data.ReportingTime : '') + '</div>'
+        : '';
 
     container.innerHTML = measures.length
-        ? measures.map(renderMeasure).join('')
+        ? reporting + measures.map(renderMeasure).join('')
         : renderLinkOnlyRace('State Propositions', 'https://ballotpedia.org/California_2026_ballot_propositions');
 }
 
