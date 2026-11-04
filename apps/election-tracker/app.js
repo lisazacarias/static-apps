@@ -298,6 +298,7 @@ function renderMeasure(m) {
     // CHECK: every Nov 2026 prop is a simple majority on statewide yes/no, right?
     // Bond and tax measures still pass on 50%+1 at the state level, as far as I know.
     const yesLeads = parseVotes(yesVotes) > parseVotes(noVotes);
+    const noLeads = parseVotes(noVotes) > parseVotes(yesVotes);
 
     const row = (label, votes, pct, leading) =>
         '<div class="candidate ' + (leading ? 'top-candidate' : '') + '">' +
@@ -318,7 +319,7 @@ function renderMeasure(m) {
             '<div class="race-title">Prop ' + number + (name ? ' — ' + name : '') + '</div>' +
         '</div>' +
         row('Yes', yesVotes, yesPct, yesLeads) +
-        row('No', noVotes, noPct, !yesLeads && parseVotes(noVotes) > 0) +
+        row('No', noVotes, noPct, noLeads) +
     '</div>';
 }
 
