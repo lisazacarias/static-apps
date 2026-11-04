@@ -488,11 +488,11 @@ test('the shipped show plan loads cleanly', () => {
   assert.ok(ALL_LIGHTS.every((l) => at(117.8)[l].level === 1 && at(117.8)[l].color === '#ffffff'));
   assert.ok(ALL_LIGHTS.every((l) => at(119.9)[l].level === 0));
   // each solo, Quan's layout: her apparatus at full, her half of the stage
-  // at 55%, the other half dark (Raven: 10–12 off; Starfire: 1 and 3–7 off)
+  // at 55%, the rest dark (Raven: loops and backdrop off; Starfire: 1 and 3–7 off)
   assert.equal(at(60)[7].level, 1);
-  assert.ok([1, 2, 3, 4, 5, 6, 8, 9].every((l) => Math.abs(at(60)[l].level - 0.55) < 1e-9), 'the floor at 55%');
-  assert.ok([10, 11, 12].every((l) => at(60)[l].level === 0), '10–12 dark');
-  assert.ok([2, 5, 8, 9].every((l) => at(45)[l].level === 1), '2, 5, 8 and 9 at full early in the solo');
+  assert.ok([1, 2, 3, 4, 5, 6, 8, 9, 12].every((l) => Math.abs(at(60)[l].level - 0.55) < 1e-9), 'the floor at 55%');
+  assert.ok([10, 11].every((l) => at(60)[l].level === 0), 'loops and backdrop dark');
+  assert.ok([2, 5, 8, 9, 12].every((l) => at(45)[l].level === 1), '2, 5, 8, 9 and 12 at full early in the solo');
   assert.ok([10, 11].every((l) => at(100)[l].level === 1));
   assert.ok([2, 8, 9, 12].every((l) => Math.abs(at(100)[l].level - 0.55) < 1e-9), 'her side at 55%, and 2');
   assert.ok([1, 3, 4, 5, 6, 7].every((l) => at(100)[l].level === 0), '1 and 3–7 dark');
