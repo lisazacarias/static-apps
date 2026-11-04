@@ -4,8 +4,8 @@ import {
     lastName, sortByVotes, headToHead, raceGap, propNumber, measureStatus, latestSosTime,
     escapeHtml, escapeFeed, usableFeed, isSameElection, isQuiet, windowActive, monthYear,
     trimPropTitle
-} from './results.js?v=2026-11-04j';
-import { ELECTION } from './election.js?v=2026-11-04j';
+} from './results.js?v=2026-11-04k';
+import { ELECTION } from './election.js?v=2026-11-04k';
 
 let autoRefreshInterval;
 let countdownInterval;
@@ -69,8 +69,17 @@ async function tryEndpoints(endpoints, listKey) {
                 console.log('Failed:', url, response.status);
                 continue;
             }
+            // Reading the body can still fail mid-transfer after a 200; that's a failed source,
+            // not an answer, so it moves on too.
+            let body;
+            try {
+                body = await response.text();
+            } catch (err) {
+                console.log('Error reading:', url, err.name, err.message);
+                continue;
+            }
             let json = null;
-            try { json = await response.json(); } catch { /* blank or HTML: not on the ballot */ }
+            try { json = JSON.parse(body); } catch { /* blank or HTML: not on the ballot */ }
             return usableFeed(json, listKey)
                 ? { status: 'ok', data: escapeFeed(json), endpoint }
                 : { status: 'empty', endpoint };
@@ -341,19 +350,20 @@ async function fetchAll() {
 }
 
 function acceptResults(results) {
-    if (results.measures.status === 'ok') {
-        lastGoodData.measures = results.measures.data;
-        refreshStats.ok++;
-    }
-    ELECTION.sections.forEach((section, s) => section.races.forEach((race, r) => {
-        const result = results.sections[s][r];
-        if (result.status === 'ok') {
-            lastGoodData[race.key] = result.data;
-            refreshStats.ok++;
-        }
-    }));
+    const fresh = [];
+    const keep = (key, result) => {
+        if (result.status !== 'ok') return;
+        lastGoodData[key] = result.data;
+        fresh.push(result.data);
+    };
+    keep('measures', results.measures);
+    ELECTION.sections.forEach((section, s) => section.races.forEach((race, r) =>
+        keep(race.key, results.sections[s][r])));
     newestSos = latestSosTime(Object.values(lastGoodData));
     currentActive = windowActive(ELECTION.current, newestSos, new Date());
+    // Only feeds for the election on screen count toward Live: a stale cached race loading
+    // fine while every current one fails is still Offline.
+    refreshStats.ok = fresh.filter(d => isSameElection(d, newestSos)).length;
 }
 
 function renderMeasures(result) {
