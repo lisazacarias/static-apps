@@ -592,3 +592,8 @@ header {
 
 /* Sections and tabs hide when nothing in them is on the current ballot */
 .section[hidden], .section-tabs a[hidden], .notice[hidden], .local-race-list[hidden] { display: none; }
+
+/* Hand-entered race calls */
+.glance-called { font-size: 12px; color: var(--green); font-weight: 600; }
+.glance-note { margin-top: 8px; font-size: 11.5px; color: var(--text-label); line-height: 1.45; }
+.glance-note a { color: var(--blue); }

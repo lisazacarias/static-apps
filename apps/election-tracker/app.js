@@ -4,8 +4,8 @@ import {
     lastName, sortByVotes, headToHead, raceGap, propNumber, measureStatus, latestSosTime,
     escapeHtml, escapeFeed, usableFeed, isSameElection, isQuiet, windowActive, monthYear,
     trimPropTitle
-} from './results.js?v=2026-11-04k';
-import { ELECTION } from './election.js?v=2026-11-04k';
+} from './results.js?v=2026-11-04l';
+import { ELECTION } from './election.js?v=2026-11-04l';
 
 let autoRefreshInterval;
 let countdownInterval;
@@ -136,7 +136,10 @@ function renderHeadToHead(race, data, sorted) {
             (c.incumbent ? '<span class="incumbent">Incumbent</span>' : '') +
         '</span>';
 
-    const margin = aLeads || bLeads
+    const called = raceCall(race.key);
+    const margin = called
+        ? '<div class="h2h-margin">Called for <b>' + escapeHtml(called) + '</b> · ' + escapeHtml(calls().source) + '</div>'
+        : aLeads || bLeads
         ? '<div class="h2h-margin">' + (aLeads ? a : b).Name + ' leads by <b>' +
             Math.abs(va - vb).toLocaleString('en-US') + '</b></div>'
         : '';
@@ -144,7 +147,8 @@ function renderHeadToHead(race, data, sorted) {
     return '<div class="race h2h">' +
         '<div class="race-header">' +
             '<div class="race-title">' + raceName + '</div>' +
-            (tooClose ? '<span class="tag tie">Too close</span>' : '') +
+            (raceCall(race.key) ? '<span class="tag yes" title="' + escapeHtml(callTitle()) + '">Called</span>'
+                : tooClose ? '<span class="tag tie">Too close</span>' : '') +
         '</div>' +
         renderBallotCountStatus(data, data.ReportingTime || '', race.registered) +
         '<div class="h2h-names">' + name(a, aLeads) + name(b, bLeads) + '</div>' +
@@ -244,6 +248,8 @@ function renderRace(race, data) {
             '<div class="race-title-section">' +
                 '<div class="race-title">' + raceName + '</div>' +
             '</div>' +
+            (raceCall(race.key) ? '<span class="tag yes" title="' + escapeHtml(callTitle()) + '">Called · ' +
+                escapeHtml(raceCall(race.key)) + '</span>' : '') +
             showAllButton +
         '</div>' +
         ballotCountHTML +
@@ -267,7 +273,10 @@ function renderMeasure(m) {
     const shortName = propShortNames()[number] || trimPropTitle(fullName);
     const { total, yesShare, status } = measureStatus(m);
     const yesLeads = status === 'pass', noLeads = status === 'fail';
-    const tag = {
+    const called = propCall(number);
+    const tag = called ? '<span class="tag ' + (called === 'approved' ? 'yes' : 'no') + '" title="' +
+            escapeHtml(callTitle()) + '">' + (called === 'approved' ? 'Approved' : 'Defeated') + '</span>'
+        : {
         none: '<span class="tag tie">No votes yet</span>',
         pass: '<span class="tag yes">Passing</span>',
         fail: '<span class="tag no">Failing</span>',
@@ -307,6 +316,16 @@ let newestSos = '';
 let currentActive = windowActive(ELECTION.current, '', new Date());
 
 const propShortNames = () => currentActive ? ELECTION.current.propShortNames : {};
+
+// Hand-entered calls (ELECTION.current.calls), only while that election is on screen.
+const calls = () => currentActive ? ELECTION.current.calls : null;
+const raceCall = key => (calls() && calls().races[key]) || null;
+const propCall = number => (calls() && calls().props[number]) || null;
+// "as of Nov 4, 1:12 p.m." already ends in a period; don't add a second.
+const sentence = text => String(text).replace(/\.?$/, '.');
+const callTitle = () => 'Called by ' + calls().source + ', ' + sentence('as of ' + calls().asOf) +
+    ' The state doesn\'t call races; results are official at certification.';
+
 const propConflicts = () => currentActive ? ELECTION.current.propConflicts : {};
 
 function onScreen(key) {
@@ -443,7 +462,10 @@ function glanceRace(race) {
     const g = raceGap(lastGoodData[race.key].candidates);
     if (!g) return '';
     const a = g.leader;
-    const result = g.tooClose
+    const called = raceCall(race.key);
+    const result = called
+        ? '<span class="glance-lead">' + escapeHtml(lastName(called)) + '</span> <span class="glance-called">✓ called</span>'
+        : g.tooClose
         ? '<span class="tag tie">Too close</span>'
         : '<span class="glance-lead">' + lastName(a.Name) + (a.Party ? ' (' + a.Party + ')' : '') +
           '</span> <span class="glance-margin">+' + g.gap.toFixed(1) + ' pts</span>';
@@ -460,8 +482,11 @@ function glanceProps() {
         const { status } = measureStatus(m);
         const cls = { pass: 'yes', fail: 'no' }[status] || 'tie';
         // No votes in yet reads as a dash, not a tie, matching the card's "No votes yet".
-        const word = { pass: 'Pass', fail: 'Fail', tie: 'Tie', none: '–' }[status];
-        return '<a class="glance-chip ' + cls + '" href="#prop-' + n + '" title="Prop ' + n + ': ' +
+        const called = propCall(n);
+        const chipCls = called ? (called === 'approved' ? 'yes' : 'no') : cls;
+        const word = called ? (called === 'approved' ? '✓ Yes' : '✓ No')
+            : { pass: 'Pass', fail: 'Fail', tie: 'Tie', none: '–' }[status];
+        return '<a class="glance-chip ' + chipCls + '" href="#prop-' + n + '" title="Prop ' + n + ': ' +
             (propShortNames()[n] || '') + '">' + n + ' <b>' + word + '</b></a>';
     }).join('') + '</div>';
 }
@@ -471,7 +496,12 @@ function renderGlance() {
     const rows = ELECTION.sections.flatMap(section => section.races.map(glanceRace)).join('');
     const props = glanceProps();
     el.hidden = !rows && !props;
-    el.innerHTML = '<div class="glance-title">At a glance</div>' + props + rows;
+    const c = calls();
+    const note = c && (Object.keys(c.races).length || Object.keys(c.props).length)
+        ? '<div class="glance-note">✓ = called by <a href="' + c.sourceUrl + '" target="_blank">' + escapeHtml(c.source) +
+          '</a>, ' + escapeHtml(sentence('as of ' + c.asOf)) + ' The state doesn\'t call races; results are official at certification.</div>'
+        : '';
+    el.innerHTML = '<div class="glance-title">At a glance</div>' + props + rows + note;
 }
 
 // ── Freshness: the state's own update time leads; the badge goes Offline when nothing loads ──
