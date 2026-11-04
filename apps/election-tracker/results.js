@@ -141,3 +141,27 @@ export function latestSosTime(feeds) {
     });
     return bestText;
 }
+
+// ── Escaping ──
+
+const HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+
+export function escapeHtml(text) {
+    return String(text).replace(/[&<>"']/g, ch => HTML_ESCAPES[ch]);
+}
+
+// Every string in a feed response, escaped once as it arrives. The renderers build HTML by
+// string concatenation, and a feed can come through a third-party proxy (allorigins), so
+// nothing from it should reach the page as markup. Doing it here means no renderer can
+// forget. Numbers like "1,234" and times like "November 3, 2026, 11:42 p.m." pass through
+// unchanged, so parsing still works.
+export function escapeFeed(value) {
+    if (typeof value === 'string') return escapeHtml(value);
+    if (Array.isArray(value)) return value.map(escapeFeed);
+    if (value && typeof value === 'object') {
+        const out = {};
+        for (const [k, v] of Object.entries(value)) out[k] = escapeFeed(v);
+        return out;
+    }
+    return value;
+}

@@ -1,9 +1,10 @@
 // Bump this ?v= with the one in index.html: phones cache imported modules too.
 import {
     FETCH_TIMEOUT, parseVotes, parsePercent, estimateBallotsCounted, shortTime, sourcesFor,
-    lastName, sortByVotes, headToHead, raceGap, propNumber, measureStatus, latestSosTime
-} from './results.js?v=2026-11-04g';
-import { ELECTION } from './election.js?v=2026-11-04g';
+    lastName, sortByVotes, headToHead, raceGap, propNumber, measureStatus, latestSosTime,
+    escapeHtml, escapeFeed
+} from './results.js?v=2026-11-04h';
+import { ELECTION } from './election.js?v=2026-11-04h';
 
 const PROP_SHORT_NAMES = ELECTION.propShortNames;
 const PROP_CONFLICTS = ELECTION.propConflicts;
@@ -54,7 +55,7 @@ async function tryEndpoints(raceName, endpoints) {
                     console.log('Failed:', url, response.status);
                     continue;
                 }
-                const data = await response.json();
+                const data = escapeFeed(await response.json());
                 return { success: true, data, endpoint };
             } catch (err) {
                 console.log('Error:', url, err.name, err.message);
@@ -398,7 +399,7 @@ function updateFreshness() {
 
 function showError(message) {
     const container = document.getElementById('error-container');
-    container.innerHTML = '<div class="error">⚠️ ' + message + '</div>';
+    container.innerHTML = '<div class="error">⚠️ ' + escapeHtml(message) + '</div>';
     setTimeout(function() {
         container.innerHTML = '';
     }, 8000);
