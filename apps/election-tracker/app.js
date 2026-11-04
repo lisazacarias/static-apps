@@ -376,7 +376,8 @@ async function loadSection(containerId, loadingText, races) {
         tryEndpoints(race.name, RACE_ENDPOINTS[race.key])));
 
     const html = races.map((race, i) => {
-        if (results[i].success) {
+        // An empty candidate list (a glitchy or reset feed) doesn't replace real results.
+        if (results[i].success && (results[i].data.candidates || []).length) {
             lastGoodHTML[race.key] = renderRace(race.name, results[i].data);
         }
         return lastGoodHTML[race.key] || renderLinkOnlyRace(race.name, race.ballotpedia);
