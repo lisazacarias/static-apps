@@ -41,13 +41,16 @@ function load(key, normalize) {
   try { return normalize(JSON.parse(localStorage.getItem(key))); } catch { return normalize(null); }
 }
 
+// → whether it was written.
 function save(key, value) {
-  try { localStorage.setItem(key, JSON.stringify(value)); }
-  catch { notify('Couldn’t save — this browser’s storage is full or blocked.', true); }
+  try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+  catch { notify('Couldn’t save — this browser’s storage is full or blocked.', true); return false; }
 }
 export const saveLog = () => save(LOG_KEY, log);
 const saveWeeks = () => save(WEEKS_KEY, weeks);
 const saveMeasures = () => save(MEASURES_KEY, measures);
+// A check saved, deleted or restored: stamp it so the backup reminder sees it.
+const changeMeasures = (next) => { measures = { ...next, updated: Date.now() }; return saveMeasures(); };
 
 function setWeek(monday, week) {
   weeks.weeks[monday] = normalizeWeek(week, SESSION_IDS);
@@ -598,8 +601,7 @@ $('view').addEventListener('click', (ev) => {
   if (t.id === 'backupBtn') downloadBackup();
   if (t.id === 'measureLater') { measures.snooze = Date.now() + 7 * 86400000; saveMeasures(); render(true); }
   if (t.dataset.delmeasure && confirm(`Delete the progress check from ${fmtDay(fromYmd(t.dataset.delmeasure))}?`)) {
-    measures.entries = measures.entries.filter((e) => e.date !== t.dataset.delmeasure);
-    saveMeasures();
+    changeMeasures({ ...measures, entries: measures.entries.filter((e) => e.date !== t.dataset.delmeasure) });
     render(true);
   }
   if (t.id === 'backupLater') { backup.snooze = Date.now() + 7 * 86400000; save(BACKUP_KEY, backup); render(true); }
@@ -694,7 +696,7 @@ function historyView() {
       <span class="progress">${entries.filter(([, e]) => e.done).length} sessions done</span>
       <span class="row"><button id="backupBtn" class="btn" type="button">Download backup</button><button id="restoreBtn" class="btn" type="button">Restore backup</button></span>
     </div>
-    <a class="card progress-link" href="#progress"><div class="spread"><h2>Progress check</h2><span class="chip${measureDue(measures, Date.now()) ? ' started">Due' : ' done">Up to date'}</span></div>
+    <a class="card progress-link" href="#progress"><div class="spread"><h2>Progress check</h2><span class="chip${measureDue({ ...measures, snooze: undefined }, Date.now()) ? ' started">Due' : ' done">Up to date'}</span></div>
       <p class="meta">${measures.entries.length ? `Last measured ${esc(fmtDay(fromYmd(measures.entries.at(-1).date)))} · ${measures.entries.length} check${measures.entries.length === 1 ? '' : 's'}` : 'Every 4 weeks: splits, bridge and shoulders.'}</p></a>
     <p class="tiny muted">${backup.at ? `Last backup ${esc(fmtDay(new Date(backup.at)))}.` : 'No backup downloaded yet.'} Your log lives only in this browser.${standalone() ? '' : ` ${HOME_TIP}`}</p>`;
   if (!entries.length) return `${html}<p class="muted">Nothing logged yet. Open a session from the Week or Sessions tab and tick things off.</p>`;
@@ -725,15 +727,14 @@ const fmtNum = (v) => (Number.isInteger(v) ? String(v) : v.toFixed(1));
 
 function progressView() {
   const trend = measureTrend(measures);
-  const first = measures.entries[0];
   let html = `<p class="progress"><a href="#history">‹ History</a></p>
     <h2 class="title">Progress check</h2>
     <p class="about">${rich(ROUTINE.guide.progressLog)}</p>`;
   if (Object.keys(trend).length) {
-    html += `<div class="card"><p class="form-h">Since ${esc(fmtDay(fromYmd(first.date)))}</p><ul class="trend">${MEASURES.filter((m) => trend[m.id]).map((m) => {
+    html += `<div class="card"><p class="form-h">Since you first measured</p><ul class="trend">${MEASURES.filter((m) => trend[m.id]).map((m) => {
       const t = trend[m.id];
       const sign = t.change > 0 ? '+' : t.change < 0 ? '−' : '';
-      return `<li class="${t.better === true ? 'up' : t.better === false ? 'down' : ''}">${esc(m.label)}: ${fmtNum(t.first)} → ${fmtNum(t.last)} ${m.unit} <b>(${sign}${fmtNum(Math.abs(t.change))})</b></li>`;
+      return `<li class="${t.better === true ? 'up' : t.better === false ? 'down' : ''}">${esc(m.label)}: ${fmtNum(t.first)} → ${fmtNum(t.last)} ${m.unit} <b>(${sign}${fmtNum(Math.abs(t.change))})</b> <span class="tiny muted">since ${esc(fmtShort(fromYmd(t.since)))}</span></li>`;
     }).join('')}</ul></div>`;
   }
   html += `<form id="measureForm" class="card measure-form">
@@ -764,10 +765,17 @@ $('view').addEventListener('submit', (ev) => {
   for (const m of MEASURES) { const v = f.get(m.id); if (v !== '' && v != null) values[m.id] = Number(v); }
   const date = $('mDate').value;
   if (!Object.keys(values).length) { notify('Fill in at least one measurement.', true); return; }
-  // Same date again replaces that day's check.
-  measures = normalizeMeasures({ ...measures, snooze: undefined, entries: [...measures.entries.filter((e) => e.date !== date), { date, values, note: f.get('note') || '' }] });
-  saveMeasures();
-  notify('Progress check saved.');
+  // Same date again adds to that day's check: what you entered now wins,
+  // and anything you left blank keeps its earlier value.
+  const prev = measures;
+  const old = measures.entries.find((e) => e.date === date);
+  const note = String(f.get('note') || '').trim() ? f.get('note') : old?.note || '';
+  const entry = { date, values: { ...old?.values, ...values }, note };
+  if (!changeMeasures(normalizeMeasures({ ...measures, snooze: undefined, entries: [...measures.entries.filter((e) => e.date !== date), entry] }))) {
+    measures = prev; // not written: keep the form as it is so nothing's lost
+    return;
+  }
+  notify(old ? `Added to the check from ${fmtDay(fromYmd(date))}.` : 'Progress check saved.');
   render();
 });
 
@@ -785,7 +793,7 @@ const HOME_TIP = `Adding Flex Training to your home screen helps keep it: Safari
 
 // The reminder at the top of the Week tab when a backup is due.
 function backupNote() {
-  const due = backupDue(log, backup, Date.now());
+  const due = backupDue(log, backup, Date.now(), [measures.updated]);
   if (!due) return '';
   const ago = due.days < 21 ? `${due.days} days ago` : `${Math.round(due.days / 7)} weeks ago`;
   return `<div class="info-box backup-note">
@@ -821,7 +829,7 @@ $('backupFile').addEventListener('change', async (ev) => {
     for (const [k, w] of Object.entries(incomingWeeks.weeks)) if (!isPlanned(weeks.weeks[k])) weeks.weeks[k] = w;
     const have = new Set(measures.entries.map((e) => e.date));
     const checks = normalizeMeasures(raw.measures).entries.filter((e) => !have.has(e.date));
-    measures = normalizeMeasures({ ...measures, entries: [...measures.entries, ...checks] });
+    if (checks.length) measures = { ...normalizeMeasures({ ...measures, entries: [...measures.entries, ...checks] }), updated: Date.now() };
     saveLog();
     saveWeeks();
     saveMeasures();

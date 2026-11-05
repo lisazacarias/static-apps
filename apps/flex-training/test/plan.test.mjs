@@ -610,6 +610,9 @@ test('a backup reminder shows when changes are BACKUP_DAYS old and not backed up
   assert.equal(backupDue(log(95 * DAY), { at: (100 - BACKUP_DAYS + 1) * DAY }, now), null, 'backup not old enough yet');
   assert.equal(backupDue(log(80 * DAY), { snooze: now + DAY }, now), null, 'snoozed');
   assert.ok(backupDue(log(80 * DAY), { snooze: now - DAY }, now), 'snooze over');
+  // Other changes (progress checks) count too, even with no session change.
+  assert.deepEqual(backupDue(log(70 * DAY), { at: 75 * DAY }, now, [90 * DAY]), { days: 25, never: false }, 'a check saved after the backup');
+  assert.equal(backupDue(log(70 * DAY), { at: 75 * DAY }, now, [undefined]), null, 'no checks');
 });
 
 test('progress checks keep good entries, one per date, oldest first', () => {
@@ -619,8 +622,8 @@ test('progress checks keep good entries, one per date, oldest first', () => {
     { date: '2026-10-01', values: { frontRight: 15, frontLeft: 18 } },
     { date: '2026-10-15', values: { frontRight: 'x' } },
     { date: '2026-11-01', values: { frontLeft: 16 } },
-  ], snooze: 5 });
-  assert.deepEqual(m, { version: 1, snooze: 5, entries: [
+  ], snooze: 5, updated: 7 });
+  assert.deepEqual(m, { version: 1, snooze: 5, updated: 7, entries: [
     { date: '2026-10-01', values: { frontRight: 15, frontLeft: 18 }, note: '' },
     { date: '2026-11-01', values: { frontLeft: 16 }, note: '' },
   ] });
@@ -644,8 +647,15 @@ test('progress trend compares the latest check with the first, in the right dire
     { date: '2026-11-01', values: { frontRight: 11, middle: 138, bridge: 30, shoulder: 4 } },
   ] });
   assert.deepEqual(measureTrend(m), {
-    frontRight: { first: 15, last: 11, change: -4, better: true },
-    middle: { first: 140, last: 138, change: -2, better: false },
-    bridge: { first: 30, last: 30, change: 0, better: null },
+    frontRight: { first: 15, last: 11, since: '2026-09-01', change: -4, better: true },
+    middle: { first: 140, last: 138, since: '2026-09-01', change: -2, better: false },
+    bridge: { first: 30, last: 30, since: '2026-09-01', change: 0, better: null },
   });
+  // A measure first taken in a later check dates from that check.
+  const late = normalizeMeasures({ entries: [
+    { date: '2026-09-01', values: { frontRight: 15 } },
+    { date: '2026-10-01', values: { frontRight: 14, shoulder: 6 } },
+    { date: '2026-11-01', values: { shoulder: 4 } },
+  ] });
+  assert.equal(measureTrend(late).shoulder.since, '2026-10-01');
 });
