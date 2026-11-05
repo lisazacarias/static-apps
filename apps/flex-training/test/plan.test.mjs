@@ -528,7 +528,8 @@ test('every movement has one form description, and every description a movement'
     const f = FORM[key];
     assert.ok(f, `no form notes for ${key}`);
     assert.ok(Array.isArray(f.steps) && f.steps.length, key);
-    for (const k of Object.keys(f)) assert.ok(['guess', 'note', 'fromPlan', 'intro', 'setup', 'steps', 'cues', 'avoid'].includes(k), `${key}.${k}`);
+    for (const k of Object.keys(f)) assert.ok(['guess', 'note', 'fromPlan', 'intro', 'setup', 'steps', 'cues', 'avoid', 'sources'].includes(k), `${key}.${k}`);
+    for (const src of f.sources || []) assert.ok(src.label && /^https:\/\//.test(src.url), `${key} source`);
   }
   for (const key of Object.keys(FORM)) assert.ok(keys.includes(key), `form notes for unknown movement ${key}`);
 });

@@ -449,6 +449,7 @@ export function formHtml(f, compact = false) {
     <ol>${f.steps.map((x) => `<li>${esc(x)}</li>`).join('')}</ol>
     ${f.cues?.length ? `<p class="form-h">Cues</p><ul>${f.cues.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
     ${f.avoid?.length ? `<p class="form-h">Avoid</p><ul class="avoid">${f.avoid.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+    ${f.sources?.length ? `<p class="tiny muted">Checked against: ${f.sources.map((x) => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.label)}</a>`).join(' · ')}</p>` : ''}
     ${compact ? '' : `<p class="tiny muted">${f.guess ? 'Best guess: your calendar only gives the name.' : f.fromPlan ? 'From the cues in your Flex Training calendar.' : 'Standard technique, not from your calendar.'} The plan’s times and reps below are what to follow.</p>`}
   </div>`;
 }
