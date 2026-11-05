@@ -54,6 +54,9 @@ export const SESSION_REGION = {
 //   class:   { id, time 'HH:MM'|'', hours, load, double }; a bare id string
 //            is read as one with no time and the type's defaults
 //   session: { id, time 'HH:MM'|'' }
+// The change times kept on a stored object, when they're numbers.
+const stamps = (raw) => Object.fromEntries(['updated', 'first'].filter((k) => Number.isFinite(raw?.[k])).map((k) => [k, raw[k]]));
+
 export function normalizeWeeks(raw, sessionIds = null) {
   const weeks = {};
   const src = raw && typeof raw === 'object' && raw.weeks && typeof raw.weeks === 'object' ? raw.weeks : {};
@@ -61,8 +64,9 @@ export function normalizeWeeks(raw, sessionIds = null) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(monday) || !w || typeof w !== 'object') continue;
     weeks[monday] = normalizeWeek(w, sessionIds);
   }
-  // updated (ms): last time a week was planned or edited, for backupDue.
-  return { version: 1, weeks, ...(Number.isFinite(raw?.updated) ? { updated: raw.updated } : {}) };
+  // updated / first (ms): latest and earliest time a week was planned or
+  // edited, for backupDue.
+  return { version: 1, weeks, ...stamps(raw) };
 }
 
 const isTime = (t) => typeof t === 'string' && /^\d{2}:\d{2}$/.test(t);
@@ -704,7 +708,7 @@ export function normalizeLog(raw) {
 // changed since the last backup and that backup (or, if you've never made
 // one, your first logged session) is BACKUP_DAYS old, unless you snoozed
 // it. `also` adds other change times (the planned weeks' and progress
-// checks' updated).
+// checks' first and updated).
 // → null, or { days since that point, never: no backup yet }
 export const BACKUP_DAYS = 14;
 const DAY_MS = 86400000;
@@ -737,7 +741,8 @@ export const MEASURE_DAYS = 28;
 
 // flex-training:measures → { version: 1, entries: [{ date 'YYYY-MM-DD',
 // values: { [MEASURES id]: number }, note }] (oldest first), snooze? (ms),
-// updated? (ms, last time a check was saved, deleted or restored) }.
+// updated? / first? (ms, latest and earliest time a check was saved,
+// deleted or restored) }.
 // One entry per date; an entry with no values is dropped.
 export function normalizeMeasures(raw) {
   const byDate = new Map();
@@ -755,7 +760,7 @@ export function normalizeMeasures(raw) {
   return {
     version: 1, entries,
     ...(Number.isFinite(raw?.snooze) ? { snooze: raw.snooze } : {}),
-    ...(Number.isFinite(raw?.updated) ? { updated: raw.updated } : {}),
+    ...stamps(raw),
   };
 }
 

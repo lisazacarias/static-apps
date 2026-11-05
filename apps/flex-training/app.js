@@ -49,12 +49,20 @@ function save(key, value) {
 export const saveLog = () => save(LOG_KEY, log);
 const saveWeeks = () => save(WEEKS_KEY, weeks);
 const saveMeasures = () => save(MEASURES_KEY, measures);
+// Mark a change for the backup reminder: updated is the latest, first the
+// earliest. With no backup yet the first reminder ages from first, so
+// editing every week doesn't keep pushing it back.
+function stamp(o) {
+  o.updated = Date.now();
+  if (!Number.isFinite(o.first)) o.first = o.updated;
+  return o;
+}
 // A check saved, deleted or restored: stamp it so the backup reminder sees it.
-const changeMeasures = (next) => { measures = { ...next, updated: Date.now() }; return saveMeasures(); };
+const changeMeasures = (next) => { measures = stamp({ ...next }); return saveMeasures(); };
 
 function setWeek(monday, week) {
   weeks.weeks[monday] = normalizeWeek(week, SESSION_IDS);
-  weeks.updated = Date.now(); // so the backup reminder sees it
+  stamp(weeks); // so the backup reminder sees it
   saveWeeks();
 }
 
@@ -794,7 +802,7 @@ const HOME_TIP = `Adding Flex Training to your home screen helps keep it: Safari
 
 // The reminder at the top of the Week tab when a backup is due.
 function backupNote() {
-  const due = backupDue(log, backup, Date.now(), [weeks.updated, measures.updated]);
+  const due = backupDue(log, backup, Date.now(), [weeks.first, weeks.updated, measures.first, measures.updated]);
   if (!due) return '';
   const ago = due.days < 21 ? `${due.days} days ago` : `${Math.round(due.days / 7)} weeks ago`;
   return `<div class="info-box backup-note">
@@ -827,10 +835,15 @@ $('backupFile').addEventListener('change', async (ev) => {
     for (const [k, e] of Object.entries(incoming.entries)) {
       if (!log.entries[k] || log.entries[k].updated <= e.updated) { log.entries[k] = e; n++; }
     }
-    for (const [k, w] of Object.entries(incomingWeeks.weeks)) if (!isPlanned(weeks.weeks[k])) { weeks.weeks[k] = w; if (isPlanned(w)) weeks.updated = Date.now(); }
+    for (const [k, w] of Object.entries(incomingWeeks.weeks)) {
+      if (isPlanned(weeks.weeks[k])) continue;
+      // Any change counts, a deload override alone included.
+      if (JSON.stringify(weeks.weeks[k] || emptyWeek()) !== JSON.stringify(w)) stamp(weeks);
+      weeks.weeks[k] = w;
+    }
     const have = new Set(measures.entries.map((e) => e.date));
     const checks = normalizeMeasures(raw.measures).entries.filter((e) => !have.has(e.date));
-    if (checks.length) measures = { ...normalizeMeasures({ ...measures, entries: [...measures.entries, ...checks] }), updated: Date.now() };
+    if (checks.length) measures = stamp(normalizeMeasures({ ...measures, entries: [...measures.entries, ...checks] }));
     saveLog();
     saveWeeks();
     saveMeasures();
