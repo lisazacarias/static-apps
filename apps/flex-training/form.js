@@ -11,6 +11,8 @@
 //   fromPlan: taken from the cues in the Flex Training calendar events;
 //             otherwise it's standard technique
 //   intro:    a line before the steps, e.g. "Choose one of these three."
+//   sources:  [{ label, url }] where the description was checked against
+//             a coach's or physio's write-up
 
 export default {
   '90 90 hip rotations': {
@@ -215,13 +217,19 @@ export default {
     cues: ['Big, controlled movement; this is a warm-up, not a stretch.'],
   },
   'hip extension end range strength': {
-    guess: 'Your calendar has no description for this one. Step 2 is my best reading of “front-split back-leg lifts at the pole.”',
+    guess: 'Your calendar has no description for this one. Step 2 is my best reading of “front-split back-leg lifts at the pole”: a low lunge holding the pole, as in common front-split drills.',
     steps: [
       'Kneeling lunge: back knee on the floor. Squeeze the back-leg glute and lift that knee 1 to 2 cm off the floor. Hold 5 seconds, lower.',
-      'Front-split back-leg lifts: face the pole holding it with both hands. Step one foot back into a long lunge, back leg straight with the toes on the floor. Lift the back leg as high as you can control, pause for 2 seconds, lower slowly. Do all the reps on one leg, then switch.',
+      'Front-split back-leg lifts: get into a low lunge with the front foot beside the pole and hold the pole with one or both hands. Tuck the back toes and lift the back knee off the floor by straightening that leg, keeping your hips as low as you can. Lower the knee slowly.',
+      'If that’s easy, keep the back leg straight and lift the back foot 2 to 5 cm off the floor instead, without letting the hips tip forward.',
     ],
-    cues: ['The lift comes from the glute and back of the hip, not by arching the lower back.', 'Small range is fine; this is strength at the end of your range.'],
-    avoid: ['Twisting the hips open to get the leg higher'],
+    cues: ['Torso tall and hips square to the front; the lift comes from the glute where the thigh meets the bum.', 'Small range is fine; this is strength at the end of your range.'],
+    avoid: ['Letting the hips rise or the lower back arch to get the leg up', 'Twisting the hips open, or letting the back foot turn out'],
+    sources: [
+      { label: 'Low-lunge back-leg lifts (Dani Winks Flexibility)', url: 'https://www.daniwinksflexibility.com/bendy-blog/4-active-flexibility-drills-to-strengthen-your-front-splits' },
+      { label: 'Standing back-leg lifts: an inch or two, hips still (Dani Winks Flexibility)', url: 'https://www.daniwinksflexibility.com/flexopedia/standing-back-leg-lifts' },
+      { label: 'End-range back-leg glute lifts for pole (The Pole PT)', url: 'https://www.thepolept.com/strength-for-pole/splitty-and-strong-front-splits-for-pole/' },
+    ],
   },
   'hyperflexion cars with band': {
     note: 'Your calendar describes this with the band held in both hands, so that is how it is written here. If you do one arm at a time, tell me.',
@@ -359,15 +367,19 @@ export default {
     cues: ['Small and precise beats big and sloppy.'],
   },
   'segmental spinal waves': {
-    guess: 'Your calendar only gives the name. This is a standing body wave, which is different from the cat-cow done just before it.',
-    setup: 'Stand with feet hip-width, knees soft.',
+    guess: 'Your calendar only gives the name. This is the standing body wave; the cat-cow just before it already covers the hands-and-knees version.',
+    setup: 'Stand with feet hip-width apart and knees soft. Rest your hands on your thighs, or lightly on the pole or a wall for balance.',
     steps: [
-      'Start the wave at the top: drop the chin, then let it roll down through the chest, ribs, waist and finally the pelvis.',
-      'Reverse it, leading from the pelvis back up to the head.',
-      'Keep the waves slow and try to move one section at a time.',
+      'Start at the top: tuck the chin and let the rounding roll down through the upper back, mid-back and lower back, until the pelvis tucks under.',
+      'Reverse it from the bottom: tip the pelvis forward and let the arch travel up through the lower back, ribs and chest, with the head coming up last.',
+      'Keep it slow and continuous, like a wave travelling along a rope, and keep alternating for the time given.',
     ],
-    cues: ['Think of moving each vertebra in turn, especially through the upper back.'],
-    avoid: ['Moving the whole spine as one block'],
+    cues: ['Find the stiff section that wants to move as one block, usually between the shoulder blades, and slow down there.', 'Bend the knees a little more as the wave passes the hips.'],
+    avoid: ['Moving the whole spine in one piece', 'Throwing the head back hard at the top of the arch'],
+    sources: [
+      { label: 'Standing spinal waves, one vertebra at a time (Wellls)', url: 'https://wellls.com/exercises/standing-spinal-waves' },
+      { label: 'Spinal undulation, standing, sitting or on all fours (Brian Esty, LMT)', url: 'https://www.brianesty.com/bodywork/2011/04/undulation/' },
+    ],
   },
   'shoulder cars': {
     setup: 'Stand tall, ribs down, one arm by your side. Make a fist and tense the rest of the body a little to keep it still.',
@@ -432,14 +444,20 @@ export default {
     cues: ['Let gravity do it; keep both shoulders as close to the floor as is comfortable.'],
   },
   'supported anterior chain opener on roller': {
-    guess: 'Your calendar only gives the name. This is the common version: lying back along a foam roller to open the chest, shoulders and front of the hips.',
-    setup: 'Sit at one end of a foam roller and lie back along it so it supports your head and spine, tailbone on the end. Knees bent, feet flat.',
+    guess: 'Your calendar only gives the name. This is the lengthwise version; a roller under the sacrum for a hip-flexor stretch is the other common reading, but the two stretches before it already cover the hip flexors.',
+    setup: 'Sit at one end of a foam roller and lie back along it so it supports your pelvis, spine and head. Knees bent, feet flat, arms on the floor by your sides, palms up.',
     steps: [
-      'Let the arms fall open to the sides, palms up, in a T or goal-post shape.',
-      'For more front-of-hip stretch, slide one or both legs out straight.',
-      'Breathe and let the chest and front of the shoulders open.',
+      'Let the arms fall open into a T or goal-post shape and breathe for a few breaths.',
+      'Slowly slide the arms overhead along the floor, only as far as the backs of the hands can stay close to it.',
+      'For more front-of-hip stretch, slide one or both legs out long along the floor.',
+      'Stay and breathe, letting the chest, shoulders and front of the hips soften.',
     ],
-    avoid: ['Forcing the arms to the floor'],
+    cues: ['Keep the ribs down: the arms and chest open, not the lower back arching off the roller.', 'A strong stretch across the chest is fine; a pinch in the front of the shoulder isn’t.'],
+    avoid: ['Forcing the hands to the floor', 'Letting the ribs flare to get the arms further back'],
+    sources: [
+      { label: 'Lengthwise on the roller, arms sweeping overhead (Custom Pilates and Yoga)', url: 'https://www.custompilatesandyoga.com/snow-angels-exercise/' },
+      { label: 'Foam roller angels, hands staying near the floor (Therapeutic Associates PT)', url: 'https://www.therapeuticassociates.com/foam-rolling-for-better-back-health/' },
+    ],
   },
   'supported split descents': {
     fromPlan: true,
@@ -542,14 +560,19 @@ export default {
     avoid: ['Rolling onto the neck'],
   },
   'wall clocks': {
-    guess: 'Your calendar gives the clock positions and “press firmly,” but no setup. This is the common version: an isometric press with the arm straight, facing the wall.',
-    setup: 'Stand facing a wall, an arm’s length away. Arm straight out in front of you, palm flat on the wall.',
+    guess: 'Your calendar gives the clock positions and “press firmly,” but no setup. Most sources move the hand round the clock; a 30-second press at each position is my reading of your plan.',
+    setup: 'Stand facing a wall, about an arm’s length away. Put one hand flat on the wall at shoulder height, arm straight but elbow not locked. Picture a small clock face around that hand.',
     steps: [
-      'Start with the hand at 12 o’clock (straight up the wall). Press the palm firmly into the wall for 30 seconds. “Firmly” means a strong, steady push, not your maximum.',
-      'Move the hand to 3, 6 and 9 o’clock in turn, pressing for 30 seconds at each.',
-      'Then go round the other way, and switch arms.',
+      'Move the hand a hand’s length up to 12 o’clock and press it firmly into the wall for 30 seconds: a strong, steady push, not your maximum.',
+      'Move to 3, 6 and 9 o’clock in turn, pressing for 30 seconds at each.',
+      'Go round the other way (12, 9, 6, 3), then switch arms and repeat.',
     ],
-    cues: ['Shoulder down away from the ear; ribs down.'],
+    cues: ['Shoulder blade slightly back and down, away from the ear, the whole time.', 'Ribs down and body still; only the arm changes position.'],
+    avoid: ['Shrugging as the hand goes to 12', 'Letting the shoulder blade wing or the chest sag towards the wall'],
+    sources: [
+      { label: 'Scapula clocks: shoulder blades set while the arm moves round (Peak Physio)', url: 'https://www.peak-physio.com.au/exercise/scapula-clocks/' },
+      { label: 'Wall clocks for the rotator cuff, from climbing (Moja Gear)', url: 'https://mojagear.com/wall-clocks-a-simple-exercise-to-strengthen-your-rotator-cuff/' },
+    ],
   },
   'wall slides': {
     fromPlan: true,
