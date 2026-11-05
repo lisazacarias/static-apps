@@ -702,11 +702,12 @@ export function normalizeLog(raw) {
 // record { at?, snooze? } (ms timestamps) and now. Due when something
 // changed since the last backup and that backup (or, if you've never made
 // one, your first logged session) is BACKUP_DAYS old, unless you snoozed
-// it. → null, or { days since that point, never: no backup yet }
+// it. `also` adds other change times (the progress checks' updated).
+// → null, or { days since that point, never: no backup yet }
 export const BACKUP_DAYS = 14;
 const DAY_MS = 86400000;
-export function backupDue(log, backup, now) {
-  const times = Object.values(log.entries).map((e) => e.updated).filter((t) => t > 0);
+export function backupDue(log, backup, now, also = []) {
+  const times = [...Object.values(log.entries).map((e) => e.updated), ...also].filter((t) => Number.isFinite(t) && t > 0);
   if (!times.length) return null;
   const at = Number.isFinite(backup?.at) ? backup.at : 0;
   if (at && Math.max(...times) <= at) return null;
@@ -714,6 +715,72 @@ export function backupDue(log, backup, now) {
   const since = at || Math.min(...times);
   const days = Math.floor((now - since) / DAY_MS);
   return days >= BACKUP_DAYS ? { days, never: !at } : null;
+}
+
+/* ── progress check ──────────────────────────────────────────────────── */
+
+// The plan's progress log (guide.progressLog): every 4 weeks, measured cold
+// at the same time of day. better says which way is progress.
+// CHECK: which point does "front-split height from the floor" measure
+// (front of the pelvis?), and is shoulder flexion better as wrist height
+// off the floor or as an angle?
+export const MEASURES = [
+  { id: 'frontRight', label: 'Front split, right leg forward', unit: 'cm', better: 'lower', hint: 'Lowest point of the pelvis to the floor.' },
+  { id: 'frontLeft', label: 'Front split, left leg forward', unit: 'cm', better: 'lower', hint: 'Lowest point of the pelvis to the floor.' },
+  { id: 'middle', label: 'Middle split width', unit: 'cm', better: 'higher', hint: 'Heel to heel.' },
+  { id: 'bridge', label: 'Bridge, hands to heels', unit: 'cm', better: 'lower', hint: 'Fingertips to heels.' },
+  { id: 'shoulder', label: 'Shoulder flexion, lying on your back', unit: 'cm', better: 'lower', hint: 'Arms overhead, lower back flat: wrists to the floor.' },
+];
+export const MEASURE_DAYS = 28;
+
+// flex-training:measures → { version: 1, entries: [{ date 'YYYY-MM-DD',
+// values: { [MEASURES id]: number }, note }] (oldest first), snooze? (ms),
+// updated? (ms, last time a check was saved, deleted or restored) }.
+// One entry per date; an entry with no values is dropped.
+export function normalizeMeasures(raw) {
+  const byDate = new Map();
+  for (const e of Array.isArray(raw?.entries) ? raw.entries : []) {
+    if (!e || !/^\d{4}-\d{2}-\d{2}$/.test(e.date)) continue;
+    const values = {};
+    for (const m of MEASURES) {
+      const v = e.values?.[m.id];
+      if (typeof v === 'number' && Number.isFinite(v) && v >= 0) values[m.id] = v;
+    }
+    if (!Object.keys(values).length) continue;
+    byDate.set(e.date, { date: e.date, values, note: typeof e.note === 'string' ? e.note : '' });
+  }
+  const entries = [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+  return {
+    version: 1, entries,
+    ...(Number.isFinite(raw?.snooze) ? { snooze: raw.snooze } : {}),
+    ...(Number.isFinite(raw?.updated) ? { updated: raw.updated } : {}),
+  };
+}
+
+// Whether a progress check is due → null, or { never } / { days since the
+// last one }. Never measured counts as due, so the first check is a
+// baseline.
+export function measureDue(measures, now) {
+  if (Number.isFinite(measures.snooze) && now < measures.snooze) return null;
+  const last = measures.entries.at(-1);
+  if (!last) return { never: true };
+  const days = Math.floor((now - fromYmd(last.date).getTime()) / 86400000);
+  return days >= MEASURE_DAYS ? { days } : null;
+}
+
+// Change since each measure was first taken, for each one measured at least
+// twice (a check can leave some out, so the first dates can differ)
+// → { [id]: { first, last, since 'YYYY-MM-DD', change, better: true|false|null } }
+export function measureTrend(measures) {
+  const out = {};
+  for (const m of MEASURES) {
+    const has = measures.entries.filter((e) => m.id in e.values);
+    if (has.length < 2) continue;
+    const vals = has.map((e) => e.values[m.id]);
+    const change = Math.round((vals.at(-1) - vals[0]) * 10) / 10;
+    out[m.id] = { first: vals[0], last: vals.at(-1), since: has[0].date, change, better: change === 0 ? null : (change < 0) === (m.better === 'lower') };
+  }
+  return out;
 }
 
 export function isEmptyEntry(e) {

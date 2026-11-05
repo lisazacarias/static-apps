@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   normalizeWeeks, normalizeWeek, emptyWeek, deloadInfo, weekFromExample, copyWeek, isPlanned,
   occurrences, checkWeek, suggestWeek, checklist, playPhases, pressCycle, resumeStep, spokenCue, RESUME_LAYOUT, nextToDo, READY_SECONDS, SWITCH_SECONDS, versionOf, timerOptions, parseDuration, moveKey, movementIndex,
-  normalizeLog, isEmptyEntry, backupDue, BACKUP_DAYS, describe, toIcs, foldLine, weekStart, ymd, fromYmd,
+  normalizeLog, isEmptyEntry, backupDue, BACKUP_DAYS, MEASURES, normalizeMeasures, measureDue, measureTrend, MEASURE_DAYS, describe, toIcs, foldLine, weekStart, ymd, fromYmd,
 } from '../plan.js';
 import ROUTINE from '../routine.js';
 import FORM from '../form.js';
@@ -610,4 +610,52 @@ test('a backup reminder shows when changes are BACKUP_DAYS old and not backed up
   assert.equal(backupDue(log(95 * DAY), { at: (100 - BACKUP_DAYS + 1) * DAY }, now), null, 'backup not old enough yet');
   assert.equal(backupDue(log(80 * DAY), { snooze: now + DAY }, now), null, 'snoozed');
   assert.ok(backupDue(log(80 * DAY), { snooze: now - DAY }, now), 'snooze over');
+  // Other changes (progress checks) count too, even with no session change.
+  assert.deepEqual(backupDue(log(70 * DAY), { at: 75 * DAY }, now, [90 * DAY]), { days: 25, never: false }, 'a check saved after the backup');
+  assert.equal(backupDue(log(70 * DAY), { at: 75 * DAY }, now, [undefined]), null, 'no checks');
+});
+
+test('progress checks keep good entries, one per date, oldest first', () => {
+  const m = normalizeMeasures({ entries: [
+    { date: '2026-11-01', values: { frontRight: 12, bogus: 3, middle: -1 }, note: 'cold' },
+    { date: 'nope', values: { frontRight: 1 } },
+    { date: '2026-10-01', values: { frontRight: 15, frontLeft: 18 } },
+    { date: '2026-10-15', values: { frontRight: 'x' } },
+    { date: '2026-11-01', values: { frontLeft: 16 } },
+  ], snooze: 5, updated: 7 });
+  assert.deepEqual(m, { version: 1, snooze: 5, updated: 7, entries: [
+    { date: '2026-10-01', values: { frontRight: 15, frontLeft: 18 }, note: '' },
+    { date: '2026-11-01', values: { frontLeft: 16 }, note: '' },
+  ] });
+  assert.deepEqual(normalizeMeasures(null), { version: 1, entries: [] });
+  assert.equal(MEASURES.length, 5);
+});
+
+test('a progress check is due every MEASURE_DAYS, and first as a baseline', () => {
+  const at = (d) => fromYmd(d).getTime();
+  const m = (...dates) => normalizeMeasures({ entries: dates.map((date) => ({ date, values: { bridge: 30 } })) });
+  assert.deepEqual(measureDue(m(), at('2026-11-05')), { never: true });
+  assert.equal(measureDue(m('2026-10-20'), at('2026-11-05')), null);
+  assert.deepEqual(measureDue(m('2026-10-01', '2026-10-08'), at('2026-11-05')), { days: MEASURE_DAYS });
+  assert.equal(measureDue({ ...m(), snooze: at('2026-11-06') }, at('2026-11-05')), null);
+});
+
+test('progress trend compares the latest check with the first, in the right direction', () => {
+  const m = normalizeMeasures({ entries: [
+    { date: '2026-09-01', values: { frontRight: 15, middle: 140, bridge: 30 } },
+    { date: '2026-10-01', values: { frontRight: 12.5, middle: 145 } },
+    { date: '2026-11-01', values: { frontRight: 11, middle: 138, bridge: 30, shoulder: 4 } },
+  ] });
+  assert.deepEqual(measureTrend(m), {
+    frontRight: { first: 15, last: 11, since: '2026-09-01', change: -4, better: true },
+    middle: { first: 140, last: 138, since: '2026-09-01', change: -2, better: false },
+    bridge: { first: 30, last: 30, since: '2026-09-01', change: 0, better: null },
+  });
+  // A measure first taken in a later check dates from that check.
+  const late = normalizeMeasures({ entries: [
+    { date: '2026-09-01', values: { frontRight: 15 } },
+    { date: '2026-10-01', values: { frontRight: 14, shoulder: 6 } },
+    { date: '2026-11-01', values: { shoulder: 4 } },
+  ] });
+  assert.equal(measureTrend(late).shoulder.since, '2026-10-01');
 });
