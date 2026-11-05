@@ -523,6 +523,32 @@ export function playPhases(item, layout = RESUME_LAYOUT) {
   return phases;
 }
 
+// What the player says as step i starts, from the step labels:
+//   ready   the movement's name, and which side goes first
+//   switch  "Switch legs. Tap when you're ready."
+//   holds   the side when it changes ("Second side"), the round when sides
+//           alternate ("round 2"), and the action for contract-relax
+//           ("Press", "Relax and sink deeper")
+export function spokenCue(phases, i, name) {
+  const step = phases[i];
+  const holds = (k) => k === 'work' || k === 'press' || k === 'relax';
+  const parts = (p) => (p.label || '').split(' · ').filter(Boolean);
+  const side = (p) => (holds(p.kind) && /^(First|Second|One|Other) /.test(parts(p)[0] || '') ? parts(p)[0] : '');
+  if (step.kind === 'ready') {
+    const first = phases.find((p) => holds(p.kind));
+    return [name, first && side(first)].filter(Boolean).join('. ') + '.';
+  }
+  if (step.kind === 'switch') return `${step.label}. Tap when you’re ready.`;
+  const prev = phases.slice(0, i).reverse().find((p) => holds(p.kind));
+  const count = /^(\d+) of \d+$/.exec(parts(step).at(-1) || '');
+  const said = [];
+  // The first hold's side was said in the count-in.
+  if (side(step) && prev && side(prev) !== side(step)) said.push(step.kind === 'work' && count ? `${side(step)}, round ${count[1]}` : side(step));
+  const action = parts(step).filter((x) => x !== side(step) && !/^\d+ of \d+$/.test(x));
+  if (step.kind !== 'work') said.push(...action);
+  return said.length ? said.join('. ') + '.' : '';
+}
+
 // Where to pick a movement back up from a saved resume point → { phase, left }.
 // A count-in starts over, and a switch waits for you again; a hold keeps
 // its time. A point saved with an older layout (none means 1) is replayed

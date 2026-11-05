@@ -2,13 +2,13 @@
 // helpers from app.js and app.js imports it back. That cycle is safe
 // because nothing here runs at load: app.js calls initPlayer() once its own
 // state exists.
-import { checklist, nextToDo, playPhases, resumeStep, RESUME_LAYOUT, ymd, moveKeys } from './plan.js';
+import { checklist, nextToDo, playPhases, resumeStep, spokenCue, RESUME_LAYOUT, ymd, moveKeys } from './plan.js';
 import ROUTINE from './routine.js';
 import FORM from './form.js';
 import {
   $, esc, rich, log, timer, parseKey, entryFor, updateEntry, saveLog, fmtClock, sessionHref, isDeload, cueList, formHtml,
 } from './app.js';
-import { unlockAudio, chime, keepAwake } from './sound.js';
+import { unlockAudio, unlockSpeech, chime, speak, keepAwake } from './sound.js';
 
 // Full-screen, one movement at a time: a "Get ready" countdown, then the
 // timer (split per side, and into press/relax rounds for contract-relax,
@@ -20,6 +20,13 @@ let play = null; // { o, items, index, phases, phase, left, running, waiting, en
 
 const LOCK_KEY = 'flex-training:lockscreen'; // '1' when lock-screen controls are on
 let lockScreenOn = (() => { try { return localStorage.getItem(LOCK_KEY) === '1'; } catch { return false; } })();
+const VOICE_KEY = 'flex-training:voice'; // '1' when spoken cues are on
+let voiceOn = (() => { try { return localStorage.getItem(VOICE_KEY) === '1'; } catch { return false; } })();
+
+// Say what step `phase` is, after `beeps` beeps have played.
+function announce(phase = play.phase, beeps = 0) {
+  if (voiceOn) speak(spokenCue(play.phases, phase, play.items[play.index].item.name), beeps * 280 + 150);
+}
 
 export function openPlayer(key) {
   if (play && play.o.key === key) { paintPlayer(); return; }
@@ -27,6 +34,7 @@ export function openPlayer(key) {
   const o = parseKey(key);
   if (!o) return;
   unlockAudio();
+  if (voiceOn) unlockSpeech();
   const e = entryFor(o);
   const items = checklist(o.session, e.variant);
   const checked = new Set(e.checked);
@@ -47,7 +55,7 @@ export function openPlayer(key) {
   $('timer').inert = true;
   paintPlayer();
   $('playToggle').focus();
-  if (!r) runPlayer(); // a fresh start counts straight in; a resume waits for you
+  if (!r) { runPlayer(); announce(); } // a fresh start counts straight in; a resume waits for you
   keepAwake(true);
   setupLockScreen();
 }
@@ -94,8 +102,9 @@ function pausePlayer() {
 }
 
 // Sounds for each change of step: one high beep to press, one low beep to
-// relax, two for switching sides, three when the movement is done.
-const CUE = { press: [1, 988], relax: [1, 660], switch: [2, 880], done: [3, 880] };
+// relax, two level beeps to switch sides, three rising to move on to the
+// next movement, and a four-note run when the session is done.
+const CUE = { press: [1, 988], relax: [1, 660], switch: [2, 880], next: [3, [660, 880, 1175]], finish: [4, [523, 659, 784, 1047]] };
 
 function tickPlayer() {
   if (!play) return;
@@ -110,6 +119,7 @@ function tickPlayer() {
       const step = play.phases[play.phase];
       play.left = step.seconds;
       if (CUE[step.kind]) chime(...CUE[step.kind]);
+      announce(play.phase, CUE[step.kind]?.[0] || 0);
       if (step.wait) {
         // Between sides: stop and wait for "I'm ready", then count in. Not
         // pausePlayer(): that would read the finished step's 0:00 into left.
@@ -125,23 +135,23 @@ function tickPlayer() {
       runPlayer();
       paintPlayer();
     } else {
-      chime(...CUE.done);
-      finishMovement(true);
+      finishMovement(true, true);
     }
   }
 }
 
 // Ticks the current movement (when `tick`) and moves on to the next one not
 // yet ticked. At the end of the list it finishes, or, if anything was
-// skipped, asks whether to go back for it.
-function finishMovement(tick) {
+// skipped, asks whether to go back for it. `timeUp` when the timer ran out
+// rather than a tap on Done, which gets the moving-on beeps.
+function finishMovement(tick, timeUp = false) {
   pausePlayer();
   const { o, items } = play;
   const checked = new Set(entryFor(o).checked);
   if (tick) checked.add(items[play.index].id);
   updateEntry(o, { checked: [...checked] });
   const next = nextToDo(items, checked, play.index);
-  if (next >= 0) { goTo(next, true); return; }
+  if (next >= 0) { if (timeUp) chime(...CUE.next); goTo(next, true, timeUp ? CUE.next[0] : 0); return; }
   if (items.every((i) => checked.has(i.id))) finishSession();
   else showEnd();
 }
@@ -151,10 +161,13 @@ function finishSession() {
   const { resume, ...rest } = entryFor(o);
   log.entries[o.key] = { ...rest, done: true, updated: Date.now(), title: o.session.title, date: ymd(o.date) };
   saveLog();
+  chime(...CUE.finish);
+  if (voiceOn) speak('Session done. Nice work.', CUE.finish[0] * 280 + 150);
   showFinished(true);
 }
 
-function goTo(index, autostart) {
+// `beeps` that just played, so the spoken name waits for them.
+function goTo(index, autostart, beeps = 0) {
   pausePlayer();
   play.index = index;
   play.phases = playPhases(play.items[index].item);
@@ -164,7 +177,7 @@ function goTo(index, autostart) {
   play.ending = false;
   paintPlayer();
   savePlayer();
-  if (autostart) runPlayer();
+  if (autostart) { runPlayer(); announce(0, beeps); }
 }
 
 // The end of the list with some movements skipped.
@@ -186,6 +199,7 @@ function showEnd() {
       <button class="btn" type="button" id="playRedo">Do the skipped ones</button>
     </div>
   </div>`;
+  if (voiceOn) speak(`End of the session. You skipped ${skipped.length === 1 ? 'one movement' : `${skipped.length} movements`}.`);
   updateLockScreen(true);
 }
 
@@ -238,13 +252,17 @@ function paintPlayer() {
 }
 
 function paintLockButton() {
+  // Highlighted when on; aria-pressed says it to screen readers.
   $('playLock').setAttribute('aria-pressed', lockScreenOn);
-  $('playLock').textContent = `Lock screen: ${lockScreenOn ? 'on' : 'off'}`;
+  $('playLock').classList.toggle('on', lockScreenOn);
+  $('playVoice').setAttribute('aria-pressed', voiceOn);
+  $('playVoice').classList.toggle('on', voiceOn);
 }
 
 function togglePlayer(want) {
   if (!play || play.done || play.ending) return;
   const run = want ?? !play.running;
+  if (run && voiceOn) unlockSpeech(); // a tap, which iOS needs before it will speak
   if (run && !play.running) runPlayer();
   else if (!run && play.running) { pausePlayer(); savePlayer(); }
   paintPlayer();
@@ -341,6 +359,12 @@ export function initPlayer() {
     try { localStorage.setItem(LOCK_KEY, lockScreenOn ? '1' : '0'); } catch { /* per-visit only */ }
     if (lockScreenOn && !play?.done) setupLockScreen(); else clearLockScreen();
     // Just the button: a repaint would swap the end screen for the last movement.
+    paintLockButton();
+  });
+  $('playVoice').addEventListener('click', () => {
+    voiceOn = !voiceOn;
+    try { localStorage.setItem(VOICE_KEY, voiceOn ? '1' : '0'); } catch { /* per-visit only */ }
+    if (voiceOn) { unlockSpeech(); speak('Voice on.'); } else window.speechSynthesis?.cancel();
     paintLockButton();
   });
   // Save where you are if the page is hidden or closed mid-hold.
