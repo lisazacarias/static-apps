@@ -366,6 +366,9 @@ test('the player counts in, then splits per-side blocks with a switch between', 
   // Two per-side parts alternate sides within each part.
   assert.deepEqual(work({ name: 'Hip extension', duration: '4 min', detail: 'lift the back knee, 5 reps per side. Then back-leg lifts, 2 x 8 per side.' }),
     ['First side · 1 of 2 60', 'Switch sides', 'Second side · 1 of 2 60', 'Switch sides', 'First side · 2 of 2 60', 'Switch sides', 'Second side · 2 of 2 60']);
+  // The same two parts written as cues (hips-thoracic) split the same way.
+  assert.deepEqual(work({ name: 'Hip extension', duration: '4 min', cues: ['Lift the back knee, 5 reps per side.', 'Back-leg lifts, 2 x 8 per side.'] }),
+    ['First side · 1 of 2 60', 'Switch sides', 'Second side · 1 of 2 60', 'Switch sides', 'First side · 2 of 2 60', 'Switch sides', 'Second side · 2 of 2 60']);
   // "or" inside one sentence is one part.
   assert.equal(work({ name: 'Middle split strength', duration: '2 min', detail: '1 x 6 per side, or top-leg lifts, 10 per side.' }).length, 3);
   assert.deepEqual(steps({ name: 'Butterfly', duration: '2 min' }), [['ready', 'Get ready', READY_SECONDS, false], ['work', '', 120, false]]);

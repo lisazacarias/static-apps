@@ -466,8 +466,8 @@ export function pressCycle(item) {
 //   a per-side time that fits more than twice ("60 s per leg" in 4 min)
 //     → alternate sides, one per-side time each;
 //   reps per side with no time ("10 reps each leg", "switch arms")
-//     → two even halves, or a pair per sentence that has them, so
-//     "5 reps per side. Then … 2 x 8 per side" alternates within each part;
+//     → two even halves, or a pair per sentence (or cue) that has them,
+//     so "5 reps per side. Then … 2 x 8 per side" alternates within each part;
 //   otherwise one block.
 const REPS_PER = /\b(?:per|each)\s+(side|leg|arm)\b|\bswitch\s+(side|leg|arm)s\b/i;
 function sideBlocks(item, total, layout) {
@@ -480,7 +480,8 @@ function sideBlocks(item, total, layout) {
     else if (half.seconds * 2 < total && layout >= 3) n = 2 * Math.round(total / (2 * half.seconds));
   }
   if (!n && layout >= 3) {
-    const hits = (item.detail || '').split(/\.\s+/).map((t) => REPS_PER.exec(t)).filter(Boolean);
+    const parts = [...(item.detail || '').split(/\.\s+/), ...(item.cues || []).map(cueText)];
+    const hits = parts.map((t) => REPS_PER.exec(t)).filter(Boolean);
     if (!hits.length) return { unit: null, blocks: [{ label: '', seconds: total }] };
     unit = (hits[0][1] || hits[0][2]).toLowerCase();
     n = 2 * hits.length;
