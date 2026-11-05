@@ -437,6 +437,9 @@ export function timerOptions(item) {
 /* ── guided player ───────────────────────────────────────────────────── */
 
 export const READY_SECONDS = 10;
+// Which step list a saved resume point's phase counts in. Bump it when
+// playPhases changes shape; playPhases(item, layout) rebuilds older ones.
+export const RESUME_LAYOUT = 3;
 // After the switch-sides tap, a short count-in for the second side.
 export const SWITCH_SECONDS = 5;
 const HALVES = {
@@ -458,6 +461,40 @@ export function pressCycle(item) {
   return { press: +(m[2] || m[1]), relax: +m[4], verb };
 }
 
+// How a movement's block splits by side (or leg, arm, direction):
+//   a per-side time that adds up to the block → two halves;
+//   a per-side time that fits more than twice ("60 s per leg" in 4 min)
+//     → alternate sides, one per-side time each;
+//   reps per side with no time ("10 reps each leg", "switch arms")
+//     → two even halves, or a pair per sentence (or cue) that has them,
+//     so "5 reps per side. Then … 2 x 8 per side" alternates within each part;
+//   otherwise one block.
+const REPS_PER = /\b(?:per|each)\s+(side|leg|arm)\b|\bswitch\s+(side|leg|arm)s\b/i;
+function sideBlocks(item, total, layout) {
+  const half = timerOptions(item).find((o) => o.label.includes('/'));
+  let unit = half && half.label.split('/')[1];
+  let n = 0;
+  let seconds = 0;
+  if (HALVES[unit]) {
+    if (Math.abs(half.seconds * 2 - total) <= total * 0.25) [n, seconds] = [2, half.seconds];
+    else if (half.seconds * 2 < total && layout >= 3) n = 2 * Math.round(total / (2 * half.seconds));
+  }
+  if (!n && layout >= 3) {
+    const parts = [...(item.detail || '').split(/\.\s+/), ...(item.cues || []).map(cueText)];
+    const hits = parts.map((t) => REPS_PER.exec(t)).filter(Boolean);
+    if (!hits.length) return { unit: null, blocks: [{ label: '', seconds: total }] };
+    unit = (hits[0][1] || hits[0][2]).toLowerCase();
+    n = 2 * hits.length;
+  }
+  if (!n) return { unit: null, blocks: [{ label: '', seconds: total }] };
+  seconds ||= Math.round(total / n);
+  const blocks = Array.from({ length: n }, (_, i) => ({
+    label: HALVES[unit][i % 2] + (n > 2 ? ` · ${Math.floor(i / 2) + 1} of ${n / 2}` : ''),
+    seconds,
+  }));
+  return { unit, blocks };
+}
+
 // The timer steps for one movement in the guided player:
 //   ready   a "Get ready" count-in
 //   work    the block, or one half of it when the notes give a per-side
@@ -465,16 +502,16 @@ export function pressCycle(item) {
 //   press / relax  contract-relax cycles filling each half
 //   switch  between halves: waits for a tap, then a short count-in
 //   → [{ kind, label, seconds, wait? }]
-export function playPhases(item) {
+// layout rebuilds the steps as an older version made them, to read an old
+// resume point: 1 had no switch or press/relax steps, 2 had them but split
+// only on a per-side time that adds up to the block.
+export function playPhases(item, layout = RESUME_LAYOUT) {
   const total = parseDuration(item.duration) || 60;
   const phases = [{ kind: 'ready', label: 'Get ready', seconds: READY_SECONDS }];
-  const half = timerOptions(item).find((o) => o.label.includes('/'));
-  const unit = half && half.label.split('/')[1];
-  const split = HALVES[unit] && Math.abs(half.seconds * 2 - total) <= total * 0.25;
-  const blocks = split ? [{ label: HALVES[unit][0], seconds: half.seconds }, { label: HALVES[unit][1], seconds: half.seconds }] : [{ label: '', seconds: total }];
-  const cycle = pressCycle(item);
+  const { unit, blocks } = sideBlocks(item, total, layout);
+  const cycle = layout >= 2 && pressCycle(item);
   blocks.forEach((b, i) => {
-    if (i > 0) phases.push({ kind: 'switch', label: SWITCH_LABEL[unit], seconds: SWITCH_SECONDS, wait: true });
+    if (i > 0 && layout >= 2) phases.push({ kind: 'switch', label: SWITCH_LABEL[unit], seconds: SWITCH_SECONDS, wait: true });
     if (!cycle) { phases.push({ kind: 'work', label: b.label, seconds: b.seconds }); return; }
     const n = Math.max(1, Math.round(b.seconds / (cycle.press + cycle.relax)));
     const side = b.label ? `${b.label} · ` : '';
@@ -486,30 +523,32 @@ export function playPhases(item) {
   return phases;
 }
 
-// Which step list a saved resume point's phase counts in. Bump it when
-// playPhases changes shape, and teach resumeStep to read the old one.
-export const RESUME_LAYOUT = 2;
-
 // Where to pick a movement back up from a saved resume point → { phase, left }.
 // A count-in starts over, and a switch waits for you again; a hold keeps
-// its time. Points saved before RESUME_LAYOUT counted 0 ready, 1 first half
-// (or the whole block), 2 second half, so those map to the start of that
-// half and walk forward through its press/relax rounds by the time used.
-export function resumeStep(phases, r) {
+// its time. A point saved with an older layout (none means 1) is replayed
+// on the steps that layout made, and the time already done is walked
+// forward through today's steps, so it lands at the same moment.
+export function resumeStep(item, r) {
+  const now = playPhases(item);
   const holds = (k) => k === 'work' || k === 'press' || k === 'relax';
-  if (r.layout === RESUME_LAYOUT) {
-    const phase = Math.min(r.phase, phases.length - 1);
-    const step = phases[phase];
+  const layout = r.layout || 1;
+  if (layout === RESUME_LAYOUT) {
+    const phase = Math.min(r.phase, now.length - 1);
+    const step = now[phase];
     return { phase, left: holds(step.kind) ? Math.min(r.left, step.seconds) : step.seconds };
   }
-  const starts = [1, ...phases.flatMap((p, i) => (p.kind === 'switch' ? [i + 1] : []))];
-  if (r.phase < 1 || r.phase > starts.length) return { phase: 0, left: phases[0].seconds };
-  let phase = starts[r.phase - 1];
-  const end = r.phase < starts.length ? starts[r.phase] - 1 : phases.length;
-  const half = phases.slice(phase, end).reduce((t, p) => t + p.seconds, 0);
-  let used = Math.max(0, half - r.left);
-  while (phase < end - 1 && used >= phases[phase].seconds) used -= phases[phase++].seconds;
-  return { phase, left: Math.max(1, Math.round(phases[phase].seconds - used)) };
+  const then = playPhases(item, layout);
+  const at = then[Math.min(r.phase, then.length - 1)];
+  if (at.kind === 'ready') return { phase: 0, left: now[0].seconds };
+  let used = then.slice(0, r.phase).reduce((t, p) => t + (holds(p.kind) ? p.seconds : 0), 0);
+  if (holds(at.kind)) used += at.seconds - Math.min(r.left, at.seconds);
+  for (let i = 1; i < now.length; i++) {
+    const p = now[i];
+    if (p.kind === 'switch') { if (!used && at.kind === 'switch') return { phase: i, left: p.seconds }; continue; }
+    if (used < p.seconds) return { phase: i, left: Math.max(1, Math.round(p.seconds - used)) };
+    used -= p.seconds;
+  }
+  return { phase: now.length - 1, left: 1 };
 }
 
 // Where the player goes after index `from`: the next movement not yet
@@ -600,9 +639,8 @@ export function movementIndex(routine) {
 //            checked: ['Section / Movement', …], notes, done, updated,
 //            resume? { index, phase, left, layout? } — where the guided
 //            player stopped: checklist index, timer step, seconds left.
-//            layout 2 is the step list with switch and press/relax steps;
-//            without it the phase is the older ready / first half / second
-//            half numbering (see resumeStep). }
+//            layout is RESUME_LAYOUT when saved; older points are mapped
+//            by resumeStep. }
 export function normalizeLog(raw) {
   const entries = {};
   const src = raw && typeof raw === 'object' && raw.entries && typeof raw.entries === 'object' ? raw.entries : {};
@@ -621,7 +659,7 @@ export function normalizeLog(raw) {
     };
     const r = e.resume;
     if (r && Number.isInteger(r.index) && r.index >= 0 && Number.isInteger(r.phase) && r.phase >= 0 && Number.isFinite(r.left) && r.left >= 0) {
-      entries[key].resume = { index: r.index, phase: r.phase, left: r.left, ...(r.layout === RESUME_LAYOUT ? { layout: RESUME_LAYOUT } : {}) };
+      entries[key].resume = { index: r.index, phase: r.phase, left: r.left, ...(Number.isInteger(r.layout) && r.layout > 1 ? { layout: r.layout } : {}) };
     }
   }
   return { version: 1, entries };

@@ -351,9 +351,26 @@ test('the player counts in, then splits per-side blocks with a switch between', 
   ]);
   assert.deepEqual(steps({ name: '90/90', duration: '2 min', detail: '1 min each direction.' }).map((s) => s[1]),
     ['Get ready', 'One direction', 'Change direction', 'Other direction']);
-  // 60 s per leg inside a 4-minute block doesn't add up, so it stays whole.
-  assert.deepEqual(steps({ name: 'Standing splits', duration: '4 min', detail: 'hips square, 60 s per leg.' }),
-    [['ready', 'Get ready', READY_SECONDS, false], ['work', '', 240, false]]);
+  // 60 s per leg in a 4-minute block alternates legs, two rounds each.
+  assert.deepEqual(steps({ name: 'Standing splits', duration: '4 min', detail: 'hips square, 60 s per leg.' }).filter((x) => x[0] !== 'ready'), [
+    ['work', 'First leg · 1 of 2', 60, false], ['switch', 'Switch legs', SWITCH_SECONDS, true],
+    ['work', 'Second leg · 1 of 2', 60, false], ['switch', 'Switch legs', SWITCH_SECONDS, true],
+    ['work', 'First leg · 2 of 2', 60, false], ['switch', 'Switch legs', SWITCH_SECONDS, true],
+    ['work', 'Second leg · 2 of 2', 60, false],
+  ]);
+  // Reps per side, with no time, split the block in half.
+  const work = (item) => steps(item).filter((x) => x[0] !== 'ready').map((x) => (x[0] === 'switch' ? x[1] : `${x[1]} ${x[2]}`));
+  assert.deepEqual(work({ name: 'Leg lifts', duration: '4 min', detail: 'front, side and back, 10 reps each leg.' }), ['First leg 120', 'Switch legs', 'Second leg 120']);
+  assert.deepEqual(work({ name: 'Descents', duration: '4 min', detail: 'slow slide to near the floor, 3 to 4 reps per side.' }), ['First side 120', 'Switch sides', 'Second side 120']);
+  assert.deepEqual(work({ name: 'Wall clocks', duration: '8 min', detail: 'Press firmly, reverse direction, then switch arms and repeat.' }), ['First arm 240', 'Switch arms', 'Second arm 240']);
+  // Two per-side parts alternate sides within each part.
+  assert.deepEqual(work({ name: 'Hip extension', duration: '4 min', detail: 'lift the back knee, 5 reps per side. Then back-leg lifts, 2 x 8 per side.' }),
+    ['First side · 1 of 2 60', 'Switch sides', 'Second side · 1 of 2 60', 'Switch sides', 'First side · 2 of 2 60', 'Switch sides', 'Second side · 2 of 2 60']);
+  // The same two parts written as cues (hips-thoracic) split the same way.
+  assert.deepEqual(work({ name: 'Hip extension', duration: '4 min', cues: ['Lift the back knee, 5 reps per side.', 'Back-leg lifts, 2 x 8 per side.'] }),
+    ['First side · 1 of 2 60', 'Switch sides', 'Second side · 1 of 2 60', 'Switch sides', 'First side · 2 of 2 60', 'Switch sides', 'Second side · 2 of 2 60']);
+  // "or" inside one sentence is one part.
+  assert.equal(work({ name: 'Middle split strength', duration: '2 min', detail: '1 x 6 per side, or top-leg lifts, 10 per side.' }).length, 3);
   assert.deepEqual(steps({ name: 'Butterfly', duration: '2 min' }), [['ready', 'Get ready', READY_SECONDS, false], ['work', '', 120, false]]);
 });
 
@@ -391,25 +408,34 @@ test('the player moves on to the next movement not yet ticked', () => {
   assert.equal(nextToDo(items, new Set(['d']), 2), -1);
 });
 
-test('a resume point saved before switch and press steps lands on the same spot', () => {
-  const cr = ROUTINE.sessions.find((s) => s.id === 'splits-intensive').sections.flatMap((x) => x.items).find((i) => i.name === 'Contract-relax hip flexor');
-  const p = playPhases(cr);
-  // Old layout: 0 ready, 1 first side, 2 second side; 83 s left of 120 is
-  // 37 s in, which is the second press with 3 s to go.
-  assert.deepEqual(resumeStep(p, { phase: 1, left: 83 }), { phase: 3, left: 3 });
-  assert.deepEqual(resumeStep(p, { phase: 1, left: 120 }), { phase: 1, left: 10 });
+test('a resume point saved by an older layout lands on the same spot', () => {
+  const find = (sid, name) => ROUTINE.sessions.find((s) => s.id === sid).sections.flatMap((x) => x.items).find((i) => i.name === name);
+  const cr = find('splits-intensive', 'Contract-relax hip flexor');
+  // Layout 1 (no mark): 0 ready, 1 first side, 2 second side; 83 s left of
+  // 120 is 37 s in, which is the second press with 3 s to go.
+  assert.deepEqual(resumeStep(cr, { phase: 1, left: 83 }), { phase: 3, left: 3 });
+  assert.deepEqual(resumeStep(cr, { phase: 1, left: 120 }), { phase: 1, left: 10 });
   // Second side starts after the switch, without waiting at it.
-  assert.deepEqual(resumeStep(p, { phase: 2, left: 120 }), { phase: 10, left: 10 });
-  assert.deepEqual(resumeStep(p, { phase: 0, left: 4 }), { phase: 0, left: READY_SECONDS });
-  const lunge = playPhases({ name: 'Psoas lunge', duration: '4 min', detail: '2 min per side.' });
+  assert.deepEqual(resumeStep(cr, { phase: 2, left: 120 }), { phase: 10, left: 10 });
+  assert.deepEqual(resumeStep(cr, { phase: 0, left: 4 }), { phase: 0, left: READY_SECONDS });
+  const lunge = { name: 'Psoas lunge', duration: '4 min', detail: '2 min per side.' };
   assert.deepEqual(resumeStep(lunge, { phase: 2, left: 50 }), { phase: 3, left: 50 });
   assert.deepEqual(resumeStep(lunge, { phase: 1, left: 50 }), { phase: 1, left: 50 });
-  // New layout reads the phase as is; a switch waits again from its start.
-  assert.deepEqual(resumeStep(p, { phase: 4, left: 7, layout: RESUME_LAYOUT }), { phase: 4, left: 7 });
+  // Layout 2 had hip extension as one 4-minute block: 150 s left is 90 s
+  // in, which is 30 s into the second side's first part. A switch it was
+  // waiting at still waits.
+  const hip = find('splits-intensive', 'Hip extension end-range strength');
+  assert.deepEqual(resumeStep(hip, { phase: 1, left: 150, layout: 2 }), { phase: 3, left: 30 });
+  assert.deepEqual(resumeStep(lunge, { phase: 2, left: 5, layout: 2 }), { phase: 2, left: SWITCH_SECONDS });
+  // Standing splits, layout 2, 4-minute block with 170 s left: 70 s in is
+  // 10 s into the second leg.
+  assert.deepEqual(resumeStep(find('splits-intensive', 'Standing splits at pole'), { phase: 1, left: 170, layout: 2 }), { phase: 3, left: 50 });
+  // Today's layout reads the phase as is; a switch waits again from its start.
+  assert.deepEqual(resumeStep(cr, { phase: 4, left: 7, layout: RESUME_LAYOUT }), { phase: 4, left: 7 });
   assert.deepEqual(resumeStep(lunge, { phase: 2, left: 1, layout: RESUME_LAYOUT }), { phase: 2, left: SWITCH_SECONDS });
   // The log keeps the layout mark.
-  const log = normalizeLog({ entries: { '2026-10-27|hips-thoracic': { date: '2026-10-27', resume: { index: 1, phase: 4, left: 7, layout: RESUME_LAYOUT } } } });
-  assert.equal(log.entries['2026-10-27|hips-thoracic'].resume.layout, RESUME_LAYOUT);
+  const log = normalizeLog({ entries: { '2026-10-27|hips-thoracic': { date: '2026-10-27', resume: { index: 1, phase: 4, left: 7, layout: 2 } } } });
+  assert.equal(log.entries['2026-10-27|hips-thoracic'].resume.layout, 2);
 });
 
 test('the log keeps a valid resume point and drops a broken one', () => {
