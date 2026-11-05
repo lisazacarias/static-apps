@@ -50,14 +50,16 @@ browser never needs a build — not that Node is banned from the workflow.
     │   └── test/            # Node tests for cues.js and xlsx.js
     └── flex-training/       # Flexibility plan: week planner with rule checks, sessions, hold timer, movement reference
         ├── index.html
-        ├── app.js           # DOM, routing, week/log storage, timer
-        ├── plan.js          # Pure logic: week planner, rule checks, checklists, movement index, .ics export
+        ├── app.js           # DOM, routing, week/log storage, hold timer
+        ├── player.js        # Guided full-screen player and its lock-screen controls
+        ├── sound.js         # Beeps, vibration, spoken cues, keeping the screen on
+        ├── plan.js          # Pure logic: week planner, rule checks, checklists, player steps, movement index, .ics export
         ├── routine.js       # The plan itself (sessions, rules, references) — edit this to change it
         ├── form.js          # How to do each movement; `npm run form-doc` writes it out for checking
-        ├── scripts/         # Dev-only: form-doc.mjs
+        ├── scripts/         # Dev-only: form-doc.mjs, steps.mjs (`npm run steps` rewrites test/steps.txt)
         ├── styles.css
         ├── package.json     # Dev-only: test runner scripts
-        └── test/            # Node tests for plan.js against the real routine
+        └── test/            # Node tests for plan.js against the real routine; steps.txt lists every movement's player steps
 ```
 
 Not every app follows the same shape. The trackers are split into

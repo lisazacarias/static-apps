@@ -455,6 +455,8 @@ const SWITCH_LABEL = { side: 'Switch sides', leg: 'Switch legs', arm: 'Switch ar
 // 1- or 2-minute side evenly.
 const PRESS = /press\b[^.]*?(\d+)(?:\s*(?:to|-|–)\s*(\d+))?\s*s\b[^.]*?\b(sink|relax|fold)\b[^.]*?(?:for\s*)?(\d+)\s*s\b/i;
 export function pressCycle(item) {
+  const p = item.play;
+  if (p && 'press' in p) return p.press ? { press: p.press, relax: p.relax, verb: p.fold ? 'Relax and fold deeper' : 'Relax and sink deeper' } : null;
   const m = PRESS.exec(item.detail || '');
   if (!m) return null;
   const verb = m[3].toLowerCase() === 'fold' ? 'Relax and fold deeper' : 'Relax and sink deeper';
@@ -475,7 +477,12 @@ function sideBlocks(item, total, layout) {
   let unit = half && half.label.split('/')[1];
   let n = 0;
   let seconds = 0;
-  if (HALVES[unit]) {
+  // An item's play field overrides all of the reading below.
+  if (layout >= 3 && item.play && 'sides' in item.play) {
+    if (!HALVES[item.play.sides]) return { unit: null, blocks: [{ label: '', seconds: total }] };
+    unit = item.play.sides;
+    n = 2 * (item.play.rounds || 1);
+  } else if (HALVES[unit]) {
     if (Math.abs(half.seconds * 2 - total) <= total * 0.25) [n, seconds] = [2, half.seconds];
     else if (half.seconds * 2 < total && layout >= 3) n = 2 * Math.round(total / (2 * half.seconds));
   }
