@@ -11,7 +11,7 @@ const CACHE = 'flex-training-v1';
 // page fetches (fonts, files added later) is cached the first time it
 // loads online.
 const CORE = [
-  './', 'index.html', 'app.js', 'plan.js', 'routine.js', 'form.js', 'styles.css',
+  './', 'index.html', 'app.js', 'player.js', 'sound.js', 'plan.js', 'routine.js', 'form.js', 'styles.css',
   'manifest.json', 'icon-192.png', 'icon-512.png', '../../shared/base.css',
 ];
 

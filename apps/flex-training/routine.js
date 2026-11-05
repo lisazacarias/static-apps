@@ -6,8 +6,14 @@
 //             notes?, sections, after?, deload?, versions? }
 //   sections  [{ title?, minutes?, note?, items }]; an item marked whole is
 //             the section itself
-//   item      { name, duration, detail?, cues? }. [n] in any text cites
-//             guide.references
+//   item      { name, duration, detail?, cues?, play? }. [n] in any text
+//             cites guide.references
+//   play      how the guided player times it, when reading detail and cues
+//             gets it wrong (see sideBlocks and pressCycle in plan.js):
+//             { sides?: 'side'|'leg'|'arm'|'direction'|false, rounds?,
+//               press?: seconds|0, relax?: seconds, fold? }
+//             sides false keeps the block whole; rounds is pairs of sides;
+//             press 0 turns off contract-relax rounds
 //   versions  shorter versions: [{ id 'short'|'bridge'|'deload', label, minutes,
 //             items, skip?, deloadOnly? }]. Shoulders & Bridge's deload
 //             version isn't in the plan document as such: it's the plan's

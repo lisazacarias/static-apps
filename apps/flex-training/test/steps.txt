@@ -1,0 +1,109 @@
+splits-intensive / Cardio (8 min): work 480s
+splits-intensive / Transition (2 min): work 120s
+splits-intensive / Standing splits at pole (4 min): First leg · 1 of 2 60s | ⇄ Switch legs | Second leg · 1 of 2 60s | ⇄ Switch legs | First leg · 2 of 2 60s | ⇄ Switch legs | Second leg · 2 of 2 60s
+splits-intensive / Leg lifts at pole (4 min): First leg 120s | ⇄ Switch legs | Second leg 120s
+splits-intensive / Supported split descents (4 min): First side 120s | ⇄ Switch sides | Second side 120s
+splits-intensive / Seated pike compression lifts (2 min): First leg 60s | ⇄ Switch legs | Second leg 60s
+splits-intensive / Psoas lunge (4 min): First side 120s | ⇄ Switch sides | Second side 120s
+splits-intensive / Hip extension end-range strength (4 min): First side · 1 of 2 60s | ⇄ Switch sides | Second side · 1 of 2 60s | ⇄ Switch sides | First side · 2 of 2 60s | ⇄ Switch sides | Second side · 2 of 2 60s
+splits-intensive / Couch stretch, extended (6 min): First side 180s | ⇄ Switch sides | Second side 180s
+splits-intensive / 90/90 hip rotations (2 min): One direction 60s | ⇄ Change direction | Other direction 60s
+splits-intensive / Contract-relax hip flexor (4 min): First side · Press · 1 of 4 10s | First side · Relax and sink deeper · 1 of 4 20s | First side · Press · 2 of 4 10s | First side · Relax and sink deeper · 2 of 4 20s | First side · Press · 3 of 4 10s | First side · Relax and sink deeper · 3 of 4 20s | First side · Press · 4 of 4 10s | First side · Relax and sink deeper · 4 of 4 20s | ⇄ Switch sides | Second side · Press · 1 of 4 10s | Second side · Relax and sink deeper · 1 of 4 20s | Second side · Press · 2 of 4 10s | Second side · Relax and sink deeper · 2 of 4 20s | Second side · Press · 3 of 4 10s | Second side · Relax and sink deeper · 3 of 4 20s | Second side · Press · 4 of 4 10s | Second side · Relax and sink deeper · 4 of 4 20s
+splits-intensive / Half splits, active (4 min): First side 120s | ⇄ Switch sides | Second side 120s
+splits-intensive / Banded hamstring curls at pole (3 min): work 180s
+splits-intensive / PNF hamstring (4 min): First side · Press · 1 of 4 10s | First side · Relax and fold deeper · 1 of 4 20s | First side · Press · 2 of 4 10s | First side · Relax and fold deeper · 2 of 4 20s | First side · Press · 3 of 4 10s | First side · Relax and fold deeper · 3 of 4 20s | First side · Press · 4 of 4 10s | First side · Relax and fold deeper · 4 of 4 20s | ⇄ Switch sides | Second side · Press · 1 of 4 10s | Second side · Relax and fold deeper · 1 of 4 20s | Second side · Press · 2 of 4 10s | Second side · Relax and fold deeper · 2 of 4 20s | Second side · Press · 3 of 4 10s | Second side · Relax and fold deeper · 3 of 4 20s | Second side · Press · 4 of 4 10s | Second side · Relax and fold deeper · 4 of 4 20s
+splits-intensive / Supported split right (8 min): work 480s
+splits-intensive / Supported split left (8 min): work 480s
+splits-intensive / Middle split (8 min): work 480s
+splits-intensive / Wide straddle fold (2 min): work 120s
+splits-intensive / Active middle-split strength (2 min): First side 60s | ⇄ Switch sides | Second side 60s
+splits-intensive / Ankle circles (1 min): work 60s
+splits-intensive / Point and flex (1 min): work 60s
+splits-intensive / Top-of-foot stretch (1 min): work 60s
+splits-intensive / Child's pose (2 min): work 120s
+splits-intensive / Supine twists (2 min): work 120s
+splits-intensive / Deep breathing (1 min): work 60s
+splits-intensive / Cardio (3 min): work 180s
+splits-intensive / Couch stretch (4 min): First side 120s | ⇄ Switch sides | Second side 120s
+splits-intensive / Contract-relax hip flexor (2 min): First side · Press · 1 of 2 10s | First side · Relax and sink deeper · 1 of 2 20s | First side · Press · 2 of 2 10s | First side · Relax and sink deeper · 2 of 2 20s | ⇄ Switch sides | Second side · Press · 1 of 2 10s | Second side · Relax and sink deeper · 1 of 2 20s | Second side · Press · 2 of 2 10s | Second side · Relax and sink deeper · 2 of 2 20s
+splits-intensive / Supported split, right and left (6 min): First side 180s | ⇄ Switch sides | Second side 180s
+splits-intensive / Middle split (2 min): work 120s
+splits-intensive / Cool down (2 min): work 120s
+shoulders-bridge / Thoracic spine roll (3 min): work 180s
+shoulders-bridge / Lats roll (3 min): work 180s
+shoulders-bridge / Upper back roll (2 min): work 120s
+shoulders-bridge / Rotator cuff (2 min): work 120s
+shoulders-bridge / Theragun (2 min): work 120s
+shoulders-bridge / Hyperflexion CARs with band (5 min): First arm 150s | ⇄ Switch arms | Second arm 150s
+shoulders-bridge / Wrist prep (2 min): work 120s
+shoulders-bridge / Camel at pole (2 min): work 120s
+shoulders-bridge / Full bridge depth focus (6 min): work 360s
+shoulders-bridge / Wrist reset (2 min): work 120s
+shoulders-bridge / Pole chest stretches (12 min): First side · 1 of 3 120s | ⇄ Switch sides | Second side · 1 of 3 120s | ⇄ Switch sides | First side · 2 of 3 120s | ⇄ Switch sides | Second side · 2 of 3 120s | ⇄ Switch sides | First side · 3 of 3 120s | ⇄ Switch sides | Second side · 3 of 3 120s
+shoulders-bridge / Lat stretch on roller (4 min): work 240s
+shoulders-bridge / Shoulder extension (4 min): work 240s
+shoulders-bridge / Round 1, passive (3.5 min): work 210s
+shoulders-bridge / Round 2, active (4 min): work 240s
+shoulders-bridge / Round 3, unweighted (3 min): work 180s
+shoulders-bridge / Child's pose (2 min): work 120s
+shoulders-bridge / Thread-the-needle (2 min): work 120s
+shoulders-bridge / Deep breathing (1 min): work 60s
+shoulders-bridge / Theragun (3 min): work 180s
+shoulders-bridge / Pole chest stretch (3 min): work 180s
+shoulders-bridge / Lat stretch on roller (2 min): work 120s
+shoulders-bridge / Shoulder hyperflexion on bench (8 min): work 480s
+shoulders-bridge / Cool down (2 min): work 120s
+shoulders-bridge / Wrist prep (1 min): work 60s
+shoulders-bridge / Full bridge (4 min): work 240s
+shoulders-bridge / Wrist reset (1 min): work 60s
+shoulders-bridge / Shoulder hyperflexion on bench (3 min): work 180s
+hips-thoracic / Cardio (4 min): work 240s
+hips-thoracic / Cat-cow (2 min): work 120s
+hips-thoracic / Segmental spinal waves (2 min): work 120s
+hips-thoracic / Couch or kneeling hip flexor (3 min): First side 90s | ⇄ Switch sides | Second side 90s
+hips-thoracic / Half-kneeling hip flexor with reach-over (2 min): First side 60s | ⇄ Switch sides | Second side 60s
+hips-thoracic / Supported anterior-chain opener on roller (2 min): work 120s
+hips-thoracic / Thoracic roll and arch-backs (4 min): work 240s
+hips-thoracic / Sphinx to cobra pulses (3 min): work 180s
+hips-thoracic / Locust (3 min): work 180s
+hips-thoracic / Glute bridge (2 min): work 120s
+hips-thoracic / Hip extension end-range strength (4 min): First side · 1 of 2 60s | ⇄ Switch sides | Second side · 1 of 2 60s | ⇄ Switch sides | First side · 2 of 2 60s | ⇄ Switch sides | Second side · 2 of 2 60s
+hips-thoracic / Supported split right (3 min): work 180s
+hips-thoracic / Supported split left (3 min): work 180s
+hips-thoracic / Middle split (4 min): work 240s
+hips-thoracic / Child's pose (2 min): work 120s
+hips-thoracic / Supine twists (2 min): work 120s
+hips-thoracic / Constructive rest and breathing (1 min): work 60s
+hips-thoracic / Cardio (2 min): work 120s
+hips-thoracic / Cat-cow (1 min): work 60s
+hips-thoracic / Couch or kneeling hip flexor (2 min): First side 60s | ⇄ Switch sides | Second side 60s
+hips-thoracic / Sphinx to cobra pulses (2 min): work 120s
+hips-thoracic / Locust (1 min): work 60s
+hips-thoracic / Hip extension end-range strength (3 min): work 180s
+hips-thoracic / Supported split right and left (4 min): First side 120s | ⇄ Switch sides | Second side 120s
+hips-thoracic / Middle split (3 min): work 180s
+hips-thoracic / Cool down (2 min): work 120s
+shoulder-recovery / Pole chest stretch, middle position (4 min): First side 120s | ⇄ Switch sides | Second side 120s
+shoulder-recovery / Thoracic extension over roller (3 min): work 180s
+shoulder-recovery / Wall slides (3 min): work 180s
+shoulder-recovery / Segmental cat-cow (2 min): work 120s
+shoulder-recovery / Thread-the-needle and arm circles (3 min): work 180s
+shoulder-recovery / Child's pose and deep breathing (2 min): work 120s
+shoulder-recovery / Theragun (3 min): work 180s
+shoulder-recovery / Pole chest stretch, middle position (4 min): work 240s
+shoulder-recovery / Child's pose and deep breathing (3 min): work 180s
+shoulder-reset / Foam roll lats (4 min): First side 120s | ⇄ Switch sides | Second side 120s
+shoulder-reset / Shoulder CARs (3 min): First arm 90s | ⇄ Switch arms | Second arm 90s
+shoulder-reset / Wall clocks (8 min): First arm 240s | ⇄ Switch arms | Second arm 240s
+shoulder-reset / Foam roll lats (2 min): First side 60s | ⇄ Switch sides | Second side 60s
+splits-snack / Warm-up (4 min): work 240s
+splits-snack / Leg lifts at pole (2 min): First leg 60s | ⇄ Switch legs | Second leg 60s
+splits-snack / Couch stretch (4 min): First side 120s | ⇄ Switch sides | Second side 120s
+splits-snack / Supported split right and left (5 min): First side 150s | ⇄ Switch sides | Second side 150s
+splits-snack / Middle split (3 min): work 180s
+splits-snack / Cool down (2 min): work 120s
+class-prep / March or light cardio (2 min): work 120s
+class-prep / Leg swings (2 min): First leg 60s | ⇄ Switch legs | Second leg 60s
+class-prep / Hip circles and lunges (2 min): First side 60s | ⇄ Switch sides | Second side 60s
+class-prep / Shoulder CARs (2 min): First arm 60s | ⇄ Switch arms | Second arm 60s
+class-prep / Cat-cow (1 min): work 60s
