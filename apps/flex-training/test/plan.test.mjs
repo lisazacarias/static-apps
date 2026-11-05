@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   normalizeWeeks, normalizeWeek, emptyWeek, deloadInfo, weekFromExample, copyWeek, isPlanned,
   occurrences, checkWeek, suggestWeek, checklist, playPhases, pressCycle, resumeStep, spokenCue, RESUME_LAYOUT, nextToDo, READY_SECONDS, SWITCH_SECONDS, versionOf, timerOptions, parseDuration, moveKey, movementIndex,
-  normalizeLog, isEmptyEntry, describe, toIcs, foldLine, weekStart, ymd, fromYmd,
+  normalizeLog, isEmptyEntry, backupDue, BACKUP_DAYS, describe, toIcs, foldLine, weekStart, ymd, fromYmd,
 } from '../plan.js';
 import ROUTINE from '../routine.js';
 import FORM from '../form.js';
@@ -596,4 +596,18 @@ test('export text escapes and keeps the session layout', () => {
 test('weeks start on Monday', () => {
   assert.equal(ymd(weekStart(new Date(2026, 9, 25, 23))), '2026-10-19');
   assert.equal(ymd(weekStart(new Date(2026, 9, 19))), '2026-10-19');
+});
+
+test('a backup reminder shows when changes are BACKUP_DAYS old and not backed up', () => {
+  const DAY = 86400000;
+  const now = 100 * DAY;
+  const log = (...updated) => ({ entries: Object.fromEntries(updated.map((u, i) => [`2026-10-${10 + i}|x`, { updated: u }])) });
+  assert.equal(backupDue({ entries: {} }, {}, now), null, 'nothing logged');
+  assert.deepEqual(backupDue(log(80 * DAY), {}, now), { days: 20, never: true }, 'never backed up, first session 20 days ago');
+  assert.equal(backupDue(log(90 * DAY), {}, now), null, 'first session only 10 days ago');
+  assert.equal(backupDue(log(70 * DAY), { at: 75 * DAY }, now), null, 'nothing changed since the backup');
+  assert.deepEqual(backupDue(log(70 * DAY, 95 * DAY), { at: 75 * DAY }, now), { days: 25, never: false }, 'changed since a 25-day-old backup');
+  assert.equal(backupDue(log(95 * DAY), { at: (100 - BACKUP_DAYS + 1) * DAY }, now), null, 'backup not old enough yet');
+  assert.equal(backupDue(log(80 * DAY), { snooze: now + DAY }, now), null, 'snoozed');
+  assert.ok(backupDue(log(80 * DAY), { snooze: now - DAY }, now), 'snooze over');
 });

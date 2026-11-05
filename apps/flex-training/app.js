@@ -1,7 +1,7 @@
 import {
   CLASS_TYPES, LOADS, DAY_NAMES, versionOf, deloadInfo, normalizeWeeks, normalizeWeek, emptyWeek, weekFromExample, copyWeek, isPlanned,
   occurrences, checkWeek, checklist, timerOptions, movementIndex, moveKey, moveKeys, cueText, cueSub,
-  normalizeLog, isEmptyEntry, toIcs, suggestWeek, ymd, fromYmd, addDays, weekStart,
+  normalizeLog, isEmptyEntry, backupDue, toIcs, suggestWeek, ymd, fromYmd, addDays, weekStart,
 } from './plan.js';
 import ROUTINE from './routine.js';
 import FORM from './form.js';
@@ -11,6 +11,7 @@ import { unlockAudio, chime, keepAwake } from './sound.js';
 // localStorage is shared by every app on the Pages origin — keep the prefix.
 const LOG_KEY = 'flex-training:log';     // see normalizeLog in plan.js
 const WEEKS_KEY = 'flex-training:weeks'; // see normalizeWeeks in plan.js
+const BACKUP_KEY = 'flex-training:backup'; // { at?, snooze? }: last download, reminder snoozed until; see backupDue
 
 export const $ = (id) => document.getElementById(id);
 export const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -28,6 +29,10 @@ export const rich = (s) => esc(s).replace(/\[(\d+)\]/g, (m, n) => (REF[n]
 
 export let log = load(LOG_KEY, normalizeLog);
 let weeks = load(WEEKS_KEY, (raw) => normalizeWeeks(raw, SESSION_IDS));
+let backup = load(BACKUP_KEY, (r) => ({
+  ...(Number.isFinite(r?.at) ? { at: r.at } : {}),
+  ...(Number.isFinite(r?.snooze) ? { snooze: r.snooze } : {}),
+}));
 let editing = null; // Monday (YYYY-MM-DD) of the week being edited
 
 function load(key, normalize) {
@@ -120,7 +125,7 @@ function weekView(arg) {
   const thisWeek = mk === ymd(weekStart(now));
   const past = addDays(monday, 7) <= now;
 
-  let html = '';
+  let html = backupNote();
   if (thisWeek) {
     const list = sessionsOn(now);
     html += list.length
@@ -587,6 +592,7 @@ $('view').addEventListener('click', (ev) => {
     return;
   }
   if (t.id === 'backupBtn') downloadBackup();
+  if (t.id === 'backupLater') { backup.snooze = Date.now() + 7 * 86400000; save(BACKUP_KEY, backup); render(true); }
   if (t.id === 'restoreBtn') $('backupFile').click();
 });
 
@@ -677,7 +683,8 @@ function historyView() {
   let html = `<div class="spread" style="margin-bottom:12px">
       <span class="progress">${entries.filter(([, e]) => e.done).length} sessions done</span>
       <span class="row"><button id="backupBtn" class="btn" type="button">Download backup</button><button id="restoreBtn" class="btn" type="button">Restore backup</button></span>
-    </div>`;
+    </div>
+    <p class="tiny muted">${backup.at ? `Last backup ${esc(fmtDay(new Date(backup.at)))}.` : 'No backup downloaded yet.'} Your log lives only in this browser.${standalone() ? '' : ` ${HOME_TIP}`}</p>`;
   if (!entries.length) return `${html}<p class="muted">Nothing logged yet. Open a session from the Week or Sessions tab and tick things off.</p>`;
   html += '<div class="hist">';
   for (const [key, e] of entries) {
@@ -693,6 +700,25 @@ function historyView() {
 // The backup holds the log and the planned weeks.
 function downloadBackup() {
   download(JSON.stringify({ log, weeks }, null, 2), `flex-training-backup-${ymd(new Date())}.json`, 'application/json');
+  backup = { at: Date.now() };
+  save(BACKUP_KEY, backup);
+  render(true); // drop the reminder (Week) or show the new date (History)
+}
+
+// Opened from the home screen rather than a browser tab.
+const standalone = () => window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
+const HOME_TIP = `Adding Flex Training to your home screen helps keep it: Safari can clear a website’s saved data after 7 days without a visit, but not a home-screen app’s (<a href="https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/" target="_blank" rel="noopener">WebKit</a>). In Safari, tap Share, then Add to Home Screen.`;
+
+// The reminder at the top of the Week tab when a backup is due.
+function backupNote() {
+  const due = backupDue(log, backup, Date.now());
+  if (!due) return '';
+  const ago = due.days < 21 ? `${due.days} days ago` : `${Math.round(due.days / 7)} weeks ago`;
+  return `<div class="info-box backup-note">
+      <p><b>${due.never ? 'You haven’t downloaded a backup yet.' : `Your last backup was ${ago}.`}</b> Your log and weeks live only in this browser, so a backup file is the only copy.</p>
+      ${standalone() ? '' : `<p class="tiny">${HOME_TIP}</p>`}
+      <div class="row"><button id="backupBtn" class="btn primary" type="button">Download backup</button><button id="backupLater" class="btn" type="button">Not now</button></div>
+    </div>`;
 }
 
 function download(text, name, type) {
@@ -791,6 +817,10 @@ $('timerToggle').addEventListener('click', () => {
 });
 $('timerReset').addEventListener('click', () => { pause(); timer.left = timer.total; paint(); $('timer').classList.remove('finished'); });
 $('timerClose').addEventListener('click', () => { pause(); $('timer').hidden = true; });
+
+// Offline support (sw.js). Not required: a registration that fails, or a
+// browser without service workers, just means no offline copy.
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
 initPlayer();
 render();

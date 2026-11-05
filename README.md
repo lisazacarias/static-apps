@@ -56,6 +56,8 @@ browser never needs a build — not that Node is banned from the workflow.
         ├── plan.js          # Pure logic: week planner, rule checks, checklists, player steps, movement index, .ics export
         ├── routine.js       # The plan itself (sessions, rules, references) — edit this to change it
         ├── form.js          # How to do each movement; `npm run form-doc` writes it out for checking
+        ├── sw.js            # Service worker: network-first offline cache (scoped to this folder)
+        ├── manifest.json    # Web app manifest + icon-192/512.png, for Add to Home Screen
         ├── scripts/         # Dev-only: form-doc.mjs, steps.mjs (`npm run steps` rewrites test/steps.txt)
         ├── styles.css
         ├── package.json     # Dev-only: test runner scripts

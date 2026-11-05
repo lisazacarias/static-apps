@@ -698,6 +698,24 @@ export function normalizeLog(raw) {
   return { version: 1, entries };
 }
 
+// Whether to remind you to download a backup, given the log, the backup
+// record { at?, snooze? } (ms timestamps) and now. Due when something
+// changed since the last backup and that backup (or, if you've never made
+// one, your first logged session) is BACKUP_DAYS old, unless you snoozed
+// it. → null, or { days since that point, never: no backup yet }
+export const BACKUP_DAYS = 14;
+const DAY_MS = 86400000;
+export function backupDue(log, backup, now) {
+  const times = Object.values(log.entries).map((e) => e.updated).filter((t) => t > 0);
+  if (!times.length) return null;
+  const at = Number.isFinite(backup?.at) ? backup.at : 0;
+  if (at && Math.max(...times) <= at) return null;
+  if (Number.isFinite(backup?.snooze) && now < backup.snooze) return null;
+  const since = at || Math.min(...times);
+  const days = Math.floor((now - since) / DAY_MS);
+  return days >= BACKUP_DAYS ? { days, never: !at } : null;
+}
+
 export function isEmptyEntry(e) {
   return !e.done && !e.checked.length && !e.notes.trim() && !e.resume;
 }

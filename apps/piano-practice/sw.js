@@ -15,7 +15,9 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      // Only this app's old caches: every app on the Pages origin shares
+      // the same CacheStorage, and flex-training keeps one too.
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('piano-practice-') && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
