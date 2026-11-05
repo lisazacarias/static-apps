@@ -396,3 +396,7 @@ body.playing { overflow: hidden; }
     border: 1px solid var(--accent); background: var(--accent-dim); color: var(--text-bright);
     text-decoration: none; font-size: 13px;
 }
+
+/* Backup reminder at the top of the Week tab. */
+.backup-note { margin-bottom: 14px; }
+.backup-note p { margin: 0 0 8px; }

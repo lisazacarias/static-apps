@@ -38,8 +38,10 @@ on GitHub Pages under a subpath (`https://<user>.github.io/<repo>/`). See
 - `localStorage` and IndexedDB are shared across apps. Prefix every key
   (`lighting-cue-builder:plan`, not `plan`).
 - A service worker only controls its own folder. Moving or renaming an app
-  that registers one (`apps/piano-practice/sw.js`) leaves the old registration
-  serving stale cache at the old URL.
+  that registers one (`apps/piano-practice/sw.js`, `apps/flex-training/sw.js`)
+  leaves the old registration serving stale cache at the old URL.
+- CacheStorage is shared too. A worker cleaning up old caches must delete
+  only its own prefix, never "everything that isn't mine".
 
 ### App shapes
 
