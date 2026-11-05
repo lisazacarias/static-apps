@@ -61,7 +61,8 @@ export function normalizeWeeks(raw, sessionIds = null) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(monday) || !w || typeof w !== 'object') continue;
     weeks[monday] = normalizeWeek(w, sessionIds);
   }
-  return { version: 1, weeks };
+  // updated (ms): last time a week was planned or edited, for backupDue.
+  return { version: 1, weeks, ...(Number.isFinite(raw?.updated) ? { updated: raw.updated } : {}) };
 }
 
 const isTime = (t) => typeof t === 'string' && /^\d{2}:\d{2}$/.test(t);
@@ -702,7 +703,8 @@ export function normalizeLog(raw) {
 // record { at?, snooze? } (ms timestamps) and now. Due when something
 // changed since the last backup and that backup (or, if you've never made
 // one, your first logged session) is BACKUP_DAYS old, unless you snoozed
-// it. `also` adds other change times (the progress checks' updated).
+// it. `also` adds other change times (the planned weeks' and progress
+// checks' updated).
 // → null, or { days since that point, never: no backup yet }
 export const BACKUP_DAYS = 14;
 const DAY_MS = 86400000;

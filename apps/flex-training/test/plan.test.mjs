@@ -107,6 +107,9 @@ test('weeks normalizer keeps good days and drops junk', () => {
   ]);
   assert.deepEqual(week.days[6], { classes: [], sessions: [] });
   assert.deepEqual(normalizeWeeks(null), { version: 1, weeks: {} });
+  // updated is kept for the backup reminder; older saves without it are fine.
+  assert.equal(normalizeWeeks({ weeks: {}, updated: 42 }).updated, 42);
+  assert.equal('updated' in normalizeWeeks({ weeks: {}, updated: 'x' }), false);
   assert.ok(!isPlanned(emptyWeek()));
 });
 
