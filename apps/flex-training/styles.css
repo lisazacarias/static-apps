@@ -400,3 +400,28 @@ body.playing { overflow: hidden; }
 /* Backup reminder at the top of the Week tab. */
 .backup-note { margin-bottom: 14px; }
 .backup-note p { margin: 0 0 8px; }
+
+/* Progress check. */
+.progress-link { display: block; margin-bottom: 12px; }
+.progress-link h2 { font-size: 18px; margin-bottom: 0; }
+.measure-form .measure { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid var(--border); }
+.measure-form .measure > span:first-child { display: flex; flex-direction: column; }
+.measure-form input, .measure-form textarea {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+    color: var(--text);
+    font: inherit;
+    font-size: 14px;
+    padding: 6px 8px;
+    color-scheme: dark;
+}
+.measure-form input:focus, .measure-form textarea:focus { outline: none; border-color: var(--blue); }
+.measure-form input[type=number] { width: 5.5em; }
+.measure-form textarea { flex: 1; min-width: 0; resize: vertical; }
+.measure-form .measure .row { flex-wrap: nowrap; }
+.measure-values { font-size: 13.5px; color: var(--text-label); margin-top: 4px; }
+.measure-form button[type=submit] { margin-top: 10px; }
+.trend { margin: 4px 0 0 18px; }
+.trend li.up b { color: var(--green); }
+.trend li.down b { color: var(--accent); }

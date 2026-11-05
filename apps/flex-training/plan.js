@@ -683,6 +683,65 @@ export function backupDue(log, backup, now) {
   return days >= BACKUP_DAYS ? { days, never: !at } : null;
 }
 
+/* ── progress check ──────────────────────────────────────────────────── */
+
+// The plan's progress log (guide.progressLog): every 4 weeks, measured cold
+// at the same time of day. better says which way is progress.
+// CHECK: which point does "front-split height from the floor" measure
+// (front of the pelvis?), and is shoulder flexion better as wrist height
+// off the floor or as an angle?
+export const MEASURES = [
+  { id: 'frontRight', label: 'Front split, right leg forward', unit: 'cm', better: 'lower', hint: 'Lowest point of the pelvis to the floor.' },
+  { id: 'frontLeft', label: 'Front split, left leg forward', unit: 'cm', better: 'lower', hint: 'Lowest point of the pelvis to the floor.' },
+  { id: 'middle', label: 'Middle split width', unit: 'cm', better: 'higher', hint: 'Heel to heel.' },
+  { id: 'bridge', label: 'Bridge, hands to heels', unit: 'cm', better: 'lower', hint: 'Fingertips to heels.' },
+  { id: 'shoulder', label: 'Shoulder flexion, lying on your back', unit: 'cm', better: 'lower', hint: 'Arms overhead, lower back flat: wrists to the floor.' },
+];
+export const MEASURE_DAYS = 28;
+
+// flex-training:measures → { version: 1, entries: [{ date 'YYYY-MM-DD',
+// values: { [MEASURES id]: number }, note }] (oldest first), snooze? (ms) }.
+// One entry per date; an entry with no values is dropped.
+export function normalizeMeasures(raw) {
+  const byDate = new Map();
+  for (const e of Array.isArray(raw?.entries) ? raw.entries : []) {
+    if (!e || !/^\d{4}-\d{2}-\d{2}$/.test(e.date)) continue;
+    const values = {};
+    for (const m of MEASURES) {
+      const v = e.values?.[m.id];
+      if (typeof v === 'number' && Number.isFinite(v) && v >= 0) values[m.id] = v;
+    }
+    if (!Object.keys(values).length) continue;
+    byDate.set(e.date, { date: e.date, values, note: typeof e.note === 'string' ? e.note : '' });
+  }
+  const entries = [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+  return { version: 1, entries, ...(Number.isFinite(raw?.snooze) ? { snooze: raw.snooze } : {}) };
+}
+
+// Whether a progress check is due → null, or { never } / { days since the
+// last one }. Never measured counts as due, so the first check is a
+// baseline.
+export function measureDue(measures, now) {
+  if (Number.isFinite(measures.snooze) && now < measures.snooze) return null;
+  const last = measures.entries.at(-1);
+  if (!last) return { never: true };
+  const days = Math.floor((now - fromYmd(last.date).getTime()) / 86400000);
+  return days >= MEASURE_DAYS ? { days } : null;
+}
+
+// Change since the first check, for each measure measured at least twice
+// → { [id]: { first, last, change, better: true|false|null } }
+export function measureTrend(measures) {
+  const out = {};
+  for (const m of MEASURES) {
+    const vals = measures.entries.filter((e) => m.id in e.values).map((e) => e.values[m.id]);
+    if (vals.length < 2) continue;
+    const change = Math.round((vals.at(-1) - vals[0]) * 10) / 10;
+    out[m.id] = { first: vals[0], last: vals.at(-1), change, better: change === 0 ? null : (change < 0) === (m.better === 'lower') };
+  }
+  return out;
+}
+
 export function isEmptyEntry(e) {
   return !e.done && !e.checked.length && !e.notes.trim() && !e.resume;
 }
