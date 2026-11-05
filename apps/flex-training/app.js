@@ -748,7 +748,7 @@ function openPlayer(key) {
   const index = r ? r.index : Math.max(0, nextToDo(items, checked, -1));
   play = { o, items, index, phases: playPhases(items[index].item), phase: 0, left: 0, running: false, waiting: false, endAt: 0, tick: null, saved: 0 };
   if (r) {
-    ({ phase: play.phase, left: play.left } = resumeStep(play.phases, r));
+    ({ phase: play.phase, left: play.left } = resumeStep(items[index].item, r));
     play.waiting = !!play.phases[play.phase].wait;
   } else {
     play.left = play.phases[0].seconds;
