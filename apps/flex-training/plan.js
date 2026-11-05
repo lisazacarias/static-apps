@@ -455,6 +455,8 @@ const SWITCH_LABEL = { side: 'Switch sides', leg: 'Switch legs', arm: 'Switch ar
 // 1- or 2-minute side evenly.
 const PRESS = /press\b[^.]*?(\d+)(?:\s*(?:to|-|–)\s*(\d+))?\s*s\b[^.]*?\b(sink|relax|fold)\b[^.]*?(?:for\s*)?(\d+)\s*s\b/i;
 export function pressCycle(item) {
+  const p = item.play;
+  if (p && 'press' in p) return p.press ? { press: p.press, relax: p.relax, verb: p.fold ? 'Relax and fold deeper' : 'Relax and sink deeper' } : null;
   const m = PRESS.exec(item.detail || '');
   if (!m) return null;
   const verb = m[3].toLowerCase() === 'fold' ? 'Relax and fold deeper' : 'Relax and sink deeper';
@@ -475,7 +477,12 @@ function sideBlocks(item, total, layout) {
   let unit = half && half.label.split('/')[1];
   let n = 0;
   let seconds = 0;
-  if (HALVES[unit]) {
+  // An item's play field overrides all of the reading below.
+  if (layout >= 3 && item.play && 'sides' in item.play) {
+    if (!HALVES[item.play.sides]) return { unit: null, blocks: [{ label: '', seconds: total }] };
+    unit = item.play.sides;
+    n = 2 * (item.play.rounds || 1);
+  } else if (HALVES[unit]) {
     if (Math.abs(half.seconds * 2 - total) <= total * 0.25) [n, seconds] = [2, half.seconds];
     else if (half.seconds * 2 < total && layout >= 3) n = 2 * Math.round(total / (2 * half.seconds));
   }
@@ -521,6 +528,32 @@ export function playPhases(item, layout = RESUME_LAYOUT) {
     }
   });
   return phases;
+}
+
+// What the player says as step i starts, from the step labels:
+//   ready   the movement's name, and which side goes first
+//   switch  "Switch legs. Tap when you're ready."
+//   holds   the side when it changes ("Second side"), the round when sides
+//           alternate ("round 2"), and the action for contract-relax
+//           ("Press", "Relax and sink deeper")
+export function spokenCue(phases, i, name) {
+  const step = phases[i];
+  const holds = (k) => k === 'work' || k === 'press' || k === 'relax';
+  const parts = (p) => (p.label || '').split(' · ').filter(Boolean);
+  const side = (p) => (holds(p.kind) && /^(First|Second|One|Other) /.test(parts(p)[0] || '') ? parts(p)[0] : '');
+  if (step.kind === 'ready') {
+    const first = phases.find((p) => holds(p.kind));
+    return [name, first && side(first)].filter(Boolean).join('. ') + '.';
+  }
+  if (step.kind === 'switch') return `${step.label}. Tap when you’re ready.`;
+  const prev = phases.slice(0, i).reverse().find((p) => holds(p.kind));
+  const count = /^(\d+) of \d+$/.exec(parts(step).at(-1) || '');
+  const said = [];
+  // The first hold's side was said in the count-in.
+  if (side(step) && prev && side(prev) !== side(step)) said.push(step.kind === 'work' && count ? `${side(step)}, round ${count[1]}` : side(step));
+  const action = parts(step).filter((x) => x !== side(step) && !/^\d+ of \d+$/.test(x));
+  if (step.kind !== 'work') said.push(...action);
+  return said.length ? said.join('. ') + '.' : '';
 }
 
 // Where to pick a movement back up from a saved resume point → { phase, left }.

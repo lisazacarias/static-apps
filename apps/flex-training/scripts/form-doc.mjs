@@ -37,6 +37,7 @@ for (const m of index) {
   out.push('');
   if (f.cues?.length) out.push('**Cues**', '', ...f.cues.map((c) => `- ${c}`), '');
   if (f.avoid?.length) out.push('**Avoid**', '', ...f.avoid.map((c) => `- ${c}`), '');
+  if (f.sources?.length) out.push('**Checked against**', '', ...f.sources.map((x) => `- [${x.label}](${x.url})`), '');
   out.push('**In your plan**', '');
   for (const u of m.uses) {
     out.push(`- ${u.session}${u.version ? ` (${u.version})` : ''}${u.name !== m.name ? `, as "${u.name}"` : ''}: ${u.duration}${u.detail ? `. ${plain(u.detail)}` : ''}`);
