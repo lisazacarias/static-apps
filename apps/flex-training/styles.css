@@ -353,7 +353,8 @@ body.playing { overflow: hidden; }
 .player[data-step="relax"] .play-time { color: var(--green); }
 .player.waiting #playToggle { border-color: var(--gold); color: var(--text-bright); background: var(--gold-dim); }
 .switch-note { background: var(--gold-dim); color: #e8cfa6; padding: 10px 12px; border-radius: 6px; font-size: 14px; margin-bottom: 12px; }
-.lock-btn { margin-left: auto; padding: 5px 9px; font-size: 11px; white-space: nowrap; }
+.lock-btn { padding: 5px 9px; font-size: 11px; white-space: nowrap; }
+#playVoice { margin-left: auto; }
 .skipped { margin: 8px 0 14px 20px; text-align: left; display: inline-block; }
 .play-controls { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
 .play-controls .btn { padding: 12px 6px; font-size: 14px; text-align: center; }

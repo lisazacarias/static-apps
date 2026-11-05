@@ -2,11 +2,13 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   normalizeWeeks, normalizeWeek, emptyWeek, deloadInfo, weekFromExample, copyWeek, isPlanned,
-  occurrences, checkWeek, suggestWeek, checklist, playPhases, pressCycle, resumeStep, RESUME_LAYOUT, nextToDo, READY_SECONDS, SWITCH_SECONDS, versionOf, timerOptions, parseDuration, moveKey, movementIndex,
+  occurrences, checkWeek, suggestWeek, checklist, playPhases, pressCycle, resumeStep, spokenCue, RESUME_LAYOUT, nextToDo, READY_SECONDS, SWITCH_SECONDS, versionOf, timerOptions, parseDuration, moveKey, movementIndex,
   normalizeLog, isEmptyEntry, describe, toIcs, foldLine, weekStart, ymd, fromYmd,
 } from '../plan.js';
 import ROUTINE from '../routine.js';
 import FORM from '../form.js';
+import { readFileSync } from 'node:fs';
+import { stepsText } from './steps-text.mjs';
 
 const IDS = ROUTINE.sessions.map((s) => s.id);
 const MONDAY = new Date(2026, 9, 19);
@@ -388,6 +390,33 @@ test('contract-relax runs press and relax rounds on each side', () => {
   const short = { name: 'Contract-relax hip flexor', duration: '2 min', detail: 'press the back shin down 5 to 10 s, relax deeper for 20 s, 1 min per side.' };
   assert.equal(playPhases(short).filter((x) => x.kind === 'press').length, 4);
   assert.equal(pressCycle({ name: 'Couch stretch', duration: '4 min', detail: '2 min per side.' }), null);
+});
+
+test('the player says the movement, side changes, rounds and press/relax', () => {
+  const say = (item) => { const p = playPhases(item); return p.map((_, i) => spokenCue(p, i, item.name)); };
+  assert.deepEqual(say({ name: 'Standing splits', duration: '4 min', detail: '60 s per leg.' }), [
+    'Standing splits. First leg.', '', 'Switch legs. Tap when you’re ready.', 'Second leg, round 1.',
+    'Switch legs. Tap when you’re ready.', 'First leg, round 2.', 'Switch legs. Tap when you’re ready.', 'Second leg, round 2.',
+  ]);
+  const cr = say({ name: 'Contract-relax hip flexor', duration: '2 min', detail: 'press the back shin down 5 to 10 s, relax deeper for 20 s, 1 min per side.' });
+  assert.deepEqual(cr.slice(0, 4), ['Contract-relax hip flexor. First side.', 'Press.', 'Relax and sink deeper.', 'Press.']);
+  assert.deepEqual(cr.slice(5, 7), ['Switch sides. Tap when you’re ready.', 'Second side. Press.']);
+  assert.deepEqual(say({ name: 'Butterfly', duration: '2 min' }), ['Butterfly.', '']);
+});
+
+test('each movement’s player steps match test/steps.txt', () => {
+  // If this fails after a plan or code change, read the diff. If the new
+  // steps are right, run `npm run steps` and commit test/steps.txt.
+  assert.equal(stepsText(), readFileSync(new URL('./steps.txt', import.meta.url), 'utf8'));
+});
+
+test('a play field overrides what the notes say', () => {
+  const work = (item) => playPhases(item).filter((x) => x.kind !== 'ready').map((x) => x.label || x.kind);
+  assert.deepEqual(work({ name: 'x', duration: '4 min', detail: '10 reps each leg.', play: { sides: false } }), ['work']);
+  assert.deepEqual(work({ name: 'x', duration: '4 min', play: { sides: 'arm', rounds: 2 } }),
+    ['First arm · 1 of 2', 'Switch arms', 'Second arm · 1 of 2', 'Switch arms', 'First arm · 2 of 2', 'Switch arms', 'Second arm · 2 of 2']);
+  assert.equal(pressCycle({ name: 'x', duration: '2 min', detail: 'press 5 to 10 s, sink for 20 s.', play: { press: 0 } }), null);
+  assert.deepEqual(pressCycle({ name: 'x', duration: '2 min', play: { press: 5, relax: 25, fold: true } }), { press: 5, relax: 25, verb: 'Relax and fold deeper' });
 });
 
 test('every movement in every session gets player steps', () => {
