@@ -44,11 +44,21 @@ export function unlockSpeech() {
   try { window.speechSynthesis?.speak(new SpeechSynthesisUtterance('')); } catch { /* no speech */ }
 }
 
-// delay lets a beep finish first.
+// delay lets a beep finish first. A newer cue replaces one still waiting.
+let pending = null;
 export function speak(text, delay = 0) {
   const synth = window.speechSynthesis;
   if (!synth || !text) return;
-  setTimeout(() => {
+  clearTimeout(pending);
+  pending = setTimeout(() => {
+    pending = null;
     try { synth.cancel(); synth.speak(new SpeechSynthesisUtterance(text)); } catch { /* no speech */ }
   }, delay);
+}
+
+// Stop speaking now, including a cue still waiting for its beeps.
+export function hush() {
+  clearTimeout(pending);
+  pending = null;
+  try { window.speechSynthesis?.cancel(); } catch { /* no speech */ }
 }

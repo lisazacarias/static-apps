@@ -8,7 +8,7 @@ import FORM from './form.js';
 import {
   $, esc, rich, log, timer, parseKey, entryFor, updateEntry, saveLog, fmtClock, sessionHref, isDeload, cueList, formHtml,
 } from './app.js';
-import { unlockAudio, unlockSpeech, chime, speak, keepAwake } from './sound.js';
+import { unlockAudio, unlockSpeech, chime, speak, hush, keepAwake } from './sound.js';
 
 // Full-screen, one movement at a time: a "Get ready" countdown, then the
 // timer (split per side, and into press/relax rounds for contract-relax,
@@ -62,6 +62,7 @@ export function openPlayer(key) {
 
 export function closePlayer() {
   if (!play) return;
+  hush();
   pausePlayer();
   savePlayer();
   const back = play.returnFocus;
@@ -153,7 +154,7 @@ function finishMovement(tick, timeUp = false) {
   const next = nextToDo(items, checked, play.index);
   if (next >= 0) { if (timeUp) chime(...CUE.next); goTo(next, true, timeUp ? CUE.next[0] : 0); return; }
   if (items.every((i) => checked.has(i.id))) finishSession();
-  else showEnd();
+  else { if (timeUp) chime(...CUE.next); showEnd(); } // time's up on the last one, with some skipped
 }
 
 function finishSession() {
@@ -199,7 +200,8 @@ function showEnd() {
       <button class="btn" type="button" id="playRedo">Do the skipped ones</button>
     </div>
   </div>`;
-  if (voiceOn) speak(`End of the session. You skipped ${skipped.length === 1 ? 'one movement' : `${skipped.length} movements`}.`);
+  // After the moving-on beeps, when time ran out on the last movement.
+  if (voiceOn) speak(`End of the session. You skipped ${skipped.length === 1 ? 'one movement' : `${skipped.length} movements`}.`, CUE.next[0] * 280 + 150);
   updateLockScreen(true);
 }
 
@@ -364,7 +366,7 @@ export function initPlayer() {
   $('playVoice').addEventListener('click', () => {
     voiceOn = !voiceOn;
     try { localStorage.setItem(VOICE_KEY, voiceOn ? '1' : '0'); } catch { /* per-visit only */ }
-    if (voiceOn) { unlockSpeech(); speak('Voice on.'); } else window.speechSynthesis?.cancel();
+    if (voiceOn) { unlockSpeech(); speak('Voice on.'); } else hush();
     paintLockButton();
   });
   // Save where you are if the page is hidden or closed mid-hold.
