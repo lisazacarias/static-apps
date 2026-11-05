@@ -34,8 +34,13 @@ self.addEventListener('fetch', (e) => {
   e.respondWith(
     fetch(e.request)
       .then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(e.request, copy));
+        // Only keep good copies: fetch resolves for a 404 or 503 too, and
+        // caching that would replace the working offline copy. Opaque is a
+        // cross-origin font or stylesheet, which can't be inspected.
+        if (res.ok || res.type === 'opaque') {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy));
+        }
         return res;
       })
       .catch(() => caches.match(e.request, { ignoreSearch: true }))

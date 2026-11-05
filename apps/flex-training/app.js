@@ -702,7 +702,7 @@ function downloadBackup() {
   download(JSON.stringify({ log, weeks }, null, 2), `flex-training-backup-${ymd(new Date())}.json`, 'application/json');
   backup = { at: Date.now() };
   save(BACKUP_KEY, backup);
-  if (location.hash.startsWith('#week') || !location.hash) render(true); // drop the reminder
+  render(true); // drop the reminder (Week) or show the new date (History)
 }
 
 // Opened from the home screen rather than a browser tab.
