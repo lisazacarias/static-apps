@@ -107,6 +107,10 @@ test('weeks normalizer keeps good days and drops junk', () => {
   ]);
   assert.deepEqual(week.days[6], { classes: [], sessions: [] });
   assert.deepEqual(normalizeWeeks(null), { version: 1, weeks: {} });
+  // updated is kept for the backup reminder; older saves without it are fine.
+  assert.equal(normalizeWeeks({ weeks: {}, updated: 42 }).updated, 42);
+  assert.equal(normalizeWeeks({ weeks: {}, first: 7, updated: 42 }).first, 7);
+  assert.equal('updated' in normalizeWeeks({ weeks: {}, updated: 'x' }), false);
   assert.ok(!isPlanned(emptyWeek()));
 });
 
@@ -613,6 +617,9 @@ test('a backup reminder shows when changes are BACKUP_DAYS old and not backed up
   // Other changes (progress checks) count too, even with no session change.
   assert.deepEqual(backupDue(log(70 * DAY), { at: 75 * DAY }, now, [90 * DAY]), { days: 25, never: false }, 'a check saved after the backup');
   assert.equal(backupDue(log(70 * DAY), { at: 75 * DAY }, now, [undefined]), null, 'no checks');
+  // Never backed up, nothing logged: the first reminder ages from the
+  // earliest change, so editing yesterday doesn't push it back.
+  assert.deepEqual(backupDue({ entries: {} }, {}, now, [80 * DAY, 99 * DAY]), { days: 20, never: true }, 'first planned 20 days ago, edited yesterday');
 });
 
 test('progress checks keep good entries, one per date, oldest first', () => {
