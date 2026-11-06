@@ -149,14 +149,18 @@ test('ballots left: sums a district\'s counties, or uses the statewide count', a
 
 test('a lead is only safe when it beats every ballot left, on a count no older than the report', async () => {
   const { cantBeCaught } = await import('../results.js');
-  const report = 'November 6, 2026, 12:00 p.m.';
-  const later = 'November 6, 2026, 4:10 p.m.';
-  assert.equal(cantBeCaught(1001, 1000, later, report), true);
-  assert.equal(cantBeCaught(1000, 1000, later, report), false); // a sweep would tie
-  assert.equal(cantBeCaught(999, 1000, later, report), false);
+  const mail = 'November 10, 2026, 11:59 p.m.';
+  const report = 'November 12, 2026, 12:00 p.m.';
+  const later = 'November 12, 2026, 4:10 p.m.';
+  assert.equal(cantBeCaught(1001, 1000, later, report, mail), true);
+  assert.equal(cantBeCaught(1000, 1000, later, report, mail), false); // a sweep would tie
+  assert.equal(cantBeCaught(999, 1000, later, report, mail), false);
   // a count from before the report misses ballots counted in between
-  assert.equal(cantBeCaught(5000, 1000, 'November 5, 2026, 9:00 p.m.', report), false);
-  assert.equal(cantBeCaught(5000, 1000, '', report), false);
-  assert.equal(cantBeCaught(5000, null, later, report), false);
-  assert.equal(cantBeCaught(0, 0, later, report), false);
+  assert.equal(cantBeCaught(5000, 1000, 'November 11, 2026, 9:00 p.m.', report, mail), false);
+  assert.equal(cantBeCaught(5000, 1000, '', report, mail), false);
+  assert.equal(cantBeCaught(5000, null, later, report, mail), false);
+  assert.equal(cantBeCaught(0, 0, later, report, mail), false);
+  // a report from before the mail deadline doesn't count ballots still in the mail
+  assert.equal(cantBeCaught(5000, 1000, 'November 6, 2026, 4:10 p.m.', 'November 6, 2026, 12:00 p.m.', mail), false);
+  assert.equal(cantBeCaught(5000, 1000, later, report, ''), false);
 });

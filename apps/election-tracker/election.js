@@ -69,10 +69,13 @@ export const ELECTION = {
         // page is HTML only). Each figure is Estimated Total Ballots Remaining plus Ballots Left
         // to Cure. CHECK: whether "remaining" already includes ballots awaiting a signature cure;
         // adding both can only overcount, which keeps the badge cautious.
-        // Mail postmarked by Election Day counts if it arrives by Nov 10, and isn't in these
-        // numbers until it does. Update `asOf` (SoS time format) with each new report.
+        // Mail postmarked by Election Day counts if it arrives within seven days (by Nov 10, per
+        // the report page), and isn't in these numbers until it does. So a report from before
+        // `lateMailBy` can't bound what's left, and the badge waits for one dated after it.
+        // Update `asOf` (SoS time format) with each new report.
         uncounted: {
             sourceUrl: 'https://electionresults.sos.ca.gov/unprocessed-ballots-status',
+            lateMailBy: 'November 10, 2026, 11:59 p.m.',
             asOf: 'November 6, 2026, 12:00 p.m.',
             statewide: 4782948 + 69824,
             counties: {

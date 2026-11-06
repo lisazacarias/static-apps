@@ -67,6 +67,7 @@ test('the ballots-left report covers every county a race lists, with a parseable
   const { parseSosTime } = await import('../results.js');
   const u = ELECTION.current.uncounted;
   assert.ok(parseSosTime(u.asOf), u.asOf);
+  assert.ok(parseSosTime(u.lateMailBy), u.lateMailBy);
   assert.ok(u.sourceUrl.startsWith('https://') && u.statewide > 0);
   for (const r of races.filter(r => r.counties)) {
     for (const c of r.counties) assert.equal(typeof u.counties[c], 'number', r.key + ': ' + c);

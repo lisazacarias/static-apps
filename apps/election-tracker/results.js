@@ -149,11 +149,13 @@ export function uncountedFor(race, uncounted) {
 // A lead bigger than every ballot left can't be overtaken, even if the trailer won every one
 // of them (and some ballots skip any given race, so the real cushion is bigger). Only trusted
 // when the vote count is at least as new as the report: ballots counted in between would be
-// in neither number.
-export function cantBeCaught(lead, remaining, feedTime, reportTime) {
+// in neither number. And only from a report taken after the last mail could arrive
+// (`lateMailBy`); before that, ballots still in the mail aren't in its count.
+export function cantBeCaught(lead, remaining, feedTime, reportTime, lateMailBy) {
     if (typeof remaining !== 'number' || !(lead > 0)) return false;
     const feed = parseSosTime(feedTime), report = parseSosTime(reportTime);
-    if (!feed || !report || feed < report) return false;
+    const mailDone = parseSosTime(lateMailBy);
+    if (!feed || !report || !mailDone || feed < report || report <= mailDone) return false;
     return lead > remaining;
 }
 
