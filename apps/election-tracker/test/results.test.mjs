@@ -136,3 +136,27 @@ test('feeds are escaped once on arrival, and parsing still works on the result',
   assert.ok(titles[1].includes('State&#39;s'));
   assert.deepEqual(escapeFeed(governor).candidates.map(c => c.Name), ['Xavier Becerra', 'Steve Hilton']);
 });
+
+test('ballots left: sums a district\'s counties, or uses the statewide count', async () => {
+  const { uncountedFor } = await import('../results.js');
+  const u = { statewide: 1000, counties: { Alameda: 100, 'Santa Clara': 50 } };
+  assert.equal(uncountedFor({}, u), 1000);
+  assert.equal(uncountedFor({ counties: ['Alameda', 'Santa Clara'] }, u), 150);
+  // a county the report doesn't have means no answer, not a too-small one
+  assert.equal(uncountedFor({ counties: ['Alameda', 'Marin'] }, u), null);
+  assert.equal(uncountedFor({}, null), null);
+});
+
+test('a lead is only safe when it beats every ballot left, on a count no older than the report', async () => {
+  const { cantBeCaught } = await import('../results.js');
+  const report = 'November 6, 2026, 12:00 p.m.';
+  const later = 'November 6, 2026, 4:10 p.m.';
+  assert.equal(cantBeCaught(1001, 1000, later, report), true);
+  assert.equal(cantBeCaught(1000, 1000, later, report), false); // a sweep would tie
+  assert.equal(cantBeCaught(999, 1000, later, report), false);
+  // a count from before the report misses ballots counted in between
+  assert.equal(cantBeCaught(5000, 1000, 'November 5, 2026, 9:00 p.m.', report), false);
+  assert.equal(cantBeCaught(5000, 1000, '', report), false);
+  assert.equal(cantBeCaught(5000, null, later, report), false);
+  assert.equal(cantBeCaught(0, 0, later, report), false);
+});

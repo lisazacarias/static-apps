@@ -132,6 +132,31 @@ export function measureStatus(m) {
     };
 }
 
+// Ballots still to count where a race is on the ballot: the sum over its counties, or the
+// statewide figure when it lists none. null when there's no report or a county is missing.
+export function uncountedFor(race, uncounted) {
+    if (!uncounted) return null;
+    if (!race.counties) return uncounted.statewide;
+    let sum = 0;
+    for (const county of race.counties) {
+        const n = uncounted.counties[county];
+        if (typeof n !== 'number') return null;
+        sum += n;
+    }
+    return sum;
+}
+
+// A lead bigger than every ballot left can't be overtaken, even if the trailer won every one
+// of them (and some ballots skip any given race, so the real cushion is bigger). Only trusted
+// when the vote count is at least as new as the report: ballots counted in between would be
+// in neither number.
+export function cantBeCaught(lead, remaining, feedTime, reportTime) {
+    if (typeof remaining !== 'number' || !(lead > 0)) return false;
+    const feed = parseSosTime(feedTime), report = parseSosTime(reportTime);
+    if (!feed || !report || feed < report) return false;
+    return lead > remaining;
+}
+
 // The newest ReportingTime across feeds, as the feed wrote it. '' if none parse.
 export function latestSosTime(feeds) {
     let best = null, bestText = '';
