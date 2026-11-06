@@ -240,14 +240,14 @@ export function windowActive(window, newestText, now) {
     return when >= start && when <= end;
 }
 
-// The first of `dates` ('YYYY-MM-DD') that's today or later, as "Mon, Nov 9". '' if none.
+// The first of `dates` ('YYYY-MM-DD') that's today or later in county time, as "Mon, Nov 9".
+// '' if none. Today is taken in Pacific time so a visitor elsewhere doesn't see the schedule
+// roll over hours early.
 export function nextUpdateDay(dates, now) {
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    for (const d of [...(dates || [])].sort()) {
-        const day = new Date(d + 'T00:00:00');
-        if (day >= today) return day.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    }
-    return '';
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles' }).format(now);
+    const next = [...(dates || [])].sort().find(d => d >= today);
+    return next ? new Date(next + 'T12:00:00Z').toLocaleDateString('en-US',
+        { timeZone: 'UTC', weekday: 'short', month: 'short', day: 'numeric' }) : '';
 }
 
 // "Nov 2028" from a ReportingTime, for the generic title between known elections.

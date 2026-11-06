@@ -4,8 +4,8 @@ import {
     lastName, sortByVotes, headToHead, raceGap, propNumber, measureStatus, latestSosTime,
     escapeHtml, escapeFeed, usableFeed, isSameElection, isQuiet, windowActive, monthYear,
     trimPropTitle, uncountedFor, cantBeCaught, nextUpdateDay
-} from './results.js?v=2026-11-06c';
-import { ELECTION } from './election.js?v=2026-11-06c';
+} from './results.js?v=2026-11-06d';
+import { ELECTION } from './election.js?v=2026-11-06d';
 
 let autoRefreshInterval;
 let countdownInterval;

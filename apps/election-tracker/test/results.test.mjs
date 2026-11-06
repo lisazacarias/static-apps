@@ -168,8 +168,9 @@ test('a lead is only safe when it beats every ballot left, on a count no older t
 test('the next county update is today or the first day after', async () => {
   const { nextUpdateDay } = await import('../results.js');
   const days = ['2026-11-09', '2026-11-06', '2026-11-13'];
-  assert.equal(nextUpdateDay(days, new Date(2026, 10, 6, 21, 0)), 'Fri, Nov 6');
-  assert.equal(nextUpdateDay(days, new Date(2026, 10, 7, 9, 0)), 'Mon, Nov 9');
-  assert.equal(nextUpdateDay(days, new Date(2026, 10, 14)), '');
+  // 11:30 p.m. Nov 6 in California is already Nov 7 in UTC and New York
+  assert.equal(nextUpdateDay(days, new Date('2026-11-07T07:30:00Z')), 'Fri, Nov 6');
+  assert.equal(nextUpdateDay(days, new Date('2026-11-07T08:30:00Z')), 'Mon, Nov 9');
+  assert.equal(nextUpdateDay(days, new Date('2026-11-14T09:00:00Z')), '');
   assert.equal(nextUpdateDay(undefined, new Date()), '');
 });
