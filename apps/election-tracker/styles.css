@@ -591,7 +591,9 @@ header {
 .live-badge.offline .live-dot { background: var(--text-label); animation: none; }
 
 /* Sections and tabs hide when nothing in them is on the current ballot */
-.section[hidden], .section-tabs a[hidden], .notice[hidden], .local-race-list[hidden] { display: none; }
+.section[hidden], .section-tabs a[hidden], .notice[hidden], .local-race-list[hidden],
+.local-schedule[hidden] { display: none; }
+.local-schedule { margin: 0 0 12px; font-size: 0.85rem; color: var(--text-label); }
 
 /* Hand-entered race calls */
 .glance-called { font-size: 12px; color: var(--green); font-weight: 600; }
