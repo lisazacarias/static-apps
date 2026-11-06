@@ -65,6 +65,10 @@ export const ELECTION = {
             props: { '1': 'approved', '2': 'approved', '37': 'approved', '39': 'defeated', '44': 'defeated' }
         },
 
+        // Days the county said it will post new results, by end of day (from its results page,
+        // alamedacountyca.gov/rovresults/260/, as of Nov 5). The Hayward section names the next one.
+        countyUpdates: ['2026-11-06', '2026-11-09', '2026-11-13', '2026-11-16'],
+
         // Ballots still to count, from the SoS Unprocessed Ballots Report, entered by hand (the
         // page is HTML only). Each figure is Estimated Total Ballots Remaining plus Ballots Left
         // to Cure. CHECK: whether "remaining" already includes ballots awaiting a signature cure;

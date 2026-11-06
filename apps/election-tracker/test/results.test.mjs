@@ -164,3 +164,12 @@ test('a lead is only safe when it beats every ballot left, on a count no older t
   assert.equal(cantBeCaught(5000, 1000, 'November 6, 2026, 4:10 p.m.', 'November 6, 2026, 12:00 p.m.', mail), false);
   assert.equal(cantBeCaught(5000, 1000, later, report, ''), false);
 });
+
+test('the next county update is today or the first day after', async () => {
+  const { nextUpdateDay } = await import('../results.js');
+  const days = ['2026-11-09', '2026-11-06', '2026-11-13'];
+  assert.equal(nextUpdateDay(days, new Date(2026, 10, 6, 21, 0)), 'Fri, Nov 6');
+  assert.equal(nextUpdateDay(days, new Date(2026, 10, 7, 9, 0)), 'Mon, Nov 9');
+  assert.equal(nextUpdateDay(days, new Date(2026, 10, 14)), '');
+  assert.equal(nextUpdateDay(undefined, new Date()), '');
+});

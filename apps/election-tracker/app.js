@@ -3,9 +3,9 @@ import {
     FETCH_TIMEOUT, parseVotes, parsePercent, estimateBallotsCounted, shortTime, sourcesFor,
     lastName, sortByVotes, headToHead, raceGap, propNumber, measureStatus, latestSosTime,
     escapeHtml, escapeFeed, usableFeed, isSameElection, isQuiet, windowActive, monthYear,
-    trimPropTitle, uncountedFor, cantBeCaught
-} from './results.js?v=2026-11-06b';
-import { ELECTION } from './election.js?v=2026-11-06b';
+    trimPropTitle, uncountedFor, cantBeCaught, nextUpdateDay
+} from './results.js?v=2026-11-06c';
+import { ELECTION } from './election.js?v=2026-11-06c';
 
 let autoRefreshInterval;
 let countdownInterval;
@@ -484,6 +484,10 @@ function applyElectionChrome() {
     }
     notice.hidden = !currentActive;
     local.hidden = !currentActive;
+    const schedule = document.getElementById('countySchedule');
+    const next = currentActive ? nextUpdateDay(ELECTION.current.countyUpdates, new Date()) : '';
+    schedule.textContent = next ? 'Next county update: ' + next + ', by end of day.' : '';
+    schedule.hidden = !next;
 }
 
 // ── At a glance: one short line per race that has votes, and a chip per prop ──

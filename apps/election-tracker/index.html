@@ -6,8 +6,8 @@
     <title>Hayward Election Results · November 2026</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="../../shared/base.css?v=2026-11-06b">
-    <link rel="stylesheet" href="styles.css?v=2026-11-06b">
+    <link rel="stylesheet" href="../../shared/base.css?v=2026-11-06c">
+    <link rel="stylesheet" href="styles.css?v=2026-11-06c">
 </head>
 <body>
     <div class="container">
@@ -98,14 +98,14 @@
                     <li>Hayward City Council — District 6</li>
                     <li>Measure CC — Hayward business license tax</li>
                 </ul>
-                <!-- CHECK: the county's rovresults/<id>/ page for Nov 3 wasn't confirmed; this is the ACVOTE election page (id=260), which links to results. -->
-                <a href="https://acvote.alamedacountyca.gov/election-information/elections?id=260" target="_blank" class="link-button" id="countyLink">View on Official Alameda County Elections →</a>
+                <p class="local-schedule" id="countySchedule" hidden></p>
+                <a href="https://alamedacountyca.gov/rovresults/260/" target="_blank" class="link-button" id="countyLink">View on Official Alameda County Elections →</a>
             </div>
         </div>
     </div>
 
     <!-- Bump ?v= (here and on app.js's imports) whenever app.js, results.js, election.js, styles.css or base.css changes: phones kept serving a cached app.js
          against the new index.html, leaving the props stuck on "Loading…". -->
-    <script type="module" src="app.js?v=2026-11-06b"></script>
+    <script type="module" src="app.js?v=2026-11-06c"></script>
 </body>
 </html>

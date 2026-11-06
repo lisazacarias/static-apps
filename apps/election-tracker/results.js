@@ -240,6 +240,16 @@ export function windowActive(window, newestText, now) {
     return when >= start && when <= end;
 }
 
+// The first of `dates` ('YYYY-MM-DD') that's today or later, as "Mon, Nov 9". '' if none.
+export function nextUpdateDay(dates, now) {
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    for (const d of [...(dates || [])].sort()) {
+        const day = new Date(d + 'T00:00:00');
+        if (day >= today) return day.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    }
+    return '';
+}
+
 // "Nov 2028" from a ReportingTime, for the generic title between known elections.
 export function monthYear(newestText) {
     const t = parseSosTime(newestText);
