@@ -3,9 +3,9 @@ import {
     FETCH_TIMEOUT, parseVotes, parsePercent, estimateBallotsCounted, shortTime, sourcesFor,
     lastName, sortByVotes, headToHead, raceGap, propNumber, measureStatus, latestSosTime,
     escapeHtml, escapeFeed, usableFeed, isSameElection, isQuiet, windowActive, monthYear,
-    trimPropTitle
-} from './results.js?v=2026-11-04l';
-import { ELECTION } from './election.js?v=2026-11-04l';
+    trimPropTitle, uncountedFor, cantBeCaught
+} from './results.js?v=2026-11-06b';
+import { ELECTION } from './election.js?v=2026-11-06b';
 
 let autoRefreshInterval;
 let countdownInterval;
@@ -137,17 +137,21 @@ function renderHeadToHead(race, data, sorted) {
         '</span>';
 
     const called = raceCall(race.key);
+    const isLocked = !called && locked(race, Math.abs(va - vb), data.ReportingTime);
     const margin = called
         ? '<div class="h2h-margin">Called for <b>' + escapeHtml(called) + '</b> · ' + escapeHtml(calls().source) + '</div>'
         : aLeads || bLeads
         ? '<div class="h2h-margin">' + (aLeads ? a : b).Name + ' leads by <b>' +
-            Math.abs(va - vb).toLocaleString('en-US') + '</b></div>'
+            Math.abs(va - vb).toLocaleString('en-US') + '</b>' +
+            (isLocked ? ', more than the ' + uncountedFor(race, uncounted()).toLocaleString('en-US') +
+                ' ballots left to count' : '') + '</div>'
         : '';
 
     return '<div class="race h2h">' +
         '<div class="race-header">' +
             '<div class="race-title">' + raceName + '</div>' +
             (raceCall(race.key) ? '<span class="tag yes" title="' + escapeHtml(callTitle()) + '">Called</span>'
+                : isLocked ? lockedTag(race, 'yes')
                 : tooClose ? '<span class="tag tie">Too close</span>' : '') +
         '</div>' +
         renderBallotCountStatus(data, data.ReportingTime || '', race.registered) +
@@ -249,7 +253,8 @@ function renderRace(race, data) {
                 '<div class="race-title">' + raceName + '</div>' +
             '</div>' +
             (raceCall(race.key) ? '<span class="tag yes" title="' + escapeHtml(callTitle()) + '">Called · ' +
-                escapeHtml(raceCall(race.key)) + '</span>' : '') +
+                escapeHtml(raceCall(race.key)) + '</span>'
+                : locked(race, margin, reportingTime) ? lockedTag(race, 'yes') : '') +
             showAllButton +
         '</div>' +
         ballotCountHTML +
@@ -267,15 +272,17 @@ function conflictNote(number) {
         ', courts may apply whichever got more Yes votes.</div>';
 }
 
-function renderMeasure(m) {
+function renderMeasure(m, reportingTime) {
     const number = propNumber(m);
     const fullName = m.Name || '';
     const shortName = propShortNames()[number] || trimPropTitle(fullName);
-    const { total, yesShare, status } = measureStatus(m);
+    const { yes, no, total, yesShare, status } = measureStatus(m);
     const yesLeads = status === 'pass', noLeads = status === 'fail';
     const called = propCall(number);
     const tag = called ? '<span class="tag ' + (called === 'approved' ? 'yes' : 'no') + '" title="' +
             escapeHtml(callTitle()) + '">' + (called === 'approved' ? 'Approved' : 'Defeated') + '</span>'
+        : propLocked(m, reportingTime)
+        ? lockedTag(STATEWIDE, yesLeads ? 'yes' : 'no', yesLeads ? 'Will pass' : 'Will fail')
         : {
         none: '<span class="tag tie">No votes yet</span>',
         pass: '<span class="tag yes">Passing</span>',
@@ -325,6 +332,28 @@ const propCall = number => (calls() && calls().props[number]) || null;
 const sentence = text => String(text).replace(/\.?$/, '.');
 const callTitle = () => 'Called by ' + calls().source + ', ' + sentence('as of ' + calls().asOf) +
     ' The state doesn\'t call races; results are official at certification.';
+
+// Ballots-left report (ELECTION.current.uncounted), same rule as calls.
+const uncounted = () => currentActive ? ELECTION.current.uncounted : null;
+// Props are on every ballot, so they use the statewide count.
+const STATEWIDE = {};
+const propLocked = (m, feedTime) => {
+    const { yes, no } = measureStatus(m);
+    return !propCall(propNumber(m)) && locked(STATEWIDE, Math.abs(yes - no), feedTime);
+};
+// The lead is bigger than every ballot left where this race is on the ballot.
+function locked(race, lead, feedTime) {
+    const u = uncounted();
+    return !!u && cantBeCaught(lead, uncountedFor(race, u), feedTime, u.asOf, u.lateMailBy);
+}
+// The explanation is visible text (the glance note, the race's margin line, the props note),
+// not just this tag, since touch screens never show a title.
+function lockedTag(race, cls, word = "Can't be caught") {
+    return '<span class="tag ' + cls + '">' + word + '</span>';
+}
+const lockedNote = () => 'the lead beats every ballot the state <a href="' + uncounted().sourceUrl +
+    '" target="_blank">listed as left to count</a> (' + escapeHtml(shortTime(uncounted().asOf)) +
+    '), counted after the last mail ballots could arrive.';
 
 const propConflicts = () => currentActive ? ELECTION.current.propConflicts : {};
 
@@ -397,7 +426,9 @@ function renderMeasures(result) {
             { candidates: [{ Votes: String(mostVotes) }], Reporting: data.Reporting },
             data.ReportingTime || '', ELECTION.measures.registered);
         replaceSection(container, '<div class="race props">' + status +
-            measures.map(renderMeasure).join('') + '</div>');
+            measures.map(m => renderMeasure(m, data.ReportingTime)).join('') +
+            (measures.some(m => propLocked(m, data.ReportingTime))
+                ? '<div class="glance-note">"Will pass" and "Will fail" mean ' + lockedNote() + '</div>' : '') + '</div>');
         setSectionVisible(container, true);
     } else if (result.status === 'unreachable') {
         replaceSection(container, renderPendingBlock([
@@ -463,8 +494,13 @@ function glanceRace(race) {
     if (!g) return '';
     const a = g.leader;
     const called = raceCall(race.key);
+    const data = lastGoodData[race.key];
+    const sorted = sortByVotes(data.candidates);
+    const lead = parseVotes(sorted[0].Votes) - parseVotes(sorted[1].Votes);
     const result = called
         ? '<span class="glance-lead">' + escapeHtml(lastName(called)) + '</span> <span class="glance-called">✓ called</span>'
+        : locked(race, lead, data.ReportingTime)
+        ? '<span class="glance-lead">' + lastName(a.Name) + '</span> <span class="glance-called glance-locked">can\'t be caught</span>'
         : g.tooClose
         ? '<span class="tag tie">Too close</span>'
         : '<span class="glance-lead">' + lastName(a.Name) + (a.Party ? ' (' + a.Party + ')' : '') +
@@ -484,7 +520,9 @@ function glanceProps() {
         // No votes in yet reads as a dash, not a tie, matching the card's "No votes yet".
         const called = propCall(n);
         const chipCls = called ? (called === 'approved' ? 'yes' : 'no') : cls;
+        const sure = propLocked(m, lastGoodData.measures.ReportingTime);
         const word = called ? (called === 'approved' ? '✓ Yes' : '✓ No')
+            : sure ? (status === 'pass' ? '🔒 Yes' : '🔒 No')
             : { pass: 'Pass', fail: 'Fail', tie: 'Tie', none: '–' }[status];
         return '<a class="glance-chip ' + chipCls + '" href="#prop-' + n + '" title="Prop ' + n + ': ' +
             (propShortNames()[n] || '') + '">' + n + ' <b>' + word + '</b></a>';
@@ -497,10 +535,13 @@ function renderGlance() {
     const props = glanceProps();
     el.hidden = !rows && !props;
     const c = calls();
-    const note = c && (Object.keys(c.races).length || Object.keys(c.props).length)
-        ? '<div class="glance-note">✓ = called by <a href="' + c.sourceUrl + '" target="_blank">' + escapeHtml(c.source) +
-          '</a>, ' + escapeHtml(sentence('as of ' + c.asOf)) + ' The state doesn\'t call races; results are official at certification.</div>'
+    const anyLocked = /glance-locked|🔒/.test(rows + props);
+    const callsText = c && (Object.keys(c.races).length || Object.keys(c.props).length)
+        ? '✓ = called by <a href="' + c.sourceUrl + '" target="_blank">' + escapeHtml(c.source) +
+          '</a>, ' + escapeHtml(sentence('as of ' + c.asOf)) + ' The state doesn\'t call races; results are official at certification.'
         : '';
+    const lockedText = anyLocked ? ' 🔒 and "can\'t be caught" mean ' + lockedNote() : '';
+    const note = callsText || lockedText ? '<div class="glance-note">' + callsText + lockedText + '</div>' : '';
     el.innerHTML = '<div class="glance-title">At a glance</div>' + props + rows + note;
 }
 

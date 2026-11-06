@@ -63,6 +63,25 @@ export const ELECTION = {
                 treasurer: 'Eleni Kounalakis'
             },
             props: { '1': 'approved', '2': 'approved', '37': 'approved', '39': 'defeated', '44': 'defeated' }
+        },
+
+        // Ballots still to count, from the SoS Unprocessed Ballots Report, entered by hand (the
+        // page is HTML only). Each figure is Estimated Total Ballots Remaining plus Ballots Left
+        // to Cure. CHECK: whether "remaining" already includes ballots awaiting a signature cure;
+        // adding both can only overcount, which keeps the badge cautious.
+        // Mail postmarked by Election Day counts if it arrives within seven days (by Nov 10, per
+        // the report page), and isn't in these numbers until it does. So a report from before
+        // `lateMailBy` can't bound what's left, and the badge waits for one dated after it.
+        // Update `asOf` (SoS time format) with each new report.
+        uncounted: {
+            sourceUrl: 'https://electionresults.sos.ca.gov/unprocessed-ballots-status',
+            lateMailBy: 'November 10, 2026, 11:59 p.m.',
+            asOf: 'November 6, 2026, 12:00 p.m.',
+            statewide: 4782948 + 69824,
+            counties: {
+                'Alameda': 265849 + 835,
+                'Santa Clara': 293300 + 2700
+            }
         }
     },
 
@@ -85,7 +104,7 @@ export const ELECTION = {
                 // CHECK: a partial-term Senate race has its own path the research couldn't
                 // confirm (2024 listed "U.S. Senate (Partial/Unexpired Term)" separately).
                 { key: 'house14', name: 'U.S. House District 14', endpoint: SOS + 'us-rep/district/14',
-                  registered: 425448,
+                  registered: 425448, counties: ['Alameda'],
                   ballotpedia: 'https://ballotpedia.org/California%27s_14th_Congressional_District_election,_2026' }
             ]
         },
@@ -108,14 +127,17 @@ export const ELECTION = {
                   endpoint: SOS + 'board-of-equalization/district/2', registered: 5927373 }
             ].map(race => ({ registered: STATEWIDE_REGISTERED, ...race }))
         },
+        // `counties` lists every county a district touches, for the "can't be caught" badge
+        // (races without it use the statewide count; BOE 2 spans too many counties to bother).
+        // CHECK: county lists are from memory of the 2021 maps, not a cited source.
         {
             id: 'legislative-races', loading: '⏳ Loading legislative results...',
             races: [
                 { key: 'senate10', name: 'State Senate District 10', endpoint: SOS + 'state-senate/district/10',
-                  registered: 531343,
+                  registered: 531343, counties: ['Alameda', 'Santa Clara'],
                   ballotpedia: 'https://ballotpedia.org/California_State_Senate_District_10' },
                 { key: 'assembly20', name: 'State Assembly District 20', endpoint: SOS + 'state-assembly/district/20',
-                  registered: 290773,
+                  registered: 290773, counties: ['Alameda'],
                   ballotpedia: 'https://ballotpedia.org/California_State_Assembly_District_20' }
             ]
         }

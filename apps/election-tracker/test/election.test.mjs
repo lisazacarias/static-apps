@@ -62,3 +62,14 @@ test('hand-entered calls name real races and props, with a source and time', () 
   // the source link is a general one: no street address from a personal ballot page
   assert.ok(!/street=|zip=/.test(c.sourceUrl));
 });
+
+test('the ballots-left report covers every county a race lists, with a parseable time', async () => {
+  const { parseSosTime } = await import('../results.js');
+  const u = ELECTION.current.uncounted;
+  assert.ok(parseSosTime(u.asOf), u.asOf);
+  assert.ok(parseSosTime(u.lateMailBy), u.lateMailBy);
+  assert.ok(u.sourceUrl.startsWith('https://') && u.statewide > 0);
+  for (const r of races.filter(r => r.counties)) {
+    for (const c of r.counties) assert.equal(typeof u.counties[c], 'number', r.key + ': ' + c);
+  }
+});
