@@ -352,7 +352,8 @@ function renderCard(id, item, dir) {
       answer(id, gradeFor(pick.correct, ms), ms);
       const hint = !pick.correct && HINTS[item.jp];
       const nextId = nextCard(state, Date.now(), sitting.seen);
-      const waitForTap = !pick.correct || (nextId && needsSound(splitCardId(nextId).dir));
+      // A note with playable Japanese stays up until Next, so it can be tapped.
+      const waitForTap = !pick.correct || (nextId && needsSound(splitCardId(nextId).dir)) || Boolean((item.notes || '').match(NOTE_JP));
       $('after').innerHTML = `
         ${item.deck === 'hira' || item.deck === 'kata'
           ? `<p class="feedback">${esc(item.jp)} = <strong>${esc(item.romaji)}</strong>${item.word ? ` · ${esc(item.en)}` : ''} ${dir === 'recognize' ? playButtons(item.speak) : ''}</p>`
