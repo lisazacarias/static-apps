@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readNumber, toJapaneseReading as r, timeReading, genDrill, genPrice, checkDrill, DRILL_MODES, formatTime } from '../numbers.js';
+import { readNumber, toJapaneseReading as r, timeReading, genDrill, genPrice, checkDrill, DRILL_MODES, formatTime, priceParts, timeParts, PRIMER } from '../numbers.js';
 import { toRomaji } from '../kana.js';
 
 const k = (n, c) => r(n, c).kana;
@@ -136,4 +136,28 @@ test('checking typed answers', () => {
   for (const ok of ['15:45', '3:45 pm', '3:45pm', '3:45', '1545', '３：４５ pm']) assert.ok(checkDrill(time, ok), ok);
   for (const no of ['3:45 am', '15:40', '4:45', 'abc']) assert.ok(!checkDrill(time, no), no);
   assert.ok(checkDrill({ mode: 'time', answer: '9:00' }, '9'));
+});
+
+test('every drill reading breaks into parts that say what each piece means', () => {
+  const g = rng(9);
+  for (const mode of DRILL_MODES) {
+    for (let i = 0; i < 500; i++) {
+      const d = genDrill(mode, g);
+      assert.ok(d.parts.length >= 1, `${mode} ${d.prompt}`);
+      assert.equal(d.parts.map((p) => p.kana).join(''), d.kana, `${mode} ${d.prompt}: parts spell the reading`);
+      for (const p of d.parts) assert.ok(p.means && p.romaji, `${mode} ${d.prompt}`);
+    }
+  }
+  assert.deepEqual(priceParts(1480).map((p) => p.means), ['1,000', '400', '80', 'yen']);
+  assert.deepEqual(priceParts(1004).map((p) => p.kana), ['せん', 'よ', 'えん']);
+  assert.deepEqual(timeParts(15, 45).map((p) => p.means), ['pm (afternoon/evening)', "3 o'clock", '45 minutes']);
+  assert.deepEqual(timeParts(9, 30).map((p) => p.means), ['am (morning)', "9 o'clock", 'half past']);
+});
+
+test('the numbers primer matches the readings the drills use', () => {
+  const by = Object.fromEntries(PRIMER.map((p) => [p.shows, p.kana]));
+  assert.equal(by['4'], 'よん');
+  assert.equal(by['300'], 'さんびゃく');
+  assert.equal(by['10,000'], 'いちまん');
+  assert.equal(by['¥1,480'], r(1480, 'yen').kana);
 });

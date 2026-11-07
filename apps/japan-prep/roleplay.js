@@ -50,13 +50,22 @@ export const LEVELS = {
   },
 };
 
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+// "late January" from 2027-01-25: when the trip is, for the scene's setting.
+export function tripWhen(tripDate) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(tripDate || '');
+  if (!m) return 'soon';
+  const day = Number(m[3]);
+  return `${day <= 10 ? 'early' : day <= 20 ? 'mid' : 'late'} ${MONTHS[Number(m[2]) - 1]}`;
+}
+
 // The full prompt for a scene at a level, ready to paste into Claude.
-export function promptFor(sceneId, level) {
+export function promptFor(sceneId, level, tripDate) {
   const s = SCENE[sceneId];
   const l = LEVELS[level];
   if (!s || !l) throw new Error(`no scene ${sceneId} at level ${level}`);
   return [
-    `Let's do a Japanese roleplay. You are ${s.who}. I'm a beginner tourist visiting Japan in early January (I speak English and Spanish). My goal in this scene: ${s.goal}.`,
+    `Let's do a Japanese roleplay. You are ${s.who}. I'm a beginner tourist visiting Japan in ${tripWhen(tripDate)} (I speak English and Spanish). My goal in this scene: ${s.goal}.`,
     '',
     `Level ${level}: ${l.rules}`,
     '',
@@ -75,30 +84,43 @@ export function promptFor(sceneId, level) {
   ].join('\n');
 }
 
-// Roleplay days and scenes from the research's two-month plan, by week of
-// study (1-based, from the start date) and weekday (0 = Sunday). Scenes
-// start in week 3, on Tuesdays, Thursdays and Saturdays; in the last week,
-// every other day. → { scene, level } or null.
-const PLAN = {
+// Roleplay days and scenes from the 11-week plan. Tuesdays, Thursdays and
+// Saturdays (weekday 0 = Sunday), except in the final week:
+//   weeks 3–6, by week since the start date: one scene a week, L1 → L2
+//   weeks 7–8 (35–22 days out): all five scenes in turn at L2
+//   weeks 9–10 (21–8 days out): all five in turn at L3
+//   week 11 (the last 7 days): an L3 scene every other day, 7, 5, 3 and 1 days out
+// The last three count back from the trip date (daysLeft), like stageOf in
+// session.js. → { scene, level } or null.
+const EARLY = {
   3: [['ramen', 1], ['ramen', 1], ['ramen', 1]],
   4: [['train', 1], ['train', 2], ['train', 2]],
   5: [['hotel', 1], ['hotel', 2], ['hotel', 2]],
   6: [['directions', 2], ['ramen', 2], ['directions', 2]],
-  7: [['ramen', 3], ['train', 2], ['konbini', 3]],
 };
 const ROLEPLAY_DAYS = [2, 4, 6]; // Tue, Thu, Sat
-const LAST_WEEK = ['hotel', 'directions', 'konbini', 'ramen', 'train'];
+const ROTATION = ['konbini', 'ramen', 'train', 'hotel', 'directions'];
 
-export function sceneFor(week, weekday, dayIndex = 0) {
-  if (week >= 8) {
-    // Counted from the first day of week 8 (day 49), so that day has a scene.
-    const n = Math.max(0, dayIndex - 49);
-    if (n % 2) return null;
-    return { scene: LAST_WEEK[(n / 2) % LAST_WEEK.length], level: 3 };
+export function sceneFor({ week, weekday, daysLeft }) {
+  if (daysLeft < 0) return null;
+  if (daysLeft <= 7) {
+    if (daysLeft % 2 === 0) return null;
+    return { scene: ROTATION[((7 - daysLeft) / 2) % ROTATION.length], level: 3 };
   }
-  const plan = PLAN[week];
   const slot = ROLEPLAY_DAYS.indexOf(weekday);
-  if (!plan || slot < 0) return null;
+  if (slot < 0) return null;
+  if (daysLeft <= 35) {
+    // A new scene each roleplay day: count the Tue/Thu/Sat days already
+    // passed since 35 days out. Counting real days, not weeks, keeps the
+    // rotation whole whatever weekday the trip falls on.
+    let n = 0;
+    for (let back = 1; back <= 35 - daysLeft; back++) {
+      if (ROLEPLAY_DAYS.includes((((weekday - back) % 7) + 7) % 7)) n++;
+    }
+    return { scene: ROTATION[n % ROTATION.length], level: daysLeft <= 21 ? 3 : 2 };
+  }
+  const plan = EARLY[week];
+  if (!plan) return null;
   const [scene, level] = plan[slot];
   return { scene, level };
 }

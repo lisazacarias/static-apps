@@ -64,9 +64,10 @@ const MENU_ROWS = [
 export const MENU = MENU_ROWS.map(([jp, romaji, en]) => ({ id: `menu:${jp}`, deck: 'menu', jp, kana: jp, romaji, en, speak: jp, day: 14 }));
 
 // Phrase rows: [id, jp, kana, romaji, en, speak, tags, extra]
-// day by section follows the week plan: core ★ week 1, the rest of the
+// day by section follows the 11-week plan: core ★ week 1, the rest of the
 // core week 2, restaurant/konbini week 3, trains week 4, hotel/shopping
-// week 5, directions/allergy/emergency week 6.
+// week 5, directions/allergy/emergency week 6. Weeks 7 on are set by the
+// trip date instead (see stageOf in session.js).
 const P = (id, jp, kana, romaji, en, speak, tags, extra = {}) => ({ id: `ph:${id}`, deck: 'phrase', jp, kana, romaji, en, speak, tags, ...extra });
 const CORE = { day: 7 }, STAR = { day: 0, star: true };
 
@@ -92,7 +93,6 @@ export const PHRASES = [
   P('konnichiwa', 'こんにちは', 'こんにちは', 'konnichiwa', 'Hello (daytime)', 'こんにちわ', ['core'], CORE),
   P('konbanwa', 'こんばんは', 'こんばんは', 'konbanwa', 'Good evening', 'こんばんわ', ['core'], CORE),
   P('ohayou', 'おはようございます', 'おはようございます', 'ohayō gozaimasu', 'Good morning', 'おはようございます', ['core'], CORE),
-  P('akemashite', 'あけましておめでとうございます', 'あけましておめでとうございます', 'akemashite omedetō gozaimasu', 'Happy New Year', 'あけましておめでとうございます', ['core', 'new-year'], { day: 42, notes: 'Said in early January, once the year has turned — not before.' }),
 
   // Restaurant
   P('futari', '二人です', 'ふたりです', 'futari desu', 'Two people', 'ふたりです', ['restaurant'], { ...STAR, notes: 'The answer to 何名様ですか. One person: 一人です (hitori desu).' }),
@@ -128,8 +128,7 @@ export const PHRASES = [
   P('norikae', '乗り換えはどこですか', 'のりかえはどこですか', 'norikae wa doko desu ka', 'Where do I transfer?', 'のりかえわどこですか', ['trains'], { day: 21 }),
   P('eki-doko', '〜駅はどこですか', '〜えきはどこですか', '~eki wa doko desu ka', 'Where is ~ station?', 'うえのえきわどこですか', ['trains', 'directions'], { day: 21, notes: 'Audio example: 上野駅はどこですか.' }),
   P('chaaji', 'チャージしたいです', 'チャージしたいです', 'chāji shitai desu', 'I want to top up (IC card)', 'チャージしたいです', ['trains'], { day: 21, notes: 'Suica/PASMO machines also have an English button.' }),
-  // CHECK: JR Central's all-reserved Nozomi dates for this season (the notes say Dec 25 – Jan 5 and Jan 9–11).
-  P('shitei', '指定席 / 自由席', 'していせき / じゆうせき', 'shiteiseki / jiyūseki', 'Reserved seat / Unreserved seat', 'していせき。じゆうせき。', ['trains'], { day: 21, notes: 'Around New Year some Nozomi trains are all-reserved.' }),
+  P('shitei', '指定席 / 自由席', 'していせき / じゆうせき', 'shiteiseki / jiyūseki', 'Reserved seat / Unreserved seat', 'していせき。じゆうせき。', ['trains'], { day: 21 }),
   P('tsugi-wa', '次は〜', 'つぎは〜', 'tsugi wa ~', 'Next stop is ~', 'つぎわ、しながわ', ['trains'], { day: 21, listen: true, notes: 'Audio example: 次は品川.' }),
   P('yuki-chien', '雪で遅れています', 'ゆきでおくれています', 'yuki de okurete imasu', "It's delayed because of snow", 'ゆきでおくれています', ['trains'], { day: 21, listen: true, notes: 'On boards: 遅延 (chien, delay).' }),
 
@@ -150,8 +149,8 @@ export const PHRASES = [
   P('hidari', '左', 'ひだり', 'hidari', 'Left', 'ひだり', ['directions'], { day: 35, listen: true }),
   P('kado', '角', 'かど', 'kado', 'Corner', 'かど', ['directions'], { day: 35, listen: true }),
   P('shingou', '信号', 'しんごう', 'shingō', 'Traffic light', 'しんごう', ['directions'], { day: 35, listen: true }),
-  P('aite', '今日は開いていますか', 'きょうはあいていますか', 'kyō wa aite imasu ka', 'Are you open today?', 'きょうわあいていますか', ['directions', 'new-year'], { day: 35, notes: 'Worth asking around 29 Dec – 3 Jan, when many places close.' }),
-  P('nanji-made', '何時までですか', 'なんじまでですか', 'nanji made desu ka', 'Until what time?', 'なんじまでですか', ['directions', 'new-year'], { day: 35 }),
+  P('aite', '今日は開いていますか', 'きょうはあいていますか', 'kyō wa aite imasu ka', 'Are you open today?', 'きょうわあいていますか', ['directions'], { day: 35, notes: 'Check opening hours for your specific dates.' }),
+  P('nanji-made', '何時までですか', 'なんじまでですか', 'nanji made desu ka', 'Until what time?', 'なんじまでですか', ['directions'], { day: 35 }),
 
   // Allergy / diet
   P('arerugii', '〜アレルギーがあります', '〜アレルギーがあります', '~arerugī ga arimasu', "I'm allergic to ~", 'えびアレルギーがあります', ['allergy'], { ...STAR, notes: 'Allergen first. Audio example: えびアレルギーがあります.' }),
@@ -221,14 +220,12 @@ const SIGN_ROWS = [
   ['押', 'おす', 'osu', 'Push'], ['引', 'ひく', 'hiku', 'Pull'],
   ['営業中', 'えいぎょうちゅう', 'eigyōchū', 'Open (for business)', '中 means "in progress".'],
   ['準備中', 'じゅんびちゅう', 'junbichū', 'Preparing (closed for now)'], ['定休日', 'ていきゅうび', 'teikyūbi', 'Regular day off'],
-  ['休業', 'きゅうぎょう', 'kyūgyō', 'Closed for business'], ['年末年始', 'ねんまつねんし', 'nenmatsu nenshi', 'Year-end / New Year holidays', 'Often on closure notices with dates.'],
+  ['休業', 'きゅうぎょう', 'kyūgyō', 'Closed for business'],
   ['円', 'えん', 'en', 'Yen'], ['税込', 'ぜいこみ', 'zeikomi', 'Tax included'], ['税抜', 'ぜいぬき', 'zeinuki', 'Before tax'],
   ['大人', 'おとな', 'otona', 'Adult'], ['子供', 'こども', 'kodomo', 'Child'], ['非常口', 'ひじょうぐち', 'hijōguchi', 'Emergency exit'],
   ['危険', 'きけん', 'kiken', 'Danger'], ['無料', 'むりょう', 'muryō', 'Free (no charge)', '有料 (yūryō) is "paid".'],
   ['本日', 'ほんじつ', 'honjitsu', 'Today', '本日休業 = closed today.'], ['休み', 'やすみ', 'yasumi', 'Closed / day off'],
   ['遅延', 'ちえん', 'chien', 'Delay (trains)'], ['雪', 'ゆき', 'yuki', 'Snow'],
-  ['福袋', 'ふくぶくろ', 'fukubukuro', 'Lucky bag (New Year sale)', 'Sales usually start around 2 January.'],
-  ['初詣', 'はつもうで', 'hatsumōde', 'First shrine visit of the year'],
 ];
 export const SIGNS = SIGN_ROWS.map(([jp, kana, romaji, en, notes], i) => ({
   id: `sign:${jp}`, deck: 'sign', jp, kana, romaji, en, ...(notes ? { notes } : {}), speak: kana.split(' / ')[0].replace('〜', ''), day: i < 15 ? 21 : 28,
@@ -262,8 +259,12 @@ export const DECKS = {
   kata: { name: 'Katakana', newPerDay: 15, retention: 'core' },
   menu: { name: 'Katakana words', newPerDay: 6, retention: 'rest' },
   num: { name: 'Number rules', newPerDay: 6, retention: 'core' },
-  phrase: { name: 'Phrases', newPerDay: 6, retention: 'rest' },
-  sign: { name: 'Signs', newPerDay: 4, retention: 'rest' },
+  // Phrases and signs are spread over the 11 weeks rather than front-loaded:
+  // at 2 a day the last phrase lands in week 7 (weeks 9–10 add none) and the
+  // last sign in week 6. Kana, menu words and number rules already fit
+  // their weeks at these rates.
+  phrase: { name: 'Phrases', newPerDay: 2, retention: 'rest' },
+  sign: { name: 'Signs', newPerDay: 2, retention: 'rest' },
 };
 // Order the daily session works through: kana first, everything else
 // depends on it.

@@ -2,14 +2,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   normalizeState, normalizeSettings, nextCard, rate, summary, choices, gradeFor, streak, mergeStates, exportBlob, looksLikeExport,
-  cardId, splitCardId, sweepOn, daysLeft, dayIndex, addDrill, DRILL_KEEP, SLOW_MS, teach, isTaught, TEACH_BATCH,
+  cardId, splitCardId, sweepOn, daysLeft, dayIndex, addDrill, DRILL_KEEP, SLOW_MS, teach, isTaught, TEACH_BATCH, sittingLeft,
 } from '../session.js';
 import { ITEM, DECKS } from '../content.js';
 import { AGAIN, GOOD, EASY, DAY } from '../srs.js';
 
 const day = (y, m, d, h = 9) => new Date(y, m - 1, d, h).getTime();
 const START = day(2026, 11, 9);
-const fresh = (settings = {}) => normalizeState({ settings: { startDate: '2026-11-09', tripDate: '2027-01-10', ...settings } }, START);
+const fresh = (settings = {}) => normalizeState({ settings: { startDate: '2026-11-09', tripDate: '2027-01-25', ...settings } }, START);
 const rng = (seed = 5) => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
 
 // Work through the queue the way the app does: teach anything not yet
@@ -28,7 +28,7 @@ function studyAll(state, now, n = 1000, rating = GOOD) {
 
 test('settings fall back to defaults for anything missing or out of range', () => {
   const s = normalizeSettings({ tripDate: 'soon', retention: { core: 2 }, newPerDay: { hira: -3, phrase: 9 } }, START);
-  assert.equal(s.tripDate, '2027-01-10');
+  assert.equal(s.tripDate, '2027-01-25');
   assert.equal(s.startDate, '2026-11-09');
   assert.equal(s.retention.core, 0.92);
   assert.equal(s.retention.rest, 0.9);
@@ -44,7 +44,7 @@ test('a damaged state loads as an empty one, keeping what still makes sense', ()
   assert.deepEqual(s.drills, []);
 });
 
-test('day one: hiragana first, capped at 15 new kana, plus the week-1 starred phrases', () => {
+test('day one: hiragana first, capped at 15 new kana, plus starred phrases up to the phrase cap', () => {
   const s = studyAll(fresh(), START);
   const items = new Set(Object.keys(s.cards).map((id) => splitCardId(id).itemId));
   const hira = [...items].filter((i) => ITEM[i].deck === 'hira');
@@ -53,7 +53,7 @@ test('day one: hiragana first, capped at 15 new kana, plus the week-1 starred ph
   assert.ok(![...items].some((i) => ITEM[i].deck === 'kata'), 'no katakana before day 6');
   assert.ok(![...items].some((i) => ITEM[i].deck === 'sign'), 'no signs in week 1');
   const phrases = [...items].filter((i) => ITEM[i].deck === 'phrase');
-  assert.equal(phrases.length, 6);
+  assert.equal(phrases.length, DECKS.phrase.newPerDay);
   assert.ok(phrases.every((i) => ITEM[i].star));
   // Both directions of each kana were shown.
   assert.ok(s.cards['hira:あ|listen'] && s.cards['hira:あ|recognize']);
@@ -88,10 +88,10 @@ test('learning cards come back within the sitting', () => {
 
 test('sweep mode: on at 5 days left, no new cards, shaky cards weakest first, each once', () => {
   let s = studyAll(fresh(), START);
-  const late = day(2027, 1, 5);
+  const late = day(2027, 1, 20);
   assert.equal(daysLeft(s.settings, late), 5);
   assert.ok(sweepOn(s.settings, late));
-  assert.ok(!sweepOn(s.settings, day(2027, 1, 4)));
+  assert.ok(!sweepOn(s.settings, day(2027, 1, 19)));
   const seen = new Set();
   const order = [];
   for (let id; (id = nextCard(s, late, seen));) {
@@ -201,7 +201,7 @@ test('merging two devices: newer card wins, logs union, earlier start date kept'
   assert.ok(m.cards[cardId('hira:い', 'recognize')]);
   assert.equal(m.logs.length, 3);
   assert.equal(m.settings.startDate, '2026-11-01');
-  assert.equal(m.settings.tripDate, '2027-01-10', "this device's trip date stays");
+  assert.equal(m.settings.tripDate, '2027-01-25', "this device's trip date stays");
   // Merging the same export twice changes nothing.
   assert.deepEqual(mergeStates(m, exportBlob(laptop)), m);
 });
@@ -218,7 +218,7 @@ test('summary counts what is due and what is new', () => {
   assert.equal(sum0.decks.hira.fresh, 15);
   assert.equal(sum0.decks.kata.fresh, 0);
   assert.equal(sum0.week, 1);
-  assert.equal(sum0.daysLeft, 62);
+  assert.equal(sum0.daysLeft, 77);
   const s1 = studyAll(s0, START);
   assert.equal(summary(s1, START).decks.hira.fresh, 0);
   assert.equal(summary(s1, START + DAY).decks.hira.due, 0);
@@ -226,7 +226,7 @@ test('summary counts what is due and what is new', () => {
 });
 
 test('sweep mode still shows a card the trip cap makes due, even when recall is high', () => {
-  const late = day(2027, 1, 5); // 5 days left: cap is 3 days
+  const late = day(2027, 1, 20); // 5 days left: cap is 3 days
   const id = cardId('hira:あ', 'recognize');
   const s = normalizeState({
     ...fresh(),
@@ -235,4 +235,118 @@ test('sweep mode still shows a card the trip cap makes due, even when recall is 
   assert.equal(nextCard(s, late, new Set()), id);
   // Once seen, the sweep moves on (here to あ's never-quizzed listening card).
   assert.equal(nextCard(s, late, new Set([id])), 'hira:あ|listen');
+});
+
+test('a Jan 25 trip: the pre-trip sweep switches on at 5 days left (Jan 20), not before', () => {
+  const s = normalizeState({ settings: { startDate: '2026-11-09' } }, START); // default trip date
+  assert.equal(s.settings.tripDate, '2027-01-25');
+  assert.equal(daysLeft(s.settings, day(2027, 1, 20)), 5);
+  assert.ok(!sweepOn(s.settings, day(2027, 1, 19, 23)), '6 days left: off');
+  assert.ok(sweepOn(s.settings, day(2027, 1, 20, 0)), '5 days left: on from midnight');
+  assert.ok(sweepOn(s.settings, day(2027, 1, 25)), 'the day you fly');
+  assert.ok(!sweepOn(s.settings, day(2027, 1, 26)), 'off once the trip has started');
+});
+
+test('the interval cap is worked out again each day from the trip date', () => {
+  const s = fresh();
+  assert.equal(summary(s, day(2026, 11, 9)).maxDays, 21);
+  assert.equal(summary(s, day(2027, 1, 10)).maxDays, 13); // 15 days left
+  assert.equal(summary(s, day(2027, 1, 11)).maxDays, 12);
+  assert.equal(summary(s, day(2027, 1, 24)).maxDays, 1);
+  // A card reviewed on Jan 10 and scheduled 21 days out (Jan 31, after the
+  // trip) is pulled in as the cap shrinks: on Jan 17 (8 days left) the cap
+  // is 6 days, so it's due from Jan 16.
+  const id = cardId('hira:あ', 'recognize');
+  const t = day(2027, 1, 10);
+  const st = { ...s, cards: { [id]: { id, state: 'review', step: 0, s: 40, d: 5, due: t + 21 * DAY, last: t, reps: 4, lapses: 0, intro: t, updatedAt: t } } };
+  assert.equal(summary(st, day(2027, 1, 16)).decks.hira.due, 0, '9 days left, cap 7: due Jan 17');
+  assert.equal(summary(st, day(2027, 1, 17)).decks.hira.due, 1, '8 days left, cap 6: due now');
+});
+
+test('saved settings from before the move get the new trip date and caps; nothing else changes', () => {
+  const legacy = {
+    settings: { tripDate: '2027-01-10', startDate: '2026-11-07', newPerDay: { hira: 15, kata: 15, menu: 6, num: 6, phrase: 6, sign: 4 }, showRomaji: false, backupAt: 123 },
+    cards: { 'hira:あ|recognize': { state: 'review', s: 3, d: 5, due: 9, last: 1, reps: 2, intro: 1, updatedAt: 1 }, 'sign:年末年始|recognize': { state: 'review', s: 3, d: 5, due: 9, last: 1, reps: 2, intro: 1, updatedAt: 1 } },
+    logs: [{ c: 'hira:あ|recognize', r: 3, t: 1, ms: 900 }],
+    drills: [{ m: 'price', p: '¥300', a: '300', g: '300', ok: true, ms: 1, t: 2 }],
+  };
+  const s = normalizeState(legacy, START);
+  assert.equal(s.settings.tripDate, '2027-01-25');
+  assert.deepEqual(s.settings.newPerDay, Object.fromEntries(Object.keys(DECKS).map((d) => [d, DECKS[d].newPerDay])));
+  assert.equal(s.settings.startDate, '2026-11-07');
+  assert.equal(s.settings.showRomaji, false);
+  assert.equal(s.settings.backupAt, 123);
+  assert.deepEqual(Object.keys(s.cards).sort(), ['hira:あ|recognize', 'sign:年末年始|recognize'], 'cards kept, even for removed items');
+  assert.equal(s.logs.length, 1);
+  assert.equal(s.drills.length, 1);
+  // A trip date or cap you chose yourself stays.
+  const mine = normalizeState({ settings: { tripDate: '2027-02-14', newPerDay: { phrase: 9 } } }, START);
+  assert.equal(mine.settings.tripDate, '2027-02-14');
+  assert.equal(mine.settings.newPerDay.phrase, 9);
+  // And once migrated, the old date is a real choice if you set it again.
+  const again = normalizeState({ settings: { ...s.settings, tripDate: '2027-01-10' } }, START);
+  assert.equal(again.settings.tripDate, '2027-01-10');
+});
+
+test('the stages of the 11-week plan, for a Nov 9 start and a Jan 25 trip', () => {
+  const s = fresh();
+  const stage = (y, m, d) => summary(s, day(y, m, d)).stage;
+  assert.equal(stage(2026, 12, 20), 'learn');        // week 6
+  assert.equal(stage(2026, 12, 21), 'polish');       // week 7, 35 days out
+  assert.equal(stage(2027, 1, 3), 'polish');         // end of week 8
+  assert.equal(stage(2027, 1, 4), 'consolidate');    // week 9, 21 days out
+  assert.equal(stage(2027, 1, 17), 'consolidate');   // end of week 10
+  assert.equal(stage(2027, 1, 18), 'final');         // week 11, 7 days out
+  assert.equal(stage(2027, 1, 26), 'trip');
+  assert.equal(summary(s, day(2027, 1, 18)).week, 11);
+});
+
+test('new-card caps spread phrases and signs out: 2 a day each', () => {
+  assert.equal(DECKS.phrase.newPerDay, 2);
+  assert.equal(DECKS.sign.newPerDay, 2);
+  const s = studyAll(fresh(), START);
+  assert.equal(Object.keys(s.cards).filter((id) => id.startsWith('ph:')).length, 2);
+});
+
+test('weeks 9–10: no new phrases, other decks carry on', () => {
+  const s = fresh();
+  const jan5 = day(2027, 1, 5);
+  assert.equal(summary(s, jan5).decks.phrase.fresh, 0);
+  assert.ok(summary(s, jan5).decks.hira.fresh > 0);
+  const after = studyAll(s, jan5);
+  assert.ok(!Object.keys(after.cards).some((id) => id.startsWith('ph:')), 'no phrase taught');
+  assert.ok(summary(s, day(2027, 1, 3)).decks.phrase.fresh > 0, 'the day before, still teaching');
+});
+
+test('weeks 9–10: listen-only staff phrases get extra passes, once each per sitting', () => {
+  const t = day(2027, 1, 6); // consolidate
+  const mk = (id) => ({ id, state: 'review', step: 0, s: 30, d: 5, due: t + 20 * DAY, last: t - 3 * DAY, reps: 3, lapses: 0, intro: 1, updatedAt: 1 });
+  // Recall after 3 days at S=30 is about 0.977: above the sweep line.
+  // At S=5 it's about 0.88, so it's shaky and gets a pass.
+  const shaky = { ...mk('ph:irasshaimase|listen'), s: 5 };
+  const s = { ...fresh({ unlockAll: true, newPerDay: { hira: 0, kata: 0, menu: 0, num: 0, phrase: 0, sign: 0 } }), cards: {
+    'ph:irasshaimase|listen': shaky, 'ph:nanmei|listen': mk('ph:nanmei|listen'), 'ph:sumimasen|produce': { ...mk('ph:sumimasen|produce'), s: 5 },
+  } };
+  assert.equal(nextCard(s, t, new Set()), 'ph:irasshaimase|listen');
+  assert.equal(nextCard(s, t, new Set(['ph:irasshaimase|listen'])), null, 'not the sure one, not a non-listening phrase');
+  // Before weeks 9–10, no extra pass.
+  const early = { ...s, settings: { ...s.settings, tripDate: '2027-03-01' } };
+  assert.equal(nextCard(early, t, new Set()), null);
+});
+
+test('sittingLeft counts what the sitting will show, and reaches zero when it ends', () => {
+  const s = fresh();
+  const left = sittingLeft(s, START);
+  // 15 kana × (teach + 2 directions × 2 learning steps) + 2 phrases × (teach + 2 steps).
+  assert.equal(left, 15 * 5 + 2 * 3);
+  let st = s, t = START, shown = 0;
+  for (let id; (id = nextCard(st, t)); shown++) {
+    const { itemId } = splitCardId(id);
+    st = isTaught(st, itemId) ? rate(st, id, GOOD, { now: t }) : teach(st, itemId, t);
+    t += 8000;
+  }
+  assert.equal(shown, left, 'the same path, the same count');
+  assert.equal(sittingLeft(st, t), 0);
+  assert.equal(st.logs.length > 0, true);
+  assert.equal(sittingLeft(s, START), left, 'the real state is untouched');
 });

@@ -66,3 +66,10 @@ test('every card with a blank (〜) has a full example to practise', () => {
   }
   assert.ok(!PHRASES.some((p) => !p.jp.includes('〜') && p.example), 'only blank cards get one');
 });
+
+test('no year-end content: the trip is in late January', () => {
+  const all = JSON.stringify(ITEMS);
+  for (const gone of ['年末年始', 'あけましておめでとうございます', '福袋', '初詣', 'new-year', '29 Dec', 'New Year']) assert.ok(!all.includes(gone), gone);
+  for (const kept of ['sign:休業', 'sign:本日', 'sign:雪', 'sign:遅延', 'ph:aite', 'ph:nanji-made', 'ph:yuki-chien']) assert.ok(ITEMS.some((i) => i.id === kept), kept);
+  assert.equal(PHRASES.find((p) => p.id === 'ph:aite').notes, 'Check opening hours for your specific dates.');
+});
