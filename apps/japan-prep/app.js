@@ -537,7 +537,7 @@ function renderRoleplay(arg) {
   if (LEVELS[lv]) roleplayLevel = Number(lv);
   $('view').innerHTML = `
     <p class="tiny">Practise a real conversation with Claude. Pick a level, then <strong>Copy prompt</strong> and paste it into a new chat, or use <strong>Open in Claude</strong>. Claude plays the staff and goes through what you could say better at the end. Needs a connection.</p>
-    <div class="chips" id="levels">${Object.entries(LEVELS).map(([n, l]) => `<button class="chip${Number(n) === roleplayLevel ? ' on' : ''}" type="button" data-level="${n}">${esc(l.name)}</button>`).join('')}</div>
+    <div class="chips" id="levels">${Object.entries(LEVELS).map(([n, l]) => `<button class="chip${Number(n) === roleplayLevel ? ' on' : ''}" type="button" data-level="${n}" aria-pressed="${Number(n) === roleplayLevel}">${esc(l.name)}</button>`).join('')}</div>
     <div id="scenes"></div>`;
   const draw = () => {
     $('scenes').innerHTML = SCENES.map((sc) => `
@@ -554,7 +554,7 @@ function renderRoleplay(arg) {
   };
   $('levels').querySelectorAll('[data-level]').forEach((b) => b.onclick = () => {
     roleplayLevel = Number(b.dataset.level);
-    $('levels').querySelectorAll('.chip').forEach((c) => c.classList.toggle('on', c === b));
+    $('levels').querySelectorAll('.chip').forEach((c) => { c.classList.toggle('on', c === b); c.setAttribute('aria-pressed', String(c === b)); });
     draw();
   });
   draw();
@@ -571,9 +571,12 @@ async function copyText(text, button) {
     try { ok = document.execCommand('copy'); } catch { ok = false; }
     ta.remove();
   }
-  const label = button.textContent;
+  // Keep the real label and one reset timer per button, so tapping again
+  // mid-feedback doesn't leave it stuck on "Copied ✓".
+  button.dataset.label ||= button.textContent;
   button.textContent = ok ? 'Copied ✓' : 'Copy failed — open “See the prompt”';
-  setTimeout(() => { button.textContent = label; }, 2500);
+  clearTimeout(Number(button.dataset.timer));
+  button.dataset.timer = String(setTimeout(() => { button.textContent = button.dataset.label; }, 2500));
 }
 
 /* ── phrasebook ──────────────────────────────────────────────────────── */
