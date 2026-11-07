@@ -29,6 +29,11 @@ parts of it this app follows, and where it departs:
   restaurant/konbini in week 3, trains and signs 1–15 in week 4, and so on
   (`day` in `content.js`).
 - **Phrasebook.** Everything, searchable, with audio at 1× and 0.75×.
+- **Roleplay** (`roleplay.js`). Five scenes (ramen shop, train ticket, hotel,
+  directions, konbini) at three levels. It builds a prompt you copy into the
+  Claude app, with no API key needed. Claude plays the staff and gives
+  corrections at the end. On the plan's roleplay days (Tue/Thu/Sat from
+  week 3, every other day in week 8), Today suggests a scene.
 - **Stroke order** on the teaching screen for kana and sign kanji, animated
   from [KanjiVG](https://kanjivg.tagaini.net/) (CC BY-SA 3.0, credited on
   screen). Each file is fetched from jsDelivr the first time it's shown and
@@ -46,8 +51,9 @@ parts of it this app follows, and where it departs:
   string is written phonetically (particle は as わ) so the browser voice
   reads it right. Adding MP3s later means an `audio` field and a precache
   entry in `sw.js`.
-- **No cloud sync, no Claude roleplay yet.** Both need a server holding a
-  secret (the write-up's Cloudflare Worker). For now, Settings → Download
+- **No cloud sync, and roleplay runs in the Claude app.** An in-app version
+  and sync both need a server holding a secret (the write-up's Cloudflare
+  Worker). For now, Settings → Download
   backup / Import merges a JSON export (newer cards win, history unioned), and
   that also moves progress between devices.
 - **No speech recognition**, as the write-up advises.
