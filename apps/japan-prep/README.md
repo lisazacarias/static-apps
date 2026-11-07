@@ -55,6 +55,10 @@ parts of it this app follows, and where it departs:
   Claude app, with no API key needed. Claude plays the staff and gives
   corrections at the end. On the plan's roleplay days (Tue/Thu/Sat from
   week 3, every other day in week 11), Today suggests a scene.
+- **Shape notes** on the teaching screen for kana: what a marked or
+  combined kana is built from (が = か + ゛, きゃ = き + small ゃ, from
+  `builtFrom` in `kana.js`), katakana with a hiragana twin (カ/か), and the
+  look-alike tip (`HINTS`). A missed kana shows them again.
 - **Stroke order** on the teaching screen for kana and sign kanji, animated
   from [KanjiVG](https://kanjivg.tagaini.net/) (CC BY-SA 3.0, credited on
   screen). Each file is fetched from jsDelivr the first time it's shown and

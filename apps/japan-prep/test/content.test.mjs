@@ -91,3 +91,20 @@ test('Japanese in notes is always tagged so it can be heard and read', () => {
   const hai = PHRASES.find((p) => p.id === 'ph:hai-iie').notes;
   assert.ok(hai.includes('{大丈夫です|だいじょうぶです|daijōbu desu}'));
 });
+
+test('marked and combined kana say what they are built from', async () => {
+  const { builtFrom, hiraganaTwin } = await import('../kana.js');
+  assert.equal(builtFrom('が'), 'か + ゛: ka → ga');
+  assert.equal(builtFrom('ぽ'), 'ほ + ゜: ho → po');
+  assert.equal(builtFrom('しょ'), 'し shi + small ょ yo');
+  assert.equal(builtFrom('ティ'), 'テ te + small ィ i');
+  assert.equal(builtFrom('か'), '');
+  assert.equal(builtFrom('きって'), '');
+  assert.equal(hiraganaTwin('ヘ'), 'へ');
+  assert.equal(hiraganaTwin('へ'), '');
+  assert.equal(hiraganaTwin('シ'), '');
+  // Every marked or combined card in the decks gets a line.
+  for (const i of ITEMS.filter((x) => (x.deck === 'hira' || x.deck === 'kata') && !x.word && x.group >= 4)) {
+    assert.ok(builtFrom(i.jp), i.jp);
+  }
+});

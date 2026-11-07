@@ -1,5 +1,5 @@
 import { ITEM, PHRASES, SIGNS, MENU, DECKS, DECK_ORDER, TOFUGU } from './content.js';
-import { HINTS } from './kana.js';
+import { HINTS, builtFrom, hiraganaTwin } from './kana.js';
 import { genDrill, checkDrill, DRILL_MODES, PRIMER, priceParts } from './numbers.js';
 import { AGAIN, GOOD, EASY } from './srs.js';
 import {
@@ -197,6 +197,18 @@ function showNext() {
   renderCard(id, ITEM[itemId], dir);
 }
 
+// What a kana shares with ones you know: what it's built from, its
+// hiragana twin, and the tell-apart tip for its look-alikes.
+function shapeNotes(item) {
+  const built = !item.word && builtFrom(item.jp);
+  const twin = !item.word && hiraganaTwin(item.jp);
+  return [
+    built && `<p class="hint">${esc(item.jp)} = ${esc(built)}</p>`,
+    twin && `<p class="hint">Same shape as hiragana ${esc(twin)}.</p>`,
+    HINTS[item.jp] && `<p class="hint">${esc(HINTS[item.jp])}</p>`,
+  ].filter(Boolean).join('');
+}
+
 // First sight of a new item: show it with its sound before any quiz.
 // Not a review: nothing is graded, the quiz comes after a small batch.
 function renderTeach(item) {
@@ -217,7 +229,7 @@ function renderTeach(item) {
     </div>` : glyph;
   const body = kana
     ? `<div class="reading"><div class="romaji teach-romaji">${esc(item.romaji)}</div>${item.word ? `<div class="en">${esc(item.en)}</div>` : ''}</div>
-       ${HINTS[item.jp] ? `<p class="hint">${esc(HINTS[item.jp])}</p>` : ''}`
+       ${shapeNotes(item)}`
     : `${item.deck === 'phrase' ? `<div class="en-prompt">${esc(item.example?.en || item.en)}</div>` : ''}
        ${reading(item, { en: item.deck !== 'phrase', jp: item.deck === 'phrase' || item.deck === 'menu' })}`;
   $('view').innerHTML = `
@@ -350,7 +362,6 @@ function renderCard(id, item, dir) {
         else if (x === b) x.classList.add('wrong');
       });
       answer(id, gradeFor(pick.correct, ms), ms);
-      const hint = !pick.correct && HINTS[item.jp];
       const nextId = nextCard(state, Date.now(), sitting.seen);
       // A note with playable Japanese stays up until Next, so it can be tapped.
       const waitForTap = !pick.correct || (nextId && needsSound(splitCardId(nextId).dir)) || Boolean((item.notes || '').match(NOTE_JP));
@@ -358,7 +369,7 @@ function renderCard(id, item, dir) {
         ${item.deck === 'hira' || item.deck === 'kata'
           ? `<p class="feedback">${esc(item.jp)} = <strong>${esc(item.romaji)}</strong>${item.word ? ` · ${esc(item.en)}` : ''} ${dir === 'recognize' ? playButtons(item.speak) : ''}</p>`
           : reading(item, { en: true }) + playButtons(item.speak)}
-        ${hint ? `<p class="hint">${esc(hint)}</p>` : ''}
+        ${!pick.correct && (item.deck === 'hira' || item.deck === 'kata') ? shapeNotes(item) : ''}
         ${!pick.correct && (item.deck === 'hira' || item.deck === 'kata') ? `<p class="tiny">Mnemonics: <a href="${TOFUGU[item.deck]}" target="_blank" rel="noopener">Tofugu’s ${item.deck === 'hira' ? 'hiragana' : 'katakana'} guide</a></p>` : ''}
         ${waitForTap ? '<button id="next" class="btn primary next" type="button">Next →</button>' : ''}`;
       if (waitForTap) $('next').onclick = showNext;

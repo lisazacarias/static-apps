@@ -100,6 +100,27 @@ const MONO = {
   だ: 'da', ぢ: 'ji', づ: 'zu', で: 'de', ど: 'do', ば: 'ba', び: 'bi', ぶ: 'bu', べ: 'be', ぼ: 'bo',
   ぱ: 'pa', ぴ: 'pi', ぷ: 'pu', ぺ: 'pe', ぽ: 'po', ぁ: 'a', ぃ: 'i', ぅ: 'u', ぇ: 'e', ぉ: 'o', ゔ: 'vu',
 };
+// How a kana is built from one you already know, for the teaching card.
+// が is か with ゛, ぱ is は with ゜ (Unicode splits them that way under
+// NFD), and きゃ / ティ are a kana plus a small one. → a line, or ''.
+const SMALL = { ゃ: 'ya', ゅ: 'yu', ょ: 'yo', ぁ: 'a', ぃ: 'i', ぅ: 'u', ぇ: 'e', ぉ: 'o' };
+const MARKS = { '\u3099': '゛', '\u309A': '゜' };
+const say = (k) => `${k} ${MONO[toHiragana(k)] ?? SMALL[toHiragana(k)] ?? ''}`.trim();
+export function builtFrom(jp) {
+  const chars = [...jp];
+  if (chars.length === 2 && SMALL[toHiragana(chars[1])]) {
+    return `${say(chars[0])} + small ${chars[1]} ${SMALL[toHiragana(chars[1])]}`;
+  }
+  if (chars.length !== 1) return '';
+  const [base, mark] = [...jp.normalize('NFD')];
+  if (!MARKS[mark]) return '';
+  return `${base} + ${MARKS[mark]}: ${MONO[toHiragana(base)]} → ${MONO[toHiragana(jp)]}`;
+}
+
+// Katakana that look like their hiragana twin, shown when one is taught.
+const TWINS = 'かきへりもせや';
+export const hiraganaTwin = (jp) => (jp.length === 1 && TWINS.includes(toHiragana(jp)) && jp !== toHiragana(jp) ? toHiragana(jp) : '');
+
 const MACRON = { a: 'ā', i: 'ī', u: 'ū', e: 'ē', o: 'ō' };
 
 // Hepburn with macrons, for showing a generated reading (numbers, times).
