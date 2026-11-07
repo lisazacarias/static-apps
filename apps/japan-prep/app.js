@@ -284,6 +284,14 @@ function reading(item, opts = {}) {
   return plainReading({ ...item, ...item.example, notes: '' }, opts) + pattern(item);
 }
 
+// Japanese inside a note is {written|spoken kana|romaji}: shown with its
+// romaji, played on a tap (the shared [data-say] handler).
+const NOTE_JP = /\{([^|{}]+)\|([^|{}]+)\|([^{}]+)\}/g;
+const noteHtml = (s) => esc(s).replace(NOTE_JP, (m, jp, say, romaji) =>
+  `<button class="say-inline" type="button" data-say="${say}" aria-label="Hear ${jp}">${jp}${showRomaji() ? ` <span class="romaji">(${romaji})</span>` : ''} 🔊</button>`);
+// The same note as plain text, for search.
+const noteText = (s) => (s || '').replace(NOTE_JP, (m, jp, say, romaji) => `${jp} (${romaji})`);
+
 // The blank in English and romaji, drawn as a blank ("___, please").
 // The Japanese keeps 〜, which is how textbooks and phrasebooks write it.
 const blank = (s) => s.replace(/~(?=[A-Za-z])/g, '___ ').replace(/~/g, '___'); // "~o" → "___ o", "~?" → "___?"
@@ -296,7 +304,7 @@ function pattern(item) {
       <div class="jp">${esc(item.jp)}</div>
       ${showRomaji() ? `<div class="romaji">${esc(blank(item.romaji))}</div>` : ''}
       ${showEnglish() ? `<div class="en">${esc(blank(item.en))}</div>` : ''}
-      ${item.notes ? `<p class="note">${esc(item.notes)}</p>` : ''}
+      ${item.notes ? `<p class="note">${noteHtml(item.notes)}</p>` : ''}
     </div>`;
 }
 
@@ -307,7 +315,7 @@ function plainReading(item, { en = showEnglish(), jp = true } = {}) {
       ${item.kana !== item.jp || !jp ? `<div class="kana-line">${esc(item.kana)}</div>` : ''}
       ${showRomaji() ? `<div class="romaji">${esc(item.romaji)}</div>` : ''}
       ${en ? `<div class="en">${esc(item.en)}</div>` : ''}
-      ${item.notes ? `<p class="note">${esc(item.notes)}</p>` : ''}
+      ${item.notes ? `<p class="note">${noteHtml(item.notes)}</p>` : ''}
     </div>`;
 }
 
@@ -746,7 +754,7 @@ function renderPhrases() {
   const draw = () => {
     const q = phraseQuery.trim().toLowerCase();
     // Search what's shown too: the blank as "___" as well as the stored "~".
-    const fields = (p) => [p.en, p.jp, p.kana, p.romaji, blank(p.en), blank(p.romaji), p.notes, ...(p.example ? Object.values(p.example) : [])];
+    const fields = (p) => [p.en, p.jp, p.kana, p.romaji, blank(p.en), blank(p.romaji), noteText(p.notes), ...(p.example ? Object.values(p.example) : [])];
     const rows = all.filter((p) => (q ? fields(p).some((f) => f && f.toLowerCase().includes(q)) : p.tags.includes(phraseTag)));
     $('plist').innerHTML = rows.length ? rows.map((p) => `
       <div class="phrase">
@@ -755,7 +763,7 @@ function renderPhrases() {
           ${p.kana !== p.jp ? `<div class="kana-line">${esc(p.kana)}</div>` : ''}
           ${showRomaji() ? `<div class="romaji">${esc(blank(p.romaji))}</div>` : ''}
           ${showEnglish() ? `<div class="en">${esc(blank(p.en))}</div>` : ''}
-          ${p.notes ? `<div class="note">${esc(p.notes)}</div>` : ''}
+          ${p.notes ? `<div class="note">${noteHtml(p.notes)}</div>` : ''}
           ${p.example ? `<div class="example"><span class="label">e.g.</span> <span class="jp-inline">${esc(p.example.jp)}</span>${showRomaji() ? ` <span class="romaji">${esc(p.example.romaji)}</span>` : ''}${showEnglish() ? ` · ${esc(p.example.en)}` : ''}</div>` : ''}
         </div>
         ${playButtons(p.speak)}

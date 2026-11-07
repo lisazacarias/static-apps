@@ -73,3 +73,21 @@ test('no year-end content: the trip is in late January', () => {
   for (const kept of ['sign:休業', 'sign:本日', 'sign:雪', 'sign:遅延', 'ph:aite', 'ph:nanji-made', 'ph:yuki-chien']) assert.ok(ITEMS.some((i) => i.id === kept), kept);
   assert.equal(PHRASES.find((p) => p.id === 'ph:aite').notes, 'Check opening hours for your specific dates.');
 });
+
+test('Japanese in notes is always tagged so it can be heard and read', () => {
+  const JP = /[぀-ヿ一-鿿]/u;
+  const TAG = /\{([^|{}]+)\|([^|{}]+)\|([^{}]+)\}/g;
+  let tags = 0;
+  for (const i of ITEMS) {
+    if (!i.notes) continue;
+    assert.ok(!JP.test(i.notes.replace(TAG, '')), `${i.id}: bare Japanese in "${i.notes}"`);
+    for (const [, jp, say, romaji] of i.notes.matchAll(TAG)) {
+      tags++;
+      assert.match(say, /^[぀-ヿ、ー]+$/u, `${i.id}: spoken part is kana: ${say}`);
+      assert.ok(!JP.test(romaji) && romaji.trim(), `${i.id}: romaji for ${jp}`);
+    }
+  }
+  assert.ok(tags >= 50, `${tags} tagged words`);
+  const hai = PHRASES.find((p) => p.id === 'ph:hai-iie').notes;
+  assert.ok(hai.includes('{大丈夫です|だいじょうぶです|daijōbu desu}'));
+});
