@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Japan Prep</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="theme-color" content="#0d0809">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="../../shared/base.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="container">
+    <header class="top">
+        <div class="title-row">
+            <h1>Japan Prep</h1>
+            <span id="offline" class="badge offline" hidden>Offline</span>
+        </div>
+        <nav class="tabs" aria-label="Views">
+            <a href="#today" data-tab="today">Today</a>
+            <a href="#drill" data-tab="drill">Numbers</a>
+            <a href="#phrases" data-tab="phrases">Phrasebook</a>
+            <a href="#settings" data-tab="settings">Settings</a>
+        </nav>
+    </header>
+
+    <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+    <main id="view"></main>
+</div>
+<script type="module" src="app.js"></script>
+</body>
+</html>

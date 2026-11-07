@@ -1,0 +1,537 @@
+import { ITEM, PHRASES, SIGNS, MENU, DECKS, DECK_ORDER, TOFUGU } from './content.js';
+import { HINTS } from './kana.js';
+import { genDrill, checkDrill, DRILL_MODES } from './numbers.js';
+import { AGAIN, GOOD, EASY } from './srs.js';
+import {
+  normalizeState, nextCard, rate, summary, choices, gradeFor, streak, addDrill, mergeStates, exportBlob, looksLikeExport,
+  splitCardId, ymd, daysBetween,
+} from './session.js';
+import { loadVoices, japaneseVoices, say, canSpeak, stopSpeaking } from './speech.js';
+
+// localStorage is shared by every app on the Pages origin — keep the prefix.
+// One key holds everything (see normalizeState in session.js).
+const KEY = 'japan-prep:state';
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const standalone = () => window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
+
+let state = load();
+
+function load() {
+  try { return normalizeState(JSON.parse(localStorage.getItem(KEY))); } catch { return normalizeState(null); }
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); return true; }
+  catch { notify('Couldn’t save — this browser’s storage is full or blocked. Download a backup from Settings.', true); return false; }
+}
+// First launch writes the start date, so unlock days count from today.
+if (!localStorage.getItem(KEY)) save();
+
+let noticeTimer;
+function notify(msg, sticky = false) {
+  const el = $('notice');
+  el.textContent = msg;
+  el.hidden = false;
+  clearTimeout(noticeTimer);
+  if (!sticky) noticeTimer = setTimeout(() => { el.hidden = true; }, 5000);
+}
+
+// Every play is a direct tap (or happens synchronously inside one).
+function speak(text, rate = 1) {
+  if (!canSpeak()) { notify('This browser has no Japanese voice. Try Safari or Chrome.'); return; }
+  say(text, { rate, voiceURI: state.settings.voiceURI });
+  if (isIOS && !state.settings.muteHintShown) {
+    notify('🔇 No sound? Check the mute switch on the side of your phone.');
+    state = { ...state, settings: { ...state.settings, muteHintShown: true } };
+    save();
+  }
+}
+
+const playButtons = (text, big = false) => `
+  <span class="play-row">
+    <button class="btn play${big ? ' big' : ''}" type="button" data-say="${esc(text)}" aria-label="Play">🔊 Hear it</button>
+    <button class="btn play slow" type="button" data-say="${esc(text)}" data-rate="0.75" aria-label="Play slowly">0.75×</button>
+  </span>`;
+
+// Shared click handling for any [data-say] button.
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-say]');
+  if (b) speak(b.dataset.say, Number(b.dataset.rate) || 1);
+});
+
+/* ── routing ─────────────────────────────────────────────────────────── */
+
+const VIEWS = { today: renderToday, study: renderStudy, drill: renderDrill, phrases: renderPhrases, settings: renderSettings };
+
+function route() {
+  const [name, arg] = (location.hash.slice(1) || 'today').split('/');
+  const view = VIEWS[name] ? name : 'today';
+  for (const a of document.querySelectorAll('.tabs a')) a.classList.toggle('on', a.dataset.tab === (view === 'study' ? 'today' : view));
+  stopSpeaking();
+  teardown?.();
+  teardown = null;
+  VIEWS[view](arg);
+}
+let teardown = null;
+addEventListener('hashchange', route);
+
+/* ── today ───────────────────────────────────────────────────────────── */
+
+const fmtDate = (s) => new Date(`${s}T12:00`).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+
+function renderToday() {
+  const now = Date.now();
+  const sum = summary(state, now);
+  const due = DECK_ORDER.reduce((n, d) => n + sum.decks[d].due, 0);
+  const fresh = DECK_ORDER.reduce((n, d) => n + sum.decks[d].fresh, 0);
+  const tomorrow = DECK_ORDER.reduce((n, d) => n + sum.decks[d].tomorrow, 0);
+  const left = sum.daysLeft;
+  const days = state.settings.backupAt ? daysBetween(state.settings.backupAt, now) : null;
+  const backupLine = state.logs.length === 0 ? ''
+    : days === null ? '<strong>No backup yet.</strong> '
+      : days > 7 ? `<strong>Last backup ${days} days ago.</strong> ` : `Last backup ${days === 0 ? 'today' : `${days} day${days === 1 ? '' : 's'} ago`}. `;
+
+  $('view').innerHTML = `
+    ${isIOS && !standalone() ? `<div class="banner">On iPhone, <strong>Share → Add to Home Screen</strong> first, then study from the icon. Safari can wipe a website’s saved progress after a week without a visit; the Home Screen app keeps its own.</div>` : ''}
+    <section class="hero">
+      <div class="stat"><span class="num">${left >= 0 ? left : '🇯🇵'}</span><span class="label">${left >= 0 ? `day${left === 1 ? '' : 's'} to go` : 'trip under way'}</span></div>
+      <div class="stat"><span class="num">${streak(state, now)}</span><span class="label">day streak</span></div>
+      <div class="stat"><span class="num">${sum.week}</span><span class="label">week</span></div>
+    </section>
+    ${sum.sweep ? `<p class="sweep">Pre-trip sweep: no new cards. You’ll see anything you might not recall right now.</p>` : ''}
+    <button id="start" class="btn primary start" type="button">Start today <span class="muted-on-primary">(≈25 min)</span></button>
+    <p class="tiny center">${due} due · ${fresh} new · then 3 minutes of numbers · ${tomorrow} due tomorrow</p>
+
+    <div class="card">
+      <h2>Decks</h2>
+      <table class="decks">
+        <thead><tr><th></th><th>Due</th><th>New</th><th>Started</th></tr></thead>
+        <tbody>${DECK_ORDER.map((d) => {
+          const o = sum.decks[d];
+          return `<tr><th>${esc(DECKS[d].name)}</th><td>${o.due}</td><td>${o.fresh}</td><td>${o.learned}/${o.total}</td></tr>`;
+        }).join('')}</tbody>
+      </table>
+      <p class="tiny">Trip ${esc(fmtDate(state.settings.tripDate))}. Nothing is scheduled more than ${sum.maxDays} day${sum.maxDays === 1 ? '' : 's'} out, so every card comes back before you fly.</p>
+    </div>
+
+    <div class="card">
+      <h2>First time with kana?</h2>
+      <p>Read Tofugu’s guides once for the mnemonics, then let this app do the reviews:
+        <a href="${TOFUGU.hira}" target="_blank" rel="noopener">hiragana</a> ·
+        <a href="${TOFUGU.kata}" target="_blank" rel="noopener">katakana</a>.</p>
+    </div>
+    <p class="tiny">${backupLine}Progress lives only in this browser. <a href="#settings">Download a backup</a>.</p>`;
+  $('start').onclick = () => { location.hash = 'study/daily'; };
+}
+
+/* ── study ───────────────────────────────────────────────────────────── */
+
+// The sitting in progress: which cards have been shown (sweep mode shows
+// each once), and whether this is the daily run that goes on to drills.
+let sitting = null;
+
+function renderStudy(arg) {
+  sitting = { daily: arg === 'daily', seen: new Set(), done: 0 };
+  showNext();
+}
+
+function showNext() {
+  const id = nextCard(state, Date.now(), sitting.seen);
+  if (!id) return finishCards();
+  const { itemId, dir } = splitCardId(id);
+  renderCard(id, ITEM[itemId], dir);
+}
+
+function finishCards() {
+  if (sitting?.daily) { location.hash = 'drill/daily'; return; }
+  $('view').innerHTML = `
+    <div class="card done">
+      <h2>All caught up</h2>
+      <p>${sitting?.done ? `${sitting.done} cards this sitting. ` : ''}Nothing else is due right now.</p>
+      <a class="btn primary" href="#drill">Number drills →</a>
+      <a class="btn" href="#today">Back to today</a>
+    </div>`;
+}
+
+const showRomaji = () => state.settings.showRomaji;
+const showEnglish = () => state.settings.showEnglish;
+const needsSound = (dir) => dir === 'listen';
+
+function header(item, dir) {
+  const what = { recognize: item.deck === 'sign' || item.deck === 'menu' ? 'What does it mean?' : 'How is it read?', listen: item.deck === 'phrase' ? 'What did they say?' : 'Which one did you hear?', produce: 'Say it out loud' }[dir];
+  return `<div class="card-head"><span class="badge">${esc(DECKS[item.deck].name)}</span><span class="tiny">${esc(what)}</span><span class="tiny">${sitting.done} done</span></div>`;
+}
+
+function reading(item, { en = showEnglish(), jp = true } = {}) {
+  return `
+    <div class="reading">
+      ${jp ? `<div class="jp">${esc(item.jp)}</div>` : ''}
+      ${item.kana !== item.jp || !jp ? `<div class="kana-line">${esc(item.kana)}</div>` : ''}
+      ${showRomaji() ? `<div class="romaji">${esc(item.romaji)}</div>` : ''}
+      ${en ? `<div class="en">${esc(item.en)}</div>` : ''}
+      ${item.notes ? `<p class="note">${esc(item.notes)}</p>` : ''}
+    </div>`;
+}
+
+function renderCard(id, item, dir) {
+  sitting.seen.add(id);
+  const shownAt = performance.now();
+  const view = $('view');
+  const quiz = dir !== 'produce' && !(item.deck === 'phrase' && dir === 'listen');
+
+  if (quiz) {
+    const opts = choices(item, dir);
+    const prompt = dir === 'listen'
+      ? `<div class="prompt">${playButtons(item.speak, true)}</div>`
+      : `<div class="prompt"><div class="${item.deck === 'sign' ? 'sign' : 'big-kana'}">${esc(item.jp)}</div></div>`;
+    const kanaOpts = dir === 'listen';
+    view.innerHTML = `
+      <div class="study">
+        ${header(item, dir)}
+        ${prompt}
+        <div class="options${kanaOpts ? ' kana-options' : ''}">
+          ${opts.map((o, i) => `<button class="btn option" type="button" data-i="${i}">${esc(o.label)}</button>`).join('')}
+        </div>
+        <div id="after"></div>
+      </div>`;
+    if (dir === 'listen') speak(item.speak);
+    view.querySelectorAll('.option').forEach((b) => b.addEventListener('click', () => {
+      const ms = performance.now() - shownAt;
+      const pick = opts[Number(b.dataset.i)];
+      view.querySelectorAll('.option').forEach((x, i) => {
+        x.disabled = true;
+        if (opts[i].correct) x.classList.add('right');
+        else if (x === b) x.classList.add('wrong');
+      });
+      answer(id, gradeFor(pick.correct, ms), ms);
+      const hint = !pick.correct && HINTS[item.jp];
+      const nextId = nextCard(state, Date.now(), sitting.seen);
+      const waitForTap = !pick.correct || (nextId && needsSound(splitCardId(nextId).dir));
+      $('after').innerHTML = `
+        ${item.deck === 'hira' || item.deck === 'kata'
+          ? `<p class="feedback">${esc(item.jp)} = <strong>${esc(item.romaji)}</strong>${item.word ? ` · ${esc(item.en)}` : ''} ${dir === 'recognize' ? playButtons(item.speak) : ''}</p>`
+          : reading(item, { en: true }) + playButtons(item.speak)}
+        ${hint ? `<p class="hint">${esc(hint)}</p>` : ''}
+        ${!pick.correct && (item.deck === 'hira' || item.deck === 'kata') ? `<p class="tiny">Mnemonics: <a href="${TOFUGU[item.deck]}" target="_blank" rel="noopener">Tofugu’s ${item.deck === 'hira' ? 'hiragana' : 'katakana'} guide</a></p>` : ''}
+        ${waitForTap ? '<button id="next" class="btn primary next" type="button">Next →</button>' : ''}`;
+      if (waitForTap) $('next').onclick = showNext;
+      else { const t = setTimeout(showNext, 700); teardown = () => clearTimeout(t); }
+    }));
+    return;
+  }
+
+  // Self-graded: say it (produce) or understand it (listen), then reveal.
+  const prompt = dir === 'listen'
+    ? `<div class="prompt">${playButtons(item.speak, true)}</div>`
+    : item.deck === 'num'
+      ? `<div class="prompt"><div class="big-kana">${esc(item.jp)}</div><p class="tiny">${esc(item.en)}</p></div>`
+      : `<div class="prompt"><div class="en-prompt">${esc(item.en)}</div></div>`;
+  view.innerHTML = `
+    <div class="study">
+      ${header(item, dir)}
+      ${prompt}
+      <div id="after"><button id="reveal" class="btn primary next" type="button">${dir === 'listen' ? 'Show meaning' : 'Show answer'}</button></div>
+    </div>`;
+  if (dir === 'listen') speak(item.speak);
+  $('reveal').onclick = () => {
+    $('after').innerHTML = `
+      ${item.deck === 'num' ? reading(item, { en: false, jp: false }) : reading(item, { en: dir === 'listen' })}
+      ${playButtons(item.speak)}
+      <div class="grades">
+        <button class="btn again" type="button" data-r="${AGAIN}">Again</button>
+        <button class="btn good primary" type="button" data-r="${GOOD}">Good</button>
+        <button class="btn easy" type="button" data-r="${EASY}">Easy</button>
+      </div>
+      <p class="tiny center">Swipe right for Good, left for Again.</p>`;
+    if (dir === 'produce') speak(item.speak);
+    const grade = (r) => { answer(id, r, performance.now() - shownAt); showNext(); };
+    $('after').querySelectorAll('[data-r]').forEach((b) => { b.onclick = () => grade(Number(b.dataset.r)); });
+    teardown = swipe(view, (right) => grade(right ? GOOD : AGAIN));
+  };
+}
+
+function answer(id, rating, ms) {
+  state = rate(state, id, rating, { now: Date.now(), ms: Math.round(ms) });
+  sitting.done++;
+  save();
+}
+
+// Horizontal swipe on an element: → onSwipe(true) for right, false for left.
+function swipe(el, onSwipe) {
+  let x0 = null, y0 = null;
+  const start = (e) => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; };
+  const end = (e) => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+    x0 = null;
+    if (Math.abs(dx) > 80 && Math.abs(dx) > 2 * Math.abs(dy)) { stopListening(); onSwipe(dx > 0); }
+  };
+  const stopListening = () => { el.removeEventListener('touchstart', start); el.removeEventListener('touchend', end); };
+  el.addEventListener('touchstart', start, { passive: true });
+  el.addEventListener('touchend', end);
+  return stopListening;
+}
+
+/* ── number drills ───────────────────────────────────────────────────── */
+
+const DRILL_LABEL = { price: 'Prices', time: 'Times', counter: 'Counters', platform: 'Platforms', mix: 'Mix' };
+const DAILY_DRILL_MS = 3 * 60000;
+let drillPrefs = { mode: 'mix', how: 'listen' };
+try { drillPrefs = { ...drillPrefs, ...JSON.parse(localStorage.getItem('japan-prep:drill-prefs')) }; } catch { /* defaults */ }
+
+function renderDrill(arg) {
+  const daily = arg === 'daily';
+  const endsAt = daily ? Date.now() + DAILY_DRILL_MS : 0;
+  let run = 0, right = 0, best = 0;
+  let current = null, shownAt = 0;
+  let tick = null;
+
+  $('view').innerHTML = `
+    <div class="drill">
+      ${daily ? '<p class="tiny center">Cards done. Three minutes of numbers to finish.</p>' : ''}
+      <div class="chips" id="modes">${['mix', ...DRILL_MODES].map((m) => `<button class="chip" type="button" data-mode="${m}">${DRILL_LABEL[m]}</button>`).join('')}</div>
+      <div class="chips" id="hows">
+        <button class="chip" type="button" data-how="listen">Listen &amp; type</button>
+        <button class="chip" type="button" data-how="read">Read aloud</button>
+      </div>
+      <div class="drill-stats tiny"><span id="dStreak"></span><span id="dClock"></span></div>
+      <div id="dCard" class="card drill-card"></div>
+    </div>`;
+
+  const setChips = () => {
+    document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('on', b.dataset.mode === drillPrefs.mode));
+    document.querySelectorAll('[data-how]').forEach((b) => b.classList.toggle('on', b.dataset.how === drillPrefs.how));
+  };
+  const savePrefs = () => { try { localStorage.setItem('japan-prep:drill-prefs', JSON.stringify(drillPrefs)); } catch { /* fine */ } };
+  document.querySelectorAll('[data-mode]').forEach((b) => b.onclick = () => { drillPrefs.mode = b.dataset.mode; savePrefs(); setChips(); ask(); });
+  document.querySelectorAll('[data-how]').forEach((b) => b.onclick = () => { drillPrefs.how = b.dataset.how; savePrefs(); setChips(); ask(); });
+  setChips();
+
+  const stats = () => { $('dStreak').textContent = `Streak ${run} · best ${best} · ${right} right`; };
+  if (daily) {
+    tick = setInterval(() => {
+      const left = Math.max(0, endsAt - Date.now());
+      $('dClock').textContent = left ? `${Math.floor(left / 60000)}:${String(Math.floor(left / 1000) % 60).padStart(2, '0')} left` : 'Time’s up — finish this one';
+    }, 500);
+  }
+  teardown = () => clearInterval(tick);
+
+  function log(given, ok) {
+    state = addDrill(state, { m: current.mode, p: current.prompt, a: current.answer, g: given, ok, ms: Math.round(performance.now() - shownAt), t: Date.now() });
+    save();
+    run = ok ? run + 1 : 0; right += ok ? 1 : 0; best = Math.max(best, run);
+    stats();
+  }
+
+  function after(ok, given) {
+    const timeUp = daily && Date.now() >= endsAt;
+    $('dAfter').innerHTML = `
+      <p class="feedback ${ok ? 'ok' : 'miss'}">${ok ? '✓' : `✗ ${given ? `you typed ${esc(given)}` : ''}`} <strong>${esc(current.prompt)}</strong></p>
+      <div class="reading"><div class="kana-line">${esc(current.kana)}</div>${showRomaji() ? `<div class="romaji">${esc(current.romaji)}</div>` : ''}${current.hint ? `<div class="tiny">${esc(current.hint)}</div>` : ''}</div>
+      ${playButtons(current.kana)}
+      <button id="dNext" class="btn primary next" type="button">${timeUp ? 'Finish' : 'Next →'}</button>`;
+    $('dNext').onclick = () => (timeUp ? finishDaily() : ask(true));
+    $('dNext').focus();
+  }
+
+  function finishDaily() {
+    clearInterval(tick);
+    $('view').innerHTML = `
+      <div class="card done">
+        <h2>Done for today 🎌</h2>
+        <p>${right} number${right === 1 ? '' : 's'} right, best run ${best}. See you tomorrow.</p>
+        <a class="btn primary" href="#today">Back to today</a>
+      </div>`;
+  }
+
+  // fromTap: called from a button, so speech is allowed to start.
+  function ask(fromTap = true) {
+    const mode = drillPrefs.mode === 'mix' ? DRILL_MODES[Math.floor(Math.random() * DRILL_MODES.length)] : drillPrefs.mode;
+    current = genDrill(mode);
+    shownAt = performance.now();
+    const card = $('dCard');
+    if (drillPrefs.how === 'listen') {
+      const isTime = mode === 'time';
+      card.innerHTML = `
+        <p class="tiny">${{ price: 'How much?', time: 'What time? (3:45 pm or 15:45)', counter: 'How many?', platform: 'Which platform?' }[mode]}</p>
+        <div class="prompt">${playButtons(current.kana, true)}</div>
+        <form id="dForm" class="answer-row" autocomplete="off">
+          <input id="dInput" class="answer" ${isTime ? 'inputmode="text" placeholder="3:45 pm"' : 'inputmode="numeric" placeholder="digits"'} aria-label="Your answer" enterkeyhint="done">
+          <button class="btn primary" type="submit">Check</button>
+        </form>
+        <button id="dGive" class="btn small" type="button">Show me</button>
+        <div id="dAfter"></div>`;
+      if (fromTap) speak(current.kana);
+      $('dForm').onsubmit = (e) => {
+        e.preventDefault();
+        const given = $('dInput').value.trim();
+        if (!given) return;
+        const ok = checkDrill(current, given);
+        $('dInput').disabled = true; e.target.querySelector('button').disabled = true; $('dGive').hidden = true;
+        log(given, ok); after(ok, given);
+      };
+      $('dGive').onclick = () => { $('dInput').disabled = true; $('dGive').hidden = true; log('', false); after(false, ''); };
+    } else {
+      card.innerHTML = `
+        <p class="tiny">Say it out loud, then check.</p>
+        <div class="prompt"><div class="big-kana">${esc(current.prompt)}</div>${current.hint ? `<p class="tiny">${esc(current.hint)}</p>` : ''}</div>
+        <div id="dAfter"><button id="dShow" class="btn primary next" type="button">Show reading</button></div>`;
+      $('dShow').onclick = () => {
+        speak(current.kana);
+        $('dAfter').innerHTML = `
+          <div class="reading"><div class="kana-line">${esc(current.kana)}</div>${showRomaji() ? `<div class="romaji">${esc(current.romaji)}</div>` : ''}</div>
+          ${playButtons(current.kana)}
+          <div class="grades two">
+            <button class="btn again" type="button" data-ok="0">Missed it</button>
+            <button class="btn good primary" type="button" data-ok="1">Got it</button>
+          </div>`;
+        $('dAfter').querySelectorAll('[data-ok]').forEach((b) => b.onclick = () => {
+          const ok = b.dataset.ok === '1';
+          log(ok ? 'said' : 'missed', ok);
+          if (daily && Date.now() >= endsAt) finishDaily(); else ask(true);
+        });
+      };
+    }
+    if (drillPrefs.how === 'listen') $('dInput').focus({ preventScroll: true });
+  }
+
+  stats();
+  ask(true);
+}
+
+/* ── phrasebook ──────────────────────────────────────────────────────── */
+
+const TAGS = ['core', 'restaurant', 'konbini', 'shopping', 'trains', 'hotel', 'directions', 'allergy', 'emergency', 'new-year'];
+let phraseTag = 'core';
+let phraseQuery = '';
+
+function renderPhrases() {
+  const all = [
+    ...PHRASES,
+    ...SIGNS.map((s) => ({ ...s, tags: ['signs'] })),
+    ...MENU.map((m) => ({ ...m, tags: ['katakana'] })),
+  ];
+  $('view').innerHTML = `
+    <p class="tiny">Everything in the app, for looking things up on the spot. Works offline.</p>
+    <input id="pq" class="search" type="search" placeholder="Search English, kana or romaji" value="${esc(phraseQuery)}" aria-label="Search">
+    <div class="chips" id="ptags">${[...TAGS, 'signs', 'katakana'].map((t) => `<button class="chip${t === phraseTag ? ' on' : ''}" type="button" data-tag="${t}">${t.replace('-', ' ')}</button>`).join('')}</div>
+    <div id="plist"></div>`;
+  const draw = () => {
+    const q = phraseQuery.trim().toLowerCase();
+    const rows = all.filter((p) => (q ? [p.en, p.jp, p.kana, p.romaji, p.notes].some((f) => f && f.toLowerCase().includes(q)) : p.tags.includes(phraseTag)));
+    $('plist').innerHTML = rows.length ? rows.map((p) => `
+      <div class="phrase">
+        <div class="phrase-text">
+          <div class="jp">${p.deck === 'sign' ? `<span class="sign small">${esc(p.jp)}</span>` : esc(p.jp)}${p.listen ? ' <span class="badge">you’ll hear</span>' : ''}</div>
+          ${p.kana !== p.jp ? `<div class="kana-line">${esc(p.kana)}</div>` : ''}
+          ${showRomaji() ? `<div class="romaji">${esc(p.romaji)}</div>` : ''}
+          ${showEnglish() ? `<div class="en">${esc(p.en)}</div>` : ''}
+          ${p.notes ? `<div class="note">${esc(p.notes)}</div>` : ''}
+        </div>
+        ${playButtons(p.speak)}
+      </div>`).join('') : '<p class="tiny">Nothing matches.</p>';
+  };
+  $('pq').oninput = (e) => { phraseQuery = e.target.value; draw(); };
+  $('ptags').querySelectorAll('[data-tag]').forEach((b) => b.onclick = () => {
+    phraseTag = b.dataset.tag; phraseQuery = ''; $('pq').value = '';
+    $('ptags').querySelectorAll('.chip').forEach((c) => c.classList.toggle('on', c === b));
+    draw();
+  });
+  draw();
+}
+
+/* ── settings ────────────────────────────────────────────────────────── */
+
+function renderSettings() {
+  const s = state.settings;
+  const voices = japaneseVoices();
+  $('view').innerHTML = `
+    <form id="sForm" class="card settings">
+      <h2>Trip</h2>
+      <label>Trip date <input type="date" name="tripDate" value="${esc(s.tripDate)}" required></label>
+      <label>Start date <input type="date" name="startDate" value="${esc(s.startDate)}" required>
+        <span class="tiny">Decks unlock by days since this: katakana on day 6, katakana words in week 3, signs in week 4.</span></label>
+      <label class="check"><input type="checkbox" name="unlockAll" ${s.unlockAll ? 'checked' : ''}> Unlock every deck now</label>
+      <label class="check"><input type="checkbox" name="sweep" ${s.sweep ? 'checked' : ''}> Pre-trip sweep now <span class="tiny">(turns on by itself 5 days out)</span></label>
+
+      <h2>Showing</h2>
+      <label class="check"><input type="checkbox" name="showRomaji" ${s.showRomaji ? 'checked' : ''}> Romaji</label>
+      <label class="check"><input type="checkbox" name="showEnglish" ${s.showEnglish ? 'checked' : ''}> English in answers and the phrasebook</label>
+      <label>Voice
+        <select name="voiceURI">${voices.length ? voices.map((v) => `<option value="${esc(v.voiceURI)}" ${v.voiceURI === s.voiceURI ? 'selected' : ''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('') : '<option value="">No Japanese voice found</option>'}</select>
+        <button class="btn small" type="button" data-say="すみません、トイレわどこですか">Test</button>
+      </label>
+
+      <h2>Pace</h2>
+      <div class="grid2">${DECK_ORDER.map((d) => `<label>${esc(DECKS[d].name)} new/day <input type="number" min="0" max="50" name="new-${d}" value="${s.newPerDay[d]}"></label>`).join('')}</div>
+      <label>Target recall, kana &amp; numbers <input type="number" step="0.01" min="0.7" max="0.99" name="retCore" value="${s.retention.core}"></label>
+      <label>Target recall, everything else <input type="number" step="0.01" min="0.7" max="0.99" name="retRest" value="${s.retention.rest}"></label>
+      <p class="tiny">Higher means more reviews and fewer surprises. 0.90 suits most people.</p>
+      <button class="btn primary" type="submit">Save settings</button>
+    </form>
+
+    <div class="card">
+      <h2>Backup</h2>
+      <p class="tiny">Your progress lives only in this browser. A backup is a JSON file; importing one merges it in (newer cards win, history is combined), so it also moves progress between phone and laptop.</p>
+      <button id="export" class="btn primary" type="button">Download backup</button>
+      <label class="btn">Import a backup<input id="import" type="file" accept="application/json,.json" hidden></label>
+    </div>
+    <p class="tiny">Not here yet: cloud sync and Claude roleplay scenes. Both need a small server; see the README.</p>`;
+
+  $('sForm').onsubmit = (e) => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const newPerDay = Object.fromEntries(DECK_ORDER.map((d) => [d, Number(f.get(`new-${d}`))]));
+    state = normalizeState({
+      ...state,
+      settings: {
+        ...s, tripDate: f.get('tripDate'), startDate: f.get('startDate'), unlockAll: f.has('unlockAll'), sweep: f.has('sweep'),
+        showRomaji: f.has('showRomaji'), showEnglish: f.has('showEnglish'), voiceURI: f.get('voiceURI') || '',
+        newPerDay, retention: { core: Number(f.get('retCore')), rest: Number(f.get('retRest')) },
+      },
+    });
+    if (save()) notify('Saved.');
+    renderSettings();
+  };
+  $('export').onclick = () => {
+    const blob = new Blob([JSON.stringify(exportBlob(state), null, 1)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `japan-prep-${ymd(new Date())}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    state = { ...state, settings: { ...state.settings, backupAt: Date.now() } };
+    save();
+  };
+  $('import').onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const raw = JSON.parse(await file.text());
+      if (!looksLikeExport(raw)) throw new Error('not ours');
+      const before = Object.keys(state.cards).length;
+      state = mergeStates(state, raw);
+      save();
+      notify(`Imported. ${Object.keys(state.cards).length - before} new cards, ${state.logs.length} reviews in history.`);
+    } catch {
+      notify('That file isn’t a Japan Prep backup.', true);
+    }
+    e.target.value = '';
+  };
+}
+
+/* ── start ───────────────────────────────────────────────────────────── */
+
+const online = () => { $('offline').hidden = navigator.onLine; };
+addEventListener('online', online);
+addEventListener('offline', online);
+online();
+
+// Ask the browser not to evict our storage. Safari decides by itself.
+navigator.storage?.persist?.().catch(() => {});
+loadVoices().then(() => { if (location.hash === '#settings') renderSettings(); });
+route();
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
