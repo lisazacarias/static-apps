@@ -56,6 +56,8 @@ export function normalizeSettings(raw, now = Date.now()) {
     unlockAll: r.unlockAll === true,
     muteHintShown: r.muteHintShown === true,
     backupAt: Number.isFinite(r.backupAt) ? r.backupAt : 0,
+    // The day the daily run's three minutes of numbers were last finished.
+    drillsDoneOn: isYmd(r.drillsDoneOn) ? r.drillsDoneOn : '',
   };
 }
 
@@ -285,6 +287,24 @@ export function rate(state, id, rating, { now = Date.now(), ms = 0 } = {}) {
   after.intro = before.intro || now;
   after.updatedAt = now;
   return { ...state, cards: { ...state.cards, [id]: after }, logs: [...state.logs, { c: id, r: rating, t: now, ms }] };
+}
+
+// About how many screens are left in this sitting: plays it forward on a
+// copy, teaching what's new and answering everything Good, about 8 s a
+// card. It's a floor, not a promise: each miss adds a card or two back.
+export function sittingLeft(state, now = Date.now(), seen = new Set(), cap = 400) {
+  let s = { ...state, logs: state.logs.slice(-1) }; // only the last log matters to nextCard
+  const sim = new Set(seen);
+  let t = now, n = 0;
+  for (; n < cap; n++) {
+    const id = nextCard(s, t, sim);
+    if (!id) break;
+    const { itemId } = splitCardId(id);
+    sim.add(id);
+    s = isTaught(s, itemId) ? rate(s, id, GOOD, { now: t }) : teach(s, itemId, t);
+    t += 8000;
+  }
+  return n;
 }
 
 // Auto-grade a quiz answer: wrong is Again, right but slow is Hard.

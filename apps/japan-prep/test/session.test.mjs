@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   normalizeState, normalizeSettings, nextCard, rate, summary, choices, gradeFor, streak, mergeStates, exportBlob, looksLikeExport,
-  cardId, splitCardId, sweepOn, daysLeft, dayIndex, addDrill, DRILL_KEEP, SLOW_MS, teach, isTaught, TEACH_BATCH,
+  cardId, splitCardId, sweepOn, daysLeft, dayIndex, addDrill, DRILL_KEEP, SLOW_MS, teach, isTaught, TEACH_BATCH, sittingLeft,
 } from '../session.js';
 import { ITEM, DECKS } from '../content.js';
 import { AGAIN, GOOD, EASY, DAY } from '../srs.js';
@@ -332,4 +332,21 @@ test('weeks 9–10: listen-only staff phrases get extra passes, once each per si
   // Before weeks 9–10, no extra pass.
   const early = { ...s, settings: { ...s.settings, tripDate: '2027-03-01' } };
   assert.equal(nextCard(early, t, new Set()), null);
+});
+
+test('sittingLeft counts what the sitting will show, and reaches zero when it ends', () => {
+  const s = fresh();
+  const left = sittingLeft(s, START);
+  // 15 kana × (teach + 2 directions × 2 learning steps) + 2 phrases × (teach + 2 steps).
+  assert.equal(left, 15 * 5 + 2 * 3);
+  let st = s, t = START, shown = 0;
+  for (let id; (id = nextCard(st, t)); shown++) {
+    const { itemId } = splitCardId(id);
+    st = isTaught(st, itemId) ? rate(st, id, GOOD, { now: t }) : teach(st, itemId, t);
+    t += 8000;
+  }
+  assert.equal(shown, left, 'the same path, the same count');
+  assert.equal(sittingLeft(st, t), 0);
+  assert.equal(st.logs.length > 0, true);
+  assert.equal(sittingLeft(s, START), left, 'the real state is untouched');
 });

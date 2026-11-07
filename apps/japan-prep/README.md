@@ -12,7 +12,14 @@ parts of it this app follows, and where it departs:
 ## What's in
 
 - **Daily session.** Today → Start runs due kana, then phrases/signs, then
-  three minutes of number drills.
+  three minutes of number drills. A progress bar shows about how many cards
+  are left (`sittingLeft` plays the sitting forward as if every answer were
+  right, so a miss moves it back a little), and Today says when you're done.
+- **Numbers teach before they test.** The Numbers tab opens with a short
+  lesson on how numbers are built. "See & hear" shows a number, says it and
+  breaks it into parts (せん 1,000 · よんひゃく 400 · …). The daily three
+  minutes use it until you've answered 20 drills. Every question says what
+  you'll hear and what to type.
 - **Scheduling** (`srs.js`). FSRS-5 with its default weights, written out
   here rather than pulled from `ts-fsrs`, since nothing here ships from npm.
   Target recall 0.92 for kana and numbers, 0.90 for the rest. Learning steps
