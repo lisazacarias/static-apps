@@ -252,7 +252,7 @@ function pattern(item) {
       <span class="label">Pattern</span>
       <div class="jp">${esc(item.jp)}</div>
       ${showRomaji() ? `<div class="romaji">${esc(blank(item.romaji))}</div>` : ''}
-      <div class="en">${esc(blank(item.en))}</div>
+      ${showEnglish() ? `<div class="en">${esc(blank(item.en))}</div>` : ''}
       ${item.notes ? `<p class="note">${esc(item.notes)}</p>` : ''}
     </div>`;
 }
@@ -620,7 +620,8 @@ function renderPhrases() {
     <div id="plist"></div>`;
   const draw = () => {
     const q = phraseQuery.trim().toLowerCase();
-    const fields = (p) => [p.en, p.jp, p.kana, p.romaji, p.notes, ...(p.example ? Object.values(p.example) : [])];
+    // Search what's shown too: the blank as "___" as well as the stored "~".
+    const fields = (p) => [p.en, p.jp, p.kana, p.romaji, blank(p.en), blank(p.romaji), p.notes, ...(p.example ? Object.values(p.example) : [])];
     const rows = all.filter((p) => (q ? fields(p).some((f) => f && f.toLowerCase().includes(q)) : p.tags.includes(phraseTag)));
     $('plist').innerHTML = rows.length ? rows.map((p) => `
       <div class="phrase">

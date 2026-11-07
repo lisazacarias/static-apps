@@ -58,10 +58,11 @@ test('every card with a blank (〜) has a full example to practise', () => {
     }
     assert.match(p.example.kana, /^[぀-ヿ。、ー]+$/u, `${p.id} example kana is kana`);
     assert.ok(p.notes && !p.notes.includes('Audio example'), `${p.id} note explains the pattern`);
-    // The audio says the example: same kana once particles are spelled as said.
-    const said = (k) => k.replace(/[、。]/g, '');
-    const speak = said(p.speak);
-    assert.equal(speak.length, said(p.example.kana).length, `${p.id}: ${p.speak} vs ${p.example.kana}`);
+    // The audio says the example. speak spells は and へ the way they're
+    // said (わ, え), so fold those together on both sides and compare the
+    // whole sentence.
+    const said = (k) => k.replace(/[、。]/g, '').replace(/は/g, 'わ').replace(/へ/g, 'え');
+    assert.equal(said(p.speak), said(p.example.kana), `${p.id}: ${p.speak} vs ${p.example.kana}`);
   }
   assert.ok(!PHRASES.some((p) => !p.jp.includes('〜') && p.example), 'only blank cards get one');
 });
