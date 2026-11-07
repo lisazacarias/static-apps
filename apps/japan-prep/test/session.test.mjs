@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   normalizeState, normalizeSettings, nextCard, rate, summary, choices, gradeFor, streak, mergeStates, exportBlob, looksLikeExport,
-  cardId, splitCardId, sweepOn, daysLeft, dayIndex, addDrill, DRILL_KEEP, SLOW_MS,
+  cardId, splitCardId, sweepOn, daysLeft, dayIndex, addDrill, DRILL_KEEP, SLOW_MS, teach, isTaught, TEACH_BATCH,
 } from '../session.js';
 import { ITEM, DECKS } from '../content.js';
 import { AGAIN, GOOD, EASY, DAY } from '../srs.js';
@@ -12,13 +12,15 @@ const START = day(2026, 11, 9);
 const fresh = (settings = {}) => normalizeState({ settings: { startDate: '2026-11-09', tripDate: '2027-01-10', ...settings } }, START);
 const rng = (seed = 5) => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
 
-// Answer everything the queue gives, Good, until it's empty or n cards.
+// Work through the queue the way the app does: teach anything not yet
+// taught, answer the rest Good, until it's empty or n cards.
 function studyAll(state, now, n = 1000, rating = GOOD) {
   let t = now;
   for (let i = 0; i < n; i++) {
     const id = nextCard(state, t);
     if (!id) break;
-    state = rate(state, id, rating, { now: t });
+    const { itemId } = splitCardId(id);
+    state = isTaught(state, itemId) ? rate(state, id, rating, { now: t }) : teach(state, itemId, t);
     t += 1000;
   }
   return state;
@@ -77,8 +79,9 @@ test('katakana unlocks on day 6, signs in week 4, or everything with unlockAll',
 });
 
 test('learning cards come back within the sitting', () => {
-  let s = fresh();
+  let s = teach(fresh({ newPerDay: { hira: 1, kata: 0, menu: 0, num: 0, phrase: 0, sign: 0 } }), 'hira:あ', START);
   const id = nextCard(s, START);
+  assert.equal(id, 'hira:あ|recognize');
   s = rate(s, id, AGAIN, { now: START });
   assert.equal(nextCard(s, START + 61000), id);
 });
@@ -98,6 +101,46 @@ test('sweep mode: on at 5 days left, no new cards, shaky cards weakest first, ea
   }
   assert.ok(order.length > 0);
   assert.equal(new Set(order).size, order.length);
+});
+
+test('new items are taught five at a time, then quizzed', () => {
+  let s = fresh();
+  let t = START;
+  const taught = [];
+  for (let i = 0; i < TEACH_BATCH; i++) {
+    const id = nextCard(s, t);
+    assert.ok(!isTaught(s, splitCardId(id).itemId), `${id} is new`);
+    taught.push(splitCardId(id).itemId);
+    s = teach(s, splitCardId(id).itemId, t += 1000);
+  }
+  assert.deepEqual(taught, ['hira:あ', 'hira:い', 'hira:う', 'hira:え', 'hira:お']);
+  assert.equal(s.logs.length, 0, 'teaching is not a review');
+  assert.equal(s.cards['hira:あ|recognize'].state, 'new');
+  // Now the quiz: both directions of each, before any more teaching.
+  const quiz = [];
+  for (let i = 0; i < TEACH_BATCH * 2; i++) {
+    const id = nextCard(s, t);
+    quiz.push(id);
+    s = rate(s, id, GOOD, { now: t += 1000 });
+  }
+  assert.ok(quiz.every((id) => taught.includes(splitCardId(id).itemId)), quiz.join(' '));
+  assert.equal(new Set(quiz).size, TEACH_BATCH * 2);
+  assert.equal(splitCardId(nextCard(s, t)).itemId, 'hira:か', 'then the next lesson');
+  assert.ok(!isTaught(s, 'hira:か'));
+});
+
+test('the kana batch is quizzed before phrases start being taught', () => {
+  let s = fresh({ newPerDay: { hira: 2, kata: 0, menu: 0, num: 0, phrase: 6, sign: 0 } });
+  s = teach(s, 'hira:あ', START);
+  s = teach(s, 'hira:い', START);
+  assert.equal(ITEM[splitCardId(nextCard(s, START)).itemId].deck, 'hira');
+});
+
+test('cards quizzed before teaching existed still schedule normally', () => {
+  // A state from the first release: rated straight away, never taught.
+  let s = rate(fresh(), 'hira:あ|recognize', GOOD, { now: START });
+  assert.ok(isTaught(s, 'hira:あ'));
+  assert.equal(nextCard(s, START), 'hira:あ|listen', 'its other direction is quizzed, not re-taught');
 });
 
 test('rating stamps intro once and logs every answer', () => {
@@ -190,5 +233,6 @@ test('sweep mode still shows a card the trip cap makes due, even when recall is 
     cards: { [id]: { state: 'review', s: 100, d: 5, due: late + 60 * DAY, last: late - 3 * DAY, reps: 5, intro: START, updatedAt: START } },
   }, START);
   assert.equal(nextCard(s, late, new Set()), id);
-  assert.equal(nextCard(s, late, new Set([id])), null, 'and only once');
+  // Once seen, the sweep moves on (here to あ's never-quizzed listening card).
+  assert.equal(nextCard(s, late, new Set([id])), 'hira:あ|listen');
 });

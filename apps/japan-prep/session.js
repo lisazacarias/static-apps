@@ -115,6 +115,22 @@ const introducedToday = (state, deck, now) => {
   return items.size;
 };
 const itemStarted = (state, itemId) => directionsFor(ITEM[itemId]).some((d) => state.cards[cardId(itemId, d)]?.intro);
+// Has this item been taught (or quizzed) yet? If not, the app shows it
+// first: you can't be quizzed on a kana you've never seen.
+export const isTaught = itemStarted;
+export const TEACH_BATCH = 5; // new items shown before they're quizzed, like a Tofugu lesson
+
+// Mark an item as taught: every direction gets a card stamped with intro
+// but still state 'new', so the first quiz is its first FSRS review and
+// it counts toward the day's new-card allowance.
+export function teach(state, itemId, now = Date.now()) {
+  const cards = { ...state.cards };
+  for (const d of directionsFor(ITEM[itemId])) {
+    const id = cardId(itemId, d);
+    if (!cards[id]) cards[id] = { ...newCard(id), intro: now, updatedAt: now };
+  }
+  return { ...state, cards };
+}
 
 // Everything shown today, counted per deck.
 export function summary(state, now = Date.now()) {
@@ -166,32 +182,58 @@ export function nextCard(state, now = Date.now(), seen = new Set()) {
       && (recallNow(c, now) < SWEEP_RECALL || dueAt(c, maxDays) < endToday))
       .sort((a, b) => recallNow(a, now) - recallNow(b, now));
     if (shaky[0]) return shaky[0].id;
+    const quiz = taughtNotQuizzed(state, now)[0];
+    if (quiz) return quiz.id;
   } else {
     // 2. Reviews due today, kana first.
     const due = live.filter((c) => c.state === 'review' && dueAt(c, maxDays) < endToday)
       .sort((a, b) => order(a.id) - order(b.id) || a.due - b.due);
     if (due[0]) return due[0].id;
 
-    // 3. The other direction of something already started (not capped),
-    //    then a brand-new item if the deck's daily allowance has room.
-    for (const deck of DECK_ORDER) {
-      const items = ITEMS.filter((i) => i.deck === deck && unlocked(i, settings, now));
-      for (const i of items) {
-        if (!itemStarted(state, i.id)) continue;
-        const dir = directionsFor(i).find((d) => !state.cards[cardId(i.id, d)]?.intro);
-        if (dir) return cardId(i.id, dir);
-      }
-    }
+    // 3. Teach new items a few at a time, then quiz them. Quiz first when
+    //    the batch is full, the allowance is used up, the next new item is
+    //    from another deck (so the kana get quizzed before phrases start),
+    //    or quizzing has already begun (finish the batch before teaching more).
+    const pending = taughtNotQuizzed(state, now);
+    let fresh = null;
     for (const deck of DECK_ORDER) {
       if (introducedToday(state, deck, now) >= settings.newPerDay[deck]) continue;
-      const fresh = ITEMS.find((i) => i.deck === deck && unlocked(i, settings, now) && !itemStarted(state, i.id));
-      if (fresh) return cardId(fresh.id, directionsFor(fresh)[0]);
+      fresh = ITEMS.find((i) => i.deck === deck && unlocked(i, settings, now) && !itemStarted(state, i.id));
+      if (fresh) break;
     }
+    if (pending.length) {
+      const batch = new Set(pending.map((c) => splitCardId(c.id).itemId)).size;
+      const pendingDeck = ITEM[splitCardId(pending[0].id).itemId].deck;
+      // Begun = an answer was logged since the batch's last teaching screen.
+      const lastTaught = Math.max(...pending.flatMap((c) => {
+        const itemId = splitCardId(c.id).itemId;
+        return directionsFor(ITEM[itemId]).map((d) => state.cards[cardId(itemId, d)]?.intro || 0);
+      }));
+      const begun = state.logs.length > 0 && state.logs[state.logs.length - 1].t >= lastTaught;
+      if (!fresh || batch >= TEACH_BATCH || fresh.deck !== pendingDeck || begun) return pending[0].id;
+    }
+    if (fresh) return cardId(fresh.id, directionsFor(fresh)[0]);
   }
 
   // 4. Nothing else: learning cards a little early rather than waiting.
   if (learning[0] && learning[0].due <= now + LEARN_AHEAD) return learning[0].id;
   return null;
+}
+
+// Cards for taught items that haven't had their first quiz, in deck and
+// content order.
+function taughtNotQuizzed(state, now) {
+  const out = [];
+  for (const deck of DECK_ORDER) {
+    for (const i of ITEMS) {
+      if (i.deck !== deck || !unlocked(i, state.settings, now) || !itemStarted(state, i.id)) continue;
+      for (const d of directionsFor(i)) {
+        const c = state.cards[cardId(i.id, d)];
+        if (!c || c.state === 'new') out.push(c || newCard(cardId(i.id, d)));
+      }
+    }
+  }
+  return out;
 }
 
 // Rate a card. Returns the new state (the old one isn't changed).

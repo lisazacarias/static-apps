@@ -22,6 +22,8 @@ header.top { margin-bottom: 16px; padding-bottom: 0; border-bottom: 0; }
 .tiny { font-size: 12px; color: var(--text-muted); }
 .center { text-align: center; }
 .badge { background: var(--bg-elevated); color: var(--text-label); border: 1px solid var(--border-bright); }
+.badge.new { color: var(--green); border-color: rgba(125, 191, 160, 0.4); background: var(--green-dim); }
+.romaji.teach-romaji { font-size: 30px; }
 .badge.offline { color: var(--gold); border-color: var(--gold); background: var(--gold-dim); }
 
 .notice {
