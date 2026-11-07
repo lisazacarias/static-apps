@@ -46,3 +46,22 @@ test('every look-alike hint is for a kana that exists', () => {
   for (const k of Object.keys(HINTS)) assert.ok(chars.has(k), k);
   assert.equal(toKatakana('しゃ'), 'シャ');
 });
+
+test('every card with a blank (〜) has a full example to practise', () => {
+  const blanks = PHRASES.filter((p) => p.jp.includes('〜'));
+  assert.equal(blanks.length, 13);
+  for (const p of blanks) {
+    assert.ok(p.example, `${p.id} has an example`);
+    for (const f of ['jp', 'kana', 'romaji', 'en']) {
+      assert.ok(p.example[f], `${p.id} example.${f}`);
+      assert.ok(!/[〜~]/.test(p.example[f]), `${p.id} example.${f} has no blank: ${p.example[f]}`);
+    }
+    assert.match(p.example.kana, /^[぀-ヿ。、ー]+$/u, `${p.id} example kana is kana`);
+    assert.ok(p.notes && !p.notes.includes('Audio example'), `${p.id} note explains the pattern`);
+    // The audio says the example: same kana once particles are spelled as said.
+    const said = (k) => k.replace(/[、。]/g, '');
+    const speak = said(p.speak);
+    assert.equal(speak.length, said(p.example.kana).length, `${p.id}: ${p.speak} vs ${p.example.kana}`);
+  }
+  assert.ok(!PHRASES.some((p) => !p.jp.includes('〜') && p.example), 'only blank cards get one');
+});

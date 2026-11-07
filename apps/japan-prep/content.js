@@ -177,6 +177,36 @@ export const PHRASES = [
   P('yakkyoku', '薬局はどこですか', 'やっきょくはどこですか', 'yakkyoku wa doko desu ka', 'Where is a pharmacy?', 'やっきょくわどこですか', ['emergency'], { day: 35, notes: 'Hospital: 病院 (byōin).' }),
 ];
 
+// Cards with a blank (〜) are practised as a real sentence. The prompt,
+// the answer and the audio use the example; the pattern and a note on
+// what fills the blank come after. Progress stays on the pattern's id.
+//   id: [jp, kana, romaji, en, pattern note]
+const EXAMPLES = {
+  'ph:onegai': ['ラーメンをお願いします', 'ラーメンをおねがいします', 'rāmen o onegaishimasu', 'Ramen, please', 'Any thing + をお願いします. を (said "o") marks the thing you want.'],
+  'ph:doko': ['駅はどこですか', 'えきはどこですか', 'eki wa doko desu ka', 'Where is the station?', 'Any place + はどこですか. は is said "wa" here: it marks what you’re asking about.'],
+  'ph:arimasu-ka': ['コインロッカーはありますか', 'コインロッカーはありますか', 'koin rokkā wa arimasu ka', 'Are there coin lockers?', 'Any thing + はありますか (said "wa arimasu ka").'],
+  'ph:made-ikura': ['京都まで、いくらですか', 'きょうとまで、いくらですか', 'Kyōto made, ikura desu ka', 'How much to Kyoto?', 'Any place + まで (to, as far as), then いくらですか.'],
+  'ph:densha-iku': ['この電車は渋谷に行きますか', 'このでんしゃはしぶやにいきますか', 'kono densha wa Shibuya ni ikimasu ka', 'Does this train go to Shibuya?', 'Any place + に (to) goes in the gap.'],
+  'ph:nanbansen': ['新宿行きは何番線ですか', 'しんじゅくいきはなんばんせんですか', 'Shinjuku-iki wa nanbansen desu ka', 'Which platform for trains to Shinjuku?', 'Destination + 行き (bound for). On signs 行き is also read ゆき.'],
+  'ph:eki-doko': ['上野駅はどこですか', 'うえのえきはどこですか', 'Ueno-eki wa doko desu ka', 'Where is Ueno Station?', 'Station name + 駅はどこですか.'],
+  'ph:tsugi-wa': ['次は品川', 'つぎはしながわ', 'tsugi wa Shinagawa', 'Next stop is Shinagawa', 'The announcement, then the station name.'],
+  'ph:yoyaku': ['予約しています。リサです', 'よやくしています。リサです', 'yoyaku shite imasu. Risa desu', 'I have a reservation. I’m Lisa', 'Your name goes before です.'],
+  'ph:ikitai': ['浅草へ行きたいです', 'あさくさへいきたいです', 'Asakusa e ikitai desu', 'I want to go to Asakusa', 'Any place + へ (to; said "e") + 行きたいです.'],
+  'ph:arerugii': ['えびアレルギーがあります', 'えびアレルギーがあります', 'ebi arerugī ga arimasu', 'I’m allergic to shrimp', 'The allergen + アレルギーがあります. See the allergy words for more.'],
+  'ph:haitte': ['卵は入っていますか', 'たまごははいっていますか', 'tamago wa haitte imasu ka', 'Does this contain egg?', 'Ingredient + は入っていますか.'],
+  'ph:nuki': ['ねぎ抜きでお願いします', 'ねぎぬきでおねがいします', 'negi-nuki de onegaishimasu', 'No spring onion, please', 'Ingredient + 抜き (without) + でお願いします.'],
+};
+for (const p of PHRASES) {
+  const e = EXAMPLES[p.id];
+  if (!e) continue;
+  const [jp, kana, romaji, en, notes] = e;
+  p.example = { jp, kana, romaji, en };
+  p.notes = notes;
+}
+// The only example whose audio changes: it used to say 英語のメニューはありますか,
+// which is its own card.
+PHRASES.find((p) => p.id === 'ph:arimasu-ka').speak = 'コインロッカーわありますか';
+
 // Signs. Pick-the-meaning quiz, shown styled like a sign. 1–15 unlock in
 // week 4, the rest in week 5.
 const SIGN_ROWS = [
