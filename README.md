@@ -48,6 +48,19 @@ browser never needs a build — not that Node is banned from the workflow.
     │   ├── styles.css
     │   ├── package.json     # Dev-only: test runner scripts
     │   └── test/            # Node tests for cues.js and xlsx.js
+    ├── japan-prep/          # Japan trip prep: kana, phrases, signs, number drills (installable, offline)
+    │   ├── index.html
+    │   ├── app.js           # DOM: today, study cards, number drills, phrasebook, settings, backup
+    │   ├── session.js       # Pure: stored state, what's due/new, quiz options, merge, streak
+    │   ├── srs.js           # Pure: FSRS-5 scheduling and the trip-date interval cap
+    │   ├── numbers.js       # Pure: number/counter/time readings and drill generators
+    │   ├── kana.js          # Kana tables, look-alike hints, kana → romaji
+    │   ├── content.js       # The decks: phrases, signs, katakana words, number rules — edit this
+    │   ├── speech.js        # The browser's Japanese voice
+    │   ├── sw.js            # Service worker: network-first offline cache (scoped to this folder)
+    │   ├── manifest.json    # + icon-192/512.png, for Add to Home Screen
+    │   ├── package.json     # Dev-only: test runner scripts
+    │   └── test/            # Node tests for the pure modules and content.js
     └── flex-training/       # Flexibility plan: week planner with rule checks, sessions, hold timer, movement reference
         ├── index.html
         ├── app.js           # DOM, routing, week/log storage, hold timer
@@ -88,11 +101,12 @@ Then open:
 - `http://localhost:8000/apps/piano-practice/`
 - `http://localhost:8000/apps/lighting-cue-builder/`
 - `http://localhost:8000/apps/flex-training/`
+- `http://localhost:8000/apps/japan-prep/`
 
 ## Tests
 
-Piano practice, the lighting cue builder, flex training and the election tracker have
-suites. From the app's folder:
+Piano practice, the lighting cue builder, flex training, the election tracker and Japan
+prep have suites. From the app's folder:
 
 ```
 npm test
