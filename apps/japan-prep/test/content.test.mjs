@@ -46,3 +46,10 @@ test('every look-alike hint is for a kana that exists', () => {
   for (const k of Object.keys(HINTS)) assert.ok(chars.has(k), k);
   assert.equal(toKatakana('しゃ'), 'シャ');
 });
+
+test('no year-end content: the trip is in late January', () => {
+  const all = JSON.stringify(ITEMS);
+  for (const gone of ['年末年始', 'あけましておめでとうございます', '福袋', '初詣', 'new-year', '29 Dec', 'New Year']) assert.ok(!all.includes(gone), gone);
+  for (const kept of ['sign:休業', 'sign:本日', 'sign:雪', 'sign:遅延', 'ph:aite', 'ph:nanji-made', 'ph:yuki-chien']) assert.ok(ITEMS.some((i) => i.id === kept), kept);
+  assert.equal(PHRASES.find((p) => p.id === 'ph:aite').notes, 'Check opening hours for your specific dates.');
+});

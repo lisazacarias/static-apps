@@ -581,7 +581,7 @@ async function copyText(text, button) {
 
 /* ── phrasebook ──────────────────────────────────────────────────────── */
 
-const TAGS = ['core', 'restaurant', 'konbini', 'shopping', 'trains', 'hotel', 'directions', 'allergy', 'emergency', 'new-year'];
+const TAGS = ['core', 'restaurant', 'konbini', 'shopping', 'trains', 'hotel', 'directions', 'allergy', 'emergency'];
 let phraseTag = 'core';
 let phraseQuery = '';
 
