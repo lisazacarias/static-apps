@@ -29,6 +29,11 @@ parts of it this app follows, and where it departs:
   restaurant/konbini in week 3, trains and signs 1–15 in week 4, and so on
   (`day` in `content.js`).
 - **Phrasebook.** Everything, searchable, with audio at 1× and 0.75×.
+- **Stroke order** on the teaching screen for kana and sign kanji, animated
+  from [KanjiVG](https://kanjivg.tagaini.net/) (CC BY-SA 3.0, credited on
+  screen). Each file is fetched from jsDelivr the first time it's shown and
+  then cached by `sw.js`, so it needs a connection once per character
+  (`strokes.js`).
 
 ## Deliberately different from the write-up
 

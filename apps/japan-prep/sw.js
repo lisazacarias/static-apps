@@ -8,10 +8,10 @@
 // folder leaves this registration serving its cache at the old URL.
 const CACHE = 'japan-prep-v1';
 // Warmed on install so the first offline visit works. Anything else the
-// page fetches (fonts, files added later) is cached the first time it
-// loads online.
+// page fetches (fonts, KanjiVG stroke files, files added later) is cached
+// the first time it loads online.
 const CORE = [
-  './', 'index.html', 'app.js', 'speech.js', 'session.js', 'srs.js', 'content.js', 'kana.js', 'numbers.js', 'styles.css',
+  './', 'index.html', 'app.js', 'speech.js', 'session.js', 'srs.js', 'content.js', 'kana.js', 'numbers.js', 'strokes.js', 'styles.css',
   'manifest.json', 'icon-192.png', 'icon-512.png', '../../shared/base.css',
 ];
 
