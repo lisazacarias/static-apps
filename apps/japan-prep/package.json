@@ -1,0 +1,11 @@
+{
+  "name": "japan-prep",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Japan travel prep: kana, phrases, signs and number drills on a trip-deadline review schedule.",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "serve": "cd ../.. && python3 -m http.server 8000"
+  }
+}
