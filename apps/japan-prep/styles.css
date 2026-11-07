@@ -103,9 +103,13 @@ table.decks td { font-family: var(--font-mono); }
 
 /* ── stroke order ── */
 .glyph-row { display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; }
-.strokes { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 0; }
-.stroke-box { display: flex; gap: 4px; background: var(--bg-elevated); border: 1px solid var(--border-bright); border-radius: 6px; padding: 6px; min-height: 120px; align-items: center; }
+.strokes { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 0; max-width: 100%; }
+/* Wraps, so a four-kanji sign (立入禁止) stays inside a phone screen. */
+.stroke-box { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; max-width: 100%; background: var(--bg-elevated); border: 1px solid var(--border-bright); border-radius: 6px; padding: 6px; min-height: 120px; align-items: center; }
 .stroke-svg { width: 112px; height: 112px; }
+.stroke-box.many .stroke-svg { width: 76px; height: 76px; } /* 3+ characters: four fit across a phone */
+.stroke-missing { font: 72px var(--font-jp); fill: var(--border-bright); }
+.stroke-note { flex-basis: 100%; text-align: center; margin: 0; }
 .stroke-svg path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .stroke-svg .ghost { stroke: var(--border-bright); stroke-width: 3; }
 .stroke-svg .ink { stroke: var(--text-bright); stroke-width: 4; }

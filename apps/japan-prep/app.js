@@ -185,7 +185,13 @@ function renderTeach(item) {
     </div>`;
   speak(item.speak);
   if (drawn.length) {
-    drawStrokes($('strokes'), drawn).then((replay) => { if (replay && $('replay')) $('replay').onclick = replay; else if ($('replay')) $('replay').hidden = true; });
+    // Hold on to this screen's elements: by the time the fetch finishes you
+    // may have moved on, and $('replay') would be the next screen's button.
+    const box = $('strokes'), replayBtn = $('replay');
+    drawStrokes(box, drawn).then((replay) => {
+      if (!box.isConnected) return;
+      if (replay) replayBtn.onclick = replay; else replayBtn.hidden = true;
+    });
   }
   $('gotIt').onclick = () => {
     state = teach(state, item.id, Date.now());
@@ -310,21 +316,34 @@ async function drawStrokes(el, chars) {
   const make = (tag, attrs) => { const n = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v); return n; };
   const parsed = await Promise.all(chars.map((c) => fetch(strokeUrl(c)).then((r) => (r.ok ? r.text() : '')).then(parseStrokes).catch(() => ({ strokes: [], labels: [] }))));
   if (!el.isConnected) return null;
+  el.classList.toggle('many', chars.length > 2);
   const ink = [];
-  for (const { strokes, labels } of parsed) {
-    if (!strokes.length) continue;
+  let missing = 0;
+  parsed.forEach(({ strokes, labels }, i) => {
     const svg = make('svg', { viewBox: '0 0 109 109', class: 'stroke-svg', 'aria-hidden': 'true' });
+    if (!strokes.length) {
+      // Keep the character's slot so a half-loaded word doesn't look complete.
+      missing++;
+      const t = make('text', { x: 54.5, y: 74, class: 'stroke-missing', 'text-anchor': 'middle' });
+      t.textContent = chars[i];
+      svg.append(t);
+      el.append(svg);
+      return;
+    }
     for (const st of strokes) svg.append(make('path', { d: st.d, class: 'ghost' }));
     const paths = strokes.map((st) => make('path', { d: st.d, class: 'ink' }));
     svg.append(...paths);
     for (const l of labels) { const t = make('text', { x: l.x, y: l.y, class: 'stroke-num' }); t.textContent = l.n; svg.append(t); }
     el.append(svg);
     ink.push(...paths);
+  });
+  if (missing) {
+    const note = document.createElement('p');
+    note.className = 'tiny stroke-note';
+    note.textContent = ink.length ? 'The faded ones load the first time you’re online.' : 'Stroke order loads the first time you’re online.';
+    el.append(note);
   }
-  if (!ink.length) {
-    el.innerHTML = '<p class="tiny">Stroke order loads the first time you’re online.</p>';
-    return null;
-  }
+  if (!ink.length) return null;
   // One stroke after another, across every character, at a steady pen speed.
   const play = () => {
     let delay = 0;
