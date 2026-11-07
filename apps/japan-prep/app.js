@@ -165,6 +165,7 @@ function renderTeach(item) {
       <figure class="strokes">
         <div id="strokes" class="stroke-box" aria-label="Stroke order for ${esc(item.jp)}" role="img"></div>
         <figcaption><button id="replay" class="btn small" type="button">↻ Replay strokes</button>
+          <span class="tiny">Handwritten form, so it won’t exactly match the print.</span>
           <a class="tiny credit" href="${KANJIVG_CREDIT.url}" target="_blank" rel="noopener">${esc(KANJIVG_CREDIT.text)}</a></figcaption>
       </figure>
     </div>` : glyph;
