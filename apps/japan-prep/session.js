@@ -160,8 +160,10 @@ export function nextCard(state, now = Date.now(), seen = new Set()) {
   if (learning[0] && learning[0].due <= now) return learning[0].id;
 
   if (sweepOn(settings, now)) {
-    // 2s. Anything you'd likely miss right now, weakest first.
-    const shaky = live.filter((c) => c.state === 'review' && !seen.has(c.id) && recallNow(c, now) < SWEEP_RECALL)
+    // 2s. Anything you'd likely miss right now, plus anything the trip cap
+    //     says is due, weakest first.
+    const shaky = live.filter((c) => c.state === 'review' && !seen.has(c.id)
+      && (recallNow(c, now) < SWEEP_RECALL || dueAt(c, maxDays) < endToday))
       .sort((a, b) => recallNow(a, now) - recallNow(b, now));
     if (shaky[0]) return shaky[0].id;
   } else {

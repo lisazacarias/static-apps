@@ -181,3 +181,14 @@ test('summary counts what is due and what is new', () => {
   assert.equal(summary(s1, START + DAY).decks.hira.due, 0);
   assert.ok(summary(s1, START + 4 * DAY).decks.hira.due > 0);
 });
+
+test('sweep mode still shows a card the trip cap makes due, even when recall is high', () => {
+  const late = day(2027, 1, 5); // 5 days left: cap is 3 days
+  const id = cardId('hira:あ', 'recognize');
+  const s = normalizeState({
+    ...fresh(),
+    cards: { [id]: { state: 'review', s: 100, d: 5, due: late + 60 * DAY, last: late - 3 * DAY, reps: 5, intro: START, updatedAt: START } },
+  }, START);
+  assert.equal(nextCard(s, late, new Set()), id);
+  assert.equal(nextCard(s, late, new Set([id])), null, 'and only once');
+});

@@ -17,6 +17,7 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const standalone = () => window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
 
+let noticeTimer;
 let state = load();
 
 function load() {
@@ -27,9 +28,9 @@ function save() {
   catch { notify('Couldn’t save — this browser’s storage is full or blocked. Download a backup from Settings.', true); return false; }
 }
 // First launch writes the start date, so unlock days count from today.
-if (!localStorage.getItem(KEY)) save();
+// If storage is blocked outright the app still runs, from memory.
+try { if (!localStorage.getItem(KEY)) save(); } catch { /* blocked */ }
 
-let noticeTimer;
 function notify(msg, sticky = false) {
   const el = $('notice');
   el.textContent = msg;
@@ -138,6 +139,9 @@ function renderStudy(arg) {
 }
 
 function showNext() {
+  // Drop the last card's swipe listener or advance timer, so it can't fire on this one.
+  teardown?.();
+  teardown = null;
   const id = nextCard(state, Date.now(), sitting.seen);
   if (!id) return finishCards();
   const { itemId, dir } = splitCardId(id);
@@ -364,15 +368,17 @@ function renderDrill(arg) {
         <button id="dGive" class="btn small" type="button">Show me</button>
         <div id="dAfter"></div>`;
       if (fromTap) speak(current.kana);
+      let answered = false; // one log per question, however it's submitted
       $('dForm').onsubmit = (e) => {
         e.preventDefault();
         const given = $('dInput').value.trim();
-        if (!given) return;
+        if (!given || answered) return;
+        answered = true;
         const ok = checkDrill(current, given);
         $('dInput').disabled = true; e.target.querySelector('button').disabled = true; $('dGive').hidden = true;
         log(given, ok); after(ok, given);
       };
-      $('dGive').onclick = () => { $('dInput').disabled = true; $('dGive').hidden = true; log('', false); after(false, ''); };
+      $('dGive').onclick = () => { if (answered) return; answered = true; $('dInput').disabled = true; $('dForm').querySelector('button').disabled = true; $('dGive').hidden = true; log('', false); after(false, ''); };
     } else {
       card.innerHTML = `
         <p class="tiny">Say it out loud, then check.</p>
@@ -476,7 +482,8 @@ function renderSettings() {
       <h2>Backup</h2>
       <p class="tiny">Your progress lives only in this browser. A backup is a JSON file; importing one merges it in (newer cards win, history is combined), so it also moves progress between phone and laptop.</p>
       <button id="export" class="btn primary" type="button">Download backup</button>
-      <label class="btn">Import a backup<input id="import" type="file" accept="application/json,.json" hidden></label>
+      <button id="importBtn" class="btn" type="button">Import a backup</button>
+      <input id="import" type="file" accept="application/json,.json" hidden>
     </div>
     <p class="tiny">Not here yet: cloud sync and Claude roleplay scenes. Both need a small server; see the README.</p>`;
 
@@ -487,7 +494,8 @@ function renderSettings() {
     state = normalizeState({
       ...state,
       settings: {
-        ...s, tripDate: f.get('tripDate'), startDate: f.get('startDate'), unlockAll: f.has('unlockAll'), sweep: f.has('sweep'),
+        // Current settings, not the snapshot from render: a backup or import may have changed them since.
+        ...state.settings, tripDate: f.get('tripDate'), startDate: f.get('startDate'), unlockAll: f.has('unlockAll'), sweep: f.has('sweep'),
         showRomaji: f.has('showRomaji'), showEnglish: f.has('showEnglish'), voiceURI: f.get('voiceURI') || '',
         newPerDay, retention: { core: Number(f.get('retCore')), rest: Number(f.get('retRest')) },
       },
@@ -505,6 +513,7 @@ function renderSettings() {
     state = { ...state, settings: { ...state.settings, backupAt: Date.now() } };
     save();
   };
+  $('importBtn').onclick = () => $('import').click();
   $('import').onchange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -514,6 +523,7 @@ function renderSettings() {
       const before = Object.keys(state.cards).length;
       state = mergeStates(state, raw);
       save();
+      renderSettings(); // so the form shows the merged start date, and a later save keeps it
       notify(`Imported. ${Object.keys(state.cards).length - before} new cards, ${state.logs.length} reviews in history.`);
     } catch {
       notify('That file isn’t a Japan Prep backup.', true);
