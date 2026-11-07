@@ -49,7 +49,7 @@ parts of it this app follows, and where it departs:
   saved with the first release's default (10 January) and its default caps
   are migrated once (`PLAN` in `session.js`); cards, logs and drills aren't
   touched.
-- **Phrasebook.** Everything, searchable, with audio at 1× and 0.75×.
+- **Phrasebook.** Everything, searchable, with audio at normal speed and slow (0.6×; number drills also pause between parts).
 - **Roleplay** (`roleplay.js`). Five scenes (ramen shop, train ticket, hotel,
   directions, konbini) at three levels. It builds a prompt you copy into the
   Claude app, with no API key needed. Claude plays the staff and gives

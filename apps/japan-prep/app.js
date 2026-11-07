@@ -56,11 +56,19 @@ function speak(text, rate = 1) {
   }
 }
 
-const playButtons = (text, big = false) => `
+// Slow replays at 0.6. The first version used 0.75, which is hard to tell
+// from normal on a two-second phrase, and some voices ignore the speed
+// setting altogether. So callers that know where the words break (number
+// drills) pass slowText with 、 between the parts, which adds a pause on
+// any voice.
+const SLOW_RATE = 0.6;
+const playButtons = (text, big = false, slowText = text) => `
   <span class="play-row">
     <button class="btn play${big ? ' big' : ''}" type="button" data-say="${esc(text)}" aria-label="Play">🔊 Hear it</button>
-    <button class="btn play slow" type="button" data-say="${esc(text)}" data-rate="0.75" aria-label="Play slowly">0.75×</button>
+    <button class="btn play slow" type="button" data-say="${esc(slowText)}" data-rate="${SLOW_RATE}" aria-label="Play slowly">🐢 Slow</button>
   </span>`;
+// The parts of a drill's reading with a pause between each.
+const slowParts = (d) => d.parts.map((p) => p.kana).join('、');
 
 // Shared click handling for any [data-say] button.
 document.addEventListener('click', (e) => {
@@ -557,7 +565,7 @@ function renderDrill(arg) {
       <p class="feedback ${ok ? 'ok' : 'miss'}">${ok ? '✓' : `✗ ${given === null ? 'out of time' : given ? `you typed ${esc(given)}` : ''}`} <strong>${esc(current.prompt)}</strong></p>
       <div class="reading"><div class="kana-line">${esc(current.kana)}</div></div>
       ${partsTable(current.parts)}
-      ${playButtons(current.kana)}
+      ${playButtons(current.kana, false, slowParts(current))}
       <button id="dNext" class="btn primary next" type="button">${timeUp ? 'Finish' : 'Next →'}</button>`;
     $('dNext').onclick = () => (timeUp ? finishDaily() : ask(true));
     $('dNext').focus();
@@ -589,7 +597,7 @@ function renderDrill(arg) {
       const isTime = mode === 'time';
       card.innerHTML = `
         <p class="ask">${esc(ASK[mode])}</p>
-        <div class="prompt">${playButtons(current.kana, true)}</div>
+        <div class="prompt">${playButtons(current.kana, true, slowParts(current))}</div>
         <form id="dForm" class="answer-row" autocomplete="off">
           <input id="dInput" class="answer" ${isTime ? 'inputmode="text" placeholder="3:45 pm"' : 'inputmode="numeric" placeholder="digits"'} aria-label="Your answer" enterkeyhint="done">
           <button class="btn primary" type="submit">Check</button>
@@ -632,7 +640,7 @@ function renderDrill(arg) {
         <div class="prompt"><div class="big-kana">${esc(current.prompt)}</div>${current.hint ? `<p class="tiny">${esc(current.hint)}</p>` : ''}</div>
         <div class="reading"><div class="kana-line">${esc(current.kana)}</div></div>
         ${partsTable(current.parts)}
-        ${playButtons(current.kana)}
+        ${playButtons(current.kana, false, slowParts(current))}
         <button id="dNext" class="btn primary next" type="button">Next →</button>`;
       if (fromTap) speak(current.kana);
       log('seen', true);
@@ -647,7 +655,7 @@ function renderDrill(arg) {
         $('dAfter').innerHTML = `
           <div class="reading"><div class="kana-line">${esc(current.kana)}</div></div>
           ${partsTable(current.parts)}
-          ${playButtons(current.kana)}
+          ${playButtons(current.kana, false, slowParts(current))}
           <div class="grades two">
             <button class="btn again" type="button" data-ok="0">Missed it</button>
             <button class="btn good primary" type="button" data-ok="1">Got it</button>
