@@ -64,9 +64,10 @@ const MENU_ROWS = [
 export const MENU = MENU_ROWS.map(([jp, romaji, en]) => ({ id: `menu:${jp}`, deck: 'menu', jp, kana: jp, romaji, en, speak: jp, day: 14 }));
 
 // Phrase rows: [id, jp, kana, romaji, en, speak, tags, extra]
-// day by section follows the week plan: core ★ week 1, the rest of the
+// day by section follows the 11-week plan: core ★ week 1, the rest of the
 // core week 2, restaurant/konbini week 3, trains week 4, hotel/shopping
-// week 5, directions/allergy/emergency week 6.
+// week 5, directions/allergy/emergency week 6. Weeks 7 on are set by the
+// trip date instead (see stageOf in session.js).
 const P = (id, jp, kana, romaji, en, speak, tags, extra = {}) => ({ id: `ph:${id}`, deck: 'phrase', jp, kana, romaji, en, speak, tags, ...extra });
 const CORE = { day: 7 }, STAR = { day: 0, star: true };
 
@@ -228,8 +229,12 @@ export const DECKS = {
   kata: { name: 'Katakana', newPerDay: 15, retention: 'core' },
   menu: { name: 'Katakana words', newPerDay: 6, retention: 'rest' },
   num: { name: 'Number rules', newPerDay: 6, retention: 'core' },
-  phrase: { name: 'Phrases', newPerDay: 6, retention: 'rest' },
-  sign: { name: 'Signs', newPerDay: 4, retention: 'rest' },
+  // Phrases and signs are spread over the 11 weeks rather than front-loaded:
+  // at 2 a day the last phrase lands in week 7 (weeks 9–10 add none) and the
+  // last sign in week 6. Kana, menu words and number rules already fit
+  // their weeks at these rates.
+  phrase: { name: 'Phrases', newPerDay: 2, retention: 'rest' },
+  sign: { name: 'Signs', newPerDay: 2, retention: 'rest' },
 };
 // Order the daily session works through: kana first, everything else
 // depends on it.

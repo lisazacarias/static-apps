@@ -44,7 +44,7 @@ test('a damaged state loads as an empty one, keeping what still makes sense', ()
   assert.deepEqual(s.drills, []);
 });
 
-test('day one: hiragana first, capped at 15 new kana, plus the week-1 starred phrases', () => {
+test('day one: hiragana first, capped at 15 new kana, plus starred phrases up to the phrase cap', () => {
   const s = studyAll(fresh(), START);
   const items = new Set(Object.keys(s.cards).map((id) => splitCardId(id).itemId));
   const hira = [...items].filter((i) => ITEM[i].deck === 'hira');
@@ -53,7 +53,7 @@ test('day one: hiragana first, capped at 15 new kana, plus the week-1 starred ph
   assert.ok(![...items].some((i) => ITEM[i].deck === 'kata'), 'no katakana before day 6');
   assert.ok(![...items].some((i) => ITEM[i].deck === 'sign'), 'no signs in week 1');
   const phrases = [...items].filter((i) => ITEM[i].deck === 'phrase');
-  assert.equal(phrases.length, 6);
+  assert.equal(phrases.length, DECKS.phrase.newPerDay);
   assert.ok(phrases.every((i) => ITEM[i].star));
   // Both directions of each kana were shown.
   assert.ok(s.cards['hira:あ|listen'] && s.cards['hira:あ|recognize']);
@@ -286,4 +286,50 @@ test('saved settings from before the move get the new trip date and caps; nothin
   // And once migrated, the old date is a real choice if you set it again.
   const again = normalizeState({ settings: { ...s.settings, tripDate: '2027-01-10' } }, START);
   assert.equal(again.settings.tripDate, '2027-01-10');
+});
+
+test('the stages of the 11-week plan, for a Nov 9 start and a Jan 25 trip', () => {
+  const s = fresh();
+  const stage = (y, m, d) => summary(s, day(y, m, d)).stage;
+  assert.equal(stage(2026, 12, 20), 'learn');        // week 6
+  assert.equal(stage(2026, 12, 21), 'polish');       // week 7, 35 days out
+  assert.equal(stage(2027, 1, 3), 'polish');         // end of week 8
+  assert.equal(stage(2027, 1, 4), 'consolidate');    // week 9, 21 days out
+  assert.equal(stage(2027, 1, 17), 'consolidate');   // end of week 10
+  assert.equal(stage(2027, 1, 18), 'final');         // week 11, 7 days out
+  assert.equal(stage(2027, 1, 26), 'trip');
+  assert.equal(summary(s, day(2027, 1, 18)).week, 11);
+});
+
+test('new-card caps spread phrases and signs out: 2 a day each', () => {
+  assert.equal(DECKS.phrase.newPerDay, 2);
+  assert.equal(DECKS.sign.newPerDay, 2);
+  const s = studyAll(fresh(), START);
+  assert.equal(Object.keys(s.cards).filter((id) => id.startsWith('ph:')).length, 2);
+});
+
+test('weeks 9–10: no new phrases, other decks carry on', () => {
+  const s = fresh();
+  const jan5 = day(2027, 1, 5);
+  assert.equal(summary(s, jan5).decks.phrase.fresh, 0);
+  assert.ok(summary(s, jan5).decks.hira.fresh > 0);
+  const after = studyAll(s, jan5);
+  assert.ok(!Object.keys(after.cards).some((id) => id.startsWith('ph:')), 'no phrase taught');
+  assert.ok(summary(s, day(2027, 1, 3)).decks.phrase.fresh > 0, 'the day before, still teaching');
+});
+
+test('weeks 9–10: listen-only staff phrases get extra passes, once each per sitting', () => {
+  const t = day(2027, 1, 6); // consolidate
+  const mk = (id) => ({ id, state: 'review', step: 0, s: 30, d: 5, due: t + 20 * DAY, last: t - 3 * DAY, reps: 3, lapses: 0, intro: 1, updatedAt: 1 });
+  // Recall after 3 days at S=30 is about 0.977: above the sweep line.
+  // At S=5 it's about 0.88, so it's shaky and gets a pass.
+  const shaky = { ...mk('ph:irasshaimase|listen'), s: 5 };
+  const s = { ...fresh({ unlockAll: true, newPerDay: { hira: 0, kata: 0, menu: 0, num: 0, phrase: 0, sign: 0 } }), cards: {
+    'ph:irasshaimase|listen': shaky, 'ph:nanmei|listen': mk('ph:nanmei|listen'), 'ph:sumimasen|produce': { ...mk('ph:sumimasen|produce'), s: 5 },
+  } };
+  assert.equal(nextCard(s, t, new Set()), 'ph:irasshaimase|listen');
+  assert.equal(nextCard(s, t, new Set(['ph:irasshaimase|listen'])), null, 'not the sure one, not a non-listening phrase');
+  // Before weeks 9–10, no extra pass.
+  const early = { ...s, settings: { ...s.settings, tripDate: '2027-03-01' } };
+  assert.equal(nextCard(early, t, new Set()), null);
 });

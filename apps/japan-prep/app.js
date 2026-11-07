@@ -4,7 +4,7 @@ import { genDrill, checkDrill, DRILL_MODES } from './numbers.js';
 import { AGAIN, GOOD, EASY } from './srs.js';
 import {
   normalizeState, nextCard, rate, summary, choices, gradeFor, streak, addDrill, mergeStates, exportBlob, looksLikeExport,
-  splitCardId, ymd, daysBetween, teach, isTaught, dayIndex,
+  splitCardId, ymd, daysBetween, teach, isTaught,
 } from './session.js';
 import { strokeUrl, drawable, parseStrokes, KANJIVG_CREDIT } from './strokes.js';
 import { SCENES, SCENE, LEVELS, promptFor, sceneFor, claudeUrl } from './roleplay.js';
@@ -29,9 +29,13 @@ function save() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); return true; }
   catch { notify('Couldn’t save — this browser’s storage is full or blocked. Download a backup from Settings.', true); return false; }
 }
-// First launch writes the start date, so unlock days count from today.
+// First launch writes the start date, so unlock days count from today, and
+// a record from an older plan is written back migrated (see PLAN in session.js).
 // If storage is blocked outright the app still runs, from memory.
-try { if (!localStorage.getItem(KEY)) save(); } catch { /* blocked */ }
+try {
+  const stored = localStorage.getItem(KEY);
+  if (!stored || JSON.parse(stored)?.settings?.plan !== state.settings.plan) save();
+} catch { /* blocked or unreadable: run from memory */ }
 
 function notify(msg, sticky = false) {
   const el = $('notice');
@@ -88,7 +92,7 @@ const fmtDate = (s) => new Date(`${s}T12:00`).toLocaleDateString(undefined, { we
 // trip hasn't started.
 function todaysScene(sum, now) {
   if (sum.daysLeft < 0) return '';
-  const pick = sceneFor(sum.week, new Date(now).getDay(), dayIndex(state.settings, now));
+  const pick = sceneFor({ week: sum.week, weekday: new Date(now).getDay(), daysLeft: sum.daysLeft });
   if (!pick) return '';
   const sc = SCENE[pick.scene];
   return `<a class="card roleplay-today" href="#roleplay/${pick.scene}-${pick.level}">
@@ -120,6 +124,15 @@ function renderToday() {
     <button id="start" class="btn primary start" type="button">Start today <span class="muted-on-primary">(≈25 min)</span></button>
     <p class="tiny center">${due} due · ${fresh} new · then 3 minutes of numbers · ${tomorrow} due tomorrow</p>
     ${todaysScene(sum, now)}
+    ${sum.stage === 'final' ? `<div class="card checklist">
+      <h2>Before you fly</h2>
+      <ul>
+        <li>Open the app once in airplane mode: cards, drills, audio and the phrasebook should all still work.</li>
+        <li>Make sure it’s on your Home Screen, and study from that icon.</li>
+        <li><a href="#settings">Download a backup</a>.</li>
+        <li>Check opening hours for your specific dates.</li>
+      </ul>
+    </div>` : ''}
 
     <div class="card">
       <h2>Decks</h2>
@@ -400,22 +413,29 @@ function swipe(el, onSwipe) {
 
 /* ── number drills ───────────────────────────────────────────────────── */
 
-const DRILL_LABEL = { price: 'Prices', time: 'Times', counter: 'Counters', platform: 'Platforms', mix: 'Mix' };
+const DRILL_LABEL = { price: 'Prices', time: 'Times', counter: 'Counters', platform: 'Platforms', mix: 'Mix', speed: '⏱ Prices & times' };
 const DAILY_DRILL_MS = 3 * 60000;
+// Speed mode: prices and times only, heard and typed, against the clock.
+// From week 7 (35 days out) the daily three minutes use it.
+const SPEED_MS = 10000;
+const SPEED_STAGES = ['polish', 'consolidate', 'final'];
 let drillPrefs = { mode: 'mix', how: 'listen' };
 try { drillPrefs = { ...drillPrefs, ...JSON.parse(localStorage.getItem('japan-prep:drill-prefs')) }; } catch { /* defaults */ }
 
 function renderDrill(arg) {
   const daily = arg === 'daily';
   const endsAt = daily ? Date.now() + DAILY_DRILL_MS : 0;
+  // From week 7 the daily drill is speed mode, without changing your saved choice.
+  const forceSpeed = daily && SPEED_STAGES.includes(summary(state, Date.now()).stage);
+  const prefs = forceSpeed ? { ...drillPrefs, mode: 'speed', how: 'listen' } : drillPrefs;
   let run = 0, right = 0, best = 0;
   let current = null, shownAt = 0;
-  let tick = null;
+  let tick = null, qTick = null;
 
   $('view').innerHTML = `
     <div class="drill">
-      ${daily ? '<p class="tiny center">Cards done. Three minutes of numbers to finish.</p>' : ''}
-      <div class="chips" id="modes">${['mix', ...DRILL_MODES].map((m) => `<button class="chip" type="button" data-mode="${m}">${DRILL_LABEL[m]}</button>`).join('')}</div>
+      ${daily ? `<p class="tiny center">Cards done. Three minutes of numbers to finish${forceSpeed ? ': prices and times, 10 seconds each' : ''}.</p>` : ''}
+      <div class="chips" id="modes">${['mix', 'speed', ...DRILL_MODES].map((m) => `<button class="chip" type="button" data-mode="${m}">${DRILL_LABEL[m]}</button>`).join('')}</div>
       <div class="chips" id="hows">
         <button class="chip" type="button" data-how="listen">Listen &amp; type</button>
         <button class="chip" type="button" data-how="read">Read aloud</button>
@@ -425,12 +445,12 @@ function renderDrill(arg) {
     </div>`;
 
   const setChips = () => {
-    document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('on', b.dataset.mode === drillPrefs.mode));
-    document.querySelectorAll('[data-how]').forEach((b) => b.classList.toggle('on', b.dataset.how === drillPrefs.how));
+    document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('on', b.dataset.mode === prefs.mode));
+    document.querySelectorAll('[data-how]').forEach((b) => b.classList.toggle('on', b.dataset.how === prefs.how));
   };
-  const savePrefs = () => { try { localStorage.setItem('japan-prep:drill-prefs', JSON.stringify(drillPrefs)); } catch { /* fine */ } };
-  document.querySelectorAll('[data-mode]').forEach((b) => b.onclick = () => { drillPrefs.mode = b.dataset.mode; savePrefs(); setChips(); ask(); });
-  document.querySelectorAll('[data-how]').forEach((b) => b.onclick = () => { drillPrefs.how = b.dataset.how; savePrefs(); setChips(); ask(); });
+  const savePrefs = () => { if (prefs !== drillPrefs) return; try { localStorage.setItem('japan-prep:drill-prefs', JSON.stringify(drillPrefs)); } catch { /* fine */ } };
+  document.querySelectorAll('[data-mode]').forEach((b) => b.onclick = () => { prefs.mode = b.dataset.mode; if (prefs.mode === 'speed') prefs.how = 'listen'; savePrefs(); setChips(); ask(); });
+  document.querySelectorAll('[data-how]').forEach((b) => b.onclick = () => { prefs.how = b.dataset.how; if (prefs.how === 'read' && prefs.mode === 'speed') prefs.mode = 'mix'; savePrefs(); setChips(); ask(); });
   setChips();
 
   const stats = () => { $('dStreak').textContent = `Streak ${run} · best ${best} · ${right} right`; };
@@ -440,7 +460,7 @@ function renderDrill(arg) {
       $('dClock').textContent = left ? `${Math.floor(left / 60000)}:${String(Math.floor(left / 1000) % 60).padStart(2, '0')} left` : 'Time’s up — finish this one';
     }, 500);
   }
-  teardown = () => clearInterval(tick);
+  teardown = () => { clearInterval(tick); clearInterval(qTick); };
 
   function log(given, ok) {
     state = addDrill(state, { m: current.mode, p: current.prompt, a: current.answer, g: given, ok, ms: Math.round(performance.now() - shownAt), t: Date.now() });
@@ -452,7 +472,7 @@ function renderDrill(arg) {
   function after(ok, given) {
     const timeUp = daily && Date.now() >= endsAt;
     $('dAfter').innerHTML = `
-      <p class="feedback ${ok ? 'ok' : 'miss'}">${ok ? '✓' : `✗ ${given ? `you typed ${esc(given)}` : ''}`} <strong>${esc(current.prompt)}</strong></p>
+      <p class="feedback ${ok ? 'ok' : 'miss'}">${ok ? '✓' : `✗ ${given === null ? 'out of time' : given ? `you typed ${esc(given)}` : ''}`} <strong>${esc(current.prompt)}</strong></p>
       <div class="reading"><div class="kana-line">${esc(current.kana)}</div>${showRomaji() ? `<div class="romaji">${esc(current.romaji)}</div>` : ''}${current.hint ? `<div class="tiny">${esc(current.hint)}</div>` : ''}</div>
       ${playButtons(current.kana)}
       <button id="dNext" class="btn primary next" type="button">${timeUp ? 'Finish' : 'Next →'}</button>`;
@@ -462,6 +482,7 @@ function renderDrill(arg) {
 
   function finishDaily() {
     clearInterval(tick);
+    clearInterval(qTick);
     $('view').innerHTML = `
       <div class="card done">
         <h2>Done for today 🎌</h2>
@@ -472,11 +493,14 @@ function renderDrill(arg) {
 
   // fromTap: called from a button, so speech is allowed to start.
   function ask(fromTap = true) {
-    const mode = drillPrefs.mode === 'mix' ? DRILL_MODES[Math.floor(Math.random() * DRILL_MODES.length)] : drillPrefs.mode;
+    clearInterval(qTick);
+    const speedy = prefs.mode === 'speed';
+    const pool = speedy ? ['price', 'time'] : DRILL_MODES;
+    const mode = prefs.mode === 'mix' || speedy ? pool[Math.floor(Math.random() * pool.length)] : prefs.mode;
     current = genDrill(mode);
     shownAt = performance.now();
     const card = $('dCard');
-    if (drillPrefs.how === 'listen') {
+    if (prefs.how === 'listen') {
       const isTime = mode === 'time';
       card.innerHTML = `
         <p class="tiny">${{ price: 'How much?', time: 'What time? (3:45 pm or 15:45)', counter: 'How many?', platform: 'Which platform?' }[mode]}</p>
@@ -485,20 +509,30 @@ function renderDrill(arg) {
           <input id="dInput" class="answer" ${isTime ? 'inputmode="text" placeholder="3:45 pm"' : 'inputmode="numeric" placeholder="digits"'} aria-label="Your answer" enterkeyhint="done">
           <button class="btn primary" type="submit">Check</button>
         </form>
-        <button id="dGive" class="btn small" type="button">Show me</button>
+        <button id="dGive" class="btn small" type="button">Show me</button>${speedy ? ' <span id="dTimer" class="tiny q-timer"></span>' : ''}
         <div id="dAfter"></div>`;
       if (fromTap) speak(current.kana);
       let answered = false; // one log per question, however it's submitted
+      const lock = () => { answered = true; clearInterval(qTick); $('dInput').disabled = true; $('dForm').querySelector('button').disabled = true; $('dGive').hidden = true; };
+      if (speedy) {
+        const tickQ = () => {
+          const left = SPEED_MS - (performance.now() - shownAt);
+          if (left > 0) { $('dTimer').textContent = `⏱ ${Math.ceil(left / 1000)} s`; return; }
+          if (answered) return;
+          lock(); $('dTimer').textContent = ''; log('', false); after(false, null);
+        };
+        tickQ();
+        qTick = setInterval(tickQ, 250);
+      }
       $('dForm').onsubmit = (e) => {
         e.preventDefault();
         const given = $('dInput').value.trim();
         if (!given || answered) return;
-        answered = true;
+        lock();
         const ok = checkDrill(current, given);
-        $('dInput').disabled = true; e.target.querySelector('button').disabled = true; $('dGive').hidden = true;
         log(given, ok); after(ok, given);
       };
-      $('dGive').onclick = () => { if (answered) return; answered = true; $('dInput').disabled = true; $('dForm').querySelector('button').disabled = true; $('dGive').hidden = true; log('', false); after(false, ''); };
+      $('dGive').onclick = () => { if (answered) return; lock(); log('', false); after(false, ''); };
     } else {
       card.innerHTML = `
         <p class="tiny">Say it out loud, then check.</p>
@@ -520,7 +554,7 @@ function renderDrill(arg) {
         });
       };
     }
-    if (drillPrefs.how === 'listen') $('dInput').focus({ preventScroll: true });
+    if (prefs.how === 'listen') $('dInput').focus({ preventScroll: true });
   }
 
   stats();
@@ -630,7 +664,7 @@ function renderSettings() {
       <h2>Trip</h2>
       <label>Trip date <input type="date" name="tripDate" value="${esc(s.tripDate)}" required></label>
       <label>Start date <input type="date" name="startDate" value="${esc(s.startDate)}" required>
-        <span class="tiny">Decks unlock by days since this: katakana on day 6, katakana words in week 3, signs in week 4.</span></label>
+        <span class="tiny">Decks unlock by days since this: katakana on day 6, katakana words in week 3, signs in week 4. The last five weeks count back from the trip date: no new phrases in the last three, and the sweep in the last five days.</span></label>
       <label class="check"><input type="checkbox" name="unlockAll" ${s.unlockAll ? 'checked' : ''}> Unlock every deck now</label>
       <label class="check"><input type="checkbox" name="sweep" ${s.sweep ? 'checked' : ''}> Pre-trip sweep now <span class="tiny">(turns on by itself 5 days out)</span></label>
 

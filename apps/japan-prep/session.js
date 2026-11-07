@@ -106,6 +106,20 @@ export function normalizeState(raw, now = Date.now()) {
 /* ── where we are ── */
 
 export const daysLeft = (settings, now) => daysBetween(now, fromYmd(settings.tripDate).getTime());
+
+// Where you are in the 11-week plan. Weeks 1–6 unlock by days since the
+// start date (each item's day in content.js). The last five weeks count
+// back from the trip date, so they follow it if it moves:
+//   learn        weeks 1–6
+//   polish       weeks 7–8, 35–22 days out: finish phrases, timed price/time drills, L2 roleplay
+//   consolidate  weeks 9–10, 21–8 days out: no new phrases, extra listen-only reps, L3 roleplay
+//   final        week 11, the last 7 days: sweep from 5 days out, before-you-fly checks
+//   trip         after the trip date
+export function stageOf(settings, now) {
+  const left = daysLeft(settings, now);
+  return left < 0 ? 'trip' : left <= 7 ? 'final' : left <= 21 ? 'consolidate' : left <= 35 ? 'polish' : 'learn';
+}
+const noNewPhrases = (settings, now) => ['consolidate', 'final'].includes(stageOf(settings, now));
 export const dayIndex = (settings, now) => daysBetween(fromYmd(settings.startDate).getTime(), now);
 export const sweepOn = (settings, now) => {
   const left = daysLeft(settings, now);
@@ -167,11 +181,12 @@ export function summary(state, now = Date.now()) {
   }
   if (!sweep) {
     for (const d of DECK_ORDER) {
+      if (d === 'phrase' && noNewPhrases(settings, now)) continue;
       const left = Math.max(0, settings.newPerDay[d] - introducedToday(state, d, now));
       out[d].fresh = Math.min(left, ITEMS.filter((i) => i.deck === d && unlocked(i, settings, now) && !itemStarted(state, i.id)).length);
     }
   }
-  return { decks: out, sweep, daysLeft: daysLeft(settings, now), week: Math.floor(dayIndex(settings, now) / 7) + 1, maxDays };
+  return { decks: out, sweep, daysLeft: daysLeft(settings, now), week: Math.floor(dayIndex(settings, now) / 7) + 1, maxDays, stage: stageOf(settings, now) };
 }
 
 // The next card to show, or null when the day is done.
@@ -203,6 +218,14 @@ export function nextCard(state, now = Date.now(), seen = new Set()) {
       .sort((a, b) => order(a.id) - order(b.id) || a.due - b.due);
     if (due[0]) return due[0].id;
 
+    // 2b. Weeks 9–10: extra passes over the staff phrases you'll hear,
+    //     any that aren't near-certain, once each per sitting.
+    if (stageOf(settings, now) === 'consolidate') {
+      const extra = live.filter((c) => c.state === 'review' && !seen.has(c.id) && ITEM[splitCardId(c.id).itemId].listen && recallNow(c, now) < SWEEP_RECALL)
+        .sort((a, b) => recallNow(a, now) - recallNow(b, now));
+      if (extra[0]) return extra[0].id;
+    }
+
     // 3. Teach new items a few at a time, then quiz them. Quiz first when
     //    the batch is full, the allowance is used up, the next new item is
     //    from another deck (so the kana get quizzed before phrases start),
@@ -211,6 +234,7 @@ export function nextCard(state, now = Date.now(), seen = new Set()) {
     let fresh = null;
     for (const deck of DECK_ORDER) {
       if (introducedToday(state, deck, now) >= settings.newPerDay[deck]) continue;
+      if (deck === 'phrase' && noNewPhrases(settings, now)) continue;
       fresh = ITEMS.find((i) => i.deck === deck && unlocked(i, settings, now) && !itemStarted(state, i.id));
       if (fresh) break;
     }

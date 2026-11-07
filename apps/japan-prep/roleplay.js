@@ -84,30 +84,38 @@ export function promptFor(sceneId, level, tripDate) {
   ].join('\n');
 }
 
-// Roleplay days and scenes from the research's two-month plan, by week of
-// study (1-based, from the start date) and weekday (0 = Sunday). Scenes
-// start in week 3, on Tuesdays, Thursdays and Saturdays; in the last week,
-// every other day. → { scene, level } or null.
-const PLAN = {
+// Roleplay days and scenes from the 11-week plan. Tuesdays, Thursdays and
+// Saturdays (weekday 0 = Sunday), except in the final week:
+//   weeks 3–6, by week since the start date: one scene a week, L1 → L2
+//   weeks 7–8 (35–22 days out): all five scenes in turn at L2
+//   weeks 9–10 (21–8 days out): all five in turn at L3
+//   week 11 (the last 7 days): an L3 scene every other day, 7, 5, 3 and 1 days out
+// The last three count back from the trip date (daysLeft), like stageOf in
+// session.js. → { scene, level } or null.
+const EARLY = {
   3: [['ramen', 1], ['ramen', 1], ['ramen', 1]],
   4: [['train', 1], ['train', 2], ['train', 2]],
   5: [['hotel', 1], ['hotel', 2], ['hotel', 2]],
   6: [['directions', 2], ['ramen', 2], ['directions', 2]],
-  7: [['ramen', 3], ['train', 2], ['konbini', 3]],
 };
 const ROLEPLAY_DAYS = [2, 4, 6]; // Tue, Thu, Sat
-const LAST_WEEK = ['hotel', 'directions', 'konbini', 'ramen', 'train'];
+const ROTATION = ['konbini', 'ramen', 'train', 'hotel', 'directions'];
 
-export function sceneFor(week, weekday, dayIndex = 0) {
-  if (week >= 8) {
-    // Counted from the first day of week 8 (day 49), so that day has a scene.
-    const n = Math.max(0, dayIndex - 49);
-    if (n % 2) return null;
-    return { scene: LAST_WEEK[(n / 2) % LAST_WEEK.length], level: 3 };
+export function sceneFor({ week, weekday, daysLeft }) {
+  if (daysLeft < 0) return null;
+  if (daysLeft <= 7) {
+    if (daysLeft % 2 === 0) return null;
+    return { scene: ROTATION[((7 - daysLeft) / 2) % ROTATION.length], level: 3 };
   }
-  const plan = PLAN[week];
   const slot = ROLEPLAY_DAYS.indexOf(weekday);
-  if (!plan || slot < 0) return null;
+  if (slot < 0) return null;
+  if (daysLeft <= 35) {
+    // A new scene each roleplay day, carrying on from week to week.
+    const n = Math.floor((35 - daysLeft) / 7) * ROLEPLAY_DAYS.length + slot;
+    return { scene: ROTATION[n % ROTATION.length], level: daysLeft <= 21 ? 3 : 2 };
+  }
+  const plan = EARLY[week];
+  if (!plan) return null;
   const [scene, level] = plan[slot];
   return { scene, level };
 }

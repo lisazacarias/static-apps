@@ -136,6 +136,10 @@ table.decks td { font-family: var(--font-mono); }
 .answer-row .btn { min-height: var(--tap); min-width: 90px; font-size: 16px; }
 #dGive { margin-top: 8px; }
 
+/* ── final week ── */
+.checklist ul { margin: 0 0 0 18px; font-size: 14px; display: grid; gap: 4px; }
+.q-timer { margin-left: 8px; color: var(--gold); font-family: var(--font-mono); }
+
 /* ── roleplay ── */
 .scene.focus { border-color: var(--accent); }
 .scene .row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
