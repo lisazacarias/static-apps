@@ -133,6 +133,11 @@ table.decks td { font-family: var(--font-mono); }
 .done-today { border-color: var(--green); text-align: center; margin-bottom: 6px; }
 .done-today h2 { color: var(--green); }
 
+/* ── Japanese in notes ── */
+.say-inline { font: inherit; color: var(--text); background: var(--bg-elevated); border: 1px solid var(--border-bright); border-radius: 4px; padding: 0 5px; margin: 1px 0; cursor: pointer; }
+.say-inline:hover { border-color: var(--blue); }
+.say-inline .romaji { font-size: inherit; color: var(--gold); }
+
 /* ── drills ── */
 .ask { font-size: 15px; color: var(--text); }
 .parts { margin: 6px auto; border-collapse: collapse; font-size: 14px; }
