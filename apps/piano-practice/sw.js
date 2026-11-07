@@ -24,18 +24,12 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
-  e.respondWith(
-    fetch(e.request)
-      .then((res) => {
-        // Only keep good copies: fetch resolves for a 404 or 503 too, and
-        // caching that would replace the working offline copy. Opaque is a
-        // cross-origin font or stylesheet, which can't be inspected.
-        if (res.ok || res.type === 'opaque') {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(e.request, copy));
-        }
-        return res;
-      })
-      .catch(() => caches.match(e.request))
-  );
+  // Only keep good copies: fetch resolves for a 404 or 503 too, and
+  // caching that would replace the working offline copy. Opaque is a
+  // cross-origin font or stylesheet, which can't be inspected.
+  const net = fetch(e.request).then((res) => ({ res, copy: res.ok || res.type === 'opaque' ? res.clone() : null }));
+  e.respondWith(net.then(({ res }) => res).catch(() => caches.match(e.request)));
+  // The cache write gets its own waitUntil so the browser doesn't stop the
+  // worker halfway through it; a failed write doesn't affect the response.
+  e.waitUntil(net.then(({ copy }) => copy && caches.open(CACHE).then((c) => c.put(e.request, copy))).catch(() => {}));
 });
