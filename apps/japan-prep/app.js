@@ -456,7 +456,7 @@ const ASK = {
 };
 
 // A reading split into its parts, each with what it means.
-const partsTable = (parts) => (parts.length === 1 ? `<p class="center">= ${esc(parts[0].means)}</p>` : `
+const partsTable = (parts) => (parts.length === 1 ? `<p class="center">${showRomaji() ? `<span class="romaji">${esc(parts[0].romaji)}</span> ` : ''}= ${esc(parts[0].means)}</p>` : `
   <table class="parts">${parts.map((p) => `<tr><td class="jp-cell">${esc(p.kana)}</td>${showRomaji() ? `<td class="romaji">${esc(p.romaji)}</td>` : ''}<td>${esc(p.means)}</td></tr>`).join('')}</table>`);
 
 // The short lesson at the top of the Numbers tab.
@@ -479,7 +479,7 @@ function renderDrill(arg) {
   const forceSpeed = daily && !beginner && SPEED_STAGES.includes(summary(state, Date.now()).stage);
   const prefs = daily && beginner ? { ...drillPrefs, how: 'learn', mode: 'mix' }
     : forceSpeed ? { ...drillPrefs, mode: 'speed', how: 'listen' } : drillPrefs;
-  let run = 0, right = 0, best = 0;
+  let run = 0, right = 0, best = 0, looked = 0;
   let current = null, shownAt = 0;
   let tick = null, qTick = null;
 
@@ -522,6 +522,9 @@ function renderDrill(arg) {
   function log(given, ok) {
     state = addDrill(state, { m: current.mode, p: current.prompt, a: current.answer, g: given, ok, ms: Math.round(performance.now() - shownAt), t: Date.now() });
     save();
+    // A See & hear screen is kept as a record but isn't an answer: it
+    // doesn't touch right, the run or the best run.
+    if (given === 'seen') { looked++; return; }
     run = ok ? run + 1 : 0; right += ok ? 1 : 0; best = Math.max(best, run);
     stats();
   }
@@ -546,7 +549,7 @@ function renderDrill(arg) {
     $('view').innerHTML = `
       <div class="card done">
         <h2>Done for today 🎌</h2>
-        <p>${right} number${right === 1 ? '' : 's'} right, best run ${best}. See you tomorrow.</p>
+        <p>${right || !looked ? `${right} number${right === 1 ? '' : 's'} right, best run ${best}.` : `${looked} number${looked === 1 ? '' : 's'} looked at.`} See you tomorrow.</p>
         <a class="btn primary" href="#today">Back to today</a>
       </div>`;
   }
