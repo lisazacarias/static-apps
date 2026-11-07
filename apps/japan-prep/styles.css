@@ -13,7 +13,7 @@ header.top { margin-bottom: 16px; padding-bottom: 0; border-bottom: 0; }
 
 .tabs { display: flex; gap: 4px; margin-top: 14px; border-bottom: 1px solid var(--border-bright); overflow-x: auto; }
 .tabs a {
-    padding: 8px 12px; color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 600;
+    padding: 8px; /* five tabs fit across a 360px phone */ color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 600;
     border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
 }
 .tabs a:hover { color: var(--text-bright); }
@@ -135,6 +135,15 @@ table.decks td { font-family: var(--font-mono); }
 .answer { flex: 1; min-width: 0; font-family: var(--font-mono); font-size: 20px; min-height: var(--tap); }
 .answer-row .btn { min-height: var(--tap); min-width: 90px; font-size: 16px; }
 #dGive { margin-top: 8px; }
+
+/* ── roleplay ── */
+.scene.focus { border-color: var(--accent); }
+.scene .row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+.prompt-text { white-space: pre-wrap; font: 12px/1.45 var(--font-mono); color: var(--text-muted); background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 10px; margin-top: 6px; }
+#levels { margin: 8px 0 12px; }
+#levels .chip { text-transform: none; }
+a.roleplay-today .label { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); }
+a.roleplay-today { display: flex; flex-direction: column; gap: 2px; text-decoration: none; color: var(--text-bright); border-color: var(--gold); margin-bottom: 14px; }
 
 /* ── phrasebook ── */
 .search { width: 100%; margin: 8px 0 10px; }

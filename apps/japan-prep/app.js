@@ -4,9 +4,10 @@ import { genDrill, checkDrill, DRILL_MODES } from './numbers.js';
 import { AGAIN, GOOD, EASY } from './srs.js';
 import {
   normalizeState, nextCard, rate, summary, choices, gradeFor, streak, addDrill, mergeStates, exportBlob, looksLikeExport,
-  splitCardId, ymd, daysBetween, teach, isTaught,
+  splitCardId, ymd, daysBetween, teach, isTaught, dayIndex,
 } from './session.js';
 import { strokeUrl, drawable, parseStrokes, KANJIVG_CREDIT } from './strokes.js';
+import { SCENES, SCENE, LEVELS, promptFor, sceneFor, claudeUrl } from './roleplay.js';
 import { loadVoices, japaneseVoices, say, canSpeak, stopSpeaking } from './speech.js';
 
 // localStorage is shared by every app on the Pages origin — keep the prefix.
@@ -65,7 +66,7 @@ document.addEventListener('click', (e) => {
 
 /* ── routing ─────────────────────────────────────────────────────────── */
 
-const VIEWS = { today: renderToday, study: renderStudy, drill: renderDrill, phrases: renderPhrases, settings: renderSettings };
+const VIEWS = { today: renderToday, study: renderStudy, drill: renderDrill, roleplay: renderRoleplay, phrases: renderPhrases, settings: renderSettings };
 
 function route() {
   const [name, arg] = (location.hash.slice(1) || 'today').split('/');
@@ -82,6 +83,19 @@ addEventListener('hashchange', route);
 /* ── today ───────────────────────────────────────────────────────────── */
 
 const fmtDate = (s) => new Date(`${s}T12:00`).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+
+// Today's roleplay from the week plan, if it's a roleplay day and the
+// trip hasn't started.
+function todaysScene(sum, now) {
+  if (sum.daysLeft < 0) return '';
+  const pick = sceneFor(sum.week, new Date(now).getDay(), dayIndex(state.settings, now));
+  if (!pick) return '';
+  const sc = SCENE[pick.scene];
+  return `<a class="card roleplay-today" href="#roleplay/${pick.scene}-${pick.level}">
+      <span class="label">Roleplay day</span>
+      <strong>${sc.emoji} ${esc(sc.name)} · ${esc(LEVELS[pick.level].name)}</strong>
+      <span class="tiny">About 10 minutes in the Claude app, after your cards →</span></a>`;
+}
 
 function renderToday() {
   const now = Date.now();
@@ -105,6 +119,7 @@ function renderToday() {
     ${sum.sweep ? `<p class="sweep">Pre-trip sweep: no new cards. You’ll see anything you might not recall right now.</p>` : ''}
     <button id="start" class="btn primary start" type="button">Start today <span class="muted-on-primary">(≈25 min)</span></button>
     <p class="tiny center">${due} due · ${fresh} new · then 3 minutes of numbers · ${tomorrow} due tomorrow</p>
+    ${todaysScene(sum, now)}
 
     <div class="card">
       <h2>Decks</h2>
@@ -510,6 +525,58 @@ function renderDrill(arg) {
 
   stats();
   ask(true);
+}
+
+/* ── roleplay ────────────────────────────────────────────────────────── */
+
+let roleplayLevel = 1;
+
+// arg "ramen-2": open with that scene highlighted at that level.
+function renderRoleplay(arg) {
+  const [focus, lv] = (arg || '').split('-');
+  if (LEVELS[lv]) roleplayLevel = Number(lv);
+  $('view').innerHTML = `
+    <p class="tiny">Practise a real conversation with Claude. Pick a level, then <strong>Copy prompt</strong> and paste it into a new chat, or use <strong>Open in Claude</strong>. Claude plays the staff and goes through what you could say better at the end. Needs a connection.</p>
+    <div class="chips" id="levels">${Object.entries(LEVELS).map(([n, l]) => `<button class="chip${Number(n) === roleplayLevel ? ' on' : ''}" type="button" data-level="${n}" aria-pressed="${Number(n) === roleplayLevel}">${esc(l.name)}</button>`).join('')}</div>
+    <div id="scenes"></div>`;
+  const draw = () => {
+    $('scenes').innerHTML = SCENES.map((sc) => `
+      <div class="card scene${sc.id === focus ? ' focus' : ''}" id="scene-${sc.id}">
+        <h2>${sc.emoji} ${esc(sc.name)}</h2>
+        <p class="tiny">Your goal: ${esc(sc.goal)}.</p>
+        <div class="row">
+          <button class="btn primary" type="button" data-copy="${sc.id}">Copy prompt</button>
+          <a class="btn" href="${esc(claudeUrl(promptFor(sc.id, roleplayLevel)))}" target="_blank" rel="noopener">Open in Claude ↗</a>
+        </div>
+        <details><summary class="tiny">See the prompt</summary><pre class="prompt-text">${esc(promptFor(sc.id, roleplayLevel))}</pre></details>
+      </div>`).join('');
+    $('scenes').querySelectorAll('[data-copy]').forEach((b) => b.onclick = () => copyText(promptFor(b.dataset.copy, roleplayLevel), b));
+  };
+  $('levels').querySelectorAll('[data-level]').forEach((b) => b.onclick = () => {
+    roleplayLevel = Number(b.dataset.level);
+    $('levels').querySelectorAll('.chip').forEach((c) => { c.classList.toggle('on', c === b); c.setAttribute('aria-pressed', String(c === b)); });
+    draw();
+  });
+  draw();
+  if (focus) $(`scene-${focus}`)?.scrollIntoView({ block: 'center' });
+}
+
+// Clipboard, with the old select-and-copy fallback for browsers that refuse.
+async function copyText(text, button) {
+  let ok = false;
+  try { await navigator.clipboard.writeText(text); ok = true; } catch {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.append(ta); ta.select();
+    try { ok = document.execCommand('copy'); } catch { ok = false; }
+    ta.remove();
+  }
+  // Keep the real label and one reset timer per button, so tapping again
+  // mid-feedback doesn't leave it stuck on "Copied ✓".
+  button.dataset.label ||= button.textContent;
+  button.textContent = ok ? 'Copied ✓' : 'Copy failed — open “See the prompt”';
+  clearTimeout(Number(button.dataset.timer));
+  button.dataset.timer = String(setTimeout(() => { button.textContent = button.dataset.label; }, 2500));
 }
 
 /* ── phrasebook ──────────────────────────────────────────────────────── */
