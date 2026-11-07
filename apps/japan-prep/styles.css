@@ -101,6 +101,18 @@ table.decks td { font-family: var(--font-mono); }
 .done { text-align: center; }
 .done .btn { margin: 6px 4px 0; }
 
+/* ── stroke order ── */
+.glyph-row { display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; }
+.strokes { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 0; }
+.stroke-box { display: flex; gap: 4px; background: var(--bg-elevated); border: 1px solid var(--border-bright); border-radius: 6px; padding: 6px; min-height: 120px; align-items: center; }
+.stroke-svg { width: 112px; height: 112px; }
+.stroke-svg path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.stroke-svg .ghost { stroke: var(--border-bright); stroke-width: 3; }
+.stroke-svg .ink { stroke: var(--text-bright); stroke-width: 4; }
+.stroke-num { font: 9px var(--font-mono); fill: var(--gold); }
+.strokes figcaption { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.credit { color: var(--text-muted); }
+
 /* ── drills ── */
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
 .chip {
