@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { SCENES, LEVELS, promptFor, sceneFor, claudeUrl } from '../roleplay.js';
+import { SCENES, LEVELS, promptFor, sceneFor, claudeUrl, tripWhen } from '../roleplay.js';
 
 test('every scene builds a prompt at every level', () => {
   for (const s of SCENES) {
@@ -44,4 +44,12 @@ test('the Claude link carries the whole prompt', () => {
   const u = new URL(claudeUrl(p));
   assert.equal(u.origin + u.pathname, 'https://claude.ai/new');
   assert.equal(u.searchParams.get('q'), p);
+});
+
+test('the scene is set at the trip date', () => {
+  assert.equal(tripWhen('2027-01-25'), 'late January');
+  assert.equal(tripWhen('2027-01-05'), 'early January');
+  assert.equal(tripWhen('2027-03-15'), 'mid March');
+  assert.match(promptFor('hotel', 1, '2027-01-25'), /visiting Japan in late January/);
+  assert.doesNotMatch(promptFor('hotel', 1, '2027-01-25'), /early January/);
 });

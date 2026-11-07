@@ -23,15 +23,28 @@ export const daysBetween = (a, b) => Math.round((startOfDay(b) - startOfDay(a)) 
 
 /* ── stored state ── */
 
-export const DEFAULT_TRIP = '2027-01-10';
+export const DEFAULT_TRIP = '2027-01-25';
+
+// Settings saved before the trip moved (plan 1) carry the old default trip
+// date and the old default new-card caps, written on first launch. Plan 2
+// moves both to the current defaults. A date or cap you set yourself is
+// left alone. Cards, logs and drills aren't touched.
+export const PLAN = 2;
+const PLAN1_TRIP = '2027-01-10';
+const PLAN1_CAPS = { hira: 15, kata: 15, menu: 6, num: 6, phrase: 6, sign: 4 };
 
 export function normalizeSettings(raw, now = Date.now()) {
   const r = raw && typeof raw === 'object' ? raw : {};
   const num = (v, lo, hi, dflt) => (Number.isFinite(v) && v >= lo && v <= hi ? v : dflt);
+  const old = raw && typeof raw === 'object' && !(r.plan >= PLAN);
   const newPerDay = {};
-  for (const d of DECK_ORDER) newPerDay[d] = Math.round(num(r.newPerDay?.[d], 0, 50, DECKS[d].newPerDay));
+  for (const d of DECK_ORDER) {
+    const saved = old && r.newPerDay?.[d] === PLAN1_CAPS[d] ? undefined : r.newPerDay?.[d];
+    newPerDay[d] = Math.round(num(saved, 0, 50, DECKS[d].newPerDay));
+  }
   return {
-    tripDate: isYmd(r.tripDate) ? r.tripDate : DEFAULT_TRIP,
+    plan: PLAN,
+    tripDate: isYmd(r.tripDate) && !(old && r.tripDate === PLAN1_TRIP) ? r.tripDate : DEFAULT_TRIP,
     // Unlock days count from here. Set on first launch.
     startDate: isYmd(r.startDate) ? r.startDate : ymd(new Date(now)),
     retention: { core: num(r.retention?.core, 0.7, 0.99, 0.92), rest: num(r.retention?.rest, 0.7, 0.99, 0.9) },

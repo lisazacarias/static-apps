@@ -546,11 +546,11 @@ function renderRoleplay(arg) {
         <p class="tiny">Your goal: ${esc(sc.goal)}.</p>
         <div class="row">
           <button class="btn primary" type="button" data-copy="${sc.id}">Copy prompt</button>
-          <a class="btn" href="${esc(claudeUrl(promptFor(sc.id, roleplayLevel)))}" target="_blank" rel="noopener">Open in Claude ↗</a>
+          <a class="btn" href="${esc(claudeUrl(promptFor(sc.id, roleplayLevel, state.settings.tripDate)))}" target="_blank" rel="noopener">Open in Claude ↗</a>
         </div>
-        <details><summary class="tiny">See the prompt</summary><pre class="prompt-text">${esc(promptFor(sc.id, roleplayLevel))}</pre></details>
+        <details><summary class="tiny">See the prompt</summary><pre class="prompt-text">${esc(promptFor(sc.id, roleplayLevel, state.settings.tripDate))}</pre></details>
       </div>`).join('');
-    $('scenes').querySelectorAll('[data-copy]').forEach((b) => b.onclick = () => copyText(promptFor(b.dataset.copy, roleplayLevel), b));
+    $('scenes').querySelectorAll('[data-copy]').forEach((b) => b.onclick = () => copyText(promptFor(b.dataset.copy, roleplayLevel, state.settings.tripDate), b));
   };
   $('levels').querySelectorAll('[data-level]').forEach((b) => b.onclick = () => {
     roleplayLevel = Number(b.dataset.level);

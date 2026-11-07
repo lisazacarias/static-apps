@@ -50,13 +50,22 @@ export const LEVELS = {
   },
 };
 
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+// "late January" from 2027-01-25: when the trip is, for the scene's setting.
+export function tripWhen(tripDate) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(tripDate || '');
+  if (!m) return 'soon';
+  const day = Number(m[3]);
+  return `${day <= 10 ? 'early' : day <= 20 ? 'mid' : 'late'} ${MONTHS[Number(m[2]) - 1]}`;
+}
+
 // The full prompt for a scene at a level, ready to paste into Claude.
-export function promptFor(sceneId, level) {
+export function promptFor(sceneId, level, tripDate) {
   const s = SCENE[sceneId];
   const l = LEVELS[level];
   if (!s || !l) throw new Error(`no scene ${sceneId} at level ${level}`);
   return [
-    `Let's do a Japanese roleplay. You are ${s.who}. I'm a beginner tourist visiting Japan in early January (I speak English and Spanish). My goal in this scene: ${s.goal}.`,
+    `Let's do a Japanese roleplay. You are ${s.who}. I'm a beginner tourist visiting Japan in ${tripWhen(tripDate)} (I speak English and Spanish). My goal in this scene: ${s.goal}.`,
     '',
     `Level ${level}: ${l.rules}`,
     '',
