@@ -110,8 +110,13 @@ export function sceneFor({ week, weekday, daysLeft }) {
   const slot = ROLEPLAY_DAYS.indexOf(weekday);
   if (slot < 0) return null;
   if (daysLeft <= 35) {
-    // A new scene each roleplay day, carrying on from week to week.
-    const n = Math.floor((35 - daysLeft) / 7) * ROLEPLAY_DAYS.length + slot;
+    // A new scene each roleplay day: count the Tue/Thu/Sat days already
+    // passed since 35 days out. Counting real days, not weeks, keeps the
+    // rotation whole whatever weekday the trip falls on.
+    let n = 0;
+    for (let back = 1; back <= 35 - daysLeft; back++) {
+      if (ROLEPLAY_DAYS.includes((((weekday - back) % 7) + 7) % 7)) n++;
+    }
     return { scene: ROTATION[n % ROTATION.length], level: daysLeft <= 21 ? 3 : 2 };
   }
   const plan = EARLY[week];

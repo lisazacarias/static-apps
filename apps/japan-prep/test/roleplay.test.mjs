@@ -65,3 +65,19 @@ test('the scene is set at the trip date', () => {
   assert.match(promptFor('hotel', 1, '2027-01-25'), /visiting Japan in late January/);
   assert.doesNotMatch(promptFor('hotel', 1, '2027-01-25'), /early January/);
 });
+
+test('weeks 7–10 rotate through all five scenes whatever weekday the trip is on', () => {
+  for (const trip of ['2027-01-25', '2027-01-27', '2027-01-29', '2027-01-31']) {
+    const t = new Date(`${trip}T12:00`);
+    const seen = [];
+    for (let left = 35; left >= 8; left--) {
+      const d = new Date(t.getFullYear(), t.getMonth(), t.getDate() - left);
+      const p = sceneFor({ week: 7, weekday: d.getDay(), daysLeft: left });
+      if (p) seen.push(p.scene);
+    }
+    assert.equal(seen.length, 12, `${trip}: 12 roleplay days in weeks 7–10`);
+    for (let i = 0; i + 5 <= seen.length; i += 5) {
+      assert.equal(new Set(seen.slice(i, i + 5)).size, 5, `${trip}: no repeats within a round: ${seen.join(',')}`);
+    }
+  }
+});

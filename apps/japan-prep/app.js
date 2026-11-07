@@ -493,7 +493,7 @@ function renderDrill(arg) {
 
   // fromTap: called from a button, so speech is allowed to start.
   function ask(fromTap = true) {
-    clearInterval(qTick);
+    clearInterval(qTick); qTick = null;
     const speedy = prefs.mode === 'speed';
     const pool = speedy ? ['price', 'time'] : DRILL_MODES;
     const mode = prefs.mode === 'mix' || speedy ? pool[Math.floor(Math.random() * pool.length)] : prefs.mode;
@@ -513,7 +513,7 @@ function renderDrill(arg) {
         <div id="dAfter"></div>`;
       if (fromTap) speak(current.kana);
       let answered = false; // one log per question, however it's submitted
-      const lock = () => { answered = true; clearInterval(qTick); $('dInput').disabled = true; $('dForm').querySelector('button').disabled = true; $('dGive').hidden = true; };
+      const lock = () => { answered = true; clearInterval(qTick); qTick = null; $('dInput').disabled = true; $('dForm').querySelector('button').disabled = true; $('dGive').hidden = true; };
       if (speedy) {
         const tickQ = () => {
           const left = SPEED_MS - (performance.now() - shownAt);
@@ -521,8 +521,16 @@ function renderDrill(arg) {
           if (answered) return;
           lock(); $('dTimer').textContent = ''; log('', false); after(false, null);
         };
-        tickQ();
-        qTick = setInterval(tickQ, 250);
+        // The clock only runs once you've heard the question. Asked from a
+        // tap (Next, a chip), it was just spoken. The first question isn't
+        // (the page opens by a route change, and iOS won't speak then), so
+        // its clock waits for your first tap on Hear it.
+        const startClock = () => { shownAt = performance.now(); tickQ(); qTick = setInterval(tickQ, 250); };
+        if (fromTap) startClock();
+        else {
+          $('dTimer').textContent = '⏱ starts when you tap Hear it';
+          card.querySelectorAll('[data-say]').forEach((b) => b.addEventListener('click', () => { if (!qTick && !answered) startClock(); }, { once: true }));
+        }
       }
       $('dForm').onsubmit = (e) => {
         e.preventDefault();
@@ -558,7 +566,7 @@ function renderDrill(arg) {
   }
 
   stats();
-  ask(true);
+  ask(false); // opened by a route change, not a tap: see the speed clock in ask
 }
 
 /* ── roleplay ────────────────────────────────────────────────────────── */
