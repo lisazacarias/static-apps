@@ -128,6 +128,35 @@ export function timeReading(h, m, style = '12') {
   const prefix = style === '12' ? (h < 12 ? 'ごぜん ' : 'ごご ') : '';
   return finish(mins.map((mk) => `${prefix}${hour}${mk ? ' ' + mk : ''}`));
 }
+const timeSpaced = (h, m, style) => {
+  const hr = style === '12' ? (h % 12 || (h === 12 ? 12 : 0)) : h;
+  const hour = hr === 0 ? 'れいじ' : spacedReading(hr, 'ji')[0];
+  const mins = m === 0 ? '' : m === 30 ? 'はん' : spacedReading(m, 'fun')[0];
+  return `${style === '12' ? (h < 12 ? 'ごぜん ' : 'ごご ') : ''}${hour}${mins ? ' ' + mins : ''}`;
+};
+
+// What each part of a reading means, for teaching and for the answer:
+// [{ kana, romaji, means }]. The parts are the same spaced pieces the
+// romaji is built from, so せん よんひゃく はちじゅう えん is 1,000 + 400 +
+// 80 + yen.
+const part = (kana, means) => ({ kana, romaji: toRomaji(kana), means });
+
+export function priceParts(n) {
+  const segs = spacedReading(n, 'yen')[0].split(' ');
+  const man = Math.floor(n / 10000), r = n % 10000;
+  const values = [man * 10000, Math.floor(r / 1000) * 1000, (Math.floor(r / 100) % 10) * 100, r % 100].filter(Boolean);
+  if (segs.length !== values.length + 1) throw new Error(`priceParts: ${n} → ${segs.join('|')}`);
+  return [...values.map((v, i) => part(segs[i], v.toLocaleString('en-US'))), part('えん', 'yen')];
+}
+
+export function timeParts(h, m, style = '12') {
+  const segs = timeSpaced(h, m, style).split(' ');
+  const out = [];
+  if (style === '12') out.push(part(segs.shift(), h < 12 ? 'am (morning)' : 'pm (afternoon/evening)'));
+  out.push(part(segs.shift(), `${style === '12' ? (h % 12 || 12) : h} o'clock`));
+  if (segs.length) out.push(part(segs.join(''), m === 30 ? 'half past' : `${m} minute${m === 1 ? '' : 's'}`));
+  return out;
+}
 
 export function formatTime(h, m, style = '12') {
   const mm = String(m).padStart(2, '0');
@@ -168,7 +197,7 @@ export function genDrill(mode, rng = Math.random) {
   if (mode === 'price') {
     const n = genPrice(rng);
     const r = toJapaneseReading(n, 'yen');
-    return { mode, prompt: formatYen(n), answer: String(n), ...r };
+    return { mode, prompt: formatYen(n), answer: String(n), ...r, parts: priceParts(n) };
   }
   if (mode === 'time') {
     const h = int(rng, 6, 23);
@@ -176,17 +205,18 @@ export function genDrill(mode, rng = Math.random) {
     const m = rng() < 0.3 ? pick(rng, [0, 30]) : int(rng, 0, 11) * 5 + (rng() < 0.3 ? int(rng, 1, 4) : 0);
     const style = rng() < 0.75 ? '12' : '24';
     const r = timeReading(h, m, style);
-    return { mode, prompt: formatTime(h, m, style), answer: `${h}:${String(m).padStart(2, '0')}`, style, ...r };
+    return { mode, prompt: formatTime(h, m, style), answer: `${h}:${String(m).padStart(2, '0')}`, style, ...r, parts: timeParts(h, m, style) };
   }
   if (mode === 'counter') {
     const counter = pick(rng, Object.keys(DRILL_COUNTERS));
     const n = int(rng, ...DRILL_COUNTERS[counter]);
     const r = toJapaneseReading(n, counter);
-    return { mode, counter, prompt: `${n} ${COUNTERS[counter].kanji}`, hint: COUNTERS[counter].en, answer: String(n), ...r };
+    return { mode, counter, prompt: `${n} ${COUNTERS[counter].kanji}`, hint: COUNTERS[counter].en, answer: String(n), ...r, parts: [part(r.kana, `${n} ${COUNTERS[counter].en}`)] };
   }
   if (mode === 'platform') {
     const n = int(rng, 1, 20);
-    return { mode, prompt: `${n}番線`, hint: 'platform', answer: String(n), ...toJapaneseReading(n, 'bansen') };
+    const r = toJapaneseReading(n, 'bansen');
+    return { mode, prompt: `${n}番線`, hint: 'platform', answer: String(n), ...r, parts: [part(r.kana, `platform ${n}`)] };
   }
   throw new Error(`unknown drill mode ${mode}`);
 }
@@ -217,3 +247,18 @@ export function checkDrill(drill, given) {
   }
   return h === eh || (h >= 1 && h <= 12 && h % 12 === eh % 12);
 }
+
+// The short lesson at the top of the Numbers tab: what to learn before
+// the drills make sense. [{ shows, kana, romaji, note? }]
+export const PRIMER = [
+  ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => ({ shows: String(n), ...toJapaneseReading(n),
+    ...({ 4: { note: 'also し, but say よん' }, 7: { note: 'also しち, but say なな' }, 9: { note: 'also く' } }[n] || {}) })),
+  { shows: '11', ...toJapaneseReading(11), note: '10 + 1' },
+  { shows: '20', ...toJapaneseReading(20), note: '2 × 10' },
+  { shows: '45', ...toJapaneseReading(45), note: '4 × 10 + 5' },
+  { shows: '100', ...toJapaneseReading(100) },
+  { shows: '300', ...toJapaneseReading(300), note: 'ひゃく becomes びゃく' },
+  { shows: '1,000', ...toJapaneseReading(1000) },
+  { shows: '10,000', ...toJapaneseReading(10000), note: 'always いち + まん' },
+  { shows: '¥1,480', ...toJapaneseReading(1480, 'yen'), note: 'big to small, then えん' },
+].map(({ shows, kana, romaji, note }) => ({ shows, kana, romaji, ...(note ? { note } : {}) }));

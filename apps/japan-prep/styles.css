@@ -117,7 +117,24 @@ table.decks td { font-family: var(--font-mono); }
 .strokes figcaption { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .credit { color: var(--text-muted); }
 
+/* ── progress ── */
+.progress { height: 6px; background: var(--bg-elevated); border-radius: 999px; overflow: hidden; }
+.progress span { display: block; height: 100%; background: var(--accent); border-radius: 999px; transition: width 0.3s; }
+.progress-label { margin-top: -6px; }
+.done-today { border-color: var(--green); text-align: center; margin-bottom: 6px; }
+.done-today h2 { color: var(--green); }
+
 /* ── drills ── */
+.ask { font-size: 15px; color: var(--text); }
+.parts { margin: 6px auto; border-collapse: collapse; font-size: 14px; }
+.parts td { padding: 3px 10px; border-bottom: 1px solid var(--border); }
+.parts .jp-cell { font-family: var(--font-jp); font-size: 18px; color: var(--text-bright); white-space: nowrap; }
+.parts .romaji { white-space: nowrap; }
+.parts .romaji { font-size: 13px; }
+.primer summary { cursor: pointer; }
+.primer-table { margin-top: 8px; width: 100%; }
+.primer-table tr { cursor: pointer; }
+.primer-table .shows { font-family: var(--font-mono); color: var(--gold); text-align: right; }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
 .chip {
     background: var(--bg-elevated); color: var(--text-label); border: 1px solid var(--border-bright);
@@ -135,6 +152,10 @@ table.decks td { font-family: var(--font-mono); }
 .answer { flex: 1; min-width: 0; font-family: var(--font-mono); font-size: 20px; min-height: var(--tap); }
 .answer-row .btn { min-height: var(--tap); min-width: 90px; font-size: 16px; }
 #dGive { margin-top: 8px; }
+
+/* ── final week ── */
+.checklist ul { margin: 0 0 0 18px; font-size: 14px; display: grid; gap: 4px; }
+.q-timer { margin-left: 8px; color: var(--gold); font-family: var(--font-mono); }
 
 /* ── roleplay ── */
 .scene.focus { border-color: var(--accent); }

@@ -1,10 +1,10 @@
 import { ITEM, PHRASES, SIGNS, MENU, DECKS, DECK_ORDER, TOFUGU } from './content.js';
 import { HINTS } from './kana.js';
-import { genDrill, checkDrill, DRILL_MODES } from './numbers.js';
+import { genDrill, checkDrill, DRILL_MODES, PRIMER, priceParts } from './numbers.js';
 import { AGAIN, GOOD, EASY } from './srs.js';
 import {
   normalizeState, nextCard, rate, summary, choices, gradeFor, streak, addDrill, mergeStates, exportBlob, looksLikeExport,
-  splitCardId, ymd, daysBetween, teach, isTaught, dayIndex,
+  splitCardId, ymd, daysBetween, teach, isTaught, sittingLeft,
 } from './session.js';
 import { strokeUrl, drawable, parseStrokes, KANJIVG_CREDIT } from './strokes.js';
 import { SCENES, SCENE, LEVELS, promptFor, sceneFor, claudeUrl } from './roleplay.js';
@@ -29,9 +29,13 @@ function save() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); return true; }
   catch { notify('Couldn’t save — this browser’s storage is full or blocked. Download a backup from Settings.', true); return false; }
 }
-// First launch writes the start date, so unlock days count from today.
+// First launch writes the start date, so unlock days count from today, and
+// a record from an older plan is written back migrated (see PLAN in session.js).
 // If storage is blocked outright the app still runs, from memory.
-try { if (!localStorage.getItem(KEY)) save(); } catch { /* blocked */ }
+try {
+  const stored = localStorage.getItem(KEY);
+  if (!stored || JSON.parse(stored)?.settings?.plan !== state.settings.plan) save();
+} catch { /* blocked or unreadable: run from memory */ }
 
 function notify(msg, sticky = false) {
   const el = $('notice');
@@ -88,7 +92,7 @@ const fmtDate = (s) => new Date(`${s}T12:00`).toLocaleDateString(undefined, { we
 // trip hasn't started.
 function todaysScene(sum, now) {
   if (sum.daysLeft < 0) return '';
-  const pick = sceneFor(sum.week, new Date(now).getDay(), dayIndex(state.settings, now));
+  const pick = sceneFor({ week: sum.week, weekday: new Date(now).getDay(), daysLeft: sum.daysLeft });
   if (!pick) return '';
   const sc = SCENE[pick.scene];
   return `<a class="card roleplay-today" href="#roleplay/${pick.scene}-${pick.level}">
@@ -104,6 +108,10 @@ function renderToday() {
   const fresh = DECK_ORDER.reduce((n, d) => n + sum.decks[d].fresh, 0);
   const tomorrow = DECK_ORDER.reduce((n, d) => n + sum.decks[d].tomorrow, 0);
   const left = sum.daysLeft;
+  // What today still holds: cards (played forward, see sittingLeft), then the numbers.
+  const cardsLeft = sittingLeft(state, now);
+  const drillsDone = state.settings.drillsDoneOn === ymd(new Date(now));
+  const minutes = Math.max(5, Math.round((cardsLeft * 8) / 60) + (drillsDone ? 0 : 3));
   const days = state.settings.backupAt ? daysBetween(state.settings.backupAt, now) : null;
   const backupLine = state.logs.length === 0 ? ''
     : days === null ? '<strong>No backup yet.</strong> '
@@ -117,9 +125,22 @@ function renderToday() {
       <div class="stat"><span class="num">${sum.week}</span><span class="label">week</span></div>
     </section>
     ${sum.sweep ? `<p class="sweep">Pre-trip sweep: no new cards. You’ll see anything you might not recall right now.</p>` : ''}
-    <button id="start" class="btn primary start" type="button">Start today <span class="muted-on-primary">(≈25 min)</span></button>
-    <p class="tiny center">${due} due · ${fresh} new · then 3 minutes of numbers · ${tomorrow} due tomorrow</p>
+    ${cardsLeft === 0 && drillsDone
+      ? `<div class="card done-today"><h2>✓ Done for today</h2><p>${tomorrow} card${tomorrow === 1 ? '' : 's'} due tomorrow. Extra practice is optional: <a href="#drill">numbers</a> or <a href="#roleplay">roleplay</a>.</p></div>`
+      : cardsLeft === 0
+        ? `<button id="start" class="btn primary start" type="button">Cards done ✓ · 3 minutes of numbers left</button>`
+        : `<button id="start" class="btn primary start" type="button">Start today <span class="muted-on-primary">(about ${cardsLeft} cards, ~${minutes} min)</span></button>`}
+    ${cardsLeft === 0 && drillsDone ? '' : `<p class="tiny center">${due} due · ${fresh} new · then 3 minutes of numbers · ${tomorrow} due tomorrow</p>`}
     ${todaysScene(sum, now)}
+    ${sum.stage === 'final' ? `<div class="card checklist">
+      <h2>Before you fly</h2>
+      <ul>
+        <li>Open the app once in airplane mode: cards, drills, audio and the phrasebook should all still work.</li>
+        <li>Make sure it’s on your Home Screen, and study from that icon.</li>
+        <li><a href="#settings">Download a backup</a>.</li>
+        <li>Check opening hours for your specific dates.</li>
+      </ul>
+    </div>` : ''}
 
     <div class="card">
       <h2>Decks</h2>
@@ -141,7 +162,7 @@ function renderToday() {
         <a href="${TOFUGU.kata}" target="_blank" rel="noopener">katakana</a>.</p>
     </div>
     <p class="tiny">${backupLine}Progress lives only in this browser. <a href="#settings">Download a backup</a>.</p>`;
-  $('start').onclick = () => { location.hash = 'study/daily'; };
+  if ($('start')) $('start').onclick = () => { location.hash = cardsLeft === 0 ? 'drill/daily' : 'study/daily'; };
 }
 
 /* ── study ───────────────────────────────────────────────────────────── */
@@ -151,7 +172,7 @@ function renderToday() {
 let sitting = null;
 
 function renderStudy(arg) {
-  sitting = { daily: arg === 'daily', seen: new Set(), done: 0 };
+  sitting = { daily: arg === 'daily', seen: new Set(), done: 0, screens: 0, left: 0 };
   showNext();
 }
 
@@ -161,6 +182,8 @@ function showNext() {
   teardown = null;
   const id = nextCard(state, Date.now(), sitting.seen);
   if (!id) return finishCards();
+  sitting.left = sittingLeft(state, Date.now(), sitting.seen);
+  sitting.screens++;
   const { itemId, dir } = splitCardId(id);
   if (!isTaught(state, itemId)) return renderTeach(ITEM[itemId]);
   renderCard(id, ITEM[itemId], dir);
@@ -191,7 +214,8 @@ function renderTeach(item) {
        ${reading(item, { en: item.deck !== 'phrase', jp: item.deck === 'phrase' || item.deck === 'menu' })}`;
   $('view').innerHTML = `
     <div class="study">
-      <div class="card-head"><span class="badge new">New · ${esc(DECKS[item.deck].name)}</span><span class="tiny">Learn this one</span><span class="tiny">${sitting.done} done</span></div>
+      ${progress()}
+      <div class="card-head"><span class="badge new">New · ${esc(DECKS[item.deck].name)}</span><span class="tiny">Learn this one</span></div>
       <div class="prompt">${big}${body}</div>
       ${playButtons(item.speak)}
       ${item.listen ? '<p class="tiny center">Staff say this; you only need to understand it.</p>' : ''}
@@ -232,7 +256,18 @@ const needsSound = (dir) => dir === 'listen';
 
 function header(item, dir) {
   const what = { recognize: item.deck === 'sign' || item.deck === 'menu' ? 'What does it mean?' : 'How is it read?', listen: item.deck === 'phrase' ? 'What did they say?' : 'Which one did you hear?', produce: 'Say it out loud' }[dir];
-  return `<div class="card-head"><span class="badge">${esc(DECKS[item.deck].name)}</span><span class="tiny">${esc(what)}</span><span class="tiny">${sitting.done} done</span></div>`;
+  return `${progress()}<div class="card-head"><span class="badge">${esc(DECKS[item.deck].name)}</span><span class="tiny">${esc(what)}</span></div>`;
+}
+
+// How far through the sitting you are. left counts this screen, so the bar
+// fills as cards go by; a miss adds cards back and moves it back a little.
+function progress() {
+  const pct = Math.round(((sitting.screens - 1) / (sitting.screens - 1 + sitting.left)) * 100);
+  const label = sitting.daily
+    ? `Step 1 of 2: cards · about ${sitting.left} left, then 3 minutes of numbers`
+    : `About ${sitting.left} left`;
+  return `<div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="Today’s progress"><span style="width:${pct}%"></span></div>
+    <p class="tiny progress-label">${esc(label)}</p>`;
 }
 
 function reading(item, { en = showEnglish(), jp = true } = {}) {
@@ -400,23 +435,62 @@ function swipe(el, onSwipe) {
 
 /* ── number drills ───────────────────────────────────────────────────── */
 
-const DRILL_LABEL = { price: 'Prices', time: 'Times', counter: 'Counters', platform: 'Platforms', mix: 'Mix' };
+const DRILL_LABEL = { price: 'Prices', time: 'Times', counter: 'Counters', platform: 'Platforms', mix: 'Mix', speed: '⏱ Prices & times' };
 const DAILY_DRILL_MS = 3 * 60000;
-let drillPrefs = { mode: 'mix', how: 'listen' };
+// Speed mode: prices and times only, heard and typed, against the clock.
+// From week 7 (35 days out) the daily three minutes use it.
+const SPEED_MS = 10000;
+const SPEED_STAGES = ['polish', 'consolidate', 'final'];
+// how: 'learn' (see it, hear it, see what each part means), 'listen'
+// (hear it, type it) or 'read' (see it, say it). Learn first.
+let drillPrefs = { mode: 'mix', how: 'learn' };
+// Until you've answered this many, the daily numbers teach instead of test.
+const DRILL_BEGINNER = 20;
+
+// What to type, said plainly, so a question never arrives cold.
+const ASK = {
+  price: 'You’ll hear a price in yen. Type the amount in digits, e.g. 1480.',
+  time: 'You’ll hear a time. Type it like 3:45 pm (or 15:45).',
+  counter: 'You’ll hear how many of something, e.g. さんぼん, “three bottles”. Type just the number: 3.',
+  platform: 'You’ll hear a platform number, e.g. さんばんせん, “platform 3”. Type the number: 3.',
+};
+
+// A reading split into its parts, each with what it means.
+const partsTable = (parts) => (parts.length === 1 ? `<p class="center">${showRomaji() ? `<span class="romaji">${esc(parts[0].romaji)}</span> ` : ''}= ${esc(parts[0].means)}</p>` : `
+  <table class="parts">${parts.map((p) => `<tr><td class="jp-cell">${esc(p.kana)}</td>${showRomaji() ? `<td class="romaji">${esc(p.romaji)}</td>` : ''}<td>${esc(p.means)}</td></tr>`).join('')}</table>`);
+
+// The short lesson at the top of the Numbers tab.
+const primer = (open) => `
+  <details class="card primer"${open ? ' open' : ''}>
+    <summary><strong>How Japanese numbers work</strong> <span class="tiny">· tap a row to hear it</span></summary>
+    <p class="tiny">Numbers are built big to small, like saying “one thousand four hundred eighty”. Learn 1–10, then 10, 100, 1,000 and 10,000, and you can read any price.</p>
+    <table class="parts primer-table">${PRIMER.filter((r) => !r.shows.startsWith('¥')).map((r) => `<tr data-say="${esc(r.kana)}" tabindex="0"><td class="shows">${esc(r.shows)}</td><td><span class="jp-cell">${esc(r.kana)}</span>${r.note ? `<div class="tiny">${esc(r.note)}</div>` : ''}</td>${showRomaji() ? `<td class="romaji">${esc(r.romaji)}</td>` : ''}</tr>`).join('')}</table>
+    <p class="tiny">Put together, ¥1,480 is:</p>
+    ${partsTable(priceParts(1480))}
+  </details>`;
 try { drillPrefs = { ...drillPrefs, ...JSON.parse(localStorage.getItem('japan-prep:drill-prefs')) }; } catch { /* defaults */ }
 
 function renderDrill(arg) {
   const daily = arg === 'daily';
   const endsAt = daily ? Date.now() + DAILY_DRILL_MS : 0;
-  let run = 0, right = 0, best = 0;
+  // Daily runs pick their own mode without changing your saved choice: see
+  // & hear until you've answered a few, then speed mode from week 7.
+  const beginner = state.drills.filter((d) => d.g !== 'seen').length < DRILL_BEGINNER;
+  const forceSpeed = daily && !beginner && SPEED_STAGES.includes(summary(state, Date.now()).stage);
+  const prefs = daily && beginner ? { ...drillPrefs, how: 'learn', mode: 'mix' }
+    : forceSpeed ? { ...drillPrefs, mode: 'speed', how: 'listen' } : drillPrefs;
+  let run = 0, right = 0, best = 0, looked = 0;
   let current = null, shownAt = 0;
-  let tick = null;
+  let tick = null, qTick = null;
 
   $('view').innerHTML = `
     <div class="drill">
-      ${daily ? '<p class="tiny center">Cards done. Three minutes of numbers to finish.</p>' : ''}
-      <div class="chips" id="modes">${['mix', ...DRILL_MODES].map((m) => `<button class="chip" type="button" data-mode="${m}">${DRILL_LABEL[m]}</button>`).join('')}</div>
+      ${daily ? `<div class="progress" aria-hidden="true"><span id="dBar" style="width:0%"></span></div>
+        <p class="tiny progress-label">Step 2 of 2: three minutes of numbers${forceSpeed ? ', prices and times, 10 seconds each' : beginner ? '. Look and listen; nothing is marked yet' : ''}</p>` : ''}
+      ${primer(beginner && !forceSpeed)}
+      <div class="chips" id="modes">${['mix', 'speed', ...DRILL_MODES].map((m) => `<button class="chip" type="button" data-mode="${m}">${DRILL_LABEL[m]}</button>`).join('')}</div>
       <div class="chips" id="hows">
+        <button class="chip" type="button" data-how="learn">See &amp; hear</button>
         <button class="chip" type="button" data-how="listen">Listen &amp; type</button>
         <button class="chip" type="button" data-how="read">Read aloud</button>
       </div>
@@ -425,26 +499,32 @@ function renderDrill(arg) {
     </div>`;
 
   const setChips = () => {
-    document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('on', b.dataset.mode === drillPrefs.mode));
-    document.querySelectorAll('[data-how]').forEach((b) => b.classList.toggle('on', b.dataset.how === drillPrefs.how));
+    document.querySelectorAll('[data-mode]').forEach((b) => b.classList.toggle('on', b.dataset.mode === prefs.mode));
+    document.querySelectorAll('[data-how]').forEach((b) => b.classList.toggle('on', b.dataset.how === prefs.how));
   };
-  const savePrefs = () => { try { localStorage.setItem('japan-prep:drill-prefs', JSON.stringify(drillPrefs)); } catch { /* fine */ } };
-  document.querySelectorAll('[data-mode]').forEach((b) => b.onclick = () => { drillPrefs.mode = b.dataset.mode; savePrefs(); setChips(); ask(); });
-  document.querySelectorAll('[data-how]').forEach((b) => b.onclick = () => { drillPrefs.how = b.dataset.how; savePrefs(); setChips(); ask(); });
+  const savePrefs = () => { if (prefs !== drillPrefs) return; try { localStorage.setItem('japan-prep:drill-prefs', JSON.stringify(drillPrefs)); } catch { /* fine */ } };
+  document.querySelectorAll('[data-mode]').forEach((b) => b.onclick = () => { prefs.mode = b.dataset.mode; if (prefs.mode === 'speed') prefs.how = 'listen'; savePrefs(); setChips(); ask(); });
+  document.querySelectorAll('[data-how]').forEach((b) => b.onclick = () => { prefs.how = b.dataset.how; if (prefs.how !== 'listen' && prefs.mode === 'speed') prefs.mode = 'mix'; savePrefs(); setChips(); ask(); });
   setChips();
+  // Primer rows speak on Enter too, not just a tap.
+  document.querySelectorAll('.primer-table tr').forEach((r) => r.addEventListener('keydown', (e) => { if (e.key === 'Enter') speak(r.dataset.say); }));
 
   const stats = () => { $('dStreak').textContent = `Streak ${run} · best ${best} · ${right} right`; };
   if (daily) {
     tick = setInterval(() => {
       const left = Math.max(0, endsAt - Date.now());
       $('dClock').textContent = left ? `${Math.floor(left / 60000)}:${String(Math.floor(left / 1000) % 60).padStart(2, '0')} left` : 'Time’s up — finish this one';
+      if ($('dBar')) $('dBar').style.width = `${Math.round((1 - left / DAILY_DRILL_MS) * 100)}%`;
     }, 500);
   }
-  teardown = () => clearInterval(tick);
+  teardown = () => { clearInterval(tick); clearInterval(qTick); };
 
   function log(given, ok) {
     state = addDrill(state, { m: current.mode, p: current.prompt, a: current.answer, g: given, ok, ms: Math.round(performance.now() - shownAt), t: Date.now() });
     save();
+    // A See & hear screen is kept as a record but isn't an answer: it
+    // doesn't touch right, the run or the best run.
+    if (given === 'seen') { looked++; return; }
     run = ok ? run + 1 : 0; right += ok ? 1 : 0; best = Math.max(best, run);
     stats();
   }
@@ -452,8 +532,9 @@ function renderDrill(arg) {
   function after(ok, given) {
     const timeUp = daily && Date.now() >= endsAt;
     $('dAfter').innerHTML = `
-      <p class="feedback ${ok ? 'ok' : 'miss'}">${ok ? '✓' : `✗ ${given ? `you typed ${esc(given)}` : ''}`} <strong>${esc(current.prompt)}</strong></p>
-      <div class="reading"><div class="kana-line">${esc(current.kana)}</div>${showRomaji() ? `<div class="romaji">${esc(current.romaji)}</div>` : ''}${current.hint ? `<div class="tiny">${esc(current.hint)}</div>` : ''}</div>
+      <p class="feedback ${ok ? 'ok' : 'miss'}">${ok ? '✓' : `✗ ${given === null ? 'out of time' : given ? `you typed ${esc(given)}` : ''}`} <strong>${esc(current.prompt)}</strong></p>
+      <div class="reading"><div class="kana-line">${esc(current.kana)}</div></div>
+      ${partsTable(current.parts)}
       ${playButtons(current.kana)}
       <button id="dNext" class="btn primary next" type="button">${timeUp ? 'Finish' : 'Next →'}</button>`;
     $('dNext').onclick = () => (timeUp ? finishDaily() : ask(true));
@@ -462,52 +543,88 @@ function renderDrill(arg) {
 
   function finishDaily() {
     clearInterval(tick);
+    clearInterval(qTick);
+    state = { ...state, settings: { ...state.settings, drillsDoneOn: ymd(new Date()) } };
+    save();
     $('view').innerHTML = `
       <div class="card done">
         <h2>Done for today 🎌</h2>
-        <p>${right} number${right === 1 ? '' : 's'} right, best run ${best}. See you tomorrow.</p>
+        <p>${right || !looked ? `${right} number${right === 1 ? '' : 's'} right, best run ${best}.` : `${looked} number${looked === 1 ? '' : 's'} looked at.`} See you tomorrow.</p>
         <a class="btn primary" href="#today">Back to today</a>
       </div>`;
   }
 
   // fromTap: called from a button, so speech is allowed to start.
   function ask(fromTap = true) {
-    const mode = drillPrefs.mode === 'mix' ? DRILL_MODES[Math.floor(Math.random() * DRILL_MODES.length)] : drillPrefs.mode;
+    clearInterval(qTick); qTick = null;
+    const speedy = prefs.mode === 'speed';
+    const pool = speedy ? ['price', 'time'] : DRILL_MODES;
+    const mode = prefs.mode === 'mix' || speedy ? pool[Math.floor(Math.random() * pool.length)] : prefs.mode;
     current = genDrill(mode);
     shownAt = performance.now();
     const card = $('dCard');
-    if (drillPrefs.how === 'listen') {
+    if (prefs.how === 'listen') {
       const isTime = mode === 'time';
       card.innerHTML = `
-        <p class="tiny">${{ price: 'How much?', time: 'What time? (3:45 pm or 15:45)', counter: 'How many?', platform: 'Which platform?' }[mode]}</p>
+        <p class="ask">${esc(ASK[mode])}</p>
         <div class="prompt">${playButtons(current.kana, true)}</div>
         <form id="dForm" class="answer-row" autocomplete="off">
           <input id="dInput" class="answer" ${isTime ? 'inputmode="text" placeholder="3:45 pm"' : 'inputmode="numeric" placeholder="digits"'} aria-label="Your answer" enterkeyhint="done">
           <button class="btn primary" type="submit">Check</button>
         </form>
-        <button id="dGive" class="btn small" type="button">Show me</button>
+        <button id="dGive" class="btn small" type="button">Show me</button>${speedy ? ' <span id="dTimer" class="tiny q-timer"></span>' : ''}
         <div id="dAfter"></div>`;
       if (fromTap) speak(current.kana);
       let answered = false; // one log per question, however it's submitted
+      const lock = () => { answered = true; clearInterval(qTick); qTick = null; $('dInput').disabled = true; $('dForm').querySelector('button').disabled = true; $('dGive').hidden = true; };
+      if (speedy) {
+        const tickQ = () => {
+          const left = SPEED_MS - (performance.now() - shownAt);
+          if (left > 0) { $('dTimer').textContent = `⏱ ${Math.ceil(left / 1000)} s`; return; }
+          if (answered) return;
+          lock(); $('dTimer').textContent = ''; log('', false); after(false, null);
+        };
+        // The clock only runs once you've heard the question. Asked from a
+        // tap (Next, a chip), it was just spoken. The first question isn't
+        // (the page opens by a route change, and iOS won't speak then), so
+        // its clock waits for your first tap on Hear it.
+        const startClock = () => { shownAt = performance.now(); tickQ(); qTick = setInterval(tickQ, 250); };
+        if (fromTap) startClock();
+        else {
+          $('dTimer').textContent = '⏱ starts when you tap Hear it';
+          card.querySelectorAll('[data-say]').forEach((b) => b.addEventListener('click', () => { if (!qTick && !answered) startClock(); }, { once: true }));
+        }
+      }
       $('dForm').onsubmit = (e) => {
         e.preventDefault();
         const given = $('dInput').value.trim();
         if (!given || answered) return;
-        answered = true;
+        lock();
         const ok = checkDrill(current, given);
-        $('dInput').disabled = true; e.target.querySelector('button').disabled = true; $('dGive').hidden = true;
         log(given, ok); after(ok, given);
       };
-      $('dGive').onclick = () => { if (answered) return; answered = true; $('dInput').disabled = true; $('dForm').querySelector('button').disabled = true; $('dGive').hidden = true; log('', false); after(false, ''); };
+      $('dGive').onclick = () => { if (answered) return; lock(); log('', false); after(false, ''); };
+    } else if (prefs.how === 'learn') {
+      card.innerHTML = `
+        <p class="ask">Look, listen, and see how it’s built. Nothing is marked.</p>
+        <div class="prompt"><div class="big-kana">${esc(current.prompt)}</div>${current.hint ? `<p class="tiny">${esc(current.hint)}</p>` : ''}</div>
+        <div class="reading"><div class="kana-line">${esc(current.kana)}</div></div>
+        ${partsTable(current.parts)}
+        ${playButtons(current.kana)}
+        <button id="dNext" class="btn primary next" type="button">Next →</button>`;
+      if (fromTap) speak(current.kana);
+      log('seen', true);
+      $('dNext').onclick = () => (daily && Date.now() >= endsAt ? finishDaily() : ask(true));
     } else {
       card.innerHTML = `
-        <p class="tiny">Say it out loud, then check.</p>
+        <p class="ask">Say it out loud in Japanese, then check.</p>
         <div class="prompt"><div class="big-kana">${esc(current.prompt)}</div>${current.hint ? `<p class="tiny">${esc(current.hint)}</p>` : ''}</div>
         <div id="dAfter"><button id="dShow" class="btn primary next" type="button">Show reading</button></div>`;
       $('dShow').onclick = () => {
         speak(current.kana);
         $('dAfter').innerHTML = `
-          <div class="reading"><div class="kana-line">${esc(current.kana)}</div>${showRomaji() ? `<div class="romaji">${esc(current.romaji)}</div>` : ''}</div>
+          <div class="reading"><div class="kana-line">${esc(current.kana)}</div></div>
+          ${partsTable(current.parts)}
           ${playButtons(current.kana)}
           <div class="grades two">
             <button class="btn again" type="button" data-ok="0">Missed it</button>
@@ -520,11 +637,11 @@ function renderDrill(arg) {
         });
       };
     }
-    if (drillPrefs.how === 'listen') $('dInput').focus({ preventScroll: true });
+    if (prefs.how === 'listen') $('dInput').focus({ preventScroll: true });
   }
 
   stats();
-  ask(true);
+  ask(false); // opened by a route change, not a tap: see the speed clock in ask
 }
 
 /* ── roleplay ────────────────────────────────────────────────────────── */
@@ -546,11 +663,11 @@ function renderRoleplay(arg) {
         <p class="tiny">Your goal: ${esc(sc.goal)}.</p>
         <div class="row">
           <button class="btn primary" type="button" data-copy="${sc.id}">Copy prompt</button>
-          <a class="btn" href="${esc(claudeUrl(promptFor(sc.id, roleplayLevel)))}" target="_blank" rel="noopener">Open in Claude ↗</a>
+          <a class="btn" href="${esc(claudeUrl(promptFor(sc.id, roleplayLevel, state.settings.tripDate)))}" target="_blank" rel="noopener">Open in Claude ↗</a>
         </div>
-        <details><summary class="tiny">See the prompt</summary><pre class="prompt-text">${esc(promptFor(sc.id, roleplayLevel))}</pre></details>
+        <details><summary class="tiny">See the prompt</summary><pre class="prompt-text">${esc(promptFor(sc.id, roleplayLevel, state.settings.tripDate))}</pre></details>
       </div>`).join('');
-    $('scenes').querySelectorAll('[data-copy]').forEach((b) => b.onclick = () => copyText(promptFor(b.dataset.copy, roleplayLevel), b));
+    $('scenes').querySelectorAll('[data-copy]').forEach((b) => b.onclick = () => copyText(promptFor(b.dataset.copy, roleplayLevel, state.settings.tripDate), b));
   };
   $('levels').querySelectorAll('[data-level]').forEach((b) => b.onclick = () => {
     roleplayLevel = Number(b.dataset.level);
@@ -581,7 +698,7 @@ async function copyText(text, button) {
 
 /* ── phrasebook ──────────────────────────────────────────────────────── */
 
-const TAGS = ['core', 'restaurant', 'konbini', 'shopping', 'trains', 'hotel', 'directions', 'allergy', 'emergency', 'new-year'];
+const TAGS = ['core', 'restaurant', 'konbini', 'shopping', 'trains', 'hotel', 'directions', 'allergy', 'emergency'];
 let phraseTag = 'core';
 let phraseQuery = '';
 
@@ -630,7 +747,7 @@ function renderSettings() {
       <h2>Trip</h2>
       <label>Trip date <input type="date" name="tripDate" value="${esc(s.tripDate)}" required></label>
       <label>Start date <input type="date" name="startDate" value="${esc(s.startDate)}" required>
-        <span class="tiny">Decks unlock by days since this: katakana on day 6, katakana words in week 3, signs in week 4.</span></label>
+        <span class="tiny">Decks unlock by days since this: katakana on day 6, katakana words in week 3, signs in week 4. The last five weeks count back from the trip date: no new phrases in the last three, and the sweep in the last five days.</span></label>
       <label class="check"><input type="checkbox" name="unlockAll" ${s.unlockAll ? 'checked' : ''}> Unlock every deck now</label>
       <label class="check"><input type="checkbox" name="sweep" ${s.sweep ? 'checked' : ''}> Pre-trip sweep now <span class="tiny">(turns on by itself 5 days out)</span></label>
 

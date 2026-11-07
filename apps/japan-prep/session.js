@@ -23,15 +23,28 @@ export const daysBetween = (a, b) => Math.round((startOfDay(b) - startOfDay(a)) 
 
 /* ── stored state ── */
 
-export const DEFAULT_TRIP = '2027-01-10';
+export const DEFAULT_TRIP = '2027-01-25';
+
+// Settings saved before the trip moved (plan 1) carry the old default trip
+// date and the old default new-card caps, written on first launch. Plan 2
+// moves both to the current defaults. A date or cap you set yourself is
+// left alone. Cards, logs and drills aren't touched.
+export const PLAN = 2;
+const PLAN1_TRIP = '2027-01-10';
+const PLAN1_CAPS = { hira: 15, kata: 15, menu: 6, num: 6, phrase: 6, sign: 4 };
 
 export function normalizeSettings(raw, now = Date.now()) {
   const r = raw && typeof raw === 'object' ? raw : {};
   const num = (v, lo, hi, dflt) => (Number.isFinite(v) && v >= lo && v <= hi ? v : dflt);
+  const old = raw && typeof raw === 'object' && !(r.plan >= PLAN);
   const newPerDay = {};
-  for (const d of DECK_ORDER) newPerDay[d] = Math.round(num(r.newPerDay?.[d], 0, 50, DECKS[d].newPerDay));
+  for (const d of DECK_ORDER) {
+    const saved = old && r.newPerDay?.[d] === PLAN1_CAPS[d] ? undefined : r.newPerDay?.[d];
+    newPerDay[d] = Math.round(num(saved, 0, 50, DECKS[d].newPerDay));
+  }
   return {
-    tripDate: isYmd(r.tripDate) ? r.tripDate : DEFAULT_TRIP,
+    plan: PLAN,
+    tripDate: isYmd(r.tripDate) && !(old && r.tripDate === PLAN1_TRIP) ? r.tripDate : DEFAULT_TRIP,
     // Unlock days count from here. Set on first launch.
     startDate: isYmd(r.startDate) ? r.startDate : ymd(new Date(now)),
     retention: { core: num(r.retention?.core, 0.7, 0.99, 0.92), rest: num(r.retention?.rest, 0.7, 0.99, 0.9) },
@@ -43,6 +56,8 @@ export function normalizeSettings(raw, now = Date.now()) {
     unlockAll: r.unlockAll === true,
     muteHintShown: r.muteHintShown === true,
     backupAt: Number.isFinite(r.backupAt) ? r.backupAt : 0,
+    // The day the daily run's three minutes of numbers were last finished.
+    drillsDoneOn: isYmd(r.drillsDoneOn) ? r.drillsDoneOn : '',
   };
 }
 
@@ -93,6 +108,20 @@ export function normalizeState(raw, now = Date.now()) {
 /* ── where we are ── */
 
 export const daysLeft = (settings, now) => daysBetween(now, fromYmd(settings.tripDate).getTime());
+
+// Where you are in the 11-week plan. Weeks 1–6 unlock by days since the
+// start date (each item's day in content.js). The last five weeks count
+// back from the trip date, so they follow it if it moves:
+//   learn        weeks 1–6
+//   polish       weeks 7–8, 35–22 days out: finish phrases, timed price/time drills, L2 roleplay
+//   consolidate  weeks 9–10, 21–8 days out: no new phrases, extra listen-only reps, L3 roleplay
+//   final        week 11, the last 7 days: sweep from 5 days out, before-you-fly checks
+//   trip         after the trip date
+export function stageOf(settings, now) {
+  const left = daysLeft(settings, now);
+  return left < 0 ? 'trip' : left <= 7 ? 'final' : left <= 21 ? 'consolidate' : left <= 35 ? 'polish' : 'learn';
+}
+const noNewPhrases = (settings, now) => ['consolidate', 'final'].includes(stageOf(settings, now));
 export const dayIndex = (settings, now) => daysBetween(fromYmd(settings.startDate).getTime(), now);
 export const sweepOn = (settings, now) => {
   const left = daysLeft(settings, now);
@@ -154,11 +183,12 @@ export function summary(state, now = Date.now()) {
   }
   if (!sweep) {
     for (const d of DECK_ORDER) {
+      if (d === 'phrase' && noNewPhrases(settings, now)) continue;
       const left = Math.max(0, settings.newPerDay[d] - introducedToday(state, d, now));
       out[d].fresh = Math.min(left, ITEMS.filter((i) => i.deck === d && unlocked(i, settings, now) && !itemStarted(state, i.id)).length);
     }
   }
-  return { decks: out, sweep, daysLeft: daysLeft(settings, now), week: Math.floor(dayIndex(settings, now) / 7) + 1, maxDays };
+  return { decks: out, sweep, daysLeft: daysLeft(settings, now), week: Math.floor(dayIndex(settings, now) / 7) + 1, maxDays, stage: stageOf(settings, now) };
 }
 
 // The next card to show, or null when the day is done.
@@ -190,6 +220,14 @@ export function nextCard(state, now = Date.now(), seen = new Set()) {
       .sort((a, b) => order(a.id) - order(b.id) || a.due - b.due);
     if (due[0]) return due[0].id;
 
+    // 2b. Weeks 9–10: extra passes over the staff phrases you'll hear,
+    //     any that aren't near-certain, once each per sitting.
+    if (stageOf(settings, now) === 'consolidate') {
+      const extra = live.filter((c) => c.state === 'review' && !seen.has(c.id) && ITEM[splitCardId(c.id).itemId].listen && recallNow(c, now) < SWEEP_RECALL)
+        .sort((a, b) => recallNow(a, now) - recallNow(b, now));
+      if (extra[0]) return extra[0].id;
+    }
+
     // 3. Teach new items a few at a time, then quiz them. Quiz first when
     //    the batch is full, the allowance is used up, the next new item is
     //    from another deck (so the kana get quizzed before phrases start),
@@ -198,6 +236,7 @@ export function nextCard(state, now = Date.now(), seen = new Set()) {
     let fresh = null;
     for (const deck of DECK_ORDER) {
       if (introducedToday(state, deck, now) >= settings.newPerDay[deck]) continue;
+      if (deck === 'phrase' && noNewPhrases(settings, now)) continue;
       fresh = ITEMS.find((i) => i.deck === deck && unlocked(i, settings, now) && !itemStarted(state, i.id));
       if (fresh) break;
     }
@@ -248,6 +287,24 @@ export function rate(state, id, rating, { now = Date.now(), ms = 0 } = {}) {
   after.intro = before.intro || now;
   after.updatedAt = now;
   return { ...state, cards: { ...state.cards, [id]: after }, logs: [...state.logs, { c: id, r: rating, t: now, ms }] };
+}
+
+// About how many screens are left in this sitting: plays it forward on a
+// copy, teaching what's new and answering everything Good, about 8 s a
+// card. It's a floor, not a promise: each miss adds a card or two back.
+export function sittingLeft(state, now = Date.now(), seen = new Set(), cap = 400) {
+  let s = { ...state, logs: state.logs.slice(-1) }; // only the last log matters to nextCard
+  const sim = new Set(seen);
+  let t = now, n = 0;
+  for (; n < cap; n++) {
+    const id = nextCard(s, t, sim);
+    if (!id) break;
+    const { itemId } = splitCardId(id);
+    sim.add(id);
+    s = isTaught(s, itemId) ? rate(s, id, GOOD, { now: t }) : teach(s, itemId, t);
+    t += 8000;
+  }
+  return n;
 }
 
 // Auto-grade a quiz answer: wrong is Again, right but slow is Hard.
