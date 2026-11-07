@@ -4,7 +4,7 @@ import { genDrill, checkDrill, DRILL_MODES } from './numbers.js';
 import { AGAIN, GOOD, EASY } from './srs.js';
 import {
   normalizeState, nextCard, rate, summary, choices, gradeFor, streak, addDrill, mergeStates, exportBlob, looksLikeExport,
-  splitCardId, ymd, daysBetween,
+  splitCardId, ymd, daysBetween, teach, isTaught,
 } from './session.js';
 import { loadVoices, japaneseVoices, say, canSpeak, stopSpeaking } from './speech.js';
 
@@ -118,8 +118,9 @@ function renderToday() {
     </div>
 
     <div class="card">
-      <h2>First time with kana?</h2>
-      <p>Read Tofugu’s guides once for the mnemonics, then let this app do the reviews:
+      <h2>Starting from zero?</h2>
+      <p>That’s fine. Each new character or phrase is shown to you first, with its sound, five at a time. Then you’re quizzed on them. Nothing to know in advance.</p>
+      <p>For memory tricks, Tofugu’s guides are worth a read:
         <a href="${TOFUGU.hira}" target="_blank" rel="noopener">hiragana</a> ·
         <a href="${TOFUGU.kata}" target="_blank" rel="noopener">katakana</a>.</p>
     </div>
@@ -145,7 +146,37 @@ function showNext() {
   const id = nextCard(state, Date.now(), sitting.seen);
   if (!id) return finishCards();
   const { itemId, dir } = splitCardId(id);
+  if (!isTaught(state, itemId)) return renderTeach(ITEM[itemId]);
   renderCard(id, ITEM[itemId], dir);
+}
+
+// First sight of a new item: show it with its sound before any quiz.
+// Not a review: nothing is graded, the quiz comes after a small batch.
+function renderTeach(item) {
+  const kana = item.deck === 'hira' || item.deck === 'kata';
+  const big = kana || item.deck === 'num'
+    ? `<div class="big-kana">${esc(item.jp)}</div>`
+    : item.deck === 'sign' ? `<div class="sign">${esc(item.jp)}</div>` : '';
+  const body = kana
+    ? `<div class="reading"><div class="romaji teach-romaji">${esc(item.romaji)}</div>${item.word ? `<div class="en">${esc(item.en)}</div>` : ''}</div>
+       ${HINTS[item.jp] ? `<p class="hint">${esc(HINTS[item.jp])}</p>` : ''}`
+    : `${item.deck === 'phrase' ? `<div class="en-prompt">${esc(item.en)}</div>` : ''}
+       ${reading(item, { en: item.deck !== 'phrase', jp: item.deck === 'phrase' || item.deck === 'menu' })}`;
+  $('view').innerHTML = `
+    <div class="study">
+      <div class="card-head"><span class="badge new">New · ${esc(DECKS[item.deck].name)}</span><span class="tiny">Learn this one</span><span class="tiny">${sitting.done} done</span></div>
+      <div class="prompt">${big}${body}</div>
+      ${playButtons(item.speak)}
+      ${item.listen ? '<p class="tiny center">Staff say this; you only need to understand it.</p>' : ''}
+      <button id="gotIt" class="btn primary next" type="button">Got it →</button>
+      <p class="tiny center">You’ll be quizzed on it after a few more.</p>
+    </div>`;
+  speak(item.speak);
+  $('gotIt').onclick = () => {
+    state = teach(state, item.id, Date.now());
+    save();
+    showNext();
+  };
 }
 
 function finishCards() {
