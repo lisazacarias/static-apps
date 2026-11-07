@@ -47,6 +47,26 @@ test('every look-alike hint is for a kana that exists', () => {
   assert.equal(toKatakana('しゃ'), 'シャ');
 });
 
+test('every card with a blank (〜) has a full example to practise', () => {
+  const blanks = PHRASES.filter((p) => p.jp.includes('〜'));
+  assert.equal(blanks.length, 13);
+  for (const p of blanks) {
+    assert.ok(p.example, `${p.id} has an example`);
+    for (const f of ['jp', 'kana', 'romaji', 'en']) {
+      assert.ok(p.example[f], `${p.id} example.${f}`);
+      assert.ok(!/[〜~]/.test(p.example[f]), `${p.id} example.${f} has no blank: ${p.example[f]}`);
+    }
+    assert.match(p.example.kana, /^[぀-ヿ。、ー]+$/u, `${p.id} example kana is kana`);
+    assert.ok(p.notes && !p.notes.includes('Audio example'), `${p.id} note explains the pattern`);
+    // The audio says the example. speak spells は and へ the way they're
+    // said (わ, え), so fold those together on both sides and compare the
+    // whole sentence.
+    const said = (k) => k.replace(/[、。]/g, '').replace(/は/g, 'わ').replace(/へ/g, 'え');
+    assert.equal(said(p.speak), said(p.example.kana), `${p.id}: ${p.speak} vs ${p.example.kana}`);
+  }
+  assert.ok(!PHRASES.some((p) => !p.jp.includes('〜') && p.example), 'only blank cards get one');
+});
+
 test('no year-end content: the trip is in late January', () => {
   const all = JSON.stringify(ITEMS);
   for (const gone of ['年末年始', 'あけましておめでとうございます', '福袋', '初詣', 'new-year', '29 Dec', 'New Year']) assert.ok(!all.includes(gone), gone);

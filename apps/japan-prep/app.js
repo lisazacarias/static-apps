@@ -210,7 +210,7 @@ function renderTeach(item) {
   const body = kana
     ? `<div class="reading"><div class="romaji teach-romaji">${esc(item.romaji)}</div>${item.word ? `<div class="en">${esc(item.en)}</div>` : ''}</div>
        ${HINTS[item.jp] ? `<p class="hint">${esc(HINTS[item.jp])}</p>` : ''}`
-    : `${item.deck === 'phrase' ? `<div class="en-prompt">${esc(item.en)}</div>` : ''}
+    : `${item.deck === 'phrase' ? `<div class="en-prompt">${esc(item.example?.en || item.en)}</div>` : ''}
        ${reading(item, { en: item.deck !== 'phrase', jp: item.deck === 'phrase' || item.deck === 'menu' })}`;
   $('view').innerHTML = `
     <div class="study">
@@ -270,7 +270,29 @@ function progress() {
     <p class="tiny progress-label">${esc(label)}</p>`;
 }
 
-function reading(item, { en = showEnglish(), jp = true } = {}) {
+// A card with a blank (〜) shows its example sentence, then the pattern.
+function reading(item, opts = {}) {
+  if (!item.example) return plainReading(item, opts);
+  return plainReading({ ...item, ...item.example, notes: '' }, opts) + pattern(item);
+}
+
+// The blank in English and romaji, drawn as a blank ("___, please").
+// The Japanese keeps 〜, which is how textbooks and phrasebooks write it.
+const blank = (s) => s.replace(/~(?=[A-Za-z])/g, '___ ').replace(/~/g, '___'); // "~o" → "___ o", "~?" → "___?"
+
+// The 〜 pattern behind an example, with what fills the blank.
+function pattern(item) {
+  return `
+    <div class="pattern">
+      <span class="label">Pattern</span>
+      <div class="jp">${esc(item.jp)}</div>
+      ${showRomaji() ? `<div class="romaji">${esc(blank(item.romaji))}</div>` : ''}
+      ${showEnglish() ? `<div class="en">${esc(blank(item.en))}</div>` : ''}
+      ${item.notes ? `<p class="note">${esc(item.notes)}</p>` : ''}
+    </div>`;
+}
+
+function plainReading(item, { en = showEnglish(), jp = true } = {}) {
   return `
     <div class="reading">
       ${jp ? `<div class="jp">${esc(item.jp)}</div>` : ''}
@@ -333,7 +355,7 @@ function renderCard(id, item, dir) {
     ? `<div class="prompt">${playButtons(item.speak, true)}</div>`
     : item.deck === 'num'
       ? `<div class="prompt"><div class="big-kana">${esc(item.jp)}</div><p class="tiny">${esc(item.en)}</p></div>`
-      : `<div class="prompt"><div class="en-prompt">${esc(item.en)}</div></div>`;
+      : `<div class="prompt"><div class="en-prompt">${esc(item.example?.en || item.en)}</div>${item.example ? `<p class="tiny">Pattern: ${esc(blank(item.en))}</p>` : ''}</div>`;
   view.innerHTML = `
     <div class="study">
       ${header(item, dir)}
@@ -715,15 +737,18 @@ function renderPhrases() {
     <div id="plist"></div>`;
   const draw = () => {
     const q = phraseQuery.trim().toLowerCase();
-    const rows = all.filter((p) => (q ? [p.en, p.jp, p.kana, p.romaji, p.notes].some((f) => f && f.toLowerCase().includes(q)) : p.tags.includes(phraseTag)));
+    // Search what's shown too: the blank as "___" as well as the stored "~".
+    const fields = (p) => [p.en, p.jp, p.kana, p.romaji, blank(p.en), blank(p.romaji), p.notes, ...(p.example ? Object.values(p.example) : [])];
+    const rows = all.filter((p) => (q ? fields(p).some((f) => f && f.toLowerCase().includes(q)) : p.tags.includes(phraseTag)));
     $('plist').innerHTML = rows.length ? rows.map((p) => `
       <div class="phrase">
         <div class="phrase-text">
           <div class="jp">${p.deck === 'sign' ? `<span class="sign small">${esc(p.jp)}</span>` : esc(p.jp)}${p.listen ? ' <span class="badge">you’ll hear</span>' : ''}</div>
           ${p.kana !== p.jp ? `<div class="kana-line">${esc(p.kana)}</div>` : ''}
-          ${showRomaji() ? `<div class="romaji">${esc(p.romaji)}</div>` : ''}
-          ${showEnglish() ? `<div class="en">${esc(p.en)}</div>` : ''}
+          ${showRomaji() ? `<div class="romaji">${esc(blank(p.romaji))}</div>` : ''}
+          ${showEnglish() ? `<div class="en">${esc(blank(p.en))}</div>` : ''}
           ${p.notes ? `<div class="note">${esc(p.notes)}</div>` : ''}
+          ${p.example ? `<div class="example"><span class="label">e.g.</span> <span class="jp-inline">${esc(p.example.jp)}</span>${showRomaji() ? ` <span class="romaji">${esc(p.example.romaji)}</span>` : ''}${showEnglish() ? ` · ${esc(p.example.en)}` : ''}</div>` : ''}
         </div>
         ${playButtons(p.speak)}
       </div>`).join('') : '<p class="tiny">Nothing matches.</p>';
