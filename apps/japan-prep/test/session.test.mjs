@@ -350,3 +350,19 @@ test('sittingLeft counts what the sitting will show, and reaches zero when it en
   assert.equal(st.logs.length > 0, true);
   assert.equal(sittingLeft(s, START), left, 'the real state is untouched');
 });
+
+test('practice lists today’s cards, hardest first, and skips other days', async () => {
+  const { practiceQueue } = await import('../session.js');
+  const a = cardId('hira:あ', 'recognize'), i = cardId('hira:い', 'recognize'), u = cardId('hira:う', 'recognize'), e = cardId('hira:え', 'recognize');
+  const t = START + 3 * DAY;
+  const s = { ...fresh(), logs: [
+    { c: e, r: AGAIN, t: t - DAY, ms: 0 }, // yesterday: left out
+    { c: e, r: AGAIN, t: t + DAY, ms: 0 }, // tomorrow (a clock that ran ahead): left out
+    { c: a, r: GOOD, t, ms: 0 },
+    { c: i, r: AGAIN, t: t + 1, ms: 0 }, { c: i, r: GOOD, t: t + 2, ms: 0 },
+    { c: u, r: AGAIN, t: t + 3, ms: 0 }, { c: u, r: AGAIN, t: t + 4, ms: 0 }, { c: u, r: GOOD, t: t + 5, ms: 0 },
+    { c: 'gone:x|recognize', r: AGAIN, t, ms: 0 }, // no longer in the decks
+  ] };
+  assert.deepEqual(practiceQueue(s, t + 10), [u, i, a]);
+  assert.deepEqual(practiceQueue(s, t + 2 * DAY), []);
+});

@@ -14,7 +14,10 @@ parts of it this app follows, and where it departs:
 - **Daily session.** Today → Start runs due kana, then phrases/signs, then
   three minutes of number drills. A progress bar shows about how many cards
   are left (`sittingLeft` plays the sitting forward as if every answer were
-  right, so a miss moves it back a little), and Today says when you're done.
+  right, so a miss moves it back a little), and Today says when you're done. Once you are, "Practice today's cards
+  again" runs every card you answered today, hardest first (`practiceQueue`),
+  without saving: a second pass minutes later says little about next week's
+  recall, so it doesn't move any card. A miss comes round again.
 - **Numbers teach before they test.** The Numbers tab opens with a short
   lesson on how numbers are built. "See & hear" shows a number, says it and
   breaks it into parts (せん 1,000 · よんひゃく 400 · …). The daily three
@@ -55,6 +58,10 @@ parts of it this app follows, and where it departs:
   Claude app, with no API key needed. Claude plays the staff and gives
   corrections at the end. On the plan's roleplay days (Tue/Thu/Sat from
   week 3, every other day in week 11), Today suggests a scene.
+- **Shape notes** on the teaching screen for kana: what a marked or
+  combined kana is built from (が = か + ゛, きゃ = き + small ゃ, from
+  `builtFrom` in `kana.js`), katakana with a hiragana twin (カ/か), and the
+  look-alike tip (`HINTS`). A missed kana shows them again.
 - **Stroke order** on the teaching screen for kana and sign kanji, animated
   from [KanjiVG](https://kanjivg.tagaini.net/) (CC BY-SA 3.0, credited on
   screen). Each file is fetched from jsDelivr the first time it's shown and

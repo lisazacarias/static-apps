@@ -312,6 +312,26 @@ export const gradeFor = (correct, ms) => (!correct ? AGAIN : ms > SLOW_MS ? HARD
 
 export const addDrill = (state, d) => ({ ...state, drills: [...state.drills, d].slice(-DRILL_KEEP) });
 
+/* ── practice ── */
+
+// Cards answered today, hardest first: your worst rating today, then how
+// many tries it took. For an extra pass that isn't graded: repeating a card
+// minutes later says little about whether you'll recall it next week, and
+// counting it would push the card out further than it should go.
+export function practiceQueue(state, now = Date.now()) {
+  const from = startOfDay(now);
+  const to = from + DAY;
+  const by = new Map();
+  for (const l of state.logs) {
+    if (l.t < from || l.t >= to || !ITEM[splitCardId(l.c).itemId]) continue;
+    const o = by.get(l.c) || { worst: 4, tries: 0 };
+    o.worst = Math.min(o.worst, l.r);
+    o.tries++;
+    by.set(l.c, o);
+  }
+  return [...by].sort((a, b) => a[1].worst - b[1].worst || b[1].tries - a[1].tries).map(([id]) => id);
+}
+
 /* ── multiple choice ── */
 
 const shuffle = (xs, rng) => { const a = [...xs]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
