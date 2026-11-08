@@ -80,11 +80,11 @@ export const ELECTION = {
         uncounted: {
             sourceUrl: 'https://electionresults.sos.ca.gov/unprocessed-ballots-status',
             lateMailBy: 'November 10, 2026, 11:59 p.m.',
-            asOf: 'November 6, 2026, 12:00 p.m.',
-            statewide: 4782948 + 69824,
+            asOf: 'November 7, 2026, 5:00 p.m.',
+            statewide: 3613154 + 78536,
             counties: {
-                'Alameda': 265849 + 835,
-                'Santa Clara': 293300 + 2700
+                'Alameda': 156397 + 992,
+                'Santa Clara': 255800 + 5100
             }
         }
     },
