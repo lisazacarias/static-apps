@@ -320,9 +320,10 @@ export const addDrill = (state, d) => ({ ...state, drills: [...state.drills, d].
 // counting it would push the card out further than it should go.
 export function practiceQueue(state, now = Date.now()) {
   const from = startOfDay(now);
+  const to = from + DAY;
   const by = new Map();
   for (const l of state.logs) {
-    if (l.t < from || !ITEM[splitCardId(l.c).itemId]) continue;
+    if (l.t < from || l.t >= to || !ITEM[splitCardId(l.c).itemId]) continue;
     const o = by.get(l.c) || { worst: 4, tries: 0 };
     o.worst = Math.min(o.worst, l.r);
     o.tries++;

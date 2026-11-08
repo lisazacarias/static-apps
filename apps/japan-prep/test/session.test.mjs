@@ -357,6 +357,7 @@ test('practice lists today’s cards, hardest first, and skips other days', asyn
   const t = START + 3 * DAY;
   const s = { ...fresh(), logs: [
     { c: e, r: AGAIN, t: t - DAY, ms: 0 }, // yesterday: left out
+    { c: e, r: AGAIN, t: t + DAY, ms: 0 }, // tomorrow (a clock that ran ahead): left out
     { c: a, r: GOOD, t, ms: 0 },
     { c: i, r: AGAIN, t: t + 1, ms: 0 }, { c: i, r: GOOD, t: t + 2, ms: 0 },
     { c: u, r: AGAIN, t: t + 3, ms: 0 }, { c: u, r: AGAIN, t: t + 4, ms: 0 }, { c: u, r: GOOD, t: t + 5, ms: 0 },
