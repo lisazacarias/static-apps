@@ -14,7 +14,10 @@ parts of it this app follows, and where it departs:
 - **Daily session.** Today → Start runs due kana, then phrases/signs, then
   three minutes of number drills. A progress bar shows about how many cards
   are left (`sittingLeft` plays the sitting forward as if every answer were
-  right, so a miss moves it back a little), and Today says when you're done.
+  right, so a miss moves it back a little), and Today says when you're done. Once you are, "Practice today's cards
+  again" runs every card you answered today, hardest first (`practiceQueue`),
+  without saving: a second pass minutes later says little about next week's
+  recall, so it doesn't move any card. A miss comes round again.
 - **Numbers teach before they test.** The Numbers tab opens with a short
   lesson on how numbers are built. "See & hear" shows a number, says it and
   breaks it into parts (せん 1,000 · よんひゃく 400 · …). The daily three

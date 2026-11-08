@@ -4,7 +4,7 @@ import { genDrill, checkDrill, DRILL_MODES, PRIMER, priceParts } from './numbers
 import { AGAIN, GOOD, EASY } from './srs.js';
 import {
   normalizeState, nextCard, rate, summary, choices, gradeFor, streak, addDrill, mergeStates, exportBlob, looksLikeExport,
-  splitCardId, ymd, daysBetween, teach, isTaught, sittingLeft,
+  splitCardId, ymd, daysBetween, teach, isTaught, sittingLeft, practiceQueue,
 } from './session.js';
 import { strokeUrl, drawable, parseStrokes, KANJIVG_CREDIT } from './strokes.js';
 import { SCENES, SCENE, LEVELS, promptFor, sceneFor, claudeUrl } from './roleplay.js';
@@ -119,6 +119,7 @@ function renderToday() {
   // What today still holds: cards (played forward, see sittingLeft), then the numbers.
   const cardsLeft = sittingLeft(state, now);
   const drillsDone = state.settings.drillsDoneOn === ymd(new Date(now));
+  const practiceCount = cardsLeft === 0 ? practiceQueue(state, now).length : 0;
   const minutes = Math.max(5, Math.round((cardsLeft * 8) / 60) + (drillsDone ? 0 : 3));
   const days = state.settings.backupAt ? daysBetween(state.settings.backupAt, now) : null;
   const backupLine = state.logs.length === 0 ? ''
@@ -134,7 +135,8 @@ function renderToday() {
     </section>
     ${sum.sweep ? `<p class="sweep">Pre-trip sweep: no new cards. You’ll see anything you might not recall right now.</p>` : ''}
     ${cardsLeft === 0 && drillsDone
-      ? `<div class="card done-today"><h2>✓ Done for today</h2><p>${tomorrow} card${tomorrow === 1 ? '' : 's'} due tomorrow. Extra practice is optional: <a href="#drill">numbers</a> or <a href="#roleplay">roleplay</a>.</p></div>`
+      ? `<div class="card done-today"><h2>✓ Done for today</h2><p>${tomorrow} card${tomorrow === 1 ? '' : 's'} due tomorrow. Extra practice is optional: <a href="#drill">numbers</a> or <a href="#roleplay">roleplay</a>.</p>
+        ${practiceCount ? `<a class="btn" href="#study/practice">Practice today’s ${practiceCount} cards again</a><p class="tiny">Hardest first. It won’t change when cards come back.</p>` : ''}</div>`
       : cardsLeft === 0
         ? `<button id="start" class="btn primary start" type="button">Cards done ✓ · 3 minutes of numbers left</button>`
         : `<button id="start" class="btn primary start" type="button">Start today <span class="muted-on-primary">(about ${cardsLeft} cards, ~${minutes} min)</span></button>`}
@@ -180,7 +182,8 @@ function renderToday() {
 let sitting = null;
 
 function renderStudy(arg) {
-  sitting = { daily: arg === 'daily', seen: new Set(), done: 0, screens: 0, left: 0 };
+  // practice: today's cards again, in a fixed queue, not graded.
+  sitting = { daily: arg === 'daily', practice: arg === 'practice' ? practiceQueue(state, Date.now()) : null, seen: new Set(), done: 0, screens: 0, left: 0 };
   showNext();
 }
 
@@ -188,12 +191,12 @@ function showNext() {
   // Drop the last card's swipe listener or advance timer, so it can't fire on this one.
   teardown?.();
   teardown = null;
-  const id = nextCard(state, Date.now(), sitting.seen);
+  const id = sitting.practice ? sitting.practice.shift() : nextCard(state, Date.now(), sitting.seen);
   if (!id) return finishCards();
-  sitting.left = sittingLeft(state, Date.now(), sitting.seen);
+  sitting.left = sitting.practice ? sitting.practice.length + 1 : sittingLeft(state, Date.now(), sitting.seen);
   sitting.screens++;
   const { itemId, dir } = splitCardId(id);
-  if (!isTaught(state, itemId)) return renderTeach(ITEM[itemId]);
+  if (!sitting.practice && !isTaught(state, itemId)) return renderTeach(ITEM[itemId]);
   renderCard(id, ITEM[itemId], dir);
 }
 
@@ -261,6 +264,16 @@ function renderTeach(item) {
 
 function finishCards() {
   if (sitting?.daily) { location.hash = 'drill/daily'; return; }
+  if (sitting?.practice) {
+    $('view').innerHTML = `
+      <div class="card done">
+        <h2>Practice done</h2>
+        <p>${sitting.done} answers. None of them changed when cards come back.</p>
+        <a class="btn primary" href="#drill">Number drills →</a>
+        <a class="btn" href="#today">Back to today</a>
+      </div>`;
+    return;
+  }
   $('view').innerHTML = `
     <div class="card done">
       <h2>All caught up</h2>
@@ -285,7 +298,7 @@ function progress() {
   const pct = Math.round(((sitting.screens - 1) / (sitting.screens - 1 + sitting.left)) * 100);
   const label = sitting.daily
     ? `Step 1 of 2: cards · about ${sitting.left} left, then 3 minutes of numbers`
-    : `About ${sitting.left} left`;
+    : sitting.practice ? `Practice · ${sitting.left} left · doesn’t change your schedule` : `About ${sitting.left} left`;
   return `<div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="Today’s progress"><span style="width:${pct}%"></span></div>
     <p class="tiny progress-label">${esc(label)}</p>`;
 }
@@ -362,7 +375,7 @@ function renderCard(id, item, dir) {
         else if (x === b) x.classList.add('wrong');
       });
       answer(id, gradeFor(pick.correct, ms), ms);
-      const nextId = nextCard(state, Date.now(), sitting.seen);
+      const nextId = sitting.practice ? sitting.practice[0] : nextCard(state, Date.now(), sitting.seen);
       // A note with playable Japanese stays up until Next, so it can be tapped.
       const waitForTap = !pick.correct || (nextId && needsSound(splitCardId(nextId).dir)) || Boolean((item.notes || '').match(NOTE_JP));
       $('after').innerHTML = `
@@ -462,6 +475,12 @@ async function drawStrokes(el, chars) {
 }
 
 function answer(id, rating, ms) {
+  if (sitting.practice) {
+    // Not saved. A miss comes round again at the end of the queue.
+    sitting.done++;
+    if (rating === AGAIN) sitting.practice.push(id);
+    return;
+  }
   state = rate(state, id, rating, { now: Date.now(), ms: Math.round(ms) });
   sitting.done++;
   save();
