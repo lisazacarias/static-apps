@@ -147,6 +147,19 @@ test('ballots left: sums a district\'s counties, or uses the statewide count', a
   assert.equal(uncountedFor({}, null), null);
 });
 
+test('share counted comes from the report, once it is dated after the late-mail deadline', async () => {
+  const { reportedShareCounted } = await import('../results.js');
+  const u = { asOf: 'November 13, 2026, 10:30 a.m.', lateMailBy: 'November 10, 2026, 11:59 p.m.',
+    statewide: 100, counties: { Alameda: 10, 'Santa Clara': 30 },
+    processed: { statewide: 900, counties: { Alameda: 90, 'Santa Clara': 70 } } };
+  assert.equal(reportedShareCounted({}, u), 90);
+  assert.equal(reportedShareCounted({ counties: ['Alameda', 'Santa Clara'] }, u), 80);
+  assert.equal(reportedShareCounted({ counties: ['Marin'] }, u), null);
+  assert.equal(reportedShareCounted({}, { ...u, asOf: 'November 7, 2026, 5:00 p.m.' }), null);
+  assert.equal(reportedShareCounted({}, { ...u, processed: undefined }), null);
+  assert.equal(reportedShareCounted({}, null), null);
+});
+
 test('a lead is only safe when it beats every ballot left, on a count no older than the report', async () => {
   const { cantBeCaught } = await import('../results.js');
   const mail = 'November 10, 2026, 11:59 p.m.';

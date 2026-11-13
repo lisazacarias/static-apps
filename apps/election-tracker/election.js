@@ -85,6 +85,11 @@ export const ELECTION = {
             counties: {
                 'Alameda': 9844 + 1382,
                 'Santa Clara': 7350 + 3000
+            },
+            // The report's "Cumulative Total Number of Processed Ballots", same date.
+            processed: {
+                statewide: 12814411,
+                counties: { 'Alameda': 563279, 'Santa Clara': 621548 }
             }
         }
     },

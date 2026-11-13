@@ -71,5 +71,6 @@ test('the ballots-left report covers every county a race lists, with a parseable
   assert.ok(u.sourceUrl.startsWith('https://') && u.statewide > 0);
   for (const r of races.filter(r => r.counties)) {
     for (const c of r.counties) assert.equal(typeof u.counties[c], 'number', r.key + ': ' + c);
+    for (const c of r.counties) assert.equal(typeof u.processed.counties[c], 'number', r.key + ' processed: ' + c);
   }
 });
