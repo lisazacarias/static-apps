@@ -3,9 +3,9 @@ import {
     FETCH_TIMEOUT, parseVotes, parsePercent, estimateBallotsCounted, shortTime, sourcesFor,
     lastName, sortByVotes, headToHead, raceGap, propNumber, measureStatus, latestSosTime,
     escapeHtml, escapeFeed, usableFeed, isSameElection, isQuiet, windowActive, monthYear,
-    trimPropTitle, uncountedFor, cantBeCaught, nextUpdateDay
-} from './results.js?v=2026-11-13c';
-import { ELECTION } from './election.js?v=2026-11-13c';
+    trimPropTitle, uncountedFor, cantBeCaught, nextUpdateDay, reportedShareCounted
+} from './results.js?v=2026-11-13d';
+import { ELECTION } from './election.js?v=2026-11-13d';
 
 let autoRefreshInterval;
 let countdownInterval;
@@ -18,7 +18,7 @@ const MIN_PERCENT_FOR_BAR = 1.0;
 // precincts figure goes in the tooltip only: a precinct counts as reported once any one
 // ballot from it is in, so it can read 100% with many ballots still out
 // (electionresults.sos.ca.gov/frequently-asked-questions).
-function renderBallotCountStatus(data, reportingTime, registered) {
+function renderBallotCountStatus(data, reportingTime, race) {
     const tooltip = data.Reporting
         ? ' title="' + data.Reporting.replace(/precincts reporting/i, 'precincts partially reporting') + '"'
         : '';
@@ -28,12 +28,17 @@ function renderBallotCountStatus(data, reportingTime, registered) {
         return '<div class="count-line"' + tooltip + '>' +
             (reportingTime ? '<span>SoS ' + shortTime(reportingTime) + '</span>' : '') + '</div>';
     }
-    const ballotInfo = estimateBallotsCounted(data, registered, ELECTION.current.turnout);
-    const pct = ballotInfo.percentCounted.toFixed(1);
+    // Once the state's ballots-left report is in, it beats guessing at turnout. It can lag
+    // the vote count by a day, so it reads a little low, never high.
+    const reported = reportedShareCounted(race, uncounted());
+    const pct = (reported ?? estimateBallotsCounted(data, race.registered, ELECTION.current.turnout)
+        .percentCounted).toFixed(1);
+    const label = reported === null ? 'est. counted'
+        : 'counted per ' + uncounted().asOf.replace(/^([A-Z][a-z]{2})[a-z]* (\d{1,2}),.*/, '$1 $2') + ' report';
     return '<div class="count-line"' + tooltip + '>' +
         '<b>~' + pct + '%</b>' +
         '<div class="count-bar"><i style="width: ' + pct + '%"></i></div>' +
-        '<span>est. counted' + (reportingTime ? ' · SoS ' + shortTime(reportingTime) : '') + '</span>' +
+        '<span>' + label + (reportingTime ? ' · SoS ' + shortTime(reportingTime) : '') + '</span>' +
     '</div>';
 }
 
@@ -155,7 +160,7 @@ function renderHeadToHead(race, data, sorted) {
                 : called ? '<span class="tag yes" title="' + escapeHtml(callTitle()) + '">Called</span>'
                 : tooClose ? '<span class="tag tie">Too close</span>' : '') +
         '</div>' +
-        renderBallotCountStatus(data, data.ReportingTime || '', race.registered) +
+        renderBallotCountStatus(data, data.ReportingTime || '', race) +
         '<div class="h2h-names">' + name(a, aLeads) + name(b, bLeads) + '</div>' +
         '<div class="split">' +
             '<i class="' + (aLeads ? 'lead' : 'trail') + '" style="width: ' + shareA + '%"></i>' +
@@ -188,7 +193,7 @@ function renderRace(race, data) {
     const raceId = raceName.replace(/\s+/g, '-').toLowerCase();
     const hasManyCandidates = sortedCandidates.length > CANDIDATES_TO_SHOW;
 
-    const ballotCountHTML = renderBallotCountStatus(data, reportingTime, race.registered);
+    const ballotCountHTML = renderBallotCountStatus(data, reportingTime, race);
 
     const candidatesHTML = sortedCandidates
     .map((candidate, index) => {
@@ -425,7 +430,7 @@ function renderMeasures(result) {
             parseVotes(m.yesVotes || '0') + parseVotes(m.noVotes || '0')));
         const status = renderBallotCountStatus(
             { candidates: [{ Votes: String(mostVotes) }], Reporting: data.Reporting },
-            data.ReportingTime || '', ELECTION.measures.registered);
+            data.ReportingTime || '', { registered: ELECTION.measures.registered });
         replaceSection(container, '<div class="race props">' + status +
             measures.map(m => renderMeasure(m, data.ReportingTime)).join('') +
             (measures.some(m => propLocked(m, data.ReportingTime))

@@ -146,6 +146,18 @@ export function uncountedFor(race, uncounted) {
     return sum;
 }
 
+// Share of ballots counted from the ballots-left report: counted / (counted + left) over the
+// race's counties. A district gets its counties' share, not its own. Null before the
+// late-mail deadline, when mail still on its way would make the share read too high.
+export function reportedShareCounted(race, uncounted) {
+    if (!uncounted || !uncounted.processed) return null;
+    const report = parseSosTime(uncounted.asOf), mailDone = parseSosTime(uncounted.lateMailBy);
+    if (!report || !mailDone || report <= mailDone) return null;
+    const left = uncountedFor(race, uncounted), done = uncountedFor(race, uncounted.processed);
+    if (typeof left !== 'number' || typeof done !== 'number' || done + left <= 0) return null;
+    return done / (done + left) * 100;
+}
+
 // A lead bigger than every ballot left can't be overtaken, even if the trailer won every one
 // of them (and some ballots skip any given race, so the real cushion is bigger). Only trusted
 // when the vote count is at least as new as the report: ballots counted in between would be
