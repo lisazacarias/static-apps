@@ -4,8 +4,8 @@ import {
     lastName, sortByVotes, headToHead, raceGap, propNumber, measureStatus, latestSosTime,
     escapeHtml, escapeFeed, usableFeed, isSameElection, isQuiet, windowActive, monthYear,
     trimPropTitle, uncountedFor, cantBeCaught, nextUpdateDay
-} from './results.js?v=2026-11-13a';
-import { ELECTION } from './election.js?v=2026-11-13a';
+} from './results.js?v=2026-11-13b';
+import { ELECTION } from './election.js?v=2026-11-13b';
 
 let autoRefreshInterval;
 let countdownInterval;
@@ -137,8 +137,9 @@ function renderHeadToHead(race, data, sorted) {
         '</span>';
 
     const called = raceCall(race.key);
-    const isLocked = !called && locked(race, Math.abs(va - vb), data.ReportingTime);
-    const margin = called
+    // Can't be caught wins over a call: it's the state's own count, not a news desk's projection.
+    const isLocked = locked(race, Math.abs(va - vb), data.ReportingTime);
+    const margin = called && !isLocked
         ? '<div class="h2h-margin">Called for <b>' + escapeHtml(called) + '</b> · ' + escapeHtml(calls().source) + '</div>'
         : aLeads || bLeads
         ? '<div class="h2h-margin">' + (aLeads ? a : b).Name + ' leads by <b>' +
@@ -150,8 +151,8 @@ function renderHeadToHead(race, data, sorted) {
     return '<div class="race h2h">' +
         '<div class="race-header">' +
             '<div class="race-title">' + raceName + '</div>' +
-            (raceCall(race.key) ? '<span class="tag yes" title="' + escapeHtml(callTitle()) + '">Called</span>'
-                : isLocked ? lockedTag(race, 'yes')
+            (isLocked ? lockedTag(race, 'yes')
+                : called ? '<span class="tag yes" title="' + escapeHtml(callTitle()) + '">Called</span>'
                 : tooClose ? '<span class="tag tie">Too close</span>' : '') +
         '</div>' +
         renderBallotCountStatus(data, data.ReportingTime || '', race.registered) +
@@ -252,9 +253,9 @@ function renderRace(race, data) {
             '<div class="race-title-section">' +
                 '<div class="race-title">' + raceName + '</div>' +
             '</div>' +
-            (raceCall(race.key) ? '<span class="tag yes" title="' + escapeHtml(callTitle()) + '">Called · ' +
-                escapeHtml(raceCall(race.key)) + '</span>'
-                : locked(race, margin, reportingTime) ? lockedTag(race, 'yes') : '') +
+            (locked(race, margin, reportingTime) ? lockedTag(race, 'yes')
+                : raceCall(race.key) ? '<span class="tag yes" title="' + escapeHtml(callTitle()) + '">Called · ' +
+                escapeHtml(raceCall(race.key)) + '</span>' : '') +
             showAllButton +
         '</div>' +
         ballotCountHTML +
@@ -279,10 +280,10 @@ function renderMeasure(m, reportingTime) {
     const { yes, no, total, yesShare, status } = measureStatus(m);
     const yesLeads = status === 'pass', noLeads = status === 'fail';
     const called = propCall(number);
-    const tag = called ? '<span class="tag ' + (called === 'approved' ? 'yes' : 'no') + '" title="' +
-            escapeHtml(callTitle()) + '">' + (called === 'approved' ? 'Approved' : 'Defeated') + '</span>'
-        : propLocked(m, reportingTime)
+    const tag = propLocked(m, reportingTime)
         ? lockedTag(STATEWIDE, yesLeads ? 'yes' : 'no', yesLeads ? 'Will pass' : 'Will fail')
+        : called ? '<span class="tag ' + (called === 'approved' ? 'yes' : 'no') + '" title="' +
+            escapeHtml(callTitle()) + '">' + (called === 'approved' ? 'Approved' : 'Defeated') + '</span>'
         : {
         none: '<span class="tag tie">No votes yet</span>',
         pass: '<span class="tag yes">Passing</span>',
@@ -339,7 +340,7 @@ const uncounted = () => currentActive ? ELECTION.current.uncounted : null;
 const STATEWIDE = {};
 const propLocked = (m, feedTime) => {
     const { yes, no } = measureStatus(m);
-    return !propCall(propNumber(m)) && locked(STATEWIDE, Math.abs(yes - no), feedTime);
+    return locked(STATEWIDE, Math.abs(yes - no), feedTime);
 };
 // The lead is bigger than every ballot left where this race is on the ballot.
 function locked(race, lead, feedTime) {
@@ -501,10 +502,10 @@ function glanceRace(race) {
     const data = lastGoodData[race.key];
     const sorted = sortByVotes(data.candidates);
     const lead = parseVotes(sorted[0].Votes) - parseVotes(sorted[1].Votes);
-    const result = called
-        ? '<span class="glance-lead">' + escapeHtml(lastName(called)) + '</span> <span class="glance-called">✓ called</span>'
-        : locked(race, lead, data.ReportingTime)
+    const result = locked(race, lead, data.ReportingTime)
         ? '<span class="glance-lead">' + lastName(a.Name) + '</span> <span class="glance-called glance-locked">can\'t be caught</span>'
+        : called
+        ? '<span class="glance-lead">' + escapeHtml(lastName(called)) + '</span> <span class="glance-called">✓ called</span>'
         : g.tooClose
         ? '<span class="tag tie">Too close</span>'
         : '<span class="glance-lead">' + lastName(a.Name) + (a.Party ? ' (' + a.Party + ')' : '') +
@@ -523,10 +524,10 @@ function glanceProps() {
         const cls = { pass: 'yes', fail: 'no' }[status] || 'tie';
         // No votes in yet reads as a dash, not a tie, matching the card's "No votes yet".
         const called = propCall(n);
-        const chipCls = called ? (called === 'approved' ? 'yes' : 'no') : cls;
         const sure = propLocked(m, lastGoodData.measures.ReportingTime);
-        const word = called ? (called === 'approved' ? '✓ Yes' : '✓ No')
-            : sure ? (status === 'pass' ? '🔒 Yes' : '🔒 No')
+        const chipCls = called && !sure ? (called === 'approved' ? 'yes' : 'no') : cls;
+        const word = sure ? (status === 'pass' ? '🔒 Yes' : '🔒 No')
+            : called ? (called === 'approved' ? '✓ Yes' : '✓ No')
             : { pass: 'Pass', fail: 'Fail', tie: 'Tie', none: '–' }[status];
         return '<a class="glance-chip ' + chipCls + '" href="#prop-' + n + '" title="Prop ' + n + ': ' +
             (propShortNames()[n] || '') + '">' + n + ' <b>' + word + '</b></a>';
@@ -540,7 +541,8 @@ function renderGlance() {
     el.hidden = !rows && !props;
     const c = calls();
     const anyLocked = /glance-locked|🔒/.test(rows + props);
-    const callsText = c && (Object.keys(c.races).length || Object.keys(c.props).length)
+    // Only when a ✓ is still on screen; a locked race drops its ✓.
+    const callsText = c && /✓/.test(rows + props)
         ? '✓ = called by <a href="' + c.sourceUrl + '" target="_blank">' + escapeHtml(c.source) +
           '</a>, ' + escapeHtml(sentence('as of ' + c.asOf)) + ' The state doesn\'t call races; results are official at certification.'
         : '';
