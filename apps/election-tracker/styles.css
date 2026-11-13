@@ -541,6 +541,9 @@ header {
 .tag.yes { color: var(--green); background: var(--green-dim); border: 1px solid rgba(16, 185, 129, 0.25); }
 .tag.no { color: #c2747a; background: rgba(194, 116, 122, 0.12); border: 1px solid rgba(194, 116, 122, 0.3); }
 .tag.tie { color: var(--text-label); border: 1px solid var(--border-bright); }
+/* Locked tags are filled, so "Will pass" doesn't read like "Passing". */
+.tag.locked.yes { color: var(--bg); background: var(--green); border-color: var(--green); }
+.tag.locked.no { color: var(--bg); background: #c2747a; border-color: #c2747a; }
 
 /* Props: one card, one row per measure */
 .props { padding-bottom: 6px; }
