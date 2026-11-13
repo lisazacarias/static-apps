@@ -4,8 +4,8 @@ import {
     lastName, sortByVotes, headToHead, raceGap, propNumber, measureStatus, latestSosTime,
     escapeHtml, escapeFeed, usableFeed, isSameElection, isQuiet, windowActive, monthYear,
     trimPropTitle, uncountedFor, cantBeCaught, nextUpdateDay
-} from './results.js?v=2026-11-13b';
-import { ELECTION } from './election.js?v=2026-11-13b';
+} from './results.js?v=2026-11-13c';
+import { ELECTION } from './election.js?v=2026-11-13c';
 
 let autoRefreshInterval;
 let countdownInterval;
@@ -350,7 +350,7 @@ function locked(race, lead, feedTime) {
 // The explanation is visible text (the glance note, the race's margin line, the props note),
 // not just this tag, since touch screens never show a title.
 function lockedTag(race, cls, word = "Can't be caught") {
-    return '<span class="tag ' + cls + '">' + word + '</span>';
+    return '<span class="tag locked ' + cls + '">🔒 ' + word + '</span>';
 }
 const lockedNote = () => 'the lead beats every ballot the state <a href="' + uncounted().sourceUrl +
     '" target="_blank">listed as left to count</a> (' + escapeHtml(shortTime(uncounted().asOf)) +
